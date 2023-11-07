@@ -77,9 +77,6 @@ if VJExists == true then
 	local function AddWep(name,class)
 		VJ.AddNPCWeapon("VJ_" .. name, class, vCat)
 		VJ.AddWeapon(name, class, false, vCat)
-		if CS2.SkinOptions then
-			CS2.SkinOptions[name] = class
-		end
 	end
 
 	AddWep("VP78 Pistol","weapon_vj_avp_pistol")
