@@ -131,7 +131,7 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 		self:SetPoseParameter("aim_yaw", pyaw + (self.Turret_ScanDirSide == 1 and -5 or 5))
-		self:SetPoseParameter("aim_pitch",Lerp(FrameTime() *2,self:GetPoseParameter("aim_pitch"),0))
+		self:SetPoseParameter("aim_pitch",Lerp(FrameTime() *8,self:GetPoseParameter("aim_pitch"),0))
 	else
 		self.HasPoseParameterLooking = true
 	end
@@ -158,7 +158,7 @@ end
 function ENT:CustomRangeAttackCode()	
 	local startpos = self:GetAttachment(self:LookupAttachment("muzzle")).Pos
 	local ent = self:GetEnemy()
-	local bSpread = 60
+	local bSpread = 150
 	for i = 1,3 do
 		timer.Simple(0.05 *i,function()
 			if IsValid(self) && IsValid(ent) then
@@ -166,11 +166,14 @@ function ENT:CustomRangeAttackCode()
 				bullet.Num = 1
 				bullet.Src = startpos
 				bullet.Dir = ((ent:GetPos() +ent:OBBCenter()) -startpos):GetNormalized() *4000
-				bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread)) *i
+				bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread))
 				bullet.Tracer = 1
 				bullet.Force = 5
 				bullet.Damage = 5
 				bullet.AmmoType = "SMG1"
+				bullet.Callback = function(attacker,tr,dmginfo)
+					util.ScreenShake(tr.HitPos,16,100,0.2,50)
+				end
 				self:FireBullets(bullet)
 			end
 		end)
