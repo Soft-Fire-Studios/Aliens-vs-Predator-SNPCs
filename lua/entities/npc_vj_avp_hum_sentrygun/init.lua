@@ -17,7 +17,7 @@ ENT.PoseParameterLooking_InvertYaw = true
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.FriendsWithAllPlayerAllies = true
-ENT.AlertedToIdleTime = VJ.SET(5, 5)
+ENT.AlertedToIdleTime = VJ.SET(2.5, 2.5)
 ENT.HasMeleeAttack = false
 
 ENT.HasRangeAttack = true
@@ -114,10 +114,9 @@ function ENT:CustomOnThink_AIEnabled()
 		self.PoseParameterLooking_CanReset = true
 	end
 
-	local scan = !self.Alerted
-	self.HasPoseParameterLooking = self.Alerted
 	local pyaw = self:GetPoseParameter("aim_yaw")
-	if scan == true then
+	if !eneValid then
+		self.HasPoseParameterLooking = false
 		if pyaw >= 70 then
 			self.Turret_ScanDirSide = 1
 			if self.Turret_NextScanBeepT < CurTime() then
@@ -133,6 +132,8 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 		self:SetPoseParameter("aim_yaw", pyaw + (self.Turret_ScanDirSide == 1 and -5 or 5))
 		self:SetPoseParameter("aim_pitch",Lerp(FrameTime() *2,self:GetPoseParameter("aim_pitch"),0))
+	else
+		self.HasPoseParameterLooking = true
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
