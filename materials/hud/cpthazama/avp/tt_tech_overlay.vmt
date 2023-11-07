@@ -1,0 +1,33 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "hud/cpthazama/avp/transparent"
+	
+	"$alphatest" "1"
+	"$translucent" "1"
+	"$allowalphatocoverage" "1"
+	"$nodecal" "1"
+
+	"$FleshInteriorEnabled"      	"1"
+	"$FleshInteriorTexture"      	"hud/cpthazama/avp/tt_cold"
+	"$FleshNormalTexture"			"hud/cpthazama/avp/thermal_cloak"
+	"$FleshBorderTexture1D"      	"hud/cpthazama/avp/tech_gradient"
+	"$FleshInteriorNoiseTexture" 	"hud/cpthazama/avp/tech_gradient"
+	"$FleshSubsurfaceTexture"	 	"hud/cpthazama/avp/tech_gradient"
+	"$FleshSubsurfaceTint" 			"[1 1 1]"
+	"$FleshBorderNoiseScale"     	"1"
+	"$FleshBorderWidth"				"1"
+	"$FleshBorderSoftness"			"0"
+	"$FleshBorderTint"				"[2 2 2]"
+	"$FleshScrollSpeed"				"1"
+	"$FleshGlossBrightness"			"1"
+	"$FleshDebugForceFleshOn"	 	"1"
+
+	"Proxies"
+	{
+		"FleshInterior"
+		{
+		}
+	}
+
+	$lightwarptexture "hud/cpthazama/avp/tech_gradient"
+}

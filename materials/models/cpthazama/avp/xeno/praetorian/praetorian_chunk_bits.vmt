@@ -1,0 +1,21 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_col"
+	"$bumpmap"					"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_norms"
+	"$phongexponenttexture"		"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_spec"
+
+	"$ambientocclusion"			"1"
+	"$nodecal"					"1"
+
+	"$phong"					"1"
+	"$phongboost"				"5"
+	"$phongexponent"			"30"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongalbedotint" 			"1"
+
+	"$rimlight"					"1"
+	"$rimlightexponent"			"2"
+	"$rimlightboost"			"0.2"
+
+	"$normalmapalphaenvmapmask"	"1"
+}

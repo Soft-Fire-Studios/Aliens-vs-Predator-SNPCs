@@ -1,0 +1,21 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/predators/console_tickers"
+	"$bumpmap"					"vj_base/flat"
+
+    "$nodecal" 					"1"
+    "$translucent" 				"1"
+    "$allowalphatocoverage" 	"1"
+
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"Proxies"
+	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
+	}
+}

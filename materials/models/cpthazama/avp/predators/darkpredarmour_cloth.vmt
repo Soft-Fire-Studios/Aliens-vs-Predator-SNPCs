@@ -1,0 +1,27 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/predators/darkpredarmour_col"
+	"$bumpmap"					"models/cpthazama/avp/predators/newpredarmour_norms"
+	"$phongexponenttexture"		"models/cpthazama/avp/predators/newpredarmour_spec"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "2"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+	"$phongalbedotint"           "1"
+
+	"$normalmapalphaenvmapmask"  "1"
+
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"Proxies"
+	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
+	}
+}

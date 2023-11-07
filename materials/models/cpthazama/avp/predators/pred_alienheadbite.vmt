@@ -1,0 +1,21 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/predators/pred_alienheadbite_col"
+	"$bumpmap"					"models/cpthazama/avp/predators/pred_alienheadbite_norms"
+
+    "$nodecal" 					"1"
+    "$translucent" 				"1"
+    "$allowalphatocoverage"		"1"
+
+	"$detail" 					"models/cpthazama/avp/predators/pred_alienheadbite_col"
+	"$detailscale" 				"1"
+	"$detailblendfactor" 		"1"
+	"$detailblendmode" 			"5"
+
+	"$phong"                     "1"
+	"$phongboost"                "9"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+	"$phongalbedotint"           "1"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

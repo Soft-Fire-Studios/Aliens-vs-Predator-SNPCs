@@ -1,0 +1,10 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/cpthazama/avp/xenovision"
+ 	"$model" 1
+    "$nocull" "1"
+	"$translucent" "1"
+	"$alpha" "0"
+	"$additive" "1"
+	"$selfillum" "1"
+}

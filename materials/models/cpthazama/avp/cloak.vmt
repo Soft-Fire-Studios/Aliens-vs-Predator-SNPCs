@@ -1,0 +1,22 @@
+"Refract"
+{
+	"$refracttexture" "models/cpthazama/avp/reflection"
+	"$nocull" "1"
+	"$halflambert" "1"
+	"$model" "1"
+	"$bluramount" "1"
+	"$refractamount" "0.25"
+	"$refracttint" "[1 1 1]"
+	"$reflectentities" "1"
+	"$dudvmap" "dev/water_dudv"
+	"$normalmap" "dev/water_normal"
+	"Proxies"
+	{
+		"TextureScroll"
+		{
+			"texturescrollvar" "$bumptransform"
+			"texturescrollrate" "0.01"
+			"texturescrollangle" "180"
+		}
+	}
+}

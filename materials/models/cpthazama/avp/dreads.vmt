@@ -1,0 +1,31 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/dreads"
+	"$bumpmap"					"models/cpthazama/avp/dreads_n"
+	"$phongexponenttexture"		"models/cpthazama/avp/dreads_spec"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "5"
+	"$phongexponent"             "20"
+	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phongalbedotint"           "1"
+	"$phongalbedoboost"          "10"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.01 0.01 0.01]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.2"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

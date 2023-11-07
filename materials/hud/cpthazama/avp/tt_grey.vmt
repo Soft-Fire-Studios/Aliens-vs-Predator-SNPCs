@@ -1,0 +1,52 @@
+"UnlitGeneric"
+{
+	"$basetexture" "hud/cpthazama/avp/tt_grey"
+	"$model" "1"
+	"$translucent" "0"
+	"$alpha" "0"
+	"$nocull" "0"
+	"$ignorez" "0"
+	"$surfaceprop" "Default"
+	"$color2" "[1 1 1]"
+
+	$detail	"hud/cpthazama/avp/tt_grey"
+	$detailscale "6"
+	$detailblendfactor "0.5"
+	$detailblendmode "2"
+
+	"Proxies"
+	{
+		"Sine"
+		{
+			"resultvar"	"$detailblendfactor"
+			"sineperiod" 5
+			"sinemin" 0.5
+			"sinemax" 0.9
+		}
+		"Sine"
+		{
+			"resultvar"	"$detailblendfactor"
+			"sineperiod" 5
+			"sinemin" 0.5
+			"sinemax" 0.9
+		}
+		"TextureScroll"
+		{
+			"texturescrollvar"	"$detailtexturetransform"
+			"texturescrollrate"	0.04
+			"texturescrollangle" 100
+		}
+		"TextureScroll"
+		{
+			"texturescrollvar" "$basetexturetransform"
+			"texturescrollrate" "4"
+			"texturescrollangle" "180"
+		}
+		"AnimatedTexture"
+		{
+			"animatedTextureVar" "$basetexture"
+			"animatedTextureFrameNumVar" "$frame"
+			"animatedTextureFrameRate" "15"
+		}
+	}
+}

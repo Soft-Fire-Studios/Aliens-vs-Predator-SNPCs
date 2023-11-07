@@ -1,0 +1,8 @@
+"Spritecard"
+{
+	"$basetexture" 			"hud/cpthazama/avp/pred_invis_nojump2"
+	"$vertexcolor" 			"1"
+	"$vertexalpha" 			"1"
+	"$translucent" 			"1"
+	"$overbrightfactor" 	"2"
+}
