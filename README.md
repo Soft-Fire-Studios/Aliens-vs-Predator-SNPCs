@@ -1,4 +1,4 @@
-# Aliens-vs-Predator-SNPCs
+# Aliens vs Predator SNPCs
 
 Adds NPCs and weapons from Aliens vs Predator 3, including cut-content that has been restored! Includes humans, androids, machinary, predators and xenomorphs!
 
