@@ -83,6 +83,11 @@ if VJExists == true then
 
 	KEY_MOUSESCROLL_UP = 112
 	KEY_MOUSESCROLL_DOWN = 113
+	VJ_AVP_HALOS = {}
+	VJ_AVP_HALOS.Xenomorphs = {}
+	VJ_AVP_HALOS.Predators = {}
+	VJ_AVP_HALOS.Tech = {}
+	VJ_AVP_HALOS.Other = {}
 
 	local NPC = FindMetaTable("NPC")
 	

@@ -53,6 +53,10 @@ ENT.SoundTbl_Death = {
 
 ENT.AnimationBehaviors = {}
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnInit()
+	self.CurrentSet = 2
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
 		local snd = "cpthazama/avp/xeno/queen/alien_queen_breathe_in_0" .. math.random(1,3) .. ".wav"

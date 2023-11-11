@@ -277,6 +277,21 @@ function ENT:CustomOnInitialize()
 		envLight:Fire("setparentattachment","flashlight")
 		self:DeleteOnRemove(envLight)
 
+        local spotlight = ents.Create("beam_spotlight")
+        spotlight:SetPos(self:GetPos())
+        spotlight:SetAngles(self:GetAngles())
+        spotlight:SetKeyValue("spotlightlength",700)
+        spotlight:SetKeyValue("spotlightwidth",30)
+		spotlight:SetKeyValue("spawnflags","2")
+        spotlight:Fire("Color","255 247 206")
+        spotlight:SetParent(self)
+        spotlight:Spawn()
+        spotlight:Activate()
+		spotlight:Fire("setparentattachment","flashlight")
+        spotlight:Fire("lighton")
+		spotlight:AddEffects(EF_PARENT_ANIMATES)
+        self:DeleteOnRemove(spotlight)
+
 		local glow1 = ents.Create("env_sprite")
 		glow1:SetKeyValue("model","sprites/light_ignorez.vmt")
 		glow1:SetKeyValue("scale","0.2")
@@ -289,22 +304,22 @@ function ENT:CustomOnInitialize()
 		glow1:Spawn()
 		self:DeleteOnRemove(glow1)
 
-		local glowLight = ents.Create("light_dynamic")
-		glowLight:SetKeyValue("brightness","1.4")
-		glowLight:SetKeyValue("distance","70")
-		glowLight:SetLocalPos(self:GetPos() +self:OBBCenter())
-		glowLight:SetLocalAngles(self:GetAngles())
-		glowLight:Fire("Color", "255 247 206")
-		glowLight:SetParent(self)
-		glowLight:SetOwner(self)
-		glowLight:Spawn()
-		glowLight:Fire("TurnOn","",0)
-		glowLight:Fire("SetParentAttachment","flashlight",0)
-		self:DeleteOnRemove(glowLight)
+		-- local glowLight = ents.Create("light_dynamic")
+		-- glowLight:SetKeyValue("brightness","1.4")
+		-- glowLight:SetKeyValue("distance","70")
+		-- glowLight:SetLocalPos(self:GetPos() +self:OBBCenter())
+		-- glowLight:SetLocalAngles(self:GetAngles())
+		-- glowLight:Fire("Color", "255 247 206")
+		-- glowLight:SetParent(self)
+		-- glowLight:SetOwner(self)
+		-- glowLight:Spawn()
+		-- glowLight:Fire("TurnOn","",0)
+		-- glowLight:Fire("SetParentAttachment","flashlight",0)
+		-- self:DeleteOnRemove(glowLight)
 
-		self.Light = envLight
-		self.LightGlow = glow1
-		self.LightGlowDynamic = glowLight
+		-- self.Light = envLight
+		-- self.LightGlow = glow1
+		-- self.LightGlowDynamic = glowLight
 	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)

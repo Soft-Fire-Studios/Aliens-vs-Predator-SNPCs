@@ -213,6 +213,8 @@ function ENT:CustomOnInitialize()
 	self.LastMovementActivity = ACT_RUN
 	self.ChangeSetT = CurTime() +1
 	self.IsUsingFaceAnimation = false
+	self.SprintT = 0
+	self.NextSprintT = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -493,6 +495,81 @@ function ENT:Gibs()
 	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local math_acos = math.acos
+local math_deg = math.deg
+local math_rad = math.rad
+local math_abs = math.abs
+--
+function ENT:SetGroundAngle(curSet)
+	local pos = self:GetPos()
+	local len = self:GetUp() *50
+	local ang = self:GetAngles()
+	local ang_y = Angle(0,ang.y,0)
+	local refreshRate = FrameTime() *20
+	if curSet == 1 && self:OnGround() then
+		local mins, maxs = self:GetCollisionBounds()
+		local posForward, posBackward, posRight, posLeft
+		local directionVectors = {
+			forward = ang_y:Forward(),
+			backward = ang_y:Forward() * -1,
+			right = ang_y:Right(),
+			left = ang_y:Right() * -1,
+		}
+		local hits = {}
+		for direction, vector in pairs(directionVectors) do
+			local startPos = pos + vector * ((vector == directionVectors.right or vector == directionVectors.left) and maxs.y or maxs.x)
+			local tr = util.TraceLine({
+				start = startPos,
+				endpos = startPos - len,
+				filter = self
+			})
+			hits[direction] = tr.HitPos
+			if direction == "forward" then
+				posForward = startPos
+			elseif direction == "backward" then
+				posBackward = startPos
+			elseif direction == "right" then
+				posRight = startPos
+			elseif direction == "left" then
+				posLeft = startPos
+			end
+		end
+
+		local hitForward = hits.forward
+		local hitBackward = hits.backward
+		local hitRight = hits.right
+		local hitLeft = hits.left
+		local pitch
+		local roll
+		local pitchDif = math_abs(hitForward.z -hitBackward.z)
+		local rollDif = math_abs(hitLeft.z -hitRight.z)
+		if posForward:Distance(hitForward) > posBackward:Distance(hitBackward) then
+			pitch = 90 -math_deg(math_acos(pitchDif /hitForward:Distance(posBackward)))
+		else
+			pitch = -(90 -math_deg(math_acos(pitchDif /hitBackward:Distance(posForward))))
+		end
+		if posLeft:Distance(hitLeft) > posRight:Distance(hitRight) then
+			roll = -(90 -math_deg(math_acos(rollDif /hitLeft:Distance(posRight))))
+		else
+			roll = 90 -math_deg(math_acos(rollDif /hitRight:Distance(posLeft)))
+		end
+
+		local tr = util.TraceLine({
+			start = pos,
+			endpos = pos -len,
+			filter = self
+		})
+
+		self.Incline = pitch
+		self:ManipulateBonePosition(0,Vector(0,0,Lerp(refreshRate,self:GetManipulateBonePosition(0).z,-(tr.HitPos +tr.HitNormal):Distance(pos))))
+		self:SetAngles(LerpAngle(refreshRate,self:GetAngles(),Angle(pitch,ang.y,roll)))
+	else
+		self.Incline = 0
+		self:ManipulateBonePosition(0,Vector(0,0,Lerp(refreshRate,self:GetManipulateBonePosition(0).z,0)))
+		self:SetAngles(LerpAngle(refreshRate,self:GetAngles(),Angle(0,ang.y,0)))
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink()
 	local curTime = CurTime()
 	local ent = self:GetEnemy()
@@ -514,6 +591,7 @@ function ENT:CustomOnThink()
 	if self.HasBreath then
 		self:Breathe()
 	end
+	self:SetGroundAngle(curSet)
 
 	if self.LongJumping && self.LongJumpPos then
 		local currentPos = self:GetPos()
@@ -529,9 +607,24 @@ function ENT:CustomOnThink()
 		self.CurrentAttackAnimation = nil
 	end
 
-	self:SetEnemyCS(ent)
+	self:SetSprinting(self:IsMoving() && (self:GetActivity() == ACT_SPRINT or self:GetActivity() == ACT_MP_SPRINT))
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
+	local sprinting = self:GetSprinting()
+	self.CanAttack = !sprinting
+	if sprinting then
+		if self:GetActivity() == ACT_SPRINT && self:OnGround() then
+			self:SetVelocity(self:GetMoveVelocity() *1.25)
+		end
+		self.SprintT = self.SprintT +0.1
+		if self.SprintT >= 4 then
+			self.NextSprintT = curTime +3
+		end
+	else
+		if self.SprintT > 0 then
+			self.SprintT = self.SprintT -0.2
+		end
+	end
 	-- self.IsUsingFaceAnimation = self.FaceEnemyMovements[moveAct]
 	if IsValid(ply) then
 		if ply:KeyDown(IN_DUCK) then
@@ -584,20 +677,24 @@ function ENT:SelectMovementActivity()
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
-			act = standing && ACT_WALK or ACT_RUN_RELAXED
-		elseif ply:KeyDown(IN_SPEED) then
-			act = standing && ACT_RUN or ACT_RUN_RELAXED
+			act = standing && ACT_WALK or ACT_WALK_RELAXED
+		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < CurTime() then
+			act = standing && ACT_MP_SPRINT or ACT_SPRINT
 		else
-			act = standing && ACT_WALK_STIMULATED or ACT_RUN_RELAXED
+			act = standing && ACT_RUN or ACT_RUN_RELAXED
 		end
 		return act
 	end
 	local currentSchedule = self.CurrentSchedule
 	if currentSchedule != nil then
 		if currentSchedule.MoveType == 0 then
-			act = standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_RUN_RELAXED
+			act = standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
 		else
-			act = standing && ACT_RUN or ACT_RUN_RELAXED
+			if self.NextSprintT < CurTime() then
+				act = standing && ACT_MP_SPRINT or ACT_SPRINT
+			else
+				act = standing && ACT_RUN or ACT_RUN_RELAXED
+			end
 		end
 	end
 	return act
