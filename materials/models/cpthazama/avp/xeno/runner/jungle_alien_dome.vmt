@@ -4,7 +4,6 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/runner/jungle_alien_dome_normal"
 	"$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_dome_specular"
 
-	"$translucent"				"1"
     "$nodecal" 					"1"
 
 	"$phong"                     "1"
@@ -20,7 +19,7 @@
 	"$envmaptint" 				 "[0.2 0.2 0.2]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"1"
+	"$DEM_Multiplier" 			"0.8"
 
 	"Proxies" 
 	{

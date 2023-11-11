@@ -507,7 +507,7 @@ function ENT:CustomOnThink()
 	local sprinting = self:GetSprinting()
 	self.CanAttack = !sprinting
 	if sprinting then
-		self.SprintT = self.SprintT +0.2
+		self.SprintT = self.SprintT +0.1
 		if self.SprintT >= 4 then
 			self.NextSprintT = curTime +3
 		end

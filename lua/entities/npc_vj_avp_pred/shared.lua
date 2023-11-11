@@ -102,10 +102,14 @@ if CLIENT then
 		-- end)
 	end
 
+	local math_abs = math.abs
+	local blueFX = Vector(0.5,2,6)
+	local whiteFX = Vector(1,1,1)
     matproxy.Add({
         name = "AVP_Cloak",
         init = function(self,mat,values)
             self.Result = values.resultvar
+			self.CloakColorTint = mat:GetVector("$cloakcolortint") or whiteFX
         end,
         bind = function(self,mat,ent)
             if (!IsValid(ent)) then return end
@@ -122,6 +126,8 @@ if CLIENT then
 				end
 			end
 			ent.Mat_cloakfactor = Lerp(FrameTime() *0.3,curValue,finalResult)
+			self.CloakColorTint = LerpVector(FrameTime() *0.3,self.CloakColorTint,math_abs(curValue -finalResult) > 0.1 && blueFX or whiteFX)
+			mat:SetVector("$cloakcolortint",self.CloakColorTint)
 			mat:SetFloat(self.Result,ent.Mat_cloakfactor)
         end
     })
@@ -256,7 +262,7 @@ if CLIENT then
 			cont:AllowFlashlight(true)
 			if cont.VisionHeart then cont.VisionHeart:Stop() end
 			if cont.VisionBuzz then cont.VisionBuzz:Stop() end
-			if cont.VisionIdle then cont.VisionIdle:Stop() end
+			-- if cont.VisionIdle then cont.VisionIdle:Stop() end
 			hook.Remove("PlayerButtonDown","VJ_AVP_Predator_Buttons")
 		else
 			ent.VJ_TheControllerEntity = cont
@@ -414,12 +420,12 @@ if CLIENT then
 						cont.VisionBuzz:ChangeVolume(0.3)
 					end
 
-					if cont.VisionIdle == nil then
-						cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")
-						cont.VisionIdle:SetSoundLevel(0)
-						cont.VisionIdle:Play()
-						cont.VisionIdle:ChangeVolume(0.5)
-					end
+					-- if cont.VisionIdle == nil then
+					-- 	cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")
+					-- 	cont.VisionIdle:SetSoundLevel(0)
+					-- 	cont.VisionIdle:Play()
+					-- 	cont.VisionIdle:ChangeVolume(0.5)
+					-- end
 				elseif mode == 0 then
 					if cont.VisionHeart then
 						cont.VisionHeart:Stop()
@@ -429,10 +435,10 @@ if CLIENT then
 						cont.VisionBuzz:Stop()
 						cont.VisionBuzz = nil
 					end
-					if cont.VisionIdle then
-						cont.VisionIdle:Stop()
-						cont.VisionIdle = nil
-					end
+					-- if cont.VisionIdle then
+					-- 	cont.VisionIdle:Stop()
+					-- 	cont.VisionIdle = nil
+					-- end
 				end
 			end
 		end)
@@ -452,9 +458,9 @@ if CLIENT then
 			if cont.VisionBuzz then
 				cont.VisionBuzz:Stop()
 			end
-			if cont.VisionIdle then
-				cont.VisionIdle:Stop()
-			end
+			-- if cont.VisionIdle then
+			-- 	cont.VisionIdle:Stop()
+			-- end
 		end
 
 		local gDefault = {

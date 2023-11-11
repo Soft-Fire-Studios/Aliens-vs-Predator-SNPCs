@@ -6,7 +6,7 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
-ENT.StartHealth = 150
+ENT.StartHealth = 225
 ENT.HullType = HULL_HUMAN
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -119,6 +119,56 @@ ENT.AttackSets = {
 		},
 	},
 }
+
+ENT.CanSpit = false
+ENT.CanStand = true
+ENT.CanLeap = true
+ENT.FaceEnemyMovements = {ACT_RUN_RELAXED=true,ACT_RUN=true,ACT_WALK_STIMULATED=true}
+
+ENT.SoundTbl_Alert = {
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_short_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_hiss_short_02.ogg",
+}
+ENT.SoundTbl_CombatIdle = {
+	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_03.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_04.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_05.ogg",
+}
+ENT.SoundTbl_Jump = {
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_03.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_04.ogg",
+}
+ENT.SoundTbl_Pain = {
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_03.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_04.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_05.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_06.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_07.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_08.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_09.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_pain_small_10.ogg",
+}
+ENT.SoundTbl_Death = {
+	"cpthazama/avp/xeno/alien/vocals/alien_death_scream_iconic_elephant.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_20.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_21.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_22.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_23.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_24.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_25.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_26.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_27.ogg",
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
 	if self.AnimationBehaviors[act] then
@@ -162,6 +212,11 @@ function ENT:CustomOnInitialize()
 	self.LastIdleActivity = ACT_IDLE
 	self.LastMovementActivity = ACT_RUN
 	self.ChangeSetT = CurTime() +1
+	self.IsUsingFaceAnimation = false
+
+	if self.OnInit then
+		self:OnInit()
+	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
@@ -187,11 +242,90 @@ function ENT:OnKeyPressed(ply,key)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAcceptInput(key,activator,caller,data)
-	if key == "step" then
-		self:FootStepSoundCode()
+function ENT:LongJumpCode(gotoPos,atk)
+	local ply = self.VJ_TheController
+	local bullseye = self.VJ_TheControllerBullseye
+	local aimVec = IsValid(ply) && ply:GetAimVector()
+	local tr1
+	local canJump = true
+	if gotoPos then
+		tr1 = util.TraceLine({
+			start = self:EyePos(),
+			endpos = gotoPos +Vector(0,0,self:OBBMaxs().z),
+			filter = {self,ply,bullseye}
+		})
+		canJump = self:VisibleVec(gotoPos)
+	else
+		tr1 = util.TraceLine({
+			start = self:EyePos(),
+			endpos = self:EyePos() +(IsValid(ply) && aimVec *(atk && 800 or 2000) or self:GetForward() *800),
+			filter = {self,ply,bullseye}
+		})
 	end
-	if key == "attack" then
+	if !canJump then return end
+	local firstHit = tr1.HitPos
+	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
+	local upCheck1 = util.TraceLine({
+		start = firstHit,
+		endpos = firstHit +self:GetUp() *600,
+		filter = {self,ply,bullseye}
+	})
+	local trSt
+	if upCheck1 then
+		local pos = upCheck1.HitPos +(upCheck1.HitPos -self:GetPos()):GetNormalized() *64
+		-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,242,0), 5)
+		trSt = util.TraceLine({
+			start = pos,
+			endpos = pos +self:GetUp() *-2000,
+			filter = {self,ply,bullseye}
+		})
+		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(255,0,212), 5)
+	else
+		trSt = util.TraceLine({
+			start = firstHit,
+			endpos = firstHit +self:GetUp() *-2000,
+			filter = {self,ply,bullseye}
+		})
+		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
+	end
+	local startPos = trSt.HitPos +trSt.HitNormal *4
+	-- VJ.DEBUG_TempEnt(startPos, self:GetAngles(), Color(13,0,255), 5)
+	self.LongJumpPos = trSt.HitPos
+	self.LongJumpAttacking = atk
+	local anim = "jump_fwd"
+	local dist = self:GetPos():Distance(self.LongJumpPos)
+	local height = self:GetPos().z -self.LongJumpPos.z
+	self:FaceCertainPosition(self.LongJumpPos,1)
+	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnAcceptInput(key,activator,caller,data)
+	if key == "jump_start" then
+		self.LongJumping = true
+	elseif key == "jump_end" then
+		self.LongJumping = false
+		self:SetLocalVelocity(Vector(0,0,0))
+		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
+		local tr = util.TraceLine({
+			start = self:GetPos(),
+			endpos = self:GetPos() +self:GetUp() *-100,
+			filter = {self},
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if tr.Hit then
+			local fx = EffectData()
+			fx:SetOrigin(tr.HitPos)
+			fx:SetScale(2)
+			fx:SetMagnitude(2)
+			fx:SetNormal(self:GetUp())
+			util.Effect("ElectricSpark",fx)
+			for i = 1,16 do
+				util.Effect("GlassImpact",fx)
+			end
+		end
+	elseif key == "step" then
+		self:FootStepSoundCode()
+	elseif key == "attack" then
 		self:MeleeAttackCode()
 	end
 end
@@ -221,6 +355,8 @@ function ENT:CustomAttack(ent,visible)
 					self.IsAttacking = false
 				end})
 			end})
+		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+			self:LongJumpCode()
 		end
 		return
 	end
@@ -379,13 +515,24 @@ function ENT:CustomOnThink()
 		self:Breathe()
 	end
 
+	if self.LongJumping && self.LongJumpPos then
+		local currentPos = self:GetPos()
+		local dist = currentPos:Distance(self.LongJumpPos)
+		local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() or self:OBBCenter() *3)
+		local moveDirection = (targetPos -currentPos):GetNormalized()
+		local moveSpeed = (dist < 250 && 800 or dist *4)
+		local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
+		self:SetLocalVelocity(moveDirection *moveSpeed)
+	end
+
 	if self.IsAttacking == false then
 		self.CurrentAttackAnimation = nil
 	end
 
 	self:SetEnemyCS(ent)
-	self:SetPoseParameter("standing", curSet -1)
+	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
+	-- self.IsUsingFaceAnimation = self.FaceEnemyMovements[moveAct]
 	if IsValid(ply) then
 		if ply:KeyDown(IN_DUCK) then
 			if curTime > self.ChangeSetT then
@@ -437,13 +584,21 @@ function ENT:SelectMovementActivity()
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
-			act = standing && ACT_WALK_STIMULATED or ACT_WALK_RELAXED
+			act = standing && ACT_WALK or ACT_RUN_RELAXED
 		elseif ply:KeyDown(IN_SPEED) then
-			act = standing && ACT_MP_SPRINT or ACT_SPRINT
+			act = standing && ACT_RUN or ACT_RUN_RELAXED
 		else
-			act = standing && ACT_RUN_STIMULATED or ACT_RUN
+			act = standing && ACT_WALK_STIMULATED or ACT_RUN_RELAXED
 		end
 		return act
+	end
+	local currentSchedule = self.CurrentSchedule
+	if currentSchedule != nil then
+		if currentSchedule.MoveType == 0 then
+			act = standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_RUN_RELAXED
+		else
+			act = standing && ACT_RUN or ACT_RUN_RELAXED
+		end
 	end
 	return act
 end
@@ -451,11 +606,11 @@ end
 function ENT:SelectIdleActivity()
 	local act = ACT_IDLE
 	local standing = self.CurrentSet == 2
-	if standing then
-		act = ACT_IDLE_STIMULATED
-	else
+	-- if standing then
+		-- act = ACT_IDLE_STIMULATED
+	-- else
 		act = ACT_IDLE
-	end
+	-- end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

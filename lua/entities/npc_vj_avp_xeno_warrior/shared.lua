@@ -73,58 +73,58 @@ if CLIENT then
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
 
-		hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
-			if IsValid(ent) then
-				local light = DynamicLight(ent:EntIndex())
-				if (light) then
-					light.Pos = ent:GetPos()
-					light.r = 0
-					light.g = 10
-					light.b = 1
-					light.Brightness = 0
-					light.Size = 2000
-					light.Decay = 0
-					light.DieTime = CurTime() +0.2
-					light.Style = 0
-				end
-			end
-		end)
-		if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
+		-- hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
+		-- 	if IsValid(ent) then
+		-- 		local light = DynamicLight(ent:EntIndex())
+		-- 		if (light) then
+		-- 			light.Pos = ent:GetPos()
+		-- 			light.r = 0
+		-- 			light.g = 10
+		-- 			light.b = 1
+		-- 			light.Brightness = 0
+		-- 			light.Size = 2000
+		-- 			light.Decay = 0
+		-- 			light.DieTime = CurTime() +0.2
+		-- 			light.Style = 0
+		-- 		end
+		-- 	end
+		-- end)
+		-- if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
 
-		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
-			local tab_xeno = {
-				["$pp_colour_addr"] 		= -0.4,
-				["$pp_colour_addg"] 		= -0.37,
-				["$pp_colour_addb"] 		= -0,
-				["$pp_colour_brightness"] 	= 0.34,
-				["$pp_colour_contrast"] 	= 0.2,
-				["$pp_colour_colour"] 		= 0.3,
-				["$pp_colour_mulr"] 		= 0,
-				["$pp_colour_mulg"] 		= 0,
-				["$pp_colour_mulb"] 		= 0,
-			}
-			DrawColorModify(tab_xeno) 
-			DrawBloom(0,1,1,1,8,3,5,5,2.5)
-		end)
-		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
+		-- hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
+		-- 	local tab_xeno = {
+		-- 		["$pp_colour_addr"] 		= -0.4,
+		-- 		["$pp_colour_addg"] 		= -0.37,
+		-- 		["$pp_colour_addb"] 		= -0,
+		-- 		["$pp_colour_brightness"] 	= 0.34,
+		-- 		["$pp_colour_contrast"] 	= 0.2,
+		-- 		["$pp_colour_colour"] 		= 0.3,
+		-- 		["$pp_colour_mulr"] 		= 0,
+		-- 		["$pp_colour_mulg"] 		= 0,
+		-- 		["$pp_colour_mulb"] 		= 0,
+		-- 	}
+		-- 	DrawColorModify(tab_xeno) 
+		-- 	DrawBloom(0,1,1,1,8,3,5,5,2.5)
+		-- end)
+		-- if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
 
-		hook.Add("PreDrawHalos","VJ_AVP_Xeno_Halo",function()
-			local tbFriends = {}
-			local tbEnemies = {}
-			for _,v in pairs(ents.GetAll()) do
-				if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
-					if v.VJ_AVP_Xenomorph then
-						table.insert(tbFriends,v)
-					else
-						if v:GetClass() != "obj_vj_bullseye" then
-							table.insert(tbEnemies,v)
-						end
-					end
-				end
-			end
-			halo.Add(tbFriends,Color(0,172,6),4,4,3,true,true)
-			halo.Add(tbEnemies,Color(234,135,54),4,4,3,true,true)
-		end)
-		if delete == true then hook.Remove("PreDrawHalos","VJ_AVP_Xeno_Halo") end
+		-- hook.Add("PreDrawHalos","VJ_AVP_Xeno_Halo",function()
+		-- 	local tbFriends = {}
+		-- 	local tbEnemies = {}
+		-- 	for _,v in pairs(ents.GetAll()) do
+		-- 		if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
+		-- 			if v.VJ_AVP_Xenomorph then
+		-- 				table.insert(tbFriends,v)
+		-- 			else
+		-- 				if v:GetClass() != "obj_vj_bullseye" then
+		-- 					table.insert(tbEnemies,v)
+		-- 				end
+		-- 			end
+		-- 		end
+		-- 	end
+		-- 	halo.Add(tbFriends,Color(0,172,6),4,4,3,true,true)
+		-- 	halo.Add(tbEnemies,Color(234,135,54),4,4,3,true,true)
+		-- end)
+		-- if delete == true then hook.Remove("PreDrawHalos","VJ_AVP_Xeno_Halo") end
 	end)
 end
