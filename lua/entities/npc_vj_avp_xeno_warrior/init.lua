@@ -24,106 +24,8 @@ ENT.VJC_Data = {
     FirstP_ShrinkBone = false
 }
 
+ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
-
-ENT.SoundTbl_FootStep = {
-	"cpthazama/avp/xeno/fs_alien_metal_walk_01.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_02.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_03.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_04.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_05.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_06.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_07.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_08.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_09.wav",
-	"cpthazama/avp/xeno/fs_alien_metal_walk_10.wav",
-}
-ENT.SoundTbl_Idle = {
-	"cpthazama/avp/xeno/alien/alien_drool_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_drool_02.mp3",
-}
-ENT.SoundTbl_Alert = {
-	"cpthazama/avp/xeno/alien/alien_distract_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_growl_short_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_growl_short_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_growl_short_03.mp3",
-	"cpthazama/avp/xeno/alien/alien_growl_short_04.mp3",
-	"cpthazama/avp/xeno/alien/alien_growl_short_05.mp3",
-	"cpthazama/avp/xeno/alien/alien_sprint_burst_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_sprint_burst_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_sprint_burst_03.mp3",
-}
-ENT.SoundTbl_CombatIdle = {
-	"cpthazama/avp/xeno/alien/alien_hiss_long_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_hiss_long_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_hiss_short_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_hiss_short_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_injured_growl_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_injured_growl_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_injured_growl_03.mp3",
-	"cpthazama/avp/xeno/alien/alien_injured_growl_04.mp3",
-}
-ENT.SoundTbl_BeforeMeleeAttack = {
-	-- "cpthazama/avp/xeno/alien/alien_jump_grunt_01.mp3",
-	-- "cpthazama/avp/xeno/alien/alien_jump_grunt_02.mp3",
-	-- "cpthazama/avp/xeno/alien/alien_jump_grunt_03.mp3",
-	-- "cpthazama/avp/xeno/alien/alien_jump_grunt_04.mp3",
-	-- "cpthazama/avp/xeno/alien/alien_jump_grunt_05.mp3",
-}
-ENT.SoundTbl_Pain = {
-	"cpthazama/avp/xeno/alien/aln_pain_small_01.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_02.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_03.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_04.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_05.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_06.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_07.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_08.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_09.mp3",
-	"cpthazama/avp/xeno/alien/aln_pain_small_10.mp3",
-}
-ENT.SoundTbl_Death = {
-	"cpthazama/avp/xeno/alien/alien_death_scream_iconic_elephant.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_20.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_21.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_22.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_23.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_24.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_25.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_26.mp3",
-	"cpthazama/avp/xeno/alien/aln_death_scream_27.mp3",
-}
-ENT.SoundTbl_Jump = {
-	"cpthazama/avp/xeno/alien/alien_jump_grunt_01.mp3",
-	"cpthazama/avp/xeno/alien/alien_jump_grunt_02.mp3",
-	"cpthazama/avp/xeno/alien/alien_jump_grunt_03.mp3",
-	"cpthazama/avp/xeno/alien/alien_jump_grunt_04.mp3",
-	"cpthazama/avp/xeno/alien/alien_jump_grunt_05.mp3",
-}
-
-ENT.AnimationBehaviors = {}
-
-ENT.AttackSets = {
-	Crawl = {
-		{
-			Start = "crawl_stand_attack_left",
-			End = "crawl_stand_attack_left_end",
-			Countered = "crawl_stand_attack_left_countered",
-		},
-	},
-	Stand = {
-		{
-			Start = "light_attack_left_mid",
-			Gesture = true,
-			Countered = "light_attack_left_mid_blocked",
-		},
-	},
-}
-
-ENT.CanSpit = false
-ENT.CanStand = true
-ENT.CanLeap = true
-ENT.FaceEnemyMovements = {ACT_RUN_RELAXED=true,ACT_RUN=true,ACT_WALK_STIMULATED=true}
 
 ENT.SoundTbl_Alert = {
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_01.ogg",
@@ -132,6 +34,17 @@ ENT.SoundTbl_Alert = {
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_short_01.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_short_02.ogg",
+}
+ENT.SoundTbl_Attack = {
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_01.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_03.ogg",
+	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_05.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_02.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_04.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_06.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_08.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_10.ogg",
+	"cpthazama/avp/xeno/alien/vocals/aln_taunt_12.ogg",
 }
 ENT.SoundTbl_CombatIdle = {
 	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_01.ogg",
@@ -169,11 +82,21 @@ ENT.SoundTbl_Death = {
 	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_26.ogg",
 	"cpthazama/avp/xeno/alien/vocals/aln_death_scream_27.ogg",
 }
+
+ENT.AttackDistance = 130
+ENT.AttackDamageDistance = 140
+ENT.AttackDamage = 18
+
+ENT.CanSpit = false
+ENT.CanStand = true
+ENT.CanLeap = true
+ENT.CanAttack = true
+ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
-	if self.AnimationBehaviors[act] then
-		self.AnimationBehaviors[act](self)
-	end
+	-- if self.AnimationBehaviors[act] then
+	-- 	self.AnimationBehaviors[act](self)
+	-- end
 	if act == ACT_IDLE then
 		local idleAct = self:SelectIdleActivity()
 		if idleAct != act then
@@ -215,6 +138,7 @@ function ENT:CustomOnInitialize()
 	self.IsUsingFaceAnimation = false
 	self.SprintT = 0
 	self.NextSprintT = 0
+	self.LastEnemyDistance = 999999
 
 	if self.OnInit then
 		self:OnInit()
@@ -301,6 +225,52 @@ function ENT:LongJumpCode(gotoPos,atk)
 	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local sdClawFlesh = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_03.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_04.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_05.ogg",
+}
+local sdClawMiss = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_03.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_04.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_05.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_06.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_07.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_08.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_09.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_10.ogg",
+}
+local sdMM = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_03.ogg",
+}
+local sdTail = {
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_01.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_02.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_03.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_01.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_02.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_03.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_04.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_05.ogg",
+}
+local sdTailMiss = {
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_1.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_2.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_3.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_4.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_5.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
+}
+
+local string_StartWith = string.StartWith
+local string_Replace = string.Replace
+--
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	if key == "jump_start" then
 		self.LongJumping = true
@@ -328,154 +298,228 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "step" then
 		self:FootStepSoundCode()
 	elseif key == "attack" then
-		self:MeleeAttackCode()
+		VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
+	elseif key == "attack_mouth" then
+		self:RunDamageCode(1.25)
+		VJ.EmitSound(self,sdMM,75)
+	elseif key == "attack_tail" then
+		VJ.EmitSound(self,#self:RunDamageCode(1.75) > 0 && sdTail or sdTailMiss,75)
+		self:RunDamageCode(1.75)
+	elseif string_StartWith(key,"snd") then
+		key = string_Replace(key,"snd ","")
+		local snd,vol,sndEnt = false,70,self
+		if key == "pierce_tail" then
+			snd = "cpthazama/avp/weapons/alien/tail/alien_killmove_cheststabgore_in.ogg"
+		elseif key == "remove_tail" then
+			snd = "cpthazama/avp/weapons/alien/tail/alien_killmove_cheststabgore_out.ogg"
+		elseif key == "short_hiss" then
+			snd = VJ.PICK("cpthazama/avp/xeno/alien/vocals/alien_hiss_short_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_short_02.ogg")
+		end
+		if snd then
+			VJ.EmitSound(sndEnt or self,snd,vol or 70)
+		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:RunDamageCode(mult)
+	local mult = mult or 1
+	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
+	function(ent)
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
+	end)
+	return hitEnts
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,visible)
 	local cont = self.VJ_TheController
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 
 	if IsValid(cont) then
-		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() && !self.IsAttacking then
-			local anim = isCrawling && self.AttackSets.Crawl or self.AttackSets.Stand
-			anim = VJ_PICK(anim)
-			self.CurrentAttackAnimation = anim.Start
-			self.IsAttacking = true
-			if anim.Gesture then
-				self:PlayGesture(anim.Start,1,function(interupted)
-					if interupted then return end
-					self.IsAttacking = false
-				end)
-				return
-			end
-			self:VJ_ACT_PLAYACTIVITY(anim.Start,true,false,true,0,{OnFinish=function(interupted, animation)
-				if interupted then return end
-				self:VJ_ACT_PLAYACTIVITY(anim.End,true,false,false,0,{OnFinish=function(interupted, animation)
-					if interupted then return end
-					self.IsAttacking = false
-				end})
-			end})
-		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+			self:AttackCode(isCrawling,cont:KeyDown(IN_SPEED) && 3)
+		elseif cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
+			self:AttackCode(isCrawling,5)
+		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
 		end
 		return
 	end
 
 	if visible then
-		if dist <= 100 && !self:IsBusy() && !self.IsAttacking then
-			local enemyToSelfDir = (ent:GetPos() -self:GetPos()):GetNormalized()
-			print((ent:IsNPC() && ent:GetHullType() == HULL_HUMAN or ent:IsPlayer()),ent:GetAngles():Forward():Dot(enemyToSelfDir),self:GetAngles():Forward():Dot(enemyToSelfDir))
-			if (ent:IsNPC() && ent:GetHullType() == HULL_HUMAN or ent:IsPlayer()) && ent:GetAngles():Forward():Dot(enemyToSelfDir) > 0.5 then
-				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				if ent:IsNPC() then
-					if ent.IsVJBaseSNPC then
-						ent:StopMoving()
-						ent:ClearSchedule()
-						ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-					end
-				elseif ent:IsPlayer() then
-					hook.Add("Think", self, function(self)
-						if !IsValid(ent) or IsValid(ent) && ent:Health() <= 0 then
-							if IsValid(ent) then
-								ent:Freeze(false)
-							end
-							hook.Remove("Think", self)
-							return
+		if self.CanAttack then
+			if dist <= self.AttackDistance && !self:IsBusy() then
+				self:AttackCode(isCrawling)
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:AttackCode(isCrawling,forceAttack)
+	if !self.CanAttack then return end
+	if isCrawling then
+		if self:IsMoving() then
+			if forceAttack == 3 or forceAttack == nil && math.random(1,4) == 1 then
+				// Leap attack
+				self.AttackType = 3
+				self.AttackSide = self.AttackSide == "right" && "left" or "right"
+				self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted,anim)
+					if interrupted then return end
+					self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
+				end})
+			else
+				if !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+					// Stand up attack
+					self.AttackType = 1
+					self.AttackSide = self.AttackSide == "right" && "left" or "right"
+					self:PlaySound(self.SoundTbl_Attack,75)
+					self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
+						if interrupted then return end -- Means we hit something
+						if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+							self:PlaySound(self.SoundTbl_Attack,75)
+							self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
+								if interrupted then return end
+								if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+									self.AttackSide = self.AttackSide == "right" && "left" or "right"
+									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+									self:PlaySound(self.SoundTbl_Attack,75)
+									self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
+										if interrupted then return end
+										self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+											if interrupted or IsValid(self.VJ_TheController) then return end
+											self.CurrentSet = 1
+											self.ChangeSetT = CurTime() +0.5
+										end})
+									end})
+								else
+									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+										if interrupted or IsValid(self.VJ_TheController) then return end
+										self.CurrentSet = 1
+										self.ChangeSetT = CurTime() +0.5
+									end})
+								end
+							end})
+						else
+							self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+								if interrupted or IsValid(self.VJ_TheController) then return end
+								self.CurrentSet = 1
+								self.ChangeSetT = CurTime() +0.5
+							end})
 						end
-						ent:Freeze(true)
-						ent:SetEyeAngles((self:GetPos() -ent:GetPos()):Angle())
-					end)
-				end
-				self:VJ_ACT_PLAYACTIVITY("headbite_behind",true,false,true,0,{OnFinish=function(interupted, animation)
-					if interupted then hook.Remove("Think", self) return end
-					self:VJ_ACT_PLAYACTIVITY("headbite_behind_kill",true,false,true,0,{OnFinish=function(interupted, animation)
-						hook.Remove("Think", self)
-						if interupted then return end
-						if IsValid(ent) then
-							if ent:IsNPC() then
-								ent:SetHealth(0)
-								ent:TakeDamage(999999999,self,self)
-							else
-								ent:Freeze(false)
-								ent:GodDisable()
-								ent:SetHealth(0)
-								ent:TakeDamage(999999999,self,self)
-							end
-						end
-						self:SetState()
 					end})
-				end})
-				return
-			end
-			local anim = isCrawling && self.AttackSets.Crawl or self.AttackSets.Stand
-			anim = VJ_PICK(anim)
-			self.CurrentAttackAnimation = anim.Start
-			self.IsAttacking = true
-			if anim.Gesture then
-				self:PlayGesture(anim.Start,1,function(interupted)
-					if interupted then return end
-					self.IsAttacking = false
-				end)
-				return
-			end
-			self:VJ_ACT_PLAYACTIVITY(anim.Start,true,false,true,0,{OnFinish=function(interupted, animation)
-				if interupted then return end
-				self:VJ_ACT_PLAYACTIVITY(anim.End,true,false,false,0,{OnFinish=function(interupted, animation)
-					if interupted then return end
-					self.IsAttacking = false
-				end})
-			end})
-		end
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:DoCounterAnimation()
-	local curAnim = self.CurrentAttackAnimation
-	for k,v in pairs(self.AttackSets) do
-		for _,anim in pairs(v) do
-			if anim.Start == curAnim then
-				self.IsAttacking = false
-				self:VJ_ACT_PLAYACTIVITY(anim.Countered,true,false,true,0,{OnFinish=function(interupted, animation)
-					if interupted then return end
-					self:VJ_ACT_PLAYACTIVITY(anim.End,true,false,true)
-				end})
-				break
-			end
-		end
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:PlayGesture(anim,rate,OnFinish)
-	if VJ_AnimationExists(self,anim) == false then return end
-	local seed = math.random(1,999999)
-	self.CurGestureAnimationSeed = seed
-	if rate == true then
-		if isstring(anim) then
-			anim = VJ_SequenceToActivity(self,anim)
-		end
-		self:RestartGesture(anim)
-		if OnFinish then
-			timer.Simple(VJ_GetSequenceDuration(self,anim), function()
-				if IsValid(self) && !self.Dead then
-					OnFinish(self.CurGestureAnimationSeed != seed)
+				else
+					// Gesture claw attack
+					self.AttackType = 2
+					self.AttackSide = self.AttackSide == "right" && "left" or "right"
+					self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+						if interrupted then return end
+						self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid_return",true,false,false,0,{AlwaysUseGesture=true})
+						self.NextChaseTime = 0
+					end})
+					self.NextChaseTime = 0
 				end
-			end)
-		end
-		return VJ_GetSequenceDuration(self,anim)
-	end
-	local gesture = self:AddGestureSequence(self:LookupSequence(anim))
-	self:SetLayerPriority(gesture, 1)
-	self:SetLayerPlaybackRate(gesture, (rate or 1) *0.5)
-	if OnFinish then
-		timer.Simple(VJ_GetSequenceDuration(self,anim), function()
-			if IsValid(self) && !self.Dead then
-				OnFinish(self.CurGestureAnimationSeed != seed)
 			end
-		end)
+		else
+			if !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				// Stand up attack
+				self.AttackType = 1
+				self.AttackSide = self.AttackSide == "right" && "left" or "right"
+				self:PlaySound(self.SoundTbl_Attack,75)
+				self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
+					if interrupted then return end -- Means we hit something
+					if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+						self:PlaySound(self.SoundTbl_Attack,75)
+						self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
+							if interrupted then return end
+							if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+								self.AttackSide = self.AttackSide == "right" && "left" or "right"
+								local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+								self:PlaySound(self.SoundTbl_Attack,75)
+								self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
+									if interrupted then return end
+									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+										if interrupted or IsValid(self.VJ_TheController) then return end
+										self.CurrentSet = 1
+										self.ChangeSetT = CurTime() +0.5
+									end})
+								end})
+							else
+								self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+									if interrupted or IsValid(self.VJ_TheController) then return end
+									self.CurrentSet = 1
+									self.ChangeSetT = CurTime() +0.5
+								end})
+							end
+						end})
+					else
+						self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+							if interrupted or IsValid(self.VJ_TheController) then return end
+							self.CurrentSet = 1
+							self.ChangeSetT = CurTime() +0.5
+						end})
+					end
+				end})
+			else
+				// Claw attack
+				self.AttackType = 0
+				local side = math.random(1,2)
+				self:VJ_ACT_PLAYACTIVITY("all4s_claw_swipe_" .. side,true,false,true,0,{OnFinish=function(interrupted,anim)
+					if interrupted then return end -- Means we hit something and started the return animation
+					self:VJ_ACT_PLAYACTIVITY("all4s_claw_swipe_" .. side .. "_return",true,false,false)
+				end})
+			end
+		end
+	else
+		if self:IsMoving() then
+			// Gesture claw attack
+			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
+				self.AttackType = 5
+				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
+					if interrupted then return end
+					self:PlaySound(self.SoundTbl_Attack,75)
+					self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_long",true,false,true)
+				end})
+			else
+				self.AttackType = 2
+				self.AttackSide = self.AttackSide == "right" && "left" or "right"
+				self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{AlwaysUseGesture=true})
+				self.NextChaseTime = 0
+			end
+		else
+			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
+				// Heavy attack
+				self.AttackType = 5
+				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
+					if interrupted then return end
+					self:PlaySound(self.SoundTbl_Attack,75)
+					self:VJ_ACT_PLAYACTIVITY({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
+				end})
+			else
+				// Stand up attack
+				self.AttackType = 1
+				self.AttackSide = self.AttackSide == "right" && "left" or "right"
+				self:PlaySound(self.SoundTbl_Attack,75)
+				self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
+					if interrupted then return end -- Means we hit something
+					if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						self.AttackSide = self.AttackSide == "right" && "left" or "right"
+						self:PlaySound(self.SoundTbl_Attack,75)
+						self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
+							if interrupted or IsValid(self.VJ_TheController) then return end
+							self.AttackSide = self.AttackSide == "right" && "left" or "right"
+							self:VJ_ACT_PLAYACTIVITY({"light_attack_" .. self.AttackSide .. "_to_run_fwd","light_attack_" .. self.AttackSide .. "_to_crawl_fwd"},true,false,true,0,{OnFinish=function(interrupted,anim)
+								if interrupted then return end
+								self.CurrentSet = (anim == "light_attack_" .. self.AttackSide .. "_to_run_fwd") && 2 or 1
+								self.ChangeSetT = CurTime() +0.5
+							end})
+						end})
+					end
+				end})
+			end
+		end
 	end
-	return VJ_GetSequenceDuration(self,anim)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Gibs()
@@ -570,6 +614,8 @@ function ENT:SetGroundAngle(curSet)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local VJ_HasValue = VJ.HasValue
+--
 function ENT:CustomOnThink()
 	local curTime = CurTime()
 	local ent = self:GetEnemy()
@@ -603,10 +649,6 @@ function ENT:CustomOnThink()
 		self:SetLocalVelocity(moveDirection *moveSpeed)
 	end
 
-	if self.IsAttacking == false then
-		self.CurrentAttackAnimation = nil
-	end
-
 	self:SetSprinting(self:IsMoving() && (self:GetActivity() == ACT_SPRINT or self:GetActivity() == ACT_MP_SPRINT))
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
@@ -625,7 +667,7 @@ function ENT:CustomOnThink()
 			self.SprintT = self.SprintT -0.2
 		end
 	end
-	-- self.IsUsingFaceAnimation = self.FaceEnemyMovements[moveAct]
+	self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
 	if IsValid(ply) then
 		if ply:KeyDown(IN_DUCK) then
 			if curTime > self.ChangeSetT then
@@ -634,8 +676,9 @@ function ENT:CustomOnThink()
 			end
 		end
 	else
+		self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
 		if IsValid(ent) then
-			local dist = self.NearestPointToEnemyDistance
+			local dist = self.LastEnemyDistance
 			if curTime > self.ChangeSetT then
 				if curSet == 1 then
 					if dist < 750 && math.random(1,20) == 1 then
@@ -656,6 +699,9 @@ function ENT:CustomOnThink()
 			end
 		end
 	end
+	if IsValid(ent) then
+		self.LastEnemyDistance = self:VJ_GetNearestPointToEntityDistance(ent)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
@@ -669,6 +715,21 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()
 	self:Acid(self:GetPos(),25,375,25)
+	if self:GetState() == VJ_STATE_NONE then
+		for i = 1,self:GetBoneCount() -1 do
+			if math.random(1,4) <= 3 then continue end
+			local bone = self:GetBonePosition(i)
+			if bone then
+				local particle = ents.Create("info_particle_system")
+				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+				particle:SetPos(bone +VectorRand() *15)
+				particle:Spawn()
+				particle:Activate()
+				particle:Fire("Start")
+				particle:Fire("Kill", "", 0.1)
+			end
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity()
@@ -723,4 +784,28 @@ end
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_Xenomorph = true
 	ent:SetNW2Bool("AVP.Xenomorph",true)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
+	if sndTbl == nil or istable(sndTbl) && #sndTbl <= 0 then return 0 end
+	if setCurSnd then
+		self:StopAllCommonSpeechSounds()
+	end
+	local sndName = VJ_PICK(sndTbl)
+	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+	if setCurSnd then
+		self.CurrentVoiceLine = snd
+	end
+	self.DeleteSounds = self.DeleteSounds or {}
+	table.insert(self.DeleteSounds,snd)
+	return SoundDuration(sndName)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnRemove()
+	VJ_STOPSOUND(self.CurrentVoiceLine)
+	if self.DeleteSounds then
+		for _,v in pairs(self.DeleteSounds) do
+			VJ_STOPSOUND(v)
+		end
+	end
 end

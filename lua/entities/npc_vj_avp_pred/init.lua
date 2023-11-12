@@ -266,7 +266,10 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RunDamageCode(mult)
 	local mult = mult or 1
-	local hitEnts = VJ.ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance,self.AttackDamage *mult,self.AttackDamageType,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius})
+	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
+	function(ent)
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
+	end)
 	return hitEnts
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -661,6 +664,24 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:StopMoving()
 		self.DisableChasingEnemy = false
 		self.NextFindStalkPos = CurTime() +math.Rand(15,20)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnKilled()
+	if self:GetState() == VJ_STATE_NONE then
+		for i = 1,self:GetBoneCount() -1 do
+			if math.random(1,4) <= 3 then continue end
+			local bone = self:GetBonePosition(i)
+			if bone then
+				local particle = ents.Create("info_particle_system")
+				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+				particle:SetPos(bone +VectorRand() *15)
+				particle:Spawn()
+				particle:Activate()
+				particle:Fire("Start")
+				particle:Fire("Kill", "", 0.1)
+			end
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

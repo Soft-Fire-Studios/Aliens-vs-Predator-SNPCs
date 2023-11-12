@@ -134,6 +134,78 @@ if VJExists == true then
 		end)
 	end
 	if SERVER then
+		local specialDmgEnts = {npc_strider=true, npc_combinedropship=true, npc_combinegunship=true, npc_helicopter=true} -- Entities that need special code to be damaged
+		local math_clamp = math.Clamp
+		local math_round = math.Round
+		local math_floor = math.floor
+		local math_clamp = math.Clamp
+		--
+		function VJ.AVP_ApplyRadiusDamage(attacker, inflictor, startPos, dmgRadius, dmgMax, dmgType, ignoreInnocents, realisticRadius, extraOptions, customFunc)
+			startPos = startPos or attacker:GetPos()
+			dmgRadius = dmgRadius or 150
+			dmgMax = dmgMax or 15
+			extraOptions = extraOptions or {}
+				local disableVisibilityCheck = extraOptions.DisableVisibilityCheck or false
+				local baseForce = extraOptions.Force or false
+			local dmgFinal = dmgMax
+			local hitEnts = {}
+			for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and VJ.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, extraOptions.UseConeDegree or 90, {AllEntities=true})) or ents.FindInSphere(startPos, dmgRadius)) do
+				if (v.IsVJBaseBullseye && v.VJ_IsBeingControlled) or v.VJTag_IsControllingNPC then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
+				local nearestPos = v:NearestPoint(startPos) -- From the enemy position to the given position
+				if realisticRadius != false then -- Decrease damage from the nearest point all the way to the enemy point then clamp it!
+					dmgFinal = math_clamp(dmgFinal * ((dmgRadius - startPos:Distance(nearestPos)) + 150) / dmgRadius, dmgMax / 2, dmgFinal)
+				end
+				
+				if (disableVisibilityCheck == false && (v:VisibleVec(startPos) or v:Visible(attacker))) or (disableVisibilityCheck == true) then
+					local function DoDamageCode()
+						local shouldContinue = true
+						if (customFunc) then
+							shouldContinue = customFunc(v)
+						end
+						if shouldContinue == false then return end
+						hitEnts[#hitEnts + 1] = v
+						if specialDmgEnts[v:GetClass()] then
+							v:TakeDamage(dmgFinal, attacker, inflictor)
+						else
+							local dmgInfo = DamageInfo()
+							dmgInfo:SetDamage(dmgFinal)
+							dmgInfo:SetAttacker(attacker)
+							dmgInfo:SetInflictor(inflictor)
+							dmgInfo:SetDamageType(dmgType or DMG_BLAST)
+							dmgInfo:SetDamagePosition(nearestPos)
+							if baseForce != false then
+								local force = baseForce
+								local forceUp = extraOptions.UpForce or false
+								if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
+									local phys = v:GetPhysicsObject()
+									if IsValid(phys) then
+										if forceUp == false then forceUp = force / 9.4 end
+										//v:SetVelocity(v:GetUp()*100000)
+										if v:GetClass() == "prop_ragdoll" then force = force * 1.5 end
+										phys:ApplyForceCenter(((v:GetPos() + v:OBBCenter() + v:GetUp() * forceUp) - startPos) * force) //+attacker:GetForward()*vForcePropPhysics
+									end
+								else
+									force = force * 1.2
+									if forceUp == false then forceUp = force end
+									dmgInfo:SetDamageForce(((v:GetPos() + v:OBBCenter() + v:GetUp() * forceUp) - startPos) * force)
+								end
+							end
+							VJ.DamageSpecialEnts(attacker, v, dmgInfo)
+							v:TakeDamageInfo(dmgInfo)
+						end
+					end
+					-- Self
+					if v:EntIndex() == attacker:EntIndex() then
+						if extraOptions.DamageAttacker then DoDamageCode() end -- If it can't self hit, then skip
+					-- Other entities
+					elseif (ignoreInnocents == false) or (!v:IsNPC() && !v:IsPlayer()) or (v:IsNPC() && v:GetClass() != attacker:GetClass() && v:Health() > 0 && (attacker:IsPlayer() or (attacker:IsNPC() && attacker:Disposition(v) != D_LI))) or (v:IsPlayer() && v:Alive() && (attacker:IsPlayer() or (!VJ_CVAR_IGNOREPLAYERS && !v:IsFlagSet(FL_NOTARGET)))) then
+						DoDamageCode()
+					end
+				end
+			end
+			return hitEnts
+		end
+
 		local noAccept = {npc_grenade_frag=true,npc_bullseye=true,obj_vj_bullseye=true}
 		hook.Add("OnEntityCreated","VJ_AVP_Classify",function(ent)
 			if ent:IsNPC() && !noAccept[ent:GetClass()] && ent.VJ_AVP_IsTech == nil then

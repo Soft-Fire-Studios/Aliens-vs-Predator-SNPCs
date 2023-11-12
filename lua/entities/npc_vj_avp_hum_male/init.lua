@@ -512,6 +512,24 @@ function ENT:CustomOnThink()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnKilled()
+	if self:GetState() == VJ_STATE_NONE then
+		for i = 1,self:GetBoneCount() -1 do
+			if math.random(1,4) <= 3 then continue end
+			local bone = self:GetBonePosition(i)
+			if bone then
+				local particle = ents.Create("info_particle_system")
+				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+				particle:SetPos(bone +VectorRand() *15)
+				particle:Spawn()
+				particle:Activate()
+				particle:Fire("Start")
+				particle:Fire("Kill", "", 0.1)
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	if self.WhenRemoved then
 		self:WhenRemoved()
