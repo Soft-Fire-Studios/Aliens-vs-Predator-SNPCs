@@ -91,7 +91,14 @@ ENT.CanSpit = false
 ENT.CanStand = true
 ENT.CanLeap = true
 ENT.CanAttack = true
+ENT.CanSetGroundAngle = true
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED}
+--
+local math_acos = math.acos
+local math_deg = math.deg
+local math_rad = math.rad
+local math_abs = math.abs
+--
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
 	-- if self.AnimationBehaviors[act] then
@@ -169,11 +176,16 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
+	if !self.CanLeap then return end
+	self.CurrentSet = 1
+	self.ChangeSetT = CurTime() +0.5
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
 	local aimVec = IsValid(ply) && ply:GetAimVector()
 	local tr1
 	local canJump = true
+	self:SetMoveType(MOVETYPE_STEP)
+	self:CapabilitiesAdd(bit.bor(CAP_MOVE_GROUND))
 	if gotoPos then
 		tr1 = util.TraceLine({
 			start = self:EyePos(),
@@ -184,40 +196,58 @@ function ENT:LongJumpCode(gotoPos,atk)
 	else
 		tr1 = util.TraceLine({
 			start = self:EyePos(),
-			endpos = self:EyePos() +(IsValid(ply) && aimVec *(atk && 800 or 2000) or self:GetForward() *800),
+			endpos = self:EyePos() +(IsValid(ply) && aimVec *(atk && 600 or 1000) or self:GetForward() *600),
 			filter = {self,ply,bullseye}
 		})
 	end
 	if !canJump then return end
 	local firstHit = tr1.HitPos
-	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
-	local upCheck1 = util.TraceLine({
-		start = firstHit,
-		endpos = firstHit +self:GetUp() *600,
-		filter = {self,ply,bullseye}
-	})
+	local hitNormal = tr1.HitNormal
 	local trSt
-	if upCheck1 then
-		local pos = upCheck1.HitPos +(upCheck1.HitPos -self:GetPos()):GetNormalized() *64
-		-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,242,0), 5)
-		trSt = util.TraceLine({
-			start = pos,
-			endpos = pos +self:GetUp() *-2000,
-			filter = {self,ply,bullseye}
-		})
-		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(255,0,212), 5)
+	if math_abs(hitNormal.x) >= 0.9 or math_abs(hitNormal.y) >= 0.9 then
+		// Normal ground stuff
+		-- Entity(1):ChatPrint('Wall')
+		trSt = tr1
+		self.LongJumpType = 2
+	-- elseif hitNormal.z == -1 then
+		// Ceiling
+		-- Entity(1):ChatPrint('Ceiling')
+		-- trSt = tr1
+		-- self.LongJumpType = 1
 	else
-		trSt = util.TraceLine({
+		-- Entity(1):ChatPrint('Ground')
+		local upCheck1 = util.TraceLine({
 			start = firstHit,
-			endpos = firstHit +self:GetUp() *-2000,
+			endpos = firstHit +self:GetUp() *200,
 			filter = {self,ply,bullseye}
 		})
-		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
+		if upCheck1 then
+			local pos = upCheck1.HitPos +(upCheck1.HitPos -self:GetPos()):GetNormalized() *64
+			-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,242,0), 5)
+			trSt = util.TraceLine({
+				start = pos,
+				endpos = pos +self:GetUp() *-2000,
+				filter = {self,ply,bullseye}
+			})
+			-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(255,0,212), 5)
+		else
+			trSt = util.TraceLine({
+				start = firstHit,
+				endpos = firstHit +self:GetUp() *-2000,
+				filter = {self,ply,bullseye}
+			})
+			-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
+		end
+		self.LongJumpType = 0
 	end
+	-- Entity(1):ChatPrint(tostring(hitNormal))
+	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
+
 	local startPos = trSt.HitPos +trSt.HitNormal *4
 	-- VJ.DEBUG_TempEnt(startPos, self:GetAngles(), Color(13,0,255), 5)
 	self.LongJumpPos = trSt.HitPos
 	self.LongJumpAttacking = atk
+	self.JumpT = 0
 	local anim = "jump_fwd"
 	local dist = self:GetPos():Distance(self.LongJumpPos)
 	local height = self:GetPos().z -self.LongJumpPos.z
@@ -274,10 +304,13 @@ local string_Replace = string.Replace
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	if key == "jump_start" then
 		self.LongJumping = true
+		self.JumpStart = self:GetPos()
+		self:PlaySound(self.SoundTbl_Jump,75)
 	elseif key == "jump_end" then
 		self.LongJumping = false
 		self:SetLocalVelocity(Vector(0,0,0))
 		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
+		VJ.EmitSound(self,"cpthazama/avp/humans/human/jumplands/human_land_dirt_01.ogg",75)
 		local tr = util.TraceLine({
 			start = self:GetPos(),
 			endpos = self:GetPos() +self:GetUp() *-100,
@@ -295,16 +328,22 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				util.Effect("GlassImpact",fx)
 			end
 		end
+		if self.LongJumpType > 0 && self:GetPos():Distance(self.LongJumpPos) <= 60 then
+			self:SetMoveType(MOVETYPE_NONE)
+			self:CapabilitiesRemove(CAP_MOVE_GROUND)
+		end
 	elseif key == "step" then
 		self:FootStepSoundCode()
 	elseif key == "attack" then
+		self.AttackDamageDistance = 140
 		VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_mouth" then
+		self.AttackDamageDistance = 120
 		self:RunDamageCode(1.25)
 		VJ.EmitSound(self,sdMM,75)
 	elseif key == "attack_tail" then
-		VJ.EmitSound(self,#self:RunDamageCode(1.75) > 0 && sdTail or sdTailMiss,75)
-		self:RunDamageCode(1.75)
+		self.AttackDamageDistance = 200
+		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdTail or sdTailMiss,75)
 	elseif string_StartWith(key,"snd") then
 		key = string_Replace(key,"snd ","")
 		local snd,vol,sndEnt = false,70,self
@@ -337,10 +376,10 @@ function ENT:CustomAttack(ent,visible)
 
 	if IsValid(cont) then
 		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
-			self:AttackCode(isCrawling,cont:KeyDown(IN_SPEED) && 3)
+			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
 			self:AttackCode(isCrawling,5)
-		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
 		end
 		return
@@ -358,8 +397,9 @@ end
 function ENT:AttackCode(isCrawling,forceAttack)
 	if !self.CanAttack then return end
 	if isCrawling then
+		print(isCrawling,self:IsMoving(),forceAttack)
 		if self:IsMoving() then
-			if forceAttack == 3 or forceAttack == nil && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
 				// Leap attack
 				self.AttackType = 3
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
@@ -368,19 +408,20 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
 				end})
 			else
-				if !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				if IsValid(self.VJ_TheController) or math.random(1,3) == 1 then
 					// Stand up attack
 					self.AttackType = 1
 					self.AttackSide = self.AttackSide == "right" && "left" or "right"
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 						if interrupted then return end -- Means we hit something
-						if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 							self:PlaySound(self.SoundTbl_Attack,75)
 							self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 								if interrupted then return end
-								if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+								if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 									self.AttackSide = self.AttackSide == "right" && "left" or "right"
 									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 									self:PlaySound(self.SoundTbl_Attack,75)
@@ -421,19 +462,28 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				end
 			end
 		else
-			if !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+				// Heavy attack
+				self.AttackType = 5
+				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
+					if interrupted then return end
+					self:PlaySound(self.SoundTbl_Attack,75)
+					self:VJ_ACT_PLAYACTIVITY({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
+				end})
+			elseif IsValid(self.VJ_TheController) or math.random(1,3) == 1 then
 				// Stand up attack
 				self.AttackType = 1
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
 				self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 					if interrupted then return end -- Means we hit something
-					if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+					if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						self.AttackSide = self.AttackSide == "right" && "left" or "right"
 						local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 						self:PlaySound(self.SoundTbl_Attack,75)
 						self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 							if interrupted then return end
-							if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+							if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 								self.AttackSide = self.AttackSide == "right" && "left" or "right"
 								local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 								self:PlaySound(self.SoundTbl_Attack,75)
@@ -474,7 +524,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 	else
 		if self:IsMoving() then
 			// Gesture claw attack
-			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
 					if interrupted then return end
@@ -488,7 +538,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.NextChaseTime = 0
 			end
 		else
-			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 				// Heavy attack
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
@@ -539,19 +589,17 @@ function ENT:Gibs()
 	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_acos = math.acos
-local math_deg = math.deg
-local math_rad = math.rad
-local math_abs = math.abs
---
 function ENT:SetGroundAngle(curSet)
+	if !self.CanSetGroundAngle then return end
 	local pos = self:GetPos()
 	local len = self:GetUp() *50
 	local ang = self:GetAngles()
 	local ang_y = Angle(0,ang.y,0)
 	local refreshRate = FrameTime() *20
-	if curSet == 1 && self:OnGround() then
+	if curSet == 1 /*&& self:OnGround()*/ then
 		local mins, maxs = self:GetCollisionBounds()
+		-- mins = mins *2
+		-- maxs = maxs *2
 		local posForward, posBackward, posRight, posLeft
 		local directionVectors = {
 			forward = ang_y:Forward(),
@@ -615,6 +663,8 @@ function ENT:SetGroundAngle(curSet)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
+local startCycle = 0.23
+local endCycle = 0.65
 --
 function ENT:CustomOnThink()
 	local curTime = CurTime()
@@ -640,20 +690,30 @@ function ENT:CustomOnThink()
 	self:SetGroundAngle(curSet)
 
 	if self.LongJumping && self.LongJumpPos then
+		self.JumpT = self.JumpT +0.1
 		local currentPos = self:GetPos()
 		local dist = currentPos:Distance(self.LongJumpPos)
-		local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() or self:OBBCenter() *3)
+		local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() *0.3 or self:OBBCenter() *0.5)
 		local moveDirection = (targetPos -currentPos):GetNormalized()
 		local moveSpeed = (dist < 250 && 800 or dist *4)
 		local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
 		self:SetLocalVelocity(moveDirection *moveSpeed)
+		if dist >= 70 && self.JumpT <= 1 then
+			self:SetCycle(0.5)
+			self.NextChaseTime = CurTime() +1
+			self.NextIdleTime = CurTime() +1
+		end
+	end
+
+	if self.OnThink then
+		self:OnThink()
 	end
 
 	self:SetSprinting(self:IsMoving() && (self:GetActivity() == ACT_SPRINT or self:GetActivity() == ACT_MP_SPRINT))
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
 	local sprinting = self:GetSprinting()
-	self.CanAttack = !sprinting
+	-- self.CanAttack = !sprinting
 	if sprinting then
 		if self:GetActivity() == ACT_SPRINT && self:OnGround() then
 			self:SetVelocity(self:GetMoveVelocity() *1.25)
@@ -669,6 +729,46 @@ function ENT:CustomOnThink()
 	end
 	self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
 	if IsValid(ply) then
+		-- if ply:KeyDown(IN_WALK) then -- Wall walking
+		-- 	if ply:KeyDown(IN_FORWARD) then
+		-- 		local tr = util.TraceLine({
+		-- 			start = self:GetPos(),
+		-- 			endpos = self:GetPos() +ply:GetAimVector() *250,
+		-- 			filter = {self,ply}
+		-- 		})
+		-- 		local touchDir = {L=false,R=false,U=false,D=false}
+		-- 		for i = 1,4 do
+		-- 			local dir = i == 1 && ply:GetRight() or i == 2 && ply:GetRight() *-1 or i == 3 && ply:GetUp() or ply:GetUp() *-1
+		-- 			local tr = util.TraceLine({
+		-- 				start = self:GetPos(),
+		-- 				endpos = self:GetPos() +dir *250,
+		-- 				filter = {self,ply}
+		-- 			})
+		-- 			if tr.Hit then
+		-- 				if i == 1 then
+		-- 					touchDir.R = true
+		-- 				elseif i == 2 then
+		-- 					touchDir.L = true
+		-- 				elseif i == 3 then
+		-- 					touchDir.U = true
+		-- 				elseif i == 4 then
+		-- 					touchDir.D = true
+		-- 				end
+		-- 			end
+		-- 		end
+		-- 		local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
+		-- 		local moveDirection = (tr.HitPos -self:GetPos()):GetNormalized()
+		-- 		self:SetLocalVelocity(moveDirection *(moveSpeed <= 0 && 100 or moveSpeed))
+		-- 		self:SetMoveType(MOVETYPE_STEP)
+		-- 		self:SetNavType(NAV_FLY)
+		-- 		self:ResetIdealActivity(moveAct)
+		-- 	else
+		-- 		self:SetLocalVelocity(Vector(0,0,0))
+		-- 		self:SetMoveType(MOVETYPE_NONE)
+		-- 		self:SetNavType(NAV_GROUND)
+		-- 		self:ResetIdealActivity(idleAct)
+		-- 	end
+		-- end
 		if ply:KeyDown(IN_DUCK) then
 			if curTime > self.ChangeSetT then
 				self.CurrentSet = curSet == 1 && 2 or 1

@@ -18,30 +18,104 @@ ENT.VJC_Data = {
 }
 
 ENT.HasBreath = true
-ENT.SoundTbl_FootStep = {
-	"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
-	"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
-	"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
-}
 
-ENT.AnimationBehaviors = {}
+ENT.CanLeap = false
+ENT.CanSetGroundAngle = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
+	if VJ_AVP_QueenExists(self) then
+		self:Remove()
+		if game.SinglePlayer() then
+			Entity(1):ChatPrint("There can only be one Queen at a time!")
+		else
+			if IsValid(self:GetCreator()) then
+				self:GetCreator():ChatPrint("There can only be one Queen at a time!")
+			end
+		end
+		return
+	end
 	self.CurrentSet = 2
+	self.SoundTbl_FootStep = {
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
+	}
+
+	self.InBirth = false
+	self.NextLookForBirthT = CurTime() +5
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnThink()
+	if self.Alerted then
+		self.NextLookForBirthT = CurTime() +60
+	end
+	if !self.InBirth && CurTime() > self.NextLookForBirthT then
+		if !self:IsBusy() && !self:IsMoving() then
+			local vsched = vj_ai_schedule.New("vj_idle_wander")
+			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)
+			vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
+			vsched.IsMovingTask = true
+			self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
+			vsched.MoveType = 1
+			if (customFunc) then customFunc(vsched) end
+			self:StartSchedule(vsched)
+		end
+		local check = Vector(self:OBBMaxs().x *9,self:OBBMaxs().y *9,0)
+		local trHull = util.TraceHull({
+			start = self:GetPos(),
+			endpos = self:GetPos(),
+			filter = self,
+			mins = check *-1,
+			maxs = check,
+		})
+		if !trHull.Hit then
+			self.InBirth = true
+		end
+	elseif self.InBirth then
+		if !IsValid(self.EggSack) then
+			local eggsack = ents.Create("prop_vj_animatable")
+			eggsack:SetModel("models/cpthazama/avp/xeno/queen_eggsack.mdl")
+			eggsack:SetPos(self:GetPos() +self:GetForward() *18 +self:GetUp() *-10)
+			eggsack:SetAngles(self:GetAngles())
+			eggsack:SetOwner(self)
+			eggsack:SetParent(self)
+			eggsack:Spawn()
+			eggsack:Activate()
+			eggsack:SetRenderMode(RENDERMODE_TRANSALPHA)
+			eggsack:SetColor(Color(255,255,255,0))
+			eggsack:SetRenderFX(kRenderFxSolidSlow)
+			eggsack:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+			eggsack:AddEffects(EF_PARENT_ANIMATES)
+			eggsack:ResetSequence("idle")
+			self:DeleteOnRemove(eggsack)
+			self.EggSack = eggsack
+			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_enter",true,false,false)
+			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},150)
+			self:SetIdleAnimation({ACT_IDLE_RELAXED},true)
+		end
+		if self:IsMoving() then
+			self:StopMoving()
+		end
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
-		local snd = "cpthazama/avp/xeno/queen/alien_queen_breathe_in_0" .. math.random(1,3) .. ".wav"
-		local sndB = "cpthazama/avp/xeno/queen/alien_queen_breathe_out_0" .. math.random(1,3) .. ".wav"
+		local snd = "cpthazama/avp/xeno/alien queen/alien_queen_breathe_in_0" .. math.random(1,3) .. ".ogg"
+		local sndB = "cpthazama/avp/xeno/alien queen/alien_queen_breathe_out_0" .. math.random(1,3) .. ".ogg"
 		VJ_CreateSound(self,snd,65)
-		timer.Simple(SoundDuration(snd) +0.15,function()
+		timer.Simple(1,function()
 			if IsValid(self) then
 				VJ_CreateSound(self,sndB,65)
 			end
 		end)
-		self.NextBreathT = CurTime() +SoundDuration(snd) +SoundDuration(sndB) +0.3
+		self.NextBreathT = CurTime() +2.3
 	end
+	-- if CurTime() > (self.NextBreathT or 0) then
+	-- 	VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/queen_breath.ogg",65)
+	-- 	self.NextBreathT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien queen/queen_breath.ogg")
+	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity()

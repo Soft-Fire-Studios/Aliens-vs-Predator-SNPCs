@@ -13,11 +13,12 @@ ENT.VJ_AVP_Creature = true
 ENT.VJ_AVP_Predator = true
 
 function ENT:SetupDataTables()
-	self:NetworkVar("Entity",0,"EnemyCS")
+	self:NetworkVar("Entity",0,"LockOn")
 	self:NetworkVar("Entity",1,"VM")
 	self:NetworkVar("Int",0,"VisionMode")
 	self:NetworkVar("Bool",0,"Cloaked")
 	self:NetworkVar("Bool",1,"Sprinting")
+	self:NetworkVar("Bool",2,"Beam")
 	self:NetworkVar("Vector",0,"JumpPosition")
 end
 
@@ -76,8 +77,37 @@ if CLIENT then
 	local string_find = string.find
 	local scale0 = Vector(0,0,0)
 	local scale1 = Vector(1,1,1)
+	local matLaser = Material("sprites/avp/turret_laser_fade")
+	local matLaserStart = Material("vj_base/effects/muzzlestarlarge_01")
+	local laserColor = Color(255,0,0,135)
     function ENT:Initialize()
 		self.Mat_cloakfactor = 0
+
+		-- local attStart = self:LookupAttachment("laser")
+        -- hook.Add("PreDrawEffects",self,function(self)
+		-- 	if !self:GetBeam() then return end
+        --     local att = self:GetAttachment(attStart)
+        --     local startPos = att.Pos
+        --     local endPos = att.Ang:Forward() *2000
+		-- 	local ent = false
+		-- 	if IsValid(self:GetLockOn()) then
+		-- 		endPos = self:GetLockOn():EyePos()
+		-- 		ent = true
+		-- 	end
+        --     render.SetMaterial(matLaserStart)
+        --     render.DrawSprite(startPos,5,5,laserColor)
+        --     for i = 1,3 do
+		-- 		startPos = startPos +att.Ang:Right() *(i == 1 && -0.1 or i == 2 && 0.3 or 0) +att.Ang:Up() *(i == 3 && 0.3 or 0)
+        --         local tr = util.TraceLine({
+        --             start = startPos,
+        --             endpos = ent && endPos or startPos +endPos,
+        --             filter = self,
+        --             mask = MASK_SHOT
+        --         })
+        --         render.SetMaterial(matLaser)
+        --         render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
+        --     end
+        -- end)
 
 		-- hook.Add("PlayerBindPress",self,function(self,ply,bind,pressed)
 		-- 	if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
@@ -144,7 +174,30 @@ if CLIENT then
 	}
 	function ENT:Draw()
 		self:DrawModel()
-
+		
+		local attStart = self:LookupAttachment("laser")
+		if !self:GetBeam() then return end
+		local att = self:GetAttachment(attStart)
+		local startPos = att.Pos
+		local endPos = att.Ang:Forward() *2000
+		local ent = false
+		if IsValid(self:GetLockOn()) then
+			endPos = self:GetLockOn():EyePos()
+			ent = true
+		end
+		render.SetMaterial(matLaserStart)
+		render.DrawSprite(startPos,5,5,laserColor)
+		for i = 1,3 do
+			startPos = startPos +att.Ang:Right() *(i == 1 && -0.1 or i == 2 && 0.3 or 0) +att.Ang:Up() *(i == 3 && 0.3 or 0)
+			local tr = util.TraceLine({
+				start = startPos,
+				endpos = ent && endPos or startPos +endPos,
+				filter = self,
+				mask = MASK_SHOT
+			})
+			render.SetMaterial(matLaser)
+			render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
+		end
 		-- local vm = self.VM
 		-- local ply = self.VJ_TheController
 		-- if IsValid(vm) then

@@ -15,6 +15,8 @@ ENT.VJ_NPC_Class = {"CLASS_PREDATOR"} -- NPCs with the same class with be allied
 
 ENT.HasMeleeAttack = false
 
+ENT.PoseParameterLooking_InvertYaw = true
+ENT.PoseParameterLooking_InvertPitch = true
 ENT.HasExtraMeleeAttackSounds = true -- Set to true to use the extra melee attack sounds
 ENT.DisableFootStepSoundTimer = true -- If set to true, it will disable the time system for the footstep sound code, allowing you to use other ways like model events
 
@@ -214,18 +216,21 @@ function ENT:CustomAttack(ent,vis)
 			end
 		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
+		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_JUMP) && !cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_DUCK) && !self:IsBusy() then
+			self:SpecialAttackCode(self.CurrentEquipment)
 		end
 	else
 		if dist <= self.AttackDistance && !self:IsBusy() && vis then
 			self:AttackCode()
-		end
-		if vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
+		elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 			self:DistractionCode(ent)
+		elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+			self:SpecialAttackCode(1)
 		end
 		local pos = ent:GetPos()
 		local heightDif = math.abs(pos.z -self:GetPos().z)
 		if !self:IsBusy() && !self.DisableChasingEnemy && vis then
-			if dist < 250 && dist > 150 then
+			if dist < 250 && dist > 150 && math.random(1,12) == 1 then
 				self:LongJumpCode(pos,true)
 			elseif (dist > 600 or heightDif > 350) && dist <= 1500 then
 				local vecRand = VectorRand() *100
@@ -234,6 +239,58 @@ function ENT:CustomAttack(ent,vis)
 				-- self:LongJumpCode(pos)
 			end
 		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SpecialAttackCode(atk)
+	local atk = atk or 1
+	if atk == 1 then
+		self:SetBeam(true)
+		self.PoseParameterLooking_Names = {pitch={"plasma_pitch"}, yaw={"plasma_yaw"}, roll={}}
+		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
+		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
+		self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={}, yaw={}, roll={}} return end
+
+			local ent = self:GetLockOn()
+			if IsValid(ent) then
+				local att = self:GetAttachment(self:LookupAttachment("plasma"))
+				local targetPos = ent:GetPos() +ent:OBBCenter()
+				local targetAng = (targetPos -att.Pos):Angle()
+				local ang = self:GetAngles()
+				targetAng.y = math.Clamp(targetAng.y, ang.y - 70, ang.y + 70)
+				local proj = ents.Create("obj_vj_avp_projectile")
+				proj:SetPos(att.Pos)
+				proj:SetAngles(targetAng)
+				proj:SetOwner(self)
+				proj:SetAttackType(2,150,DMG_BLAST,300,45,true)
+				proj:SetNoDraw(true)
+				proj:Spawn()
+				-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
+				proj.DecalTbl_DeathDecals = {"Scorch"}
+				proj.OnDeath = function(projEnt,data, defAng, HitPos)
+					ParticleEffect("vj_avp_predator_plasma_impact",HitPos,defAng)
+					sound.Play("cpthazama/avp/weapons/predator/plasma_caster/plasma_bolt_explosion_0" .. math.random(1,5) .. ".ogg",HitPos,90)
+				end
+				-- proj:AddSound("cpthazama/resistance2/chimera/titan/cha_titan_projectilefireloop_jcm.wav",80)
+				ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
+
+				local phys = proj:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:SetVelocity(proj:GetForward() *2000)
+				end
+
+				VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_shot_0" .. math.random(1,3) .. ".ogg",80)
+			end
+			self:SetPoseParameter("plasma_pitch",0)
+			self:SetPoseParameter("plasma_yaw",0)
+			self.PoseParameterLooking_Names = {pitch={}, yaw={}, roll={}}
+			self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+				self:SetBeam(false)
+			end})
+			self.NextChaseTime = 0
+		end})
+		self.NextChaseTime = 0
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -493,6 +550,7 @@ function ENT:CustomOnThink()
 	local dist = self.NearestPointToEnemyDistance
 	local idleAct = self:SelectIdleActivity(dist)
 	local moveAct = self:SelectMovementActivity(dist)
+	local ply = self.VJ_TheController
 	if self.LastIdleActivity != idleAct then
 		self.LastIdleActivity = idleAct
 		self:SetIdleAnimation({idleAct})
@@ -505,7 +563,22 @@ function ENT:CustomOnThink()
 	end
 
 	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
-	self:SetEnemyCS(self:GetEnemy())
+	if IsValid(ply) && self:GetBeam() == true then
+		local closeDist = 999999
+		local closeEnt
+		for _,v in pairs(ents.FindInSphere(self.VJ_TheControllerBullseye:GetPos(),300)) do
+			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI && self:GetPos():Distance(v:GetPos()) < closeDist then
+				closeEnt = v
+			end
+		end
+		if IsValid(closeEnt) then
+			self:SetLockOn(closeEnt)
+		else
+			self:SetLockOn(self:GetEnemy())
+		end
+	else
+		self:SetLockOn(self:GetEnemy())
+	end
 
 	local sprinting = self:GetSprinting()
 	self.CanAttack = !sprinting
@@ -563,7 +636,6 @@ function ENT:CustomOnThink()
 		end
 	end
 
-	local ply = self.VJ_TheController
 	if IsValid(ply) then
 		if ply:KeyDown(IN_RELOAD) && curTime > self.NextCloakT then
 			self:Camo(!self:GetCloaked())

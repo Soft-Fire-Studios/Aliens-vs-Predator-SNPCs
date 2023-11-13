@@ -14,11 +14,28 @@ ENT.SoundTbl_FootStep = {
 	"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
 	"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 }
-
-ENT.AnimationBehaviors = {}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
+	if VJ_AVP_MatriarchExists(self) then
+		self:Remove()
+		if game.SinglePlayer() then
+			Entity(1):ChatPrint("There can only be one Matriarch at a time!")
+		else
+			if IsValid(self:GetCreator()) then
+				self:GetCreator():ChatPrint("There can only be one Matriarch at a time!")
+			end
+		end
+		return
+	end
 	self.CurrentSet = 2
+	self.SoundTbl_FootStep = {
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
+		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
+	}
+
+	self.InBirth = false
+	self.NextLookForBirthT = CurTime() +5
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity()

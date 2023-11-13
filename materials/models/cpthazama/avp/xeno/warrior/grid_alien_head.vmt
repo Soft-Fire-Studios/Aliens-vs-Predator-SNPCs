@@ -4,6 +4,9 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/grid_alien_head_normal"
 	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/grid_alien_head_specular"
 
+	"$selfillum"				"1"
+	"$selfillummask"			"models/cpthazama/avp/xeno/warrior/grid_alien_head_illum"
+
     "$nodecal" 					"1"
 
 	"$phong"                     "1"

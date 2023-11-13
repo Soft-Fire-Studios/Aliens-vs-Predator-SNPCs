@@ -86,9 +86,9 @@ if CLIENT then
 				local light = DynamicLight(ent:EntIndex())
 				if (light) then
 					light.Pos = ent:GetPos()
-					light.r = 0
-					light.g = 10
-					light.b = 1
+					light.r = 3
+					light.g = 3
+					light.b = 3
 					light.Brightness = 0
 					light.Size = 2000
 					light.Decay = 0

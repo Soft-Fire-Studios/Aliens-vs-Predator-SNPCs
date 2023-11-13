@@ -2,13 +2,13 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/queen/alien_queen_head_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/queen/alien_queen_head_norms"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/queen/alien_queen_head_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/queen/alien_queen_head_spec"
 
     "$nodecal" 					"1"
 
 	"$phong"                     "1"
 	"$phongboost"                "5"
-	"$phongexponent"             "20"
+	"$phongexponent"             "35"
 	"$phongfresnelranges"        "[0.35 0.745 0.215]"
 	"$phongalbedotint"           "1"
 	"$phongalbedoboost"          "10"

@@ -67,6 +67,7 @@ if VJExists == true then
 		"vj_avp_blood_predator",
 		"vj_avp_blood_xeno",
 	})
+	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",
 		"vj_avp_predator_hud_landing_heat",
@@ -88,6 +89,8 @@ if VJExists == true then
 	VJ_AVP_HALOS.Predators = {}
 	VJ_AVP_HALOS.Tech = {}
 	VJ_AVP_HALOS.Other = {}
+
+	VJ_AVP_XENOS = {}
 
 	local NPC = FindMetaTable("NPC")
 	
@@ -134,6 +137,24 @@ if VJExists == true then
 		end)
 	end
 	if SERVER then
+		function VJ_AVP_QueenExists(self)
+			for _,v in ipairs(VJ_AVP_XENOS) do
+				if v.VJ_AVP_Xenomorph_Queen && v != self then
+					return true
+				end
+			end
+			return false
+		end
+
+		function VJ_AVP_MatriarchExists(self)
+			for _,v in ipairs(VJ_AVP_XENOS) do
+				if v.VJ_AVP_Xenomorph_Matriarch && v != self then
+					return true
+				end
+			end
+			return false
+		end
+
 		local specialDmgEnts = {npc_strider=true, npc_combinedropship=true, npc_combinegunship=true, npc_helicopter=true} -- Entities that need special code to be damaged
 		local math_clamp = math.Clamp
 		local math_round = math.Round
@@ -206,8 +227,13 @@ if VJExists == true then
 			return hitEnts
 		end
 
+		local table_insert = table.insert
+		local table_remove = table.remove
 		local noAccept = {npc_grenade_frag=true,npc_bullseye=true,obj_vj_bullseye=true}
 		hook.Add("OnEntityCreated","VJ_AVP_Classify",function(ent)
+			if ent:IsNPC() && ent.VJ_AVP_Xenomorph then
+				table_insert(VJ_AVP_XENOS,ent)
+			end
 			if ent:IsNPC() && !noAccept[ent:GetClass()] && ent.VJ_AVP_IsTech == nil then
 				timer.Simple(0,function()
 					if IsValid(ent) then
@@ -235,6 +261,16 @@ if VJExists == true then
 						end
 					end
 				end)
+			end
+		end)
+
+		hook.Add("EntityRemoved","VJ_AVP_XenoRemoveCheck",function(ent)
+			if ent:IsNPC() && ent.VJ_AVP_Xenomorph then
+				for k,v in ipairs(VJ_AVP_XENOS) do
+					if v == ent then
+						table_remove(VJ_AVP_XENOS,k)
+					end
+				end
 			end
 		end)
 	end
