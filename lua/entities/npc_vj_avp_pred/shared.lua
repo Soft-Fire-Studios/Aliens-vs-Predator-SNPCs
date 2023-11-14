@@ -149,7 +149,7 @@ if CLIENT then
 			local finalResult = curValue or 0
 			if ent.GetCloaked then
 				if ent:GetCloaked() then
-					finalResult = (ent:GetSprinting() or ent:GetJumpPosition() != scale0) && 0.97 or 0.997
+					finalResult = ent:IsNPC() && (ent:GetSprinting() or ent:GetJumpPosition() != scale0) && 0.97 or 0.997
 				else
 					finalResult = 0
 					finalResultRefract = 0
@@ -172,6 +172,7 @@ if CLIENT then
 		"Bip01 mouth_top_right",
 		"Bip01 mouth_top_right02"
 	}
+	local math_angDif = math.AngleDifference
 	function ENT:Draw()
 		self:DrawModel()
 		
@@ -182,8 +183,13 @@ if CLIENT then
 		local endPos = att.Ang:Forward() *2000
 		local ent = false
 		if IsValid(self:GetLockOn()) then
-			endPos = self:GetLockOn():EyePos()
 			ent = true
+			endPos = self:GetLockOn():EyePos()
+			local angDif = math_angDif((self:GetLockOn():GetPos() -self:GetPos()):Angle().y, self:GetAngles().y)
+			if math_abs(angDif) > 80 then
+				endPos = startPos +att.Ang:Forward() *2000
+				endPos.z = self:GetLockOn():GetPos().z
+			end
 		end
 		render.SetMaterial(matLaserStart)
 		render.DrawSprite(startPos,5,5,laserColor)

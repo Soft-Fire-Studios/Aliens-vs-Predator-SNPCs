@@ -336,13 +336,20 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self:FootStepSoundCode()
 	elseif key == "attack" then
 		self.AttackDamageDistance = 140
+		self.AttackDamageType = DMG_SLASH
 		VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
+	elseif key == "attack_heavy" then
+		self.AttackDamageDistance = 140
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
+		VJ.EmitSound(self,#self:RunDamageCode(1.5) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_mouth" then
 		self.AttackDamageDistance = 120
+		self.AttackDamageType = DMG_SLASH
 		self:RunDamageCode(1.25)
 		VJ.EmitSound(self,sdMM,75)
 	elseif key == "attack_tail" then
 		self.AttackDamageDistance = 200
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
 		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdTail or sdTailMiss,75)
 	elseif string_StartWith(key,"snd") then
 		key = string_Replace(key,"snd ","")
@@ -804,12 +811,30 @@ function ENT:CustomOnThink()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local bit_band = bit.band
+--
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),25,200,5)
 
-	local seq = self:GetSequenceName(self:GetSequence())
-	if seq == self.CurrentAttackAnimation then
-		self:DoCounterAnimation()
+	local explosion = dmginfo:IsExplosionDamage()
+	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
+		dmgAng.p = 0
+		dmgAng.r = 0
+		self:TaskComplete()
+		self:StopMoving()
+		self:ClearSchedule()
+		self:ClearGoal()
+		self:SetAngles(dmgAng)
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- self.CanFlinch = 0
+		local dmgDir = self:GetDamageDirection(dmginfo)
+		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+			-- self.CanFlinch = 1
+		end})
+		self.NextCallForBackUpOnDamageT = CurTime() +1
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -908,4 +933,35 @@ function ENT:CustomOnRemove()
 			VJ_STOPSOUND(v)
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_acos = math.acos
+local math_abs = math.abs
+local math_rad = math.rad
+local math_deg = math.deg
+local math_atan2 = math.atan2
+--
+function ENT:GetDamageDirection(dmginfo)
+	local dir = (self:GetPos() +self:OBBCenter()) -dmginfo:GetDamagePosition()
+	dir:Normalize()
+	dir.z = 0.5
+
+	local hitDir = 1
+	local forward = self:GetForward()
+	local angle = math_deg(math_atan2(dir:Dot(forward:Cross(Vector(0,0,1))),dir:Dot(forward)))
+	if angle >= 45 and angle <= 135 then
+		-- print("NPC was hit from the left")
+		hitDir = 2
+	elseif angle >= -135 and angle <= -45 then
+		-- print("NPC was hit from the right")
+		hitDir = 3
+	elseif angle >= 135 or angle <= -135 then
+		-- print("NPC was hit from the front")
+		hitDir = 1
+	else
+		-- print("NPC was hit from the back")
+		hitDir = 4
+	end
+
+	return hitDir
 end

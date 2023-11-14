@@ -25,7 +25,11 @@ ENT.VJC_Data = {
     ThirdP_Offset = Vector(0, 0, -35), -- The offset for the controller when the camera is in third person
     FirstP_Bone = "Bip01 Head", -- If left empty, the base will attempt to calculate a position for first person
     FirstP_Offset = Vector(15, 0, 2), -- The offset for the controller when the camera is in first person
+    FirstP_CameraBoneAng = 1
 }
+
+ENT.HasDeathAnimation = true
+ENT.AnimTbl_Death = {"predator_claws_death_Back_Left","predator_claws_death_Back_Right","predator_claws_death_Front_Left","predator_claws_death_Front_Right"}
 
 ENT.GeneralSoundPitch1 = 100
 
@@ -82,6 +86,11 @@ ENT.SoundTbl_Land = {
 ENT.SoundTbl_Attack = {
 	"cpthazama/avp/predator/vocals/prd_trophy_growl_01.ogg",
 	"cpthazama/avp/predator/vocals/prd_trophy_growl_02.ogg",
+}
+ENT.SoundTbl_Stimpack = {
+	"cpthazama/avp/predator/vocals/prd_health_pain_scream_01.ogg",
+	"cpthazama/avp/predator/vocals/prd_health_pain_scream_02.ogg",
+	"cpthazama/avp/predator/vocals/prd_health_pain_scream_03.ogg",
 }
 ENT.SoundTbl_Pain = {
 	"cpthazama/avp/predator/vocals/prd_hurt_scream_01.ogg",
@@ -165,6 +174,71 @@ function ENT:CustomOnInitialize()
 	self.NextCloakT = CurTime() +1.5
 	self.SprintT = 0
 	self.NextSprintT = 0
+	self.NextHealT = 0
+	self.LookForHidingSpotAttempts = 0
+	self.NextLookForHidingSpotT = 0
+
+	timer.Simple(0,function()
+		if IsValid(self) then
+			local ply = self:GetCreator()
+			if game.SinglePlayer() then
+				ply = Entity(1)
+			end
+			if IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
+				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				SpawnControllerObject.VJCE_Player = ply
+				SpawnControllerObject:SetControlledNPC(self)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+			end
+			local tr = util.TraceHull({
+				start = self:GetPos(),
+				endpos = self:GetPos() +self:GetUp() *32000,
+				filter = {self},
+				mins = self:OBBMins(),
+				maxs = self:OBBMaxs()
+			})
+			if tr.HitSky then
+				-- self:SetNoDraw(true)
+				-- local theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering = ents.Create("npc_vj_avp_cin")
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetPos(self:GetPos())
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetAngles(self:GetAngles())
+				-- self:SetOwner(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:Spawn()
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetSolid(SOLID_NONE)
+				-- self:DeleteOnRemove(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:VJ_ACT_PLAYACTIVITY("predator_intro",true,false,false,0,{OnFinish=function()
+				-- 	if IsValid(self) then
+				-- 		self.DisableFindEnemy = false
+				-- 		self:SetState()
+				-- 		self:RemoveFlags(FL_NOTARGET)
+				-- 		self:SetNoDraw(false)
+				-- 	end
+				-- 	SafeRemoveEntity(predmobile)
+				-- 	SafeRemoveEntity(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
+				-- end})
+
+				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+				self:AddFlags(FL_NOTARGET)
+				self.DisableFindEnemy = true
+				local predmobile = ents.Create("sent_vj_avp_predmobile")
+				predmobile:SetPos(self:GetPos())
+				predmobile:SetAngles(self:GetAngles())
+				predmobile:Spawn()
+				predmobile:SetOwner(self)
+				predmobile:ResetSequence("predator_intro")
+				self.PredShip = predmobile
+				self:DeleteOnRemove(predmobile)
+				self:VJ_ACT_PLAYACTIVITY("predator_intro",true,false,false,0,{OnFinish=function()
+					self.DisableFindEnemy = false
+					self:SetState()
+					self:RemoveFlags(FL_NOTARGET)
+					SafeRemoveEntity(predmobile)
+				end})
+			end
+		end
+	end)
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
@@ -200,6 +274,11 @@ function ENT:OnKeyPressed(ply,key)
 				local ent = tr.Entity
 				self:DistractionCode(ent)
 			end
+		end
+    elseif key == KEY_G then
+		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
+			self:UseStimpack()
+			self.NextHealT = CurTime() +3
 		end
     end
 end
@@ -246,11 +325,11 @@ function ENT:SpecialAttackCode(atk)
 	local atk = atk or 1
 	if atk == 1 then
 		self:SetBeam(true)
-		self.PoseParameterLooking_Names = {pitch={"plasma_pitch"}, yaw={"plasma_yaw"}, roll={}}
+		self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
 		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
 		self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={}, yaw={}, roll={}} return end
+			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
 
 			local ent = self:GetLockOn()
 			if IsValid(ent) then
@@ -284,7 +363,7 @@ function ENT:SpecialAttackCode(atk)
 			end
 			self:SetPoseParameter("plasma_pitch",0)
 			self:SetPoseParameter("plasma_yaw",0)
-			self.PoseParameterLooking_Names = {pitch={}, yaw={}, roll={}}
+			self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
 			self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				self:SetBeam(false)
 			end})
@@ -292,6 +371,12 @@ function ENT:SpecialAttackCode(atk)
 		end})
 		self.NextChaseTime = 0
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:UseStimpack()
+	if self:IsBusy() then return end
+	self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_healthstab",true,false,false)
+	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local string_Replace = string.Replace
@@ -347,6 +432,7 @@ end
 */
 --
 function ENT:LongJumpCode(gotoPos,atk)
+	if self:IsBusy() then return true end
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
 	local aimVec = IsValid(ply) && ply:GetAimVector()
@@ -366,7 +452,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 			filter = {self,ply,bullseye}
 		})
 	end
-	if !canJump then return end
+	if !canJump then return true end
 	local firstHit = tr1.HitPos
 	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
 	local upCheck1 = util.TraceLine({
@@ -449,7 +535,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)
 	local sprinting = self:GetSprinting()
-	local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+	local calcMult = self:GetBeam() == true && 5 or ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
 	if v.VJ_AVP_Xenomorph or (v.VJ_AVP_Predator && v:GetVisionMode() == 1) or v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
 		self:AddEntityRelationship(v, D_NU, 10)
 		return false
@@ -499,13 +585,110 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			end
 		end
 	elseif key == "attack" then
+		self.AttackDamageType = DMG_SLASH
 		self:RunDamageCode()
 	elseif key == "attack_heavy" then
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
 		self:RunDamageCode(1.75)
 	elseif key == "attack_jump" then
+		self.AttackDamageType = DMG_SLASH
 		self:RunDamageCode(1.25)
 	elseif key == "attack_jump_heavy" then
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
 		self:RunDamageCode(2)
+	elseif key == "stimpack_grab" then
+		
+	elseif key == "stimpack_unscrew" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_twist_01.ogg",70)
+	elseif key == "stimpack_unscrewed" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_twist_air_02.ogg",70)
+	elseif key == "stimpack_use" then
+		self:SetHealth(self:GetMaxHealth())
+		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_jab_01.ogg",75)
+	elseif key == "stimpack_scream" then
+		self:PlaySound(self.SoundTbl_Stimpack,100)
+	elseif key == "stimpack_drop" then
+		
+	elseif key == "cin_predintro_ship_uncloak" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		ship:SetCloaked(true)
+	elseif key == "cin_predintro_ship_engineland" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		ship:SetCloaked(false)
+		ship:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
+		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/land.ogg",150)
+	elseif key == "cin_predintro_ship_land1" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+	elseif key == "cin_predintro_ship_land2" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+	elseif key == "cin_predintro_ship_gunretract" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/gunretract.ogg",95)
+	elseif key == "cin_predintro_ship_open" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/open.ogg",95)
+	elseif key == "cin_predintro_ship_beep" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		VJ.CreateSound(ship,"cpthazama/avp/shared/console_button_beep_01.ogg",75)
+	elseif key == "cin_predintro_ship_enginestop" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		VJ.CreateSound(ship,"cpthazama/avp/predator/adrenalin/adrenalin_turn_off_04.ogg",90)
+	elseif key == "cin_predintro_ship_close" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/open.ogg",95)
+	elseif key == "cin_predintro_ship_cloak" then
+		local ship = self.PredShip
+		if !IsValid(ship) then return end
+
+		ship:SetCloaked(true)
+		ship:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
+	elseif key == "cin_predintro_pred_grab" then
+		
+	elseif key == "cin_predintro_pred_land" then
+		VJ.CreateSound(self,self.SoundTbl_Land,75)
+		VJ.EmitSound(self,VJ_PICK({"cpthazama/avp/predator/jump/pred_heavy_land_01.ogg","cpthazama/avp/predator/jump/pred_heavy_land_02.ogg","cpthazama/avp/predator/jump/pred_heavy_land_03.ogg"}),75)
+		local tr = util.TraceLine({
+			start = self:GetBonePosition(1),
+			endpos = self:GetBonePosition(1) +self:GetUp() *-100,
+			filter = {self},
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if tr.Hit then
+			local fx = EffectData()
+			fx:SetOrigin(tr.HitPos)
+			fx:SetScale(2)
+			fx:SetMagnitude(2)
+			fx:SetNormal(self:GetUp())
+			util.Effect("ElectricSpark",fx)
+			for i = 1,16 do
+				util.Effect("GlassImpact",fx)
+			end
+		end
+	elseif key == "cin_predintro_pred_roar" then
+		self:PlaySound(self.SoundTbl_Attack,80)
+	elseif key == "cin_predintro_pred_claws" then
+		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_draw_01.ogg",72)
+	elseif key == "cin_predintro_pred_placement" then
+		-- self:SetPos(self:GetBonePosition(1))
+		-- self:SetAngles(self:GetAngles() +Angle(0,-90,0))
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -545,7 +728,22 @@ function ENT:SelectIdleActivity(dist)
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
+function ENT:OnFoundHidingSpot()
+	if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
+		self:UseStimpack()
+		self.NextHealT = CurTime() +math.Rand(45,60)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnFailedHidingSpot()
+	if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
+		self:UseStimpack()
+		self.NextHealT = CurTime() +math.Rand(45,60)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnThink_AIEnabled()
+	if self.Dead then return end
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
 	local idleAct = self:SelectIdleActivity(dist)
@@ -643,6 +841,62 @@ function ENT:CustomOnThink()
 		end
 	else
 		local enemy = self:GetEnemy()
+		local goalPos = self:GetGoalPos()
+		if goalPos == Vector() or goalPos != Vector() && self:GetPos():Distance(goalPos) < 45 then
+			goalPos = nil
+		end
+		if self.LookForHidingSpot then
+			self.DisableChasingEnemy = true
+			if self.LookForHidingSpotAttempts >= 2 then
+				self.LookForHidingSpot = false
+				self.LookForHidingSpotAttempts = 0
+				self.DisableChasingEnemy = false
+				self:OnFailedHidingSpot(goalPos)
+				return
+			end
+			if goalPos && self:GetPos():Distance(goalPos) < 60 && (IsValid(enemy) && !self:Visible(enemy) or !IsValid(enemy)) then
+				self.LookForHidingSpot = false
+				self.LookForHidingSpotAttempts = 0
+				self.DisableChasingEnemy = false
+				self:OnFoundHidingSpot(goalPos)
+			else
+				if curTime > self.NextLookForHidingSpotT then
+					local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
+					local closestNodes = {}
+					for _,v in ipairs(nodegraph) do
+						local dist = v.pos:Distance(self:GetPos())
+						if dist < 1000 && dist > 400 && !self:VisibleVec(v.pos) && (IsValid(enemy) && !enemy:VisibleVec(v.pos) or !IsValid(enemy)) then
+							table.insert(closestNodes,v.pos)
+						end
+					end
+					local pos = VJ.PICK(closestNodes)
+					if pos then
+						self:SetLastPosition(pos)
+						self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+						-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,0,0), 5)
+						self.NextLookForHidingSpotT = curTime +(self:GetPathTimeToGoal() or 10)
+					end
+					self.LookForHidingSpotAttempts = self.LookForHidingSpotAttempts +1
+					self.NextLookForHidingSpotT = curTime +5
+				end
+			end
+		end
+		if self:Health() < self:GetMaxHealth() && curTime > self.NextHealT && math.random(1,40) == 1 then
+			self.LookForHidingSpot = true
+		end
+		if goalPos then
+			local heightDif = math.abs(goalPos.z -self:GetPos().z)
+			local tr = util.TraceLine({
+				start = goalPos,
+				endpos = goalPos +self:GetUp() *175,
+				filter = self,
+				mask = MASK_SOLID_BRUSHONLY
+			})
+			-- VJ.DEBUG_TempEnt(tr.HitPos, self:GetAngles(), Color(0,68,255), 5)
+			if (heightDif > 200 or self:GetPos():Distance(goalPos) > 600) && self:VisibleVec(tr.HitPos) then
+				self:LongJumpCode(goalPos)
+			end
+		end
 		if IsValid(enemy) then
 			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 then
 				self:Camo(!self:GetCloaked())
@@ -679,11 +933,6 @@ function ENT:CustomOnThink()
 						vsched.ConstantlyFaceEnemyVisible = true
 						self:StartSchedule(vsched)
 						self.NextFindStalkPos = curTime +math.Rand(5,20)
-					end
-					local goalPos = self:GetGoalPos()
-					local heightDif = math.abs(goalPos.z -self:GetPos().z)
-					if (heightDif > 200 or self:GetPos():Distance(goalPos) > 700) && self:VisibleVec(goalPos +self:GetUp() *16) && self:GetCloaked() then
-						self:LongJumpCode(goalPos)
 					end
 				else
 					self.DisableChasingEnemy = false
@@ -731,16 +980,38 @@ function ENT:Camo(set)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local bit_band = bit.band
+--
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	if self.DisableChasingEnemy then
 		self:StopMoving()
 		self.DisableChasingEnemy = false
 		self.NextFindStalkPos = CurTime() +math.Rand(15,20)
 	end
+	local explosion = dmginfo:IsExplosionDamage()
+	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
+		dmgAng.p = 0
+		dmgAng.r = 0
+		self:TaskComplete()
+		self:StopMoving()
+		self:ClearSchedule()
+		self:ClearGoal()
+		self:SetAngles(dmgAng)
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- self.CanFlinch = 0
+		local dmgDir = self:GetDamageDirection(dmginfo)
+		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+			-- self.CanFlinch = 1
+		end})
+		self.NextCallForBackUpOnDamageT = CurTime() +1
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled()
-	if self:GetState() == VJ_STATE_NONE then
+function ENT:CustomOnInitialKilled()
+	if !self.HasDeathAnimation && self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
 			if math.random(1,4) <= 3 then continue end
 			local bone = self:GetBonePosition(i)
@@ -788,4 +1059,35 @@ function ENT:CustomOnRemove()
 			VJ_STOPSOUND(v)
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_acos = math.acos
+local math_abs = math.abs
+local math_rad = math.rad
+local math_deg = math.deg
+local math_atan2 = math.atan2
+--
+function ENT:GetDamageDirection(dmginfo)
+	local dir = (self:GetPos() +self:OBBCenter()) -dmginfo:GetDamagePosition()
+	dir:Normalize()
+	dir.z = 0.5
+
+	local hitDir = 1
+	local forward = self:GetForward()
+	local angle = math_deg(math_atan2(dir:Dot(forward:Cross(Vector(0,0,1))),dir:Dot(forward)))
+	if angle >= 45 and angle <= 135 then
+		-- print("NPC was hit from the left")
+		hitDir = 2
+	elseif angle >= -135 and angle <= -45 then
+		-- print("NPC was hit from the right")
+		hitDir = 3
+	elseif angle >= 135 or angle <= -135 then
+		-- print("NPC was hit from the front")
+		hitDir = 1
+	else
+		-- print("NPC was hit from the back")
+		hitDir = 4
+	end
+
+	return hitDir
 end
