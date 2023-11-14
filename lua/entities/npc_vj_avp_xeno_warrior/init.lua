@@ -814,7 +814,7 @@ end
 local bit_band = bit.band
 --
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
-	self:Acid(dmginfo:GetDamagePosition(),25,200,5)
+	self:Acid(dmginfo:GetDamagePosition(),125,5)
 
 	local explosion = dmginfo:IsExplosionDamage()
 	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
@@ -839,7 +839,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),25,375,25)
+	self:Acid(self:GetPos(),200,25)
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
 			if math.random(1,4) <= 3 then continue end

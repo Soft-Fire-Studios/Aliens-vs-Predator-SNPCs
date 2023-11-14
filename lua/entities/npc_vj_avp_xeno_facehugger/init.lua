@@ -57,11 +57,11 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
-	self:Acid(dmginfo:GetDamagePosition(),25,200,5)
+	self:Acid(dmginfo:GetDamagePosition(),125,3)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),25,375,25)
+	self:Acid(self:GetPos(),200,15)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_acos = math.acos

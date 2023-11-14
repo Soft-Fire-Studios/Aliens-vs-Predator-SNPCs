@@ -94,8 +94,8 @@ if VJExists == true then
 
 	local NPC = FindMetaTable("NPC")
 	
-	function NPC:Acid(pos,scale,dist,dmg)
-		-- util.VJ_SphereDamage(self,self,pos,dist,dmg,DMG_ACID,false,true)
+	function NPC:Acid(pos,dist,dmg)
+		util.VJ_SphereDamage(self,self,pos or self:GetPos(),dist or 60,dmg or 10,DMG_ACID,true,false)
 	end
 
 	if CLIENT then
