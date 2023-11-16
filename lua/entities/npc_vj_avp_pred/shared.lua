@@ -9,6 +9,7 @@ ENT.Category		= ""
 
 include("vj_base/extensions/avp_viewmodel_module.lua")
 
+ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Creature = true
 ENT.VJ_AVP_Predator = true
 

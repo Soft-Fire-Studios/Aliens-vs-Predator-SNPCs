@@ -7,6 +7,8 @@ ENT.Purpose 		= "Spawn it and fight with it!"
 ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= "VJ Base"
 
+ENT.VJ_AVP_NPC = true
+
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
 end

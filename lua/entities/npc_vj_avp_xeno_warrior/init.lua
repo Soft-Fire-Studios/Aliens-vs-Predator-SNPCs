@@ -27,6 +27,18 @@ ENT.VJC_Data = {
 ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
 
+ENT.AnimTbl_FatalitiesResponse = {
+	["predator_claws_trophy_alien_lift"] = "pred_trophy_allfours_lift",
+	["predator_claws_trophy_alien_countered"] = "pred_trophy_countered",
+	["predator_claws_trophy_alien_impale"] = "pred_trophy_death_impaled",
+	["predator_claws_trophy_alien_kill"] = "pred_trophy_death",
+	["predator_claws_trophy_alien_kill_headplant"] = "pred_trophy_death_headplant",
+	["predator_claws_trophy_alien_kill_kneeplant"] = "pred_trophy_death_kneeplant",
+	["predator_claws_trophy_alien_kill_slow"] = "pred_trophy_death_slow",
+	["predator_claws_stealthkill_alien_kill"] = "stealthkill_pred_death",
+	["predator_claws_stealthkill_alien_standing_kill"] = "stealthkill_standing_pred_death",
+}
+
 ENT.SoundTbl_Alert = {
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_01.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_02.ogg",
@@ -176,6 +188,7 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
+	if self.InFatality then return end
 	if !self.CanLeap then return end
 	self.CurrentSet = 1
 	self.ChangeSetT = CurTime() +0.5
@@ -402,9 +415,10 @@ function ENT:CustomAttack(ent,visible)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
+	if self.InFatality then return end
 	if !self.CanAttack then return end
 	if isCrawling then
-		print(isCrawling,self:IsMoving(),forceAttack)
+		-- print(isCrawling,self:IsMoving(),forceAttack)
 		if self:IsMoving() then
 			if forceAttack == 5 or forceAttack == nil && math.random(1,4) == 1 then
 				// Leap attack
@@ -597,6 +611,7 @@ function ENT:Gibs()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetGroundAngle(curSet)
+	if self.InFatality then curSet = 0 end
 	if !self.CanSetGroundAngle then return end
 	local pos = self:GetPos()
 	local len = self:GetUp() *50
@@ -674,6 +689,7 @@ local startCycle = 0.23
 local endCycle = 0.65
 --
 function ENT:CustomOnThink()
+	if self.InFatality then return end
 	local curTime = CurTime()
 	local ent = self:GetEnemy()
 	local ply = self.VJ_TheController
@@ -812,7 +828,16 @@ function ENT:CustomOnThink()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
+local math_Clamp = math.Clamp
 --
+function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
+	if dmginfo:IsBulletDamage() then
+		if dmginfo:GetDamage() <= 30 then
+			dmginfo:SetDamage(dmginfo:GetDamage() <= 10 && 0 or math_Clamp(dmginfo:GetDamage() *0.2,1,30))
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),125,5)
 

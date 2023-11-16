@@ -33,6 +33,42 @@ ENT.AnimTbl_Death = {"predator_claws_death_Back_Left","predator_claws_death_Back
 
 ENT.GeneralSoundPitch1 = 100
 
+/*
+	Predator to Alien
+		(Trophy)
+		predator_claws_trophy_alien_grab
+		predator_claws_trophy_alien_lift -> pred_trophy_allfours_lift
+			predator_claws_trophy_alien_countered -> pred_trophy_countered
+		predator_claws_trophy_alien_impale -> pred_trophy_death_impaled
+		predator_claws_trophy_alien_kill -> pred_trophy_death
+		predator_claws_trophy_alien_kill_headplant -> pred_trophy_death_headplant
+		predator_claws_trophy_alien_kill_kneeplant -> pred_trophy_death_kneeplant
+		predator_claws_trophy_alien_kill_slow -> pred_trophy_death_slow
+*/
+
+ENT.AnimTbl_Fatalities = {
+	Alien = {
+		Trophy = {
+			Grab = "predator_claws_trophy_alien_grab",
+			Lift = "predator_claws_trophy_alien_lift",
+			Counter = "predator_claws_trophy_alien_countered",
+			Kill = {
+				"predator_claws_trophy_alien_impale",
+				"predator_claws_trophy_alien_kill",
+				"predator_claws_trophy_alien_kill_headplant",
+				"predator_claws_trophy_alien_kill_kneeplant",
+				"predator_claws_trophy_alien_kill_slow"
+			}
+		},
+		Stealth = {
+			Kill = {"predator_claws_stealthkill_alien_kill","predator_claws_stealthkill_alien_standing_kill"},
+			OnlyKill = true
+		}
+	},
+	Human = {},
+	Predator = {},
+}
+
 ENT.SoundTbl_FootStep = {
 	"player/footsteps/gravel1.wav",
 	"player/footsteps/gravel2.wav",
@@ -136,6 +172,13 @@ ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local toSeq = VJ.SequenceToActivity
+
+local math_acos = math.acos
+local math_abs = math.abs
+local math_rad = math.rad
+local math_cos = math.cos
+local math_deg = math.deg
+local math_atan2 = math.atan2
 --
 function ENT:CustomOnChangeActivity(newAct)
 	if newAct == ACT_SPRINT then
@@ -250,6 +293,14 @@ function ENT:CustomOnInitialize()
     end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CanUseFatality(ent)
+	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetForward()):GetNormalized()) > math_cos(math_rad(80)))
+	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() /2) or inFront) then
+		return true, inFront
+	end
+	return false, inFront
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
     if key == KEY_E then
 		local tr = util.TraceLine({
@@ -283,7 +334,104 @@ function ENT:OnKeyPressed(ply,key)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ResetFatality(ent)
+	self.FatalityEnt = nil
+	self:SetState()
+	if IsValid(ent) then
+		ent.GodMode = false
+		ent.InFatality = false
+		ent:SetState()
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoFatality(ent,inFront)
+	local tbl = self.AnimTbl_Fatalities.Human
+	if ent.VJ_AVP_Xenomorph then
+		tbl = self.AnimTbl_Fatalities.Alien
+	-- elseif ent.VJ_AVP_Predator then
+		-- tbl = self.AnimTbl_Fatalities.Predator
+	end
+	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
+		tbl = inFront && tbl.Trophy or tbl.Stealth
+		self.FatalityEnt = ent
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		ent.GodMode = true
+		ent.InFatality = true
+		local ang = self:GetAngles()
+		ang.y = ang.y +180
+		ent:StopMoving()
+		ent:SetAngles(ang)
+		ent:SetPos(self:GetPos() +self:GetForward() *(self:OBBMaxs().y +ent:OBBMaxs().y) *2)
+		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		self:OnHit({ent})
+		if tbl.OnlyKill then
+			local anim = tbl.Kill
+			anim = VJ.PICK(anim)
+			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
+				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
+					if int then self:ResetFatality(ent) return end
+					ent:SetState()
+					ent.GodMode = false
+					ent.InFatality = false
+					if !counter && IsValid(self) then
+						local dmginfo = DamageInfo()
+						dmginfo:SetDamage(ent:Health())
+						dmginfo:SetDamageType(DMG_SLASH)
+						dmginfo:SetDamageForce(self:GetForward() *250)
+						dmginfo:SetAttacker(self)
+						dmginfo:SetInflictor(self)
+						ent:TakeDamageInfo(dmginfo)
+					end
+				end})
+			end
+			self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
+				if int then self:ResetFatality(ent) return end
+				self:SetState()
+			end})
+		else
+			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
+				if int then self:ResetFatality(ent) return end
+				if IsValid(ent) then
+					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
+						ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
+					end
+				end
+				self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
+					if int then self:ResetFatality(ent) return end
+					local counter = math.random(1,3) == 1
+					local anim = counter && tbl.Counter or tbl.Kill
+					anim = VJ.PICK(anim)
+					if IsValid(ent) then
+						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
+							ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
+								if int then self:ResetFatality(ent) return end
+								ent:SetState()
+								ent.GodMode = false
+								ent.InFatality = false
+								if !counter && IsValid(self) then
+									local dmginfo = DamageInfo()
+									dmginfo:SetDamage(ent:Health())
+									dmginfo:SetDamageType(DMG_SLASH)
+									dmginfo:SetDamageForce(self:GetForward() *250)
+									dmginfo:SetAttacker(self)
+									dmginfo:SetInflictor(self)
+									ent:TakeDamageInfo(dmginfo)
+								end
+							end})
+						end
+					end
+					self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
+						if int then self:ResetFatality(ent) return end
+						self:SetState()
+					end})
+				end})
+			end})
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,vis)
+	if self.InFatality then return end
 	local cont = self.VJ_TheController
 	local dist = self.NearestPointToEnemyDistance
 	if IsValid(cont) then
@@ -300,7 +448,13 @@ function ENT:CustomAttack(ent,vis)
 		end
 	else
 		if dist <= self.AttackDistance && !self:IsBusy() && vis then
-			self:AttackCode()
+			local canUse, inFront = self:CanUseFatality(ent)
+			print(canUse,inFront)
+			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+				self:DoFatality(ent,inFront)
+			else
+				self:AttackCode()
+			end
 		elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 			self:DistractionCode(ent)
 		elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
@@ -322,6 +476,7 @@ function ENT:CustomAttack(ent,vis)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
+	if self.InFatality then return end
 	local atk = atk or 1
 	if atk == 1 then
 		self:SetBeam(true)
@@ -374,6 +529,7 @@ function ENT:SpecialAttackCode(atk)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
+	if self.InFatality then return end
 	if self:IsBusy() then return end
 	self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_healthstab",true,false,false)
 	self.NextChaseTime = 0
@@ -382,6 +538,7 @@ end
 local string_Replace = string.Replace
 --
 function ENT:AttackCode()
+	if self.InFatality then return end
 	if !self.CanAttack then return end
 	self.AttackSide = self.AttackSide == "right" && "left" or "right"
 	local anim = VJ.PICK(self.AttackAnimations)
@@ -432,6 +589,7 @@ end
 */
 --
 function ENT:LongJumpCode(gotoPos,atk)
+	if self.InFatality then return true end
 	if self:IsBusy() then return true end
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
@@ -744,6 +902,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
+	if self.InFatality then return end
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
 	local idleAct = self:SelectIdleActivity(dist)
@@ -860,7 +1019,7 @@ function ENT:CustomOnThink_AIEnabled()
 				self.DisableChasingEnemy = false
 				self:OnFoundHidingSpot(goalPos)
 			else
-				if curTime > self.NextLookForHidingSpotT then
+				if curTime > self.NextLookForHidingSpotT && !self:IsBusy() then
 					local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
 					local closestNodes = {}
 					for _,v in ipairs(nodegraph) do
@@ -1061,12 +1220,6 @@ function ENT:CustomOnRemove()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_acos = math.acos
-local math_abs = math.abs
-local math_rad = math.rad
-local math_deg = math.deg
-local math_atan2 = math.atan2
---
 function ENT:GetDamageDirection(dmginfo)
 	local dir = (self:GetPos() +self:OBBCenter()) -dmginfo:GetDamagePosition()
 	dir:Normalize()
