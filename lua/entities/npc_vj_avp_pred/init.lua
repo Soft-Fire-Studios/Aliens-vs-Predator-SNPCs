@@ -1,5 +1,6 @@
 AddCSLuaFile("shared.lua")
 include('shared.lua')
+include("vj_base/extensions/avp_fatality_module.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -72,6 +73,12 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["predator_claws_trophy_pred_countered"] = "predator_claws_trophy_pred_victim_counter",
 	["predator_claws_trophy_pred_kill"] = "predator_claws_trophy_pred_victim_die",
 	["predator_claws_trophy_pred_headstab_kill"] = "predator_claws_trophy_pred_headstab_death",
+	["headbite_pred"] = "predator_claws_alien_headbite",
+	["headbite_pred_countered"] = "predator_claws_alien_headbite_counter",
+	["headbite_pred_kill"] = "predator_claws_alien_headbite_death",
+	["stealth_kill_pred"] = "predator_claws_alien_stealth_kill",
+	["stealth_kill_pred_countered"] = "predator_claws_counter_alien_stealth_kill",
+	["stealth_kill_pred_finished"] = "predator_claws_alien_stealth_kill_death",
 }
 
 ENT.SoundTbl_FootStep = {
@@ -177,11 +184,6 @@ ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local toSeq = VJ.SequenceToActivity
-
-local math_acos = math.acos
-local math_abs = math.abs
-local math_rad = math.rad
-local math_cos = math.cos
 local math_deg = math.deg
 local math_atan2 = math.atan2
 --
@@ -335,14 +337,6 @@ function ENT:OnKeyPressed(ply,key)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CanUseFatality(ent)
-	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetForward()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() /2) or !inFront) then
-		return true, inFront
-	end
-	return false, inFront
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetFatalityOffset(ent)
 	local offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *2
 	if ent.VJ_AVP_Xenomorph then
@@ -353,123 +347,13 @@ function ENT:GetFatalityOffset(ent)
 	return offset
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnFatality(ent,inFront,willCounter)
+function ENT:OnFatality(ent,inFront,willCounter,fType)
 	if !willCounter then
 		self:SetBodygroup(self:FindBodygroupByName("mask"),0)
 	end
 	if self:GetCloaked() then
 		self:Camo(false)
 		self.NextCloakT = CurTime() +50
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:ResetFatality(ent)
-	self.FatalityEnt = nil
-	self:SetState()
-	if IsValid(ent) then
-		ent.GodMode = false
-		ent.InFatality = false
-		ent.FatalityKiller = nil
-		ent:SetState()
-		ent.FatalityEnt = nil
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:DoFatality(ent,inFront)
-	local tbl = self.AnimTbl_Fatalities.Human
-	if ent.VJ_AVP_Xenomorph then
-		tbl = self.AnimTbl_Fatalities.Alien
-	elseif ent.VJ_AVP_Predator then
-		tbl = self.AnimTbl_Fatalities.Predator
-	end
-	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
-		tbl = inFront && tbl.Trophy or tbl.Stealth
-		if !tbl then return false end
-		self.FatalityEnt = ent
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-		ent.GodMode = true
-		ent.InFatality = true
-		ent.FatalityKiller = self
-		local ang = self:GetAngles()
-		ang.y = ang.y +180
-		ent:StopMoving()
-		ent:SetAngles(ang)
-		local offset = ent.GetFatalityOffset && ent:GetFatalityOffset(self) or (self:OBBMaxs().y +ent:OBBMaxs().y) *2
-		ent:SetPos(self:GetPos() +self:GetForward() *offset)
-		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-		ent:StopAttacks(true)
-		ent:ClearSchedule()
-		self:OnHit({ent})
-		if tbl.OnlyKill then
-			if ent.OnFatality then
-				ent:OnFatality(self,inFront)
-			end
-			local anim = tbl.Kill
-			anim = VJ.PICK(anim)
-			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
-				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-					if int then self:ResetFatality(ent) return end
-					ent:SetState()
-					ent.GodMode = false
-					ent.InFatality = false
-					if !counter && IsValid(self) then
-						local dmginfo = DamageInfo()
-						dmginfo:SetDamage(ent:Health())
-						dmginfo:SetDamageType(DMG_SLASH)
-						dmginfo:SetDamageForce(self:GetForward() *250)
-						dmginfo:SetAttacker(self)
-						dmginfo:SetInflictor(self)
-						ent:TakeDamageInfo(dmginfo)
-					end
-				end})
-			end
-			self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-				if int then self:ResetFatality(ent) return end
-				self:SetState()
-			end})
-		else
-			local counter = math.random(1,3) == 1
-			if ent.OnFatality then
-				ent:OnFatality(self,inFront,counter)
-			end
-			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
-				if int then self:ResetFatality(ent) return end
-				if IsValid(ent) then
-					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
-						ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
-					end
-				end
-				self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
-					if int then self:ResetFatality(ent) return end
-					local anim = counter && tbl.Counter or tbl.Kill
-					anim = VJ.PICK(anim)
-					if IsValid(ent) then
-						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
-							ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-								if int then self:ResetFatality(ent) return end
-								ent:SetState()
-								ent.GodMode = false
-								ent.InFatality = false
-								if !counter && IsValid(self) then
-									ent.HasDeathAnimation = false
-									local dmginfo = DamageInfo()
-									dmginfo:SetDamage(ent:Health())
-									dmginfo:SetDamageType(DMG_SLASH)
-									dmginfo:SetDamageForce(self:GetForward() *250)
-									dmginfo:SetAttacker(self)
-									dmginfo:SetInflictor(self)
-									ent:TakeDamageInfo(dmginfo)
-								end
-							end})
-						end
-					end
-					self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-						if int then self:ResetFatality(ent) return end
-						self:SetState()
-					end})
-				end})
-			end})
-		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -756,17 +640,23 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)
 	if self:GetCloaked() then
+		if self:GetBeam() then
+			return
+		end
 		local sprinting = self:GetSprinting()
-		local calcMult = self:GetBeam() == true && 5 or ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
-		if v.VJ_AVP_Xenomorph or (v.VJ_AVP_Predator && v:GetVisionMode() != 1) or v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
+		local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
+			return
+		end
+		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
 			self:AddEntityRelationship(v, D_NU, 10)
 			return false
 		end
 		if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
 			if v:HasEnemyMemory(self) then
 				v:ClearEnemyMemory(self)
-				v:MarkEnemyAsEluded(self)
-				v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
+				-- v:MarkEnemyAsEluded(self)
+				-- v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
 			end
 			if v:GetEnemy() == self then
 				v:SetEnemy(nil)
@@ -1048,20 +938,25 @@ function ENT:CustomOnThink_AIEnabled()
 			self:Camo(false)
 			self.NextCloakT = curTime +2
 		end
-		for _,v in pairs(select(2,ents.Iterator())) do
-			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
-				local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
-				if v.VJ_AVP_Xenomorph or (v.VJ_AVP_Predator && v:GetVisionMode() == 1) or v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
-					continue
-				end
-				if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
-					if v:IsNPC() then
-						v:ClearEnemyMemory(self)
-						v:MarkEnemyAsEluded(self)
-						v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
+		if !self:GetBeam() then
+			for _,v in pairs(select(2,ents.Iterator())) do
+				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
+					local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+					if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
+						continue
 					end
-					if v.GetEnemy && v:GetEnemy() == self then
-						v:SetEnemy(nil)
+					if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
+						continue
+					end
+					if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
+						if v.HasEnemyMemory && v:HasEnemyMemory(self) then
+							v:ClearEnemyMemory(self)
+							-- v:MarkEnemyAsEluded(self)
+							-- v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
+						end
+						if v.GetEnemy && v:GetEnemy() == self then
+							v:SetEnemy(nil)
+						end
 					end
 				end
 			end
@@ -1115,7 +1010,7 @@ function ENT:CustomOnThink_AIEnabled()
 				end
 			end
 		end
-		if self:Health() < self:GetMaxHealth() && curTime > self.NextHealT && math.random(1,40) == 1 then
+		if (!IsValid(enemy) or IsValid(enemy) && dist > 800) && self:Health() < self:GetMaxHealth() && curTime > self.NextHealT && math.random(1,40) == 1 then
 			self.LookForHidingSpot = true
 		end
 		if goalPos then

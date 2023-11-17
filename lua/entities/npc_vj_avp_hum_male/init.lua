@@ -504,7 +504,9 @@ function ENT:CustomOnThink()
 					end
 					self:CustomOnInvestigate(v)
 				end
-				self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+				if math.random(1,6) == 1 then
+					self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+				end
 			end
 		else
 			VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_pulse_01.ogg",55)

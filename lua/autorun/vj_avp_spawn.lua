@@ -20,9 +20,11 @@ if VJExists == true then
 	local vCat_M = "Aliens vs Predator - Humans"
 	local vCat_P = "Aliens vs Predator - Predators"
 	local vCat_A = "Aliens vs Predator - Xenomorphs"
-	VJ.AddCategoryInfo(vCat_M,{Icon = "vj_icons/avp.png"})
-	VJ.AddCategoryInfo(vCat_P,{Icon = "vj_icons/avp.png"})
-	VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp.png"})
+	local vCat_AK = "Aliens vs Predator - Xenomorphs (K-Series)"
+	VJ.AddCategoryInfo(vCat_M,{Icon = "vj_icons/avp_marine16.png"})
+	VJ.AddCategoryInfo(vCat_P,{Icon = "vj_icons/avp_pred16.png"})
+	VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp_xeno16.png"})
+	VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 	
 	VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_xeno_facehugger",vCat_A)
@@ -37,6 +39,17 @@ if VJExists == true then
 	VJ.AddNPC("Nethead","npc_vj_avp_xeno_nethead",vCat_A)
 	VJ.AddNPC("Specimen Six","npc_vj_avp_xeno_six",vCat_A)
 	VJ.AddNPC("The Matriarch","npc_vj_avp_xeno_matriarch",vCat_A)
+	
+	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_kxeno_facehugger",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_kxeno_facehugger_queen",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Queen","npc_vj_avp_kxeno_queen",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Warrior","npc_vj_avp_kxeno_warrior",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Drone","npc_vj_avp_kxeno_drone",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_jungle",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Predalien","npc_vj_avp_kxeno_predalien",vCat_AK)
 
 	VJ.AddNPC("Young Blood","npc_vj_avp_pred",vCat_P)
 	VJ.AddNPC("Dark","npc_vj_avp_pred_dark",vCat_P)
@@ -97,7 +110,11 @@ if VJExists == true then
 	local NPC = FindMetaTable("NPC")
 	
 	function NPC:Acid(pos,dist,dmg)
-		util.VJ_SphereDamage(self,self,pos or self:GetPos(),dist or 60,dmg or 10,DMG_ACID,true,false)
+		VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 60,dmg or 10,DMG_ACID,true,true,{},function(ent)
+			if ent.VJ_AVP_Xenomorph then
+				return false
+			end
+		end)
 	end
 
 	if CLIENT then

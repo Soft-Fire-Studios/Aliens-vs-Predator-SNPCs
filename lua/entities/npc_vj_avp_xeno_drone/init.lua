@@ -9,3 +9,7 @@ ENT.Model = {"models/cpthazama/avp/xeno/drone.mdl"}
 ENT.StartHealth = 125
 
 ENT.CanSpit = true
+---------------------------------------------------------------------------------------------------------------------------------------------
+-- function ENT:OnInit()
+-- 	self.VJ_NPC_Class = {"CLASS_XENOMORPH_TESTING"}
+-- end

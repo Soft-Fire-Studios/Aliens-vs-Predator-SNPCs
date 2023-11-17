@@ -41,7 +41,7 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 	}
 
-	self.InBirth = true
+	self.InBirth = false
 	self.NextLookForBirthT = CurTime() +5
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

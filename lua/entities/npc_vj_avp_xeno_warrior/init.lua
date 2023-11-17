@@ -1,5 +1,6 @@
 AddCSLuaFile("shared.lua")
 include('shared.lua')
+include("vj_base/extensions/avp_fatality_module.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -27,6 +28,36 @@ ENT.VJC_Data = {
 ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
 
+
+ENT.AnimTbl_Fatalities = {
+	Alien = {
+		Trophy = {
+			Grab = "v_alien_headbite_grab",
+			Lift = "v_alien_headbite_grapple",
+			Counter = "v_alien_headbite_countered",
+			Kill = "v_alien_headbite_kill"
+		},
+		Stealth = {
+			Grab = "v_alien_headbitebehind_grapple",
+			Counter = "v_alien_headbitebehind_countered",
+			Kill = "v_alien_headbitebehind_kill"
+		}
+	},
+	Human = {},
+	Predator = {
+		Trophy = {
+			Grab = "headbite_pred",
+			Counter = "headbite_pred_countered",
+			Kill = "headbite_pred_kill"
+		},
+		Stealth = {
+			Grab = "stealth_kill_pred",
+			Counter = "stealth_kill_pred_countered",
+			Kill = "stealth_kill_pred_finished"
+		}
+	}
+}
+
 ENT.AnimTbl_FatalitiesResponse = {
 	["predator_claws_trophy_alien_grab"] = "standing_guard_broken",
 	["predator_claws_trophy_alien_lift"] = "pred_trophy_standing_lift",
@@ -38,6 +69,20 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["predator_claws_trophy_alien_kill_slow"] = "pred_trophy_death_slow",
 	["predator_claws_stealthkill_alien_kill"] = "stealthkill_pred_death",
 	["predator_claws_stealthkill_alien_standing_kill"] = "stealthkill_standing_pred_death",
+	["v_alien_headbite_countered"] = "v_alien_headbite_counter",
+	["v_alien_headbite_kill"] = "v_alien_headbite_death",
+	["v_alien_headbite_grab"] = "standing_guard_broken",
+	["v_alien_headbite_grapple"] = "v_alien_headbite_grapple_victim",
+	["v_alien_headbitebehind_countered"] = "v_alien_headbitebehind_counter",
+	["v_alien_headbitebehind_kill"] = "v_alien_headbitebehind_death",
+	["v_alien_headbitebehind_grapple"] = "v_alien_headbitebehind_grapple_victim",
+	["v_alien_stealthkill_countered"] = "v_alien_stealthkill_counter",
+	["v_alien_stealthkill_kill"] = "v_alien_stealthkill_death",
+	["v_alien_stealthkill_grapple"] = "v_alien_stealthkill_grapple_victim",
+	["v_alien_stealthkill_take_off_face"] = "v_alien_stealthkill_take_off_face_victim",
+	["v_alien_tailstab_head_front_countered"] = "v_alien_tailstab_head_front_counter",
+	["v_alien_tailstab_head_front_kill"] = "v_alien_tailstab_head_front_death",
+	["v_alien_tailstab_head_front_grapple"] = "v_alien_tailstab_head_front_grapple_victim",
 }
 
 ENT.SoundTbl_Alert = {
@@ -174,6 +219,30 @@ function ENT:CustomOnInitialize()
     end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local NPCTbl_Animals = {npc_barnacle=true,npc_crow=true,npc_pigeon=true,npc_seagull=true,monster_cockroach=true}
+--
+function ENT:CheckRelationship(ent)
+	if ent.VJ_AlwaysEnemyToEnt == self then return D_HT end -- Always enemy to me (Used by the bullseye under certain circumstances)
+	if ent:IsFlagSet(FL_NOTARGET) or ent.VJ_NoTarget or NPCTbl_Animals[ent:GetClass()] then return D_NU end
+	if self:GetClass() == ent:GetClass() then return D_LI end
+	if ent:Health() > 0 && self:Disposition(ent) != D_LI then
+		local isPly = ent:IsPlayer()
+		if isPly && VJ_CVAR_IGNOREPLAYERS then return D_NU end
+		if VJ.HasValue(self.VJ_AddCertainEntityAsFriendly, ent) then return D_LI end
+		if VJ.HasValue(self.VJ_AddCertainEntityAsEnemy, ent) then return D_HT end
+		local entDisp = ent.Disposition and ent:Disposition(self)
+		if !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.3 then
+			return D_NU
+		end
+		if (ent:IsNPC() && ((entDisp == D_HT) or (entDisp == D_NU && ent.VJ_IsBeingControlled))) or (isPly && !self.PlayerFriendly && ent:Alive()) then
+			return D_HT
+		else
+			return D_NU
+		end
+	end
+	return D_LI
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
     if key == KEY_E then
 		local tr = util.TraceLine({
@@ -186,6 +255,56 @@ function ENT:OnKeyPressed(ply,key)
 			ent:Fire("Use",nil,0,ply,self)
 		end
     end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local tblA = {
+	Trophy = {
+		Grab = "v_alien_headbite_grab",
+		Lift = "v_alien_headbite_grapple",
+		Counter = "v_alien_headbite_countered",
+		Kill = "v_alien_headbite_kill"
+	},
+	Stealth = {
+		Grab = "v_alien_headbitebehind_grapple",
+		Counter = "v_alien_headbitebehind_countered",
+		Kill = "v_alien_headbitebehind_kill"
+	}
+}
+local tblB = {
+	Trophy = {
+		Grab = "v_alien_tailstab_head_front_grapple",
+		Counter = "v_alien_tailstab_head_front_countered",
+		Kill = "v_alien_tailstab_head_front_kill"
+	},
+	Stealth = {
+		Grab = "v_alien_stealthkill_grapple",
+		Counter = "v_alien_stealthkill_countered",
+		Kill = "v_alien_stealthkill_kill"
+	}
+}
+local tblC = {
+	Trophy = {
+		Grab = "v_alien_tailstab_head_front_grapple",
+		Counter = "v_alien_tailstab_head_front_countered",
+		Kill = "v_alien_tailstab_head_front_kill"
+	},
+	Stealth = {
+		Kill = "v_alien_stealthkill_take_off_face",
+		OnlyKill = true
+	}
+}
+--
+function ENT:OnBeforeDoFatality(ent,fType)
+	if fType == "Alien" then
+		local group = math.random(1,3)
+		if group == 1 then
+			return tblA
+		elseif group == 2 then
+			return tblB
+		else
+			return tblC
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
@@ -393,7 +512,7 @@ end
 function ENT:GetFatalityOffset(ent)
 	local offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *2
 	if ent.VJ_AVP_Xenomorph then
-		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.25
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1
 	elseif ent.VJ_AVP_Predator then
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.5
 	end
@@ -401,6 +520,7 @@ function ENT:GetFatalityOffset(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,visible)
+	if self.InFatality then return end
 	local cont = self.VJ_TheController
 	local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
@@ -419,7 +539,14 @@ function ENT:CustomAttack(ent,visible)
 	if visible then
 		if self.CanAttack then
 			if dist <= self.AttackDistance && !self:IsBusy() then
-				self:AttackCode(isCrawling)
+				local canUse, inFront = self:CanUseFatality(ent)
+				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+					if self:DoFatality(ent,inFront) == false then
+						self:AttackCode(isCrawling)
+					end
+				else
+					self:AttackCode(isCrawling)
+				end
 			end
 		end
 	end
@@ -854,8 +981,10 @@ local math_Clamp = math.Clamp
 --
 function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 	if dmginfo:IsBulletDamage() then
+		local ammoType = dmginfo:GetAmmoType()
+		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
 		if dmginfo:GetDamage() <= 30 then
-			dmginfo:SetDamage(dmginfo:GetDamage() <= 10 && 0 or math_Clamp(dmginfo:GetDamage() *0.2,1,30))
+			dmginfo:SetDamage(dmginfo:GetDamage() <= 10 && 1 or math_Clamp(dmginfo:GetDamage() *0.2,1,30))
 		end
 	end
 end

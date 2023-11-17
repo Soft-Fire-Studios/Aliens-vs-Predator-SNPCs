@@ -181,7 +181,7 @@ function ENT:CustomRangeAttackCode()
 				bullet.Tracer = 1
 				bullet.Force = 5
 				bullet.Damage = 5
-				bullet.AmmoType = "SMG1"
+				bullet.AmmoType = "AirboatGun"
 				bullet.Callback = function(attacker,tr,dmginfo)
 					util.ScreenShake(tr.HitPos,16,100,0.2,50)
 				end
