@@ -33,24 +33,11 @@ ENT.AnimTbl_Death = {"predator_claws_death_Back_Left","predator_claws_death_Back
 
 ENT.GeneralSoundPitch1 = 100
 
-/*
-	Predator to Alien
-		(Trophy)
-		predator_claws_trophy_alien_grab
-		predator_claws_trophy_alien_lift -> pred_trophy_allfours_lift
-			predator_claws_trophy_alien_countered -> pred_trophy_countered
-		predator_claws_trophy_alien_impale -> pred_trophy_death_impaled
-		predator_claws_trophy_alien_kill -> pred_trophy_death
-		predator_claws_trophy_alien_kill_headplant -> pred_trophy_death_headplant
-		predator_claws_trophy_alien_kill_kneeplant -> pred_trophy_death_kneeplant
-		predator_claws_trophy_alien_kill_slow -> pred_trophy_death_slow
-*/
-
 ENT.AnimTbl_Fatalities = {
 	Alien = {
 		Trophy = {
-			Grab = "predator_claws_trophy_alien_grab",
-			Lift = "predator_claws_trophy_alien_lift",
+			Grab = "predator_claws_trophy_standing_alien_grab",
+			Lift = "predator_claws_trophy_standing_alien_lift",
 			Counter = "predator_claws_trophy_alien_countered",
 			Kill = {
 				"predator_claws_trophy_alien_impale",
@@ -66,7 +53,25 @@ ENT.AnimTbl_Fatalities = {
 		}
 	},
 	Human = {},
-	Predator = {},
+	Predator = {
+		Trophy = {
+			Grab = "predator_claws_trophy_pred_grab",
+			Lift = "predator_claws_trophy_pred_lift",
+			Counter = "predator_claws_trophy_pred_countered",
+			Kill = {
+				"predator_claws_trophy_pred_kill",
+				"predator_claws_trophy_pred_headstab_kill",
+			}
+		},
+	}
+}
+
+ENT.AnimTbl_FatalitiesResponse = {
+	["predator_claws_trophy_pred_grab"] = "predator_claws_guard_block_broken",
+	["predator_claws_trophy_pred_lift"] = "predator_claws_trophy_pred_victim_lift",
+	["predator_claws_trophy_pred_countered"] = "predator_claws_trophy_pred_victim_counter",
+	["predator_claws_trophy_pred_kill"] = "predator_claws_trophy_pred_victim_die",
+	["predator_claws_trophy_pred_headstab_kill"] = "predator_claws_trophy_pred_headstab_death",
 }
 
 ENT.SoundTbl_FootStep = {
@@ -221,8 +226,12 @@ function ENT:CustomOnInitialize()
 	self.LookForHidingSpotAttempts = 0
 	self.NextLookForHidingSpotT = 0
 
+	if self.OnInit then
+		self:OnInit()
+	end
+
 	timer.Simple(0,function()
-		if IsValid(self) then
+		if IsValid(self) && GetConVar("vj_avp_predmobile"):GetBool() then
 			local ply = self:GetCreator()
 			if game.SinglePlayer() then
 				ply = Entity(1)
@@ -293,14 +302,6 @@ function ENT:CustomOnInitialize()
     end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CanUseFatality(ent)
-	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetForward()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() /2) or inFront) then
-		return true, inFront
-	end
-	return false, inFront
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
     if key == KEY_E then
 		local tr = util.TraceLine({
@@ -334,13 +335,43 @@ function ENT:OnKeyPressed(ply,key)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CanUseFatality(ent)
+	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetForward()):GetNormalized()) > math_cos(math_rad(80)))
+	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() /2) or !inFront) then
+		return true, inFront
+	end
+	return false, inFront
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetFatalityOffset(ent)
+	local offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *2
+	if ent.VJ_AVP_Xenomorph then
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1
+	elseif ent.VJ_AVP_Predator then
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.4
+	end
+	return offset
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnFatality(ent,inFront,willCounter)
+	if !willCounter then
+		self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+	end
+	if self:GetCloaked() then
+		self:Camo(false)
+		self.NextCloakT = CurTime() +50
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ResetFatality(ent)
 	self.FatalityEnt = nil
 	self:SetState()
 	if IsValid(ent) then
 		ent.GodMode = false
 		ent.InFatality = false
+		ent.FatalityKiller = nil
 		ent:SetState()
+		ent.FatalityEnt = nil
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -348,23 +379,31 @@ function ENT:DoFatality(ent,inFront)
 	local tbl = self.AnimTbl_Fatalities.Human
 	if ent.VJ_AVP_Xenomorph then
 		tbl = self.AnimTbl_Fatalities.Alien
-	-- elseif ent.VJ_AVP_Predator then
-		-- tbl = self.AnimTbl_Fatalities.Predator
+	elseif ent.VJ_AVP_Predator then
+		tbl = self.AnimTbl_Fatalities.Predator
 	end
 	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
 		tbl = inFront && tbl.Trophy or tbl.Stealth
+		if !tbl then return false end
 		self.FatalityEnt = ent
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		ent.GodMode = true
 		ent.InFatality = true
+		ent.FatalityKiller = self
 		local ang = self:GetAngles()
 		ang.y = ang.y +180
 		ent:StopMoving()
 		ent:SetAngles(ang)
-		ent:SetPos(self:GetPos() +self:GetForward() *(self:OBBMaxs().y +ent:OBBMaxs().y) *2)
+		local offset = ent.GetFatalityOffset && ent:GetFatalityOffset(self) or (self:OBBMaxs().y +ent:OBBMaxs().y) *2
+		ent:SetPos(self:GetPos() +self:GetForward() *offset)
 		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		ent:StopAttacks(true)
+		ent:ClearSchedule()
 		self:OnHit({ent})
 		if tbl.OnlyKill then
+			if ent.OnFatality then
+				ent:OnFatality(self,inFront)
+			end
 			local anim = tbl.Kill
 			anim = VJ.PICK(anim)
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
@@ -389,6 +428,10 @@ function ENT:DoFatality(ent,inFront)
 				self:SetState()
 			end})
 		else
+			local counter = math.random(1,3) == 1
+			if ent.OnFatality then
+				ent:OnFatality(self,inFront,counter)
+			end
 			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
 				if int then self:ResetFatality(ent) return end
 				if IsValid(ent) then
@@ -398,7 +441,6 @@ function ENT:DoFatality(ent,inFront)
 				end
 				self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
 					if int then self:ResetFatality(ent) return end
-					local counter = math.random(1,3) == 1
 					local anim = counter && tbl.Counter or tbl.Kill
 					anim = VJ.PICK(anim)
 					if IsValid(ent) then
@@ -409,6 +451,7 @@ function ENT:DoFatality(ent,inFront)
 								ent.GodMode = false
 								ent.InFatality = false
 								if !counter && IsValid(self) then
+									ent.HasDeathAnimation = false
 									local dmginfo = DamageInfo()
 									dmginfo:SetDamage(ent:Health())
 									dmginfo:SetDamageType(DMG_SLASH)
@@ -449,9 +492,10 @@ function ENT:CustomAttack(ent,vis)
 	else
 		if dist <= self.AttackDistance && !self:IsBusy() && vis then
 			local canUse, inFront = self:CanUseFatality(ent)
-			print(canUse,inFront)
 			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-				self:DoFatality(ent,inFront)
+				if self:DoFatality(ent,inFront) == false then
+					self:AttackCode()
+				end
 			else
 				self:AttackCode()
 			end
@@ -536,6 +580,23 @@ function ENT:UseStimpack()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local string_Replace = string.Replace
+local sdClawFlesh = {
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_01.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_02.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_03.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_hit_alien_01.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_hit_alien_02.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_hit_alien_03.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_hit_alien_04.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_hit_alien_05.ogg",
+}
+local sdClawMiss = {
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_swipe_01.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_swipe_02.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_swipe_03.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_swipe_04.ogg",
+	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_swipe_05.ogg",
+}
 --
 function ENT:AttackCode()
 	if self.InFatality then return end
@@ -554,9 +615,11 @@ function ENT:AttackCode()
 				self:VJ_ACT_PLAYACTIVITY(anim[2],true,false,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				self:OnHit(hitEnts)
+				VJ.EmitSound(self,sdClawFlesh,75)
 			else
 				self:VJ_ACT_PLAYACTIVITY(anim[3],true,false,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
+				VJ.EmitSound(self,sdClawMiss,75)
 			end
 		end})
 		self.NextChaseTime = 0
@@ -692,23 +755,25 @@ function ENT:DistractionCode(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)
-	local sprinting = self:GetSprinting()
-	local calcMult = self:GetBeam() == true && 5 or ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
-	if v.VJ_AVP_Xenomorph or (v.VJ_AVP_Predator && v:GetVisionMode() == 1) or v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
-		self:AddEntityRelationship(v, D_NU, 10)
-		return false
-	end
-	if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
-		if v:HasEnemyMemory(self) then
-			v:ClearEnemyMemory(self)
-			v:MarkEnemyAsEluded(self)
-			v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
+	if self:GetCloaked() then
+		local sprinting = self:GetSprinting()
+		local calcMult = self:GetBeam() == true && 5 or ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+		if v.VJ_AVP_Xenomorph or (v.VJ_AVP_Predator && v:GetVisionMode() != 1) or v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
+			self:AddEntityRelationship(v, D_NU, 10)
+			return false
 		end
-		if v:GetEnemy() == self then
-			v:SetEnemy(nil)
+		if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
+			if v:HasEnemyMemory(self) then
+				v:ClearEnemyMemory(self)
+				v:MarkEnemyAsEluded(self)
+				v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
+			end
+			if v:GetEnemy() == self then
+				v:SetEnemy(nil)
+			end
+			self:AddEntityRelationship(v, D_NU, 10)
+			return false
 		end
-		self:AddEntityRelationship(v, D_NU, 10)
-		return false
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -744,16 +809,16 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		end
 	elseif key == "attack" then
 		self.AttackDamageType = DMG_SLASH
-		self:RunDamageCode()
+		VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_heavy" then
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
-		self:RunDamageCode(1.75)
+		VJ.EmitSound(self,#self:RunDamageCode(1.75) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_jump" then
 		self.AttackDamageType = DMG_SLASH
-		self:RunDamageCode(1.25)
+		VJ.EmitSound(self,#self:RunDamageCode(1.25) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_jump_heavy" then
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
-		self:RunDamageCode(2)
+		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "stimpack_grab" then
 		
 	elseif key == "stimpack_unscrew" then
@@ -902,7 +967,17 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
-	if self.InFatality then return end
+	if self.InFatality then
+		if !IsValid(self.FatalityKiller) then
+			self.InFatality = false
+			self:SetState()
+			self:SetHealth(0)
+			self:TakeDamage(1000,self,self)
+		else
+			-- self:SetCycle(self.FatalityKiller:GetCycle())
+		end
+		return
+	end
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
 	local idleAct = self:SelectIdleActivity(dist)
@@ -1070,7 +1145,7 @@ function ENT:CustomOnThink_AIEnabled()
 				else
 					self:SetVisionMode(1)
 				end
-				if (enemy:IsPlayer() or enemy:IsNPC() && enemy:Disposition(self) != D_HT) && dist > 1000 && !self:IsBusy() then
+				if !enemy.VJ_AVP_Predator && (enemy:IsPlayer() or enemy:IsNPC() && enemy:Disposition(self) != D_HT) && dist > 1000 && !self:IsBusy() then
 					self.DisableChasingEnemy = true
 					if curTime > self.NextFindStalkPos then
 						local vis = self:Visible(enemy)
@@ -1185,6 +1260,12 @@ function ENT:CustomOnInitialKilled()
 			end
 		end
 	end
+	if IsValid(self.FatalityEnt) then
+		self.FatalityEnt:SetHealth(0)
+		self.FatalityEnt.GodMode = false
+		self.FatalityEnt:TakeDamage(1000,self,self)
+		self.FatalityEnt = nil
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnChangeActivity(newAct)
@@ -1217,6 +1298,11 @@ function ENT:CustomOnRemove()
 		for _,v in pairs(self.DeleteSounds) do
 			VJ_STOPSOUND(v)
 		end
+	end
+	if IsValid(self.FatalityEnt) then
+		self.FatalityEnt:SetHealth(0)
+		self.FatalityEnt.GodMode = false
+		self.FatalityEnt:TakeDamage(1000,self,self)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

@@ -14,6 +14,8 @@ local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
 if VJExists == true then
 	include('autorun/vj_controls.lua')
 
+	VJ.AddConVar("vj_avp_predmobile",1)
+
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
 	local vCat_P = "Aliens vs Predator - Predators"

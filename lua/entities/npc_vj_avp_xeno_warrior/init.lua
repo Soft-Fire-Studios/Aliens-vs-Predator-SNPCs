@@ -28,7 +28,8 @@ ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
 
 ENT.AnimTbl_FatalitiesResponse = {
-	["predator_claws_trophy_alien_lift"] = "pred_trophy_allfours_lift",
+	["predator_claws_trophy_alien_grab"] = "standing_guard_broken",
+	["predator_claws_trophy_alien_lift"] = "pred_trophy_standing_lift",
 	["predator_claws_trophy_alien_countered"] = "pred_trophy_countered",
 	["predator_claws_trophy_alien_impale"] = "pred_trophy_death_impaled",
 	["predator_claws_trophy_alien_kill"] = "pred_trophy_death",
@@ -389,6 +390,16 @@ function ENT:RunDamageCode(mult)
 	return hitEnts
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetFatalityOffset(ent)
+	local offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *2
+	if ent.VJ_AVP_Xenomorph then
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.25
+	elseif ent.VJ_AVP_Predator then
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.5
+	end
+	return offset
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,visible)
 	local cont = self.VJ_TheController
 	local dist = self.LastEnemyDistance
@@ -425,7 +436,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackType = 3
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted,anim)
-					if interrupted then return end
+					if interrupted or self.InFatality then return end
 					self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
 				end})
 			else
@@ -435,28 +446,28 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self.AttackSide = self.AttackSide == "right" && "left" or "right"
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
-						if interrupted then return end -- Means we hit something
+						if interrupted or self.InFatality then return end -- Means we hit something
 						if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 							self:PlaySound(self.SoundTbl_Attack,75)
 							self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
-								if interrupted then return end
+								if interrupted or self.InFatality then return end
 								if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 									self.AttackSide = self.AttackSide == "right" && "left" or "right"
 									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 									self:PlaySound(self.SoundTbl_Attack,75)
 									self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
-										if interrupted then return end
+										if interrupted or self.InFatality then return end
 										self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-											if interrupted or IsValid(self.VJ_TheController) then return end
+											if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 											self.CurrentSet = 1
 											self.ChangeSetT = CurTime() +0.5
 										end})
 									end})
 								else
 									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-										if interrupted or IsValid(self.VJ_TheController) then return end
+										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 										self.CurrentSet = 1
 										self.ChangeSetT = CurTime() +0.5
 									end})
@@ -464,7 +475,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 							end})
 						else
 							self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-								if interrupted or IsValid(self.VJ_TheController) then return end
+								if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 								self.CurrentSet = 1
 								self.ChangeSetT = CurTime() +0.5
 							end})
@@ -475,7 +486,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self.AttackType = 2
 					self.AttackSide = self.AttackSide == "right" && "left" or "right"
 					self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
-						if interrupted then return end
+						if interrupted or self.InFatality then return end
 						self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid_return",true,false,false,0,{AlwaysUseGesture=true})
 						self.NextChaseTime = 0
 					end})
@@ -487,7 +498,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				// Heavy attack
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted then return end
+					if interrupted or self.InFatality then return end
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
 				end})
@@ -497,28 +508,28 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
 				self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted then return end -- Means we hit something
+					if interrupted or self.InFatality then return end -- Means we hit something
 					if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 						self.AttackSide = self.AttackSide == "right" && "left" or "right"
 						local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 						self:PlaySound(self.SoundTbl_Attack,75)
 						self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
-							if interrupted then return end
+							if interrupted or self.InFatality then return end
 							if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 								self.AttackSide = self.AttackSide == "right" && "left" or "right"
 								local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 								self:PlaySound(self.SoundTbl_Attack,75)
 								self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
-									if interrupted then return end
+									if interrupted or self.InFatality then return end
 									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-										if interrupted or IsValid(self.VJ_TheController) then return end
+										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 										self.CurrentSet = 1
 										self.ChangeSetT = CurTime() +0.5
 									end})
 								end})
 							else
 								self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-									if interrupted or IsValid(self.VJ_TheController) then return end
+									if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 									self.CurrentSet = 1
 									self.ChangeSetT = CurTime() +0.5
 								end})
@@ -526,7 +537,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 						end})
 					else
 						self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-							if interrupted or IsValid(self.VJ_TheController) then return end
+							if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 							self.CurrentSet = 1
 							self.ChangeSetT = CurTime() +0.5
 						end})
@@ -537,7 +548,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackType = 0
 				local side = math.random(1,2)
 				self:VJ_ACT_PLAYACTIVITY("all4s_claw_swipe_" .. side,true,false,true,0,{OnFinish=function(interrupted,anim)
-					if interrupted then return end -- Means we hit something and started the return animation
+					if interrupted or self.InFatality then return end -- Means we hit something and started the return animation
 					self:VJ_ACT_PLAYACTIVITY("all4s_claw_swipe_" .. side .. "_return",true,false,false)
 				end})
 			end
@@ -548,7 +559,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted then return end
+					if interrupted or self.InFatality then return end
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_long",true,false,true)
 				end})
@@ -563,7 +574,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				// Heavy attack
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted then return end
+					if interrupted or self.InFatality then return end
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
 				end})
@@ -573,15 +584,15 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
 				self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted then return end -- Means we hit something
+					if interrupted or self.InFatality then return end -- Means we hit something
 					if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 						self.AttackSide = self.AttackSide == "right" && "left" or "right"
 						self:PlaySound(self.SoundTbl_Attack,75)
 						self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
-							if interrupted or IsValid(self.VJ_TheController) then return end
+							if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							self:VJ_ACT_PLAYACTIVITY({"light_attack_" .. self.AttackSide .. "_to_run_fwd","light_attack_" .. self.AttackSide .. "_to_crawl_fwd"},true,false,true,0,{OnFinish=function(interrupted,anim)
-								if interrupted then return end
+								if interrupted or self.InFatality then return end
 								self.CurrentSet = (anim == "light_attack_" .. self.AttackSide .. "_to_run_fwd") && 2 or 1
 								self.ChangeSetT = CurTime() +0.5
 							end})
@@ -688,8 +699,19 @@ local VJ_HasValue = VJ.HasValue
 local startCycle = 0.23
 local endCycle = 0.65
 --
-function ENT:CustomOnThink()
-	if self.InFatality then return end
+function ENT:CustomOnThink_AIEnabled()
+	if self.Dead then return end
+	if self.InFatality then
+		if !IsValid(self.FatalityKiller) then
+			self.InFatality = false
+			self:SetState()
+			self:SetHealth(0)
+			self:TakeDamage(1000,self,self)
+		else
+			-- self:SetCycle(self.FatalityKiller:GetCycle())
+		end
+		return
+	end
 	local curTime = CurTime()
 	local ent = self:GetEnemy()
 	local ply = self.VJ_TheController
