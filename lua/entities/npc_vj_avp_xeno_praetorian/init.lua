@@ -165,7 +165,7 @@ function ENT:DoSummon()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCustomAttack(ply,ent,vis,dist)
-	if CurTime() > self.NextSummonT && math.random(1,50) == 1 then
+	if CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
 		self:DoSummon()
 		self.NextSummonT = CurTime() +math.random(60,120)
 	end
