@@ -40,16 +40,16 @@ if VJExists == true then
 	VJ.AddNPC("Specimen Six","npc_vj_avp_xeno_six",vCat_A)
 	VJ.AddNPC("The Matriarch","npc_vj_avp_xeno_matriarch",vCat_A)
 	
-	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_kxeno_facehugger",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_kxeno_facehugger_queen",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Queen","npc_vj_avp_kxeno_queen",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Warrior","npc_vj_avp_kxeno_warrior",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Drone","npc_vj_avp_kxeno_drone",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_jungle",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
-	-- VJ.AddNPC("Xenomorph Predalien","npc_vj_avp_kxeno_predalien",vCat_AK)
+	VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
+	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_kxeno_facehugger",vCat_AK)
+	VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_kxeno_facehugger_queen",vCat_AK)
+	VJ.AddNPC("Xenomorph Queen","npc_vj_avp_kxeno_queen",vCat_AK)
+	VJ.AddNPC("Xenomorph Warrior","npc_vj_avp_kxeno_warrior",vCat_AK)
+	VJ.AddNPC("Xenomorph Drone","npc_vj_avp_kxeno_drone",vCat_AK)
+	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_jungle",vCat_AK)
+	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
+	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
+	VJ.AddNPC("Xenomorph Predalien","npc_vj_avp_kxeno_predalien",vCat_AK)
 
 	VJ.AddNPC("Young Blood","npc_vj_avp_pred",vCat_P)
 	VJ.AddNPC("Dark","npc_vj_avp_pred_dark",vCat_P)
@@ -101,6 +101,7 @@ if VJExists == true then
 	KEY_MOUSESCROLL_DOWN = 113
 	VJ_AVP_HALOS = {}
 	VJ_AVP_HALOS.Xenomorphs = {}
+	VJ_AVP_HALOS.KXenomorphs = {}
 	VJ_AVP_HALOS.Predators = {}
 	VJ_AVP_HALOS.Tech = {}
 	VJ_AVP_HALOS.Other = {}

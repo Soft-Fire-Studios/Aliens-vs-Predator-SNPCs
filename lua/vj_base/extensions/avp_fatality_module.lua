@@ -2,10 +2,10 @@ local math_acos = math.acos
 local math_abs = math.abs
 local math_rad = math.rad
 local math_cos = math.cos
-
+--
 function ENT:CanUseFatality(ent)
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() /2) or !inFront) then
+	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront) && !ent.Dead && !ent.InFatality && !IsValid(self.FatalityEnt) && !IsValid(ent.FatalityEnt) then
 		return true, inFront
 	end
 	return false, inFront
@@ -44,6 +44,8 @@ function ENT:DoFatality(ent,inFront)
 		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		ent:StopAttacks(true)
 		ent:ClearSchedule()
+		ent:ClearGoal()
+		ent:StopMoving()
 		ent:SetMaxYawSpeed(0)
 		if self.OnHit then
 			self:OnHit({ent})

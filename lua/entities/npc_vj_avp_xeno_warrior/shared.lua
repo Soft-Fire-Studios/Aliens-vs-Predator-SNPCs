@@ -72,6 +72,7 @@ if CLIENT then
 
 	local halo_Add = halo.Add
 	local col_xeno = Color(203,120,120)
+	local col_kxeno = Color(202,203,120)
 	local col_tech = Color(81,44,118)
 	local col_pred = Color(0,255,8)
 	local col_enemy = Color(0,170,255)
@@ -123,9 +124,13 @@ if CLIENT then
 				if !IsValid(v) then continue end
 				if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
 					if v:GetClass() == "obj_vj_bullseye" then continue end
-					if (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && !VJ_HasValue(VJ_AVP_HALOS.Xenomorphs,v) then
+					if (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && !v.VJ_AVP_K_Xenomorph && !VJ_HasValue(VJ_AVP_HALOS.Xenomorphs,v) && v != ent then
 						table_insert(VJ_AVP_HALOS.Xenomorphs,v)
 						-- print("Added",v,"Xeno")
+						continue
+					elseif (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v.VJ_AVP_K_Xenomorph && !VJ_HasValue(VJ_AVP_HALOS.KXenomorphs,v) && v != ent then
+						table_insert(VJ_AVP_HALOS.KXenomorphs,v)
+						-- print("Added",v,"KXeno")
 						continue
 					elseif v.VJ_AVP_Predator && !VJ_HasValue(VJ_AVP_HALOS.Predators,v) then
 						table_insert(VJ_AVP_HALOS.Predators,v)
@@ -144,6 +149,7 @@ if CLIENT then
 				end
 			end
 			halo_Add(VJ_AVP_HALOS.Xenomorphs,col_xeno,4,4,15,true,true)
+			halo_Add(VJ_AVP_HALOS.KXenomorphs,col_kxeno,4,4,15,true,true)
 			halo_Add(VJ_AVP_HALOS.Predators,col_pred,4,4,15,true,true)
 			halo_Add(VJ_AVP_HALOS.Tech,col_tech,4,4,15,true,true)
 			halo_Add(VJ_AVP_HALOS.Other,col_enemy,4,4,15,true,true)

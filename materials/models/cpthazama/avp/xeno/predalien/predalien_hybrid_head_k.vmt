@@ -1,0 +1,31 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/predalien/predalien_hybrid_head_k_colour"
+	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/predalien_hybrid_head_normal"
+	"$phongexponenttexture"		"vj_base/exponent"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "5"
+	"$phongexponent"             "20"
+	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phongalbedotint"           "1"
+	"$phongalbedoboost"          "10"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.2 0.2 0.2]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.6"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}
