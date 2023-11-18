@@ -358,7 +358,7 @@ function ENT:OnFatality(ent,inFront,willCounter,fType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,vis)
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
 	local dist = self.NearestPointToEnemyDistance
 	if IsValid(cont) then
@@ -404,7 +404,7 @@ function ENT:CustomAttack(ent,vis)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	local atk = atk or 1
 	if atk == 1 then
 		self:SetBeam(true)
@@ -457,7 +457,7 @@ function ENT:SpecialAttackCode(atk)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
 	self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_healthstab",true,false,false)
 	self.NextChaseTime = 0
@@ -483,7 +483,7 @@ local sdClawMiss = {
 }
 --
 function ENT:AttackCode()
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack then return end
 	self.AttackSide = self.AttackSide == "right" && "left" or "right"
 	local anim = VJ.PICK(self.AttackAnimations)
@@ -858,12 +858,10 @@ end
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 	if self.InFatality then
-		if !IsValid(self.FatalityKiller) then
-			self.InFatality = false
-			self:SetState()
+		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+			self:ResetFatality()
 			self:SetHealth(0)
-			self:TakeDamage(1000,self,self)
-		else
+			self:TakeDamage(8000,self,self)
 			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
@@ -1118,7 +1116,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self.NextFindStalkPos = CurTime() +math.Rand(15,20)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
-	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0

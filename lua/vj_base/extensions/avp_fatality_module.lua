@@ -2,7 +2,7 @@ local math_acos = math.acos
 local math_abs = math.abs
 local math_rad = math.rad
 local math_cos = math.cos
-
+---------------------------------------------------------------------------------------------------------------------------------------------
 cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, newValue)
 	if tonumber(newValue) == 0 then
 		VJ_AVP_FATALITIES = false
@@ -10,11 +10,11 @@ cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, new
 		VJ_AVP_FATALITIES = true
 	end
 end)
---
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CanUseFatality(ent)
-	if !VJ_AVP_FATALITIES then return false, false end
+	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront) && !ent.Dead && !ent.InFatality && !IsValid(self.FatalityEnt) && !IsValid(ent.FatalityEnt) then
+	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
 			return false, inFront
 		end
@@ -23,18 +23,20 @@ function ENT:CanUseFatality(ent)
 	return false, inFront
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:ResetFatality(ent)
+function ENT:IsBusy()
+	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.InFatality or self.DoingFatality
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ResetFatality()
+	self.InFatality = false
 	self.FatalityEnt = nil
+	self.FatalityKiller = nil
+	self.DoingFatality = false
+	self.GodMode = false
 	self:SetState()
 	self:SetMaxYawSpeed(self.TurningSpeed)
-	if IsValid(ent) then
-		ent.GodMode = false
-		ent.InFatality = false
-		ent.FatalityKiller = nil
-		ent:SetState()
-		ent.FatalityEnt = nil
-		ent:SetMaxYawSpeed(ent.TurningSpeed)
-	end
+	self.NextFatalityTime = CurTime() +3
+	print(self,"Reset Fatality")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoFatality(ent,inFront)
@@ -52,8 +54,10 @@ function ENT:DoFatality(ent,inFront)
 	end
 	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
 		tbl = inFront && tbl.Trophy or tbl.Stealth
-		if !tbl then return false end
+		if !tbl or self.DoingFatality or self.InFatality or ent.DoingFatality or ent.InFatality then return false end
+		print(self,ent,self.DoingFatality,self.InFatality,ent.DoingFatality,ent.InFatality)
 		self.FatalityEnt = ent
+		self.DoingFatality = true
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		self:SetMaxYawSpeed(0)
 		ent.GodMode = true
@@ -84,11 +88,11 @@ function ENT:DoFatality(ent,inFront)
 			anim = VJ.PICK(anim)
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-					if int then self:ResetFatality(ent) return end
-					ent:SetState()
-					ent.GodMode = false
-					ent.InFatality = false
-					if !counter && IsValid(self) then
+					if int then return end
+					if ent.ResetFatality then
+						ent:ResetFatality()
+					end
+					if IsValid(self) then
 						local dmginfo = DamageInfo()
 						dmginfo:SetDamage(ent:Health())
 						dmginfo:SetDamageType(DMG_SLASH)
@@ -100,9 +104,9 @@ function ENT:DoFatality(ent,inFront)
 				end})
 			end
 			self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-				if int then self:ResetFatality(ent) return end
+				if int then return end
 				self:SetState()
-				self:ResetFatality(ent)
+				self:ResetFatality()
 			end})
 		else
 			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
@@ -110,7 +114,7 @@ function ENT:DoFatality(ent,inFront)
 				ent:OnFatality(self,inFront,counter,fType)
 			end
 			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
-				if int then self:ResetFatality(ent) return end
+				if int then return end
 				if IsValid(ent) then
 					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
 						ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
@@ -118,16 +122,16 @@ function ENT:DoFatality(ent,inFront)
 				end
 				if tbl.Lift then
 					self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
-						if int then self:ResetFatality(ent) return end
+						if int then return end
 						local anim = counter && tbl.Counter or tbl.Kill
 						anim = VJ.PICK(anim)
 						if IsValid(ent) then
 							if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 								ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-									if int then self:ResetFatality(ent) return end
-									ent:SetState()
-									ent.GodMode = false
-									ent.InFatality = false
+									if int then return end
+									if ent.ResetFatality then
+										ent:ResetFatality()
+									end
 									if !counter && IsValid(self) then
 										ent.HasDeathAnimation = false
 										local dmginfo = DamageInfo()
@@ -142,9 +146,9 @@ function ENT:DoFatality(ent,inFront)
 							end
 						end
 						self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-							if int then self:ResetFatality(ent) return end
+							if int then return end
 							self:SetState()
-							self:ResetFatality(ent)
+							self:ResetFatality()
 						end})
 					end})
 				else
@@ -153,10 +157,10 @@ function ENT:DoFatality(ent,inFront)
 					if IsValid(ent) then
 						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 							ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-								if int then self:ResetFatality(ent) return end
-								ent:SetState()
-								ent.GodMode = false
-								ent.InFatality = false
+								if int then return end
+								if ent.ResetFatality then
+									ent:ResetFatality()
+								end
 								if !counter && IsValid(self) then
 									ent.HasDeathAnimation = false
 									local dmginfo = DamageInfo()
@@ -171,9 +175,9 @@ function ENT:DoFatality(ent,inFront)
 						end
 					end
 					self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-						if int then self:ResetFatality(ent) return end
+						if int then return end
 						self:SetState()
-						self:ResetFatality(ent)
+						self:ResetFatality()
 					end})
 				end
 			end})

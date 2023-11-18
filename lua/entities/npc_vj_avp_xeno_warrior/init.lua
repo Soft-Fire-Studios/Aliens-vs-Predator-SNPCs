@@ -338,7 +338,7 @@ function ENT:OnBeforeDoFatality(ent,fType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	if !self.CanLeap then return end
 	self.CurrentSet = 1
 	self.ChangeSetT = CurTime() +0.5
@@ -583,7 +583,7 @@ function ENT:GetFatalityOffset(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,visible)
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
 	local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
@@ -620,7 +620,7 @@ function ENT:CustomAttack(ent,visible)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
-	if self.InFatality then return end
+	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack then return end
 	if isCrawling then
 		-- print(isCrawling,self:IsMoving(),forceAttack)
@@ -896,12 +896,10 @@ local endCycle = 0.65
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 	if self.InFatality then
-		if !IsValid(self.FatalityKiller) then
-			self.InFatality = false
-			self:SetState()
+		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+			self:ResetFatality()
 			self:SetHealth(0)
-			self:TakeDamage(1000,self,self)
-		else
+			self:TakeDamage(8000,self,self)
 			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
@@ -1063,7 +1061,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),125,5)
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
