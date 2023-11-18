@@ -25,9 +25,20 @@ ENT.VJC_Data = {
     FirstP_ShrinkBone = false
 }
 
+ENT.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
+ENT.RangeAttackAnimationFaceEnemy = false
+ENT.RangeAttackAnimationStopMovement = true
+ENT.RangeDistance = 2300
+ENT.RangeToMeleeDistance = 400
+ENT.TimeUntilRangeAttackProjectileRelease = false
+ENT.NextRangeAttackTime = 6
+ENT.NextRangeAttackTime_DoRand = 12
+ENT.RangeUseAttachmentForPos = true
+ENT.RangeUseAttachmentForPosID = "eyes"
+ENT.DisableDefaultRangeAttackCode = true
+
 ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
-
 
 ENT.AnimTbl_Fatalities = {
 	Alien = {
@@ -111,6 +122,19 @@ ENT.SoundTbl_CombatIdle = {
 	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_04.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_05.ogg",
 }
+ENT.SoundTbl_BeforeRangeAttack = {
+	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_01.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_02.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_03.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_04.ogg",
+}
+ENT.SoundTbl_RangeAttack = {
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_01.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_02.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_03.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_04.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_05.ogg",
+}
 ENT.SoundTbl_Jump = {
 	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_01.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_02.ogg",
@@ -150,7 +174,9 @@ ENT.CanStand = true
 ENT.CanLeap = true
 ENT.CanAttack = true
 ENT.CanSetGroundAngle = true
+ENT.AlwaysStand = false
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED}
+ENT.TranslateActivities = {}
 --
 local math_acos = math.acos
 local math_deg = math.deg
@@ -207,6 +233,10 @@ function ENT:CustomOnInitialize()
 
 	if self.OnInit then
 		self:OnInit()
+	end
+
+	if self.CanSpit then
+		self.HasRangeAttack = true
 	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
@@ -467,6 +497,38 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		end
 	elseif key == "step" then
 		self:FootStepSoundCode()
+	elseif key == "spit" then
+		local ent = self:GetEnemy()
+		if IsValid(ent) then
+			local mult = self.RangeAttackDamageMultiplier or 1
+			local att = self:GetAttachment(self:LookupAttachment(self.RangeUseAttachmentForPosID or "eyes"))
+			local targetPos = ent:GetPos() +ent:OBBCenter()
+			local targetAng = (targetPos -att.Pos):Angle()
+			local ang = self:GetAngles()
+			targetAng.y = math.Clamp(targetAng.y, ang.y - 80, ang.y + 80)
+			local proj = ents.Create("obj_vj_avp_projectile")
+			proj:SetPos(att.Pos)
+			proj:SetAngles(targetAng)
+			proj:SetOwner(self)
+			proj:SetAttackType(2,50 *mult,DMG_ACID,150,10,true)
+			proj:SetNoDraw(true)
+			proj:Spawn()
+			proj.DecalTbl_DeathDecals = {"BeerSplash"}
+			proj.OnDeath = function(projEnt,data, defAng, HitPos)
+				ParticleEffect("acidbug_spit_impact",HitPos,defAng)
+				sound.Play("cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",HitPos,70)
+			end
+			VJ.EmitSound(proj,"cpthazama/avp/weapons/alien/spit/alien_spitacid_tp_" .. math.random(1,3) .. ".ogg",75)
+			proj:AddSound("cpthazama/avp/xeno/alien/blood/alien_blood_fizz_loop_01.wav",65)
+			ParticleEffectAttach("acidbug_spit_trail",PATTACH_POINT_FOLLOW,proj,0)
+
+			local phys = proj:GetPhysicsObject()
+			if IsValid(phys) then
+				phys:EnableGravity(true)
+				phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), targetPos, 1500))
+				-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
+			end
+		end
 	elseif key == "attack" then
 		self.AttackDamageDistance = 140
 		self.AttackDamageType = DMG_SLASH
@@ -502,6 +564,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RunDamageCode(mult)
 	local mult = mult or 1
+	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
@@ -524,6 +587,10 @@ function ENT:CustomAttack(ent,visible)
 	local cont = self.VJ_TheController
 	local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
+
+	if self.OnCustomAttack then
+		self:OnCustomAttack(cont,ent,visible,dist)
+	end
 
 	if IsValid(cont) then
 		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
@@ -890,16 +957,19 @@ function ENT:CustomOnThink_AIEnabled()
 		if self:GetActivity() == ACT_SPRINT && self:OnGround() then
 			self:SetVelocity(self:GetMoveVelocity() *1.25)
 		end
-		self.SprintT = self.SprintT +0.1
+		self.SprintT = self.SprintT +0.05
 		if self.SprintT >= 4 then
 			self.NextSprintT = curTime +3
 		end
 	else
 		if self.SprintT > 0 then
-			self.SprintT = self.SprintT -0.2
+			self.SprintT = self.SprintT -0.25
 		end
 	end
 	self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
+	if self.AlwaysStand && self.CanStand && self.CurrentSet == 1 then
+		self.CurrentSet = 2
+	end
 	if IsValid(ply) then
 		-- if ply:KeyDown(IN_WALK) then -- Wall walking
 		-- 	if ply:KeyDown(IN_FORWARD) then
@@ -943,7 +1013,7 @@ function ENT:CustomOnThink_AIEnabled()
 		-- end
 		if ply:KeyDown(IN_DUCK) then
 			if curTime > self.ChangeSetT then
-				self.CurrentSet = curSet == 1 && 2 or 1
+				self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
 				self.ChangeSetT = curTime +0.5
 			end
 		end
@@ -953,12 +1023,12 @@ function ENT:CustomOnThink_AIEnabled()
 			local dist = self.LastEnemyDistance
 			if curTime > self.ChangeSetT then
 				if curSet == 1 then
-					if dist < 750 && math.random(1,20) == 1 then
+					if self.CanStand && (self.AlwaysStand or !self.AlwaysStand && dist < 750 && math.random(1,20) == 1) then
 						self.CurrentSet = 2
 						self.ChangeSetT = curTime +math.Rand(15,35)
 					end
 				else
-					if dist >= 750 && math.random(1,10) == 1 then
+					if !self.AlwaysStand && dist >= 750 && math.random(1,10) == 1 then
 						self.CurrentSet = 1
 						self.ChangeSetT = curTime +math.Rand(15,35)
 					end
@@ -993,7 +1063,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),125,5)
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
@@ -1108,6 +1178,9 @@ function ENT:CustomOnRemove()
 		for _,v in pairs(self.DeleteSounds) do
 			VJ_STOPSOUND(v)
 		end
+	end
+	if self.WhenRemoved then
+		self:WhenRemoved()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

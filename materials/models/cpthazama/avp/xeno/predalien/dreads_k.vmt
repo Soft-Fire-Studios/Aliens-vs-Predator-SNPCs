@@ -2,8 +2,9 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/predalien/dreads_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/dreads_normal"
-	"$phongexponenttexture"		"vj_base/exponent"
+	"$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/dreads_spec"
 
+    "$color2" 					"[2 2 2]"
     "$nodecal" 					"1"
 
 	"$phong"                     "1"

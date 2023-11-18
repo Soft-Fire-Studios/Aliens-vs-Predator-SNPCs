@@ -14,7 +14,11 @@ local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
 if VJExists == true then
 	include('autorun/vj_controls.lua')
 
-	VJ.AddConVar("vj_avp_predmobile",1)
+	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_bosstheme_a",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
@@ -97,6 +101,41 @@ if VJExists == true then
 
 	AddWep("VP78 Pistol","weapon_vj_avp_pistol")
 
+	if CLIENT then
+		hook.Add("PopulateToolMenu", "VJ_ADDTOMENU_AVP", function()
+			spawnmenu.AddToolMenuOption("DrVrej", "SNPC Configures", "Aliens vs Predator", "Aliens vs Predator", "", "", function(Panel)
+				local vj_icon = vgui.Create("DImage")
+				vj_icon:SetSize(512,60)
+				vj_icon:SetImage("vgui/avp/spacer.png")
+				Panel:AddPanel(vj_icon)
+				Panel:AddControl("Label", {Text = "General Settings"})
+				Panel:AddControl("Checkbox", {Label = "Enable Fatalities", Command = "vj_avp_fatalities"})
+
+				local vj_icon = vgui.Create("DImage")
+				vj_icon:SetSize(512,130)
+				vj_icon:SetImage("vgui/avp/faction_alien.png")
+				Panel:AddPanel(vj_icon)
+				Panel:AddControl("Label", {Text = "Xenomorph Settings"})
+				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"})
+
+				local vj_icon = vgui.Create("DImage")
+				vj_icon:SetSize(512,130)
+				vj_icon:SetImage("vgui/avp/faction_predator.png")
+				Panel:AddPanel(vj_icon)
+				Panel:AddControl("Label", {Text = "Predator Settings"})
+				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_p"})
+				Panel:AddControl("Checkbox", {Label = "Enable Unique Spawns", Command = "vj_avp_predmobile"})
+
+				local vj_icon = vgui.Create("DImage")
+				vj_icon:SetSize(512,130)
+				vj_icon:SetImage("vgui/avp/faction_marine.png")
+				Panel:AddPanel(vj_icon)
+				Panel:AddControl("Label", {Text = "Human Settings"})
+				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_m"})
+			end)
+		end)
+	end
+
 	KEY_MOUSESCROLL_UP = 112
 	KEY_MOUSESCROLL_DOWN = 113
 	VJ_AVP_HALOS = {}
@@ -105,6 +144,7 @@ if VJExists == true then
 	VJ_AVP_HALOS.Predators = {}
 	VJ_AVP_HALOS.Tech = {}
 	VJ_AVP_HALOS.Other = {}
+	VJ_AVP_FATALITIES = GetConVar("vj_avp_fatalities"):GetBool()
 
 	VJ_AVP_XENOS = {}
 

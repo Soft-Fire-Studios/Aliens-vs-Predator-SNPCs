@@ -6,6 +6,14 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/k_praetorian.mdl"}
+
+ENT.SummonClasses = {
+	"npc_vj_avp_kxeno_warrior",
+	"npc_vj_avp_kxeno_warrior",
+	"npc_vj_avp_kxeno_warrior",
+	"npc_vj_avp_kxeno_warrior",
+	"npc_vj_avp_kxeno_ridged",
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	self.BaseClass.OnInit(self)

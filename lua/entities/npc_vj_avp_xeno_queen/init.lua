@@ -40,6 +40,10 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 	}
+	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
+		self.HasSoundTrack = true
+		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
+	end
 
 	self.InBirth = false
 	self.NextLookForBirthT = CurTime() +5
@@ -112,10 +116,6 @@ function ENT:Breathe()
 		end)
 		self.NextBreathT = CurTime() +2.3
 	end
-	-- if CurTime() > (self.NextBreathT or 0) then
-	-- 	VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/queen_breath.ogg",65)
-	-- 	self.NextBreathT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien queen/queen_breath.ogg")
-	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity()

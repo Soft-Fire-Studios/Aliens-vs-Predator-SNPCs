@@ -2,8 +2,9 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/drone/alien_warrior_dome_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/drone/alien_warrior_dome_normal"
-	"$phongexponenttexture"		"vj_base/exponent"
+	"$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_dome_specular"
 
+    "$color2" 					"[2.3 2.3 2.3]"
     "$nodecal" 					"1"
     "$nocull" 					"1"
 

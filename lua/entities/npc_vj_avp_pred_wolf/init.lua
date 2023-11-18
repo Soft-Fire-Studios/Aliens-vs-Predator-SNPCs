@@ -6,4 +6,11 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/predators/wolf.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
-ENT.StartHealth = 850
+ENT.StartHealth = 1500
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnInit()
+	if GetConVar("vj_avp_bosstheme_p"):GetBool() then
+		self.HasSoundTrack = true
+		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/March Of The Hunted.mp3"}
+	end
+end

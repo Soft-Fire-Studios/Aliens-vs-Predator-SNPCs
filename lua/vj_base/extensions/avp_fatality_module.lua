@@ -2,13 +2,39 @@ local math_acos = math.acos
 local math_abs = math.abs
 local math_rad = math.rad
 local math_cos = math.cos
+
+cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, newValue)
+	if tonumber(newValue) == 0 then
+		VJ_AVP_FATALITIES = false
+	else
+		VJ_AVP_FATALITIES = true
+	end
+end)
 --
 function ENT:CanUseFatality(ent)
+	if !VJ_AVP_FATALITIES then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
 	if ent.VJ_AVP_NPC && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront) && !ent.Dead && !ent.InFatality && !IsValid(self.FatalityEnt) && !IsValid(ent.FatalityEnt) then
+		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
+			return false, inFront
+		end
 		return true, inFront
 	end
 	return false, inFront
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ResetFatality(ent)
+	self.FatalityEnt = nil
+	self:SetState()
+	self:SetMaxYawSpeed(self.TurningSpeed)
+	if IsValid(ent) then
+		ent.GodMode = false
+		ent.InFatality = false
+		ent.FatalityKiller = nil
+		ent:SetState()
+		ent.FatalityEnt = nil
+		ent:SetMaxYawSpeed(ent.TurningSpeed)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoFatality(ent,inFront)
@@ -79,7 +105,7 @@ function ENT:DoFatality(ent,inFront)
 				self:ResetFatality(ent)
 			end})
 		else
-			local counter = math.random(1,3) == 1
+			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
 			end
@@ -152,19 +178,5 @@ function ENT:DoFatality(ent,inFront)
 				end
 			end})
 		end
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:ResetFatality(ent)
-	self.FatalityEnt = nil
-	self:SetState()
-	self:SetMaxYawSpeed(self.TurningSpeed)
-	if IsValid(ent) then
-		ent.GodMode = false
-		ent.InFatality = false
-		ent.FatalityKiller = nil
-		ent:SetState()
-		ent.FatalityEnt = nil
-		ent:SetMaxYawSpeed(ent.TurningSpeed)
 	end
 end

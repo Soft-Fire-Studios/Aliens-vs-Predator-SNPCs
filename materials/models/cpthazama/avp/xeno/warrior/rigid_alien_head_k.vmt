@@ -2,8 +2,9 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/rigid_alien_head_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/runner/jungle_alien_head_normal"
-	"$phongexponenttexture"		"vj_base/exponent"
+	"$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_head_specular"
 
+    "$color2" 					"[2.3 2.3 2.3]"
     "$nodecal" 					"1"
 
 	"$phong"                     "1"

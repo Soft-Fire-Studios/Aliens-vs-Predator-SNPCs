@@ -4,6 +4,7 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/queen/alien_queen_head_norms"
 	"$phongexponenttexture"		"vj_base/exponent"
 
+    "$color2" 					"[1.5 1.5 1.5]"
     "$nodecal" 					"1"
 
 	"$phong"                     "1"

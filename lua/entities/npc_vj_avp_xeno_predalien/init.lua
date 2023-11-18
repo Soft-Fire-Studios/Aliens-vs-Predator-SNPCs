@@ -112,6 +112,10 @@ function ENT:CustomOnInitialize()
 	self.JumpStartT = nil
 	self.InJump = false
 	self.GrabbedEntity = NULL
+	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
+		self.HasSoundTrack = true
+		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/The Unstoppable.mp3"}
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack()
