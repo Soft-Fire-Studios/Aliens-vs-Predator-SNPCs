@@ -55,7 +55,6 @@ function ENT:DoFatality(ent,inFront)
 	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
 		tbl = inFront && tbl.Trophy or tbl.Stealth
 		if !tbl or self.DoingFatality or self.InFatality or ent.DoingFatality or ent.InFatality then return false end
-		print(self,ent,self.DoingFatality,self.InFatality,ent.DoingFatality,ent.InFatality)
 		self.FatalityEnt = ent
 		self.DoingFatality = true
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
@@ -112,6 +111,9 @@ function ENT:DoFatality(ent,inFront)
 			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
+			end
+			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Grab] then
+				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Grab],true,false,true)
 			end
 			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
 				if int then return end
