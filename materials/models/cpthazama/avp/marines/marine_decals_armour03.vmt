@@ -7,7 +7,7 @@
 
 	"$phong"                     "1"
 	"$phongboost"                "9"
-	"$phongexponent"             "20"
+	"$phongexponent"             "30"
 	"$phongfresnelranges"        "[0.15 0.545 0.115]"
 
 	"$normalmapalphaenvmapmask"  "1"
@@ -16,7 +16,7 @@
 	"$envmaptint" 				 "[0.2 0.2 0.2]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"0.75"
+	"$DEM_Multiplier" 			"1.25"
 
 	"Proxies" 
 	{

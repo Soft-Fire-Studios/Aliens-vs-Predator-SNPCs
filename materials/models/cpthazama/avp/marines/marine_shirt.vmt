@@ -6,7 +6,7 @@
     "$nodecal" 					"1"
 
 	"$phong"                    "1"
-	"$phongboost"               "0.5"
+	"$phongboost"               "0.25"
 	"$phongexponent"            "2"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
 

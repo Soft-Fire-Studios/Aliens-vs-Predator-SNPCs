@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/alienheadbitewound_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/alienheadbitewound_norms"
+
+	"$nodecal"					"1"
+
+	"$phong"					"1"
+	"$phongboost"				"25"
+	"$phongexponent"			"30"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"	"1"
+}

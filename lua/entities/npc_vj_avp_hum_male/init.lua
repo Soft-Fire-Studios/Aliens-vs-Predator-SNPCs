@@ -20,6 +20,9 @@ ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.FriendsWithAllPlayerAllies = true
 
 ENT.HasMeleeAttack = true
+
+ENT.HasFlashlight = true
+ENT.HasMotionTracker = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetBodyData()
 	return self.ModelData
@@ -261,7 +264,7 @@ function ENT:CustomOnInitialize()
 	self.AnimTbl_ScaredBehaviorMovement = {toSeq(self,"nwn_Panic_run_fwd_look_fwd")}
 
 	local att = self:LookupAttachment("flashlight")
-	if att > 0 then
+	if att > 0 && self.HasFlashlight then
 		local envLight = ents.Create("env_projectedtexture")
 		envLight:SetLocalPos(self:GetPos())
 		envLight:SetLocalAngles(self:GetAngles())
@@ -465,7 +468,7 @@ function ENT:CustomOnThink()
 		end
 	end
 
-	if curTime > self.Ping_NextPingT then
+	if self.HasMotionTracker && curTime > self.Ping_NextPingT then
 		self.Ping_NextPingT = curTime +0.85
 		local pingEnts = FindEntitiesInConeAndRadius(self)
 		local closestEnt = NULL

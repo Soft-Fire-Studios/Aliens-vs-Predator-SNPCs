@@ -1,0 +1,12 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/marine_legs_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/marine_legs_norms"
+
+	"$phong"                    "1"
+	"$phongboost"               "0.25"
+	"$phongexponent"            "2"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"  "1"
+}
