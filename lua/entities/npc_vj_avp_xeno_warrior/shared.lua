@@ -9,6 +9,7 @@ ENT.Category		= ""
 
 ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Xenomorph = true
+ENT.VJ_AVP_XenoHUD = 0
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
@@ -80,6 +81,8 @@ if CLIENT then
 	local table_insert = table.insert
 	local VJ_HasValue = VJ.HasValue
 	local matHud = Material("hud/cpthazama/avp/alien_hud.png")
+	local matSixHud = Material("hud/cpthazama/avp/alien_six_hud.png")
+	local matGridHud = Material("hud/cpthazama/avp/alien_grid_hud.png")
 	local render_GetLightColor = render.GetLightColor
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
@@ -87,9 +90,10 @@ if CLIENT then
 
 		hook.Add("HUDPaint","VJ_AVP_Xenomorph_HUD",function()
 			if !IsValid(ent) then return end
+			local xenoHUD = ent.VJ_AVP_XenoHUD
 		
 			surface.SetDrawColor(color_white)
-			surface.SetMaterial(matHud)
+			surface.SetMaterial(xenoHUD == 1 && matSixHud or xenoHUD == 2 && matGridHud or matHud)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Xenomorph_HUD") end

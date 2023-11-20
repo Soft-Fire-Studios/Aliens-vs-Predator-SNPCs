@@ -183,13 +183,14 @@ if CLIENT then
 		local startPos = att.Pos
 		local endPos = att.Ang:Forward() *2000
 		local ent = false
-		if IsValid(self:GetLockOn()) then
+		local lockOn = self:GetLockOn()
+		if IsValid(lockOn) then
 			ent = true
-			endPos = self:GetLockOn():EyePos()
-			local angDif = math_angDif((self:GetLockOn():GetPos() -self:GetPos()):Angle().y, self:GetAngles().y)
+			endPos = lockOn:EyePos() -(lockOn:OBBCenter() /2)
+			local angDif = math_angDif((lockOn:GetPos() -self:GetPos()):Angle().y, self:GetAngles().y)
 			if math_abs(angDif) > 80 then
 				endPos = startPos +att.Ang:Forward() *2000
-				endPos.z = self:GetLockOn():GetPos().z
+				endPos.z = lockOn:GetPos().z
 			end
 		end
 		render.SetMaterial(matLaserStart)
@@ -316,6 +317,7 @@ if CLIENT then
 	local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
 	local matHUD = Material("hud/cpthazama/avp/predator_hud.png")
 	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png")
+	local matHUDTarget = Material("hud/cpthazama/avp/predator_target.png")
 	local matNil = Material(" ")
 	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
@@ -424,6 +426,34 @@ if CLIENT then
 			surface.SetDrawColor(Color(r,g,b,ent.VJ_AVP_FOV))
 			surface.SetMaterial(matHUDZoom)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+
+			local lockOn = ent:GetLockOn()
+			if lockOn != ent.LastLockOn then
+				if IsValid(ent.LastLockOn) then
+					ply:EmitSound("cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_aquiretarget_01.ogg",65)
+					ply:EmitSound("cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_confirmtarget_01.ogg",65)
+				end
+				ent.LastLockOn = lockOn
+			end
+			if ent:GetBeam() && IsValid(lockOn) && lockOn:GetClass() != "obj_vj_bullseye" then
+				if ent.VJ_AVP_LockOn == nil then
+					ent.VJ_AVP_LockOn = CreateSound(ent,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_trackingtarget_01.wav")
+					ent.VJ_AVP_LockOn:SetSoundLevel(0)
+					ent.VJ_AVP_LockOn:Play()
+					ent.VJ_AVP_LockOn:ChangeVolume(0.7)
+				end
+				local entPos = (lockOn:EyePos() -(lockOn:OBBCenter() /2)):ToScreen()
+				local size = 75
+				size = size +math.sin(CurTime() *10) *50
+				surface.SetDrawColor(Color(r,g,b,a))
+				surface.SetMaterial(matHUDTarget)
+				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+			else
+				if ent.VJ_AVP_LockOn then
+					ent.VJ_AVP_LockOn:Stop()
+					ent.VJ_AVP_LockOn = nil
+				end
+			end
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Predator_HUD") end
 
@@ -528,6 +558,9 @@ if CLIENT then
 			end
 			if cont.VisionBuzz then
 				cont.VisionBuzz:Stop()
+			end
+			if ent.VJ_AVP_LockOn then
+				ent.VJ_AVP_LockOn:Stop()
 			end
 			-- if cont.VisionIdle then
 			-- 	cont.VisionIdle:Stop()

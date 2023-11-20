@@ -23,8 +23,8 @@ ENT.HasMeleeAttack = false
 --    /     [S]   <- Start
 --  [E]           <- End
 ENT.JumpVars = {
-	MaxRise = 1200, -- How high it can jump up ((S -> A) AND (S -> E))
-	MaxDrop = 2500, -- How low it can jump down (E -> S)
+	MaxRise = 375, -- How high it can jump up ((S -> A) AND (S -> E))
+	MaxDrop = 700, -- How low it can jump down (E -> S)
 	MaxDistance = 1000, -- Maximum distance between Start and End
 }
 
@@ -1110,9 +1110,9 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	self:SetGroundAngle(curSet)
 
-	if self.Flinching && self:OnGround() then
-		self:SetVelocity(self:GetMoveVelocity())
-	end
+	-- if self.Flinching && self:OnGround() then
+	-- 	self:SetVelocity(self:GetMoveVelocity())
+	-- end
 
 	if self.LongJumping && self.LongJumpPos then
 		self.JumpT = self.JumpT +0.1
@@ -1283,14 +1283,15 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
-		self.Flinching = true
+		-- self.Flinching = true
 		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted && self.NextFlinchT < CurTime() then
-				self.Flinching = false
+			if interrupted then
+			-- if interrupted && self.NextFlinchT < CurTime() then
+				-- self.Flinching = false
 				return
 			end
 			self:SetState()
-			self.Flinching = false
+			-- self.Flinching = false
 			-- self.CanFlinch = 1
 		end})
 		self.NextCallForBackUpOnDamageT = CurTime() +1

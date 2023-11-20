@@ -904,23 +904,26 @@ function ENT:CustomOnThink_AIEnabled()
 		self.AnimTbl_Run = {moveAct}
 	end
 
-	if self.Flinching && self:OnGround() then
-		self:SetVelocity(self:GetMoveVelocity())
-	end
+	-- if self.Flinching && self:OnGround() then
+	-- 	self:SetVelocity(self:GetMoveVelocity())
+	-- end
 
 	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
-	if IsValid(ply) && self:GetBeam() == true then
-		local closeDist = 999999
-		local closeEnt
-		for _,v in pairs(ents.FindInSphere(self.VJ_TheControllerBullseye:GetPos(),300)) do
-			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI && self:GetPos():Distance(v:GetPos()) < closeDist then
-				closeEnt = v
+	if IsValid(ply) then
+		if self:GetBeam() == true then
+			local closeDist = 999999
+			local closeEnt
+			for _,v in pairs(ents.FindInSphere(self.VJ_TheControllerBullseye:GetPos(),400)) do
+				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI && self:GetPos():Distance(v:GetPos()) < closeDist then
+					closeEnt = v
+				end
 			end
-		end
-		if IsValid(closeEnt) then
-			self:SetLockOn(closeEnt)
-		else
-			self:SetLockOn(self:GetEnemy())
+			if IsValid(closeEnt) then
+				self:SetLockOn(closeEnt)
+			else
+				-- self:SetLockOn(nil)
+				self:SetLockOn(self:GetEnemy())
+			end
 		end
 	else
 		self:SetLockOn(self:GetEnemy())
@@ -1200,14 +1203,15 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
-		self.Flinching = true
+		-- self.Flinching = true
 		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted && self.NextFlinchT < CurTime() then
-				self.Flinching = false
+			if interrupted then
+			-- if interrupted && self.NextFlinchT < CurTime() then
+				-- self.Flinching = false
 				return
 			end
 			self:SetState()
-			self.Flinching = false
+			-- self.Flinching = false
 			-- self.CanFlinch = 1
 		end})
 		self.NextCallForBackUpOnDamageT = CurTime() +1
