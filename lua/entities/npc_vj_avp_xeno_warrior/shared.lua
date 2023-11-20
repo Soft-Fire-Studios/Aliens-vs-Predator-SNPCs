@@ -79,23 +79,36 @@ if CLIENT then
 	local table_Count = table.Count
 	local table_insert = table.insert
 	local VJ_HasValue = VJ.HasValue
+	local matHud = Material("hud/cpthazama/avp/alien_hud.png")
+	local render_GetLightColor = render.GetLightColor
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
 
+		hook.Add("HUDPaint","VJ_AVP_Xenomorph_HUD",function()
+			if !IsValid(ent) then return end
+		
+			surface.SetDrawColor(color_white)
+			surface.SetMaterial(matHud)
+			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+		end)
+		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Xenomorph_HUD") end
+
 		hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
 			if IsValid(ent) then
-				local light = DynamicLight(ent:EntIndex())
-				if (light) then
-					light.Pos = ent:GetPos()
-					light.r = 3
-					light.g = 3
-					light.b = 3
-					light.Brightness = 0
-					light.Size = 2000
-					light.Decay = 0
-					light.DieTime = CurTime() +0.2
-					light.Style = 0
+				if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
+					local light = DynamicLight(ent:EntIndex())
+					if (light) then
+						light.Pos = ent:GetPos()
+						light.r = 1
+						light.g = 1
+						light.b = 1
+						light.Brightness = 6
+						light.Size = 2000
+						light.Decay = 0
+						light.DieTime = CurTime() +0.3
+						light.Style = 0
+					end
 				end
 			end
 		end)
@@ -154,6 +167,15 @@ if CLIENT then
 			halo_Add(VJ_AVP_HALOS.Tech,col_tech,4,4,15,true,true)
 			halo_Add(VJ_AVP_HALOS.Other,col_enemy,4,4,15,true,true)
 		end)
-		if delete == true then hook.Remove("PreDrawHalos","VJ_AVP_Xeno_Halo") end
+		if delete == true then
+			hook.Remove("PreDrawHalos","VJ_AVP_Xeno_Halo")
+			-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+			-- 	RunConsoleCommand("mat_fullbright","0")
+			-- end
+		-- else
+		-- 	if GetConVar("mat_fullbright"):GetInt() != 1 then
+		-- 		RunConsoleCommand("mat_fullbright","1")
+		-- 	end
+		end
 	end)
 end

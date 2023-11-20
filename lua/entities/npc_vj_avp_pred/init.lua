@@ -14,6 +14,17 @@ ENT.BloodColor = "Green" -- The blood type, this will determine what it should u
 ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
 ENT.VJ_NPC_Class = {"CLASS_PREDATOR"} -- NPCs with the same class with be allied to each other
 
+-- Example scenario:
+--      [A]       <- Apex
+--     /   \
+--    /     [S]   <- Start
+--  [E]           <- End
+ENT.JumpVars = {
+	MaxRise = 800, -- How high it can jump up ((S -> A) AND (S -> E))
+	MaxDrop = 1400, -- How low it can jump down (E -> S)
+	MaxDistance = 750, -- Maximum distance between Start and End
+}
+
 ENT.HasMeleeAttack = false
 
 ENT.PoseParameterLooking_InvertYaw = true
@@ -81,12 +92,6 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["stealth_kill_pred_finished"] = "predator_claws_alien_stealth_kill_death",
 }
 
-ENT.SoundTbl_FootStep = {
-	"player/footsteps/gravel1.wav",
-	"player/footsteps/gravel2.wav",
-	"player/footsteps/gravel3.wav",
-	"player/footsteps/gravel4.wav",
-}
 ENT.SoundTbl_Idle = {
 	"cpthazama/avp/predator/vocals/prd_clicks_01.ogg",
 	"cpthazama/avp/predator/vocals/prd_clicks_02.ogg",
@@ -217,6 +222,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local bounds = Vector(14,14,84)
+--
 function ENT:CustomOnInitialize()
 	self:SetVisionMode(0)
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
@@ -227,6 +234,9 @@ function ENT:CustomOnInitialize()
 	self.NextHealT = 0
 	self.LookForHidingSpotAttempts = 0
 	self.NextLookForHidingSpotT = 0
+
+	self:SetCollisionBounds(bounds,Vector(-bounds.x,-bounds.y,0))
+	self:SetSurroundingBounds(Vector(-bounds.x *1.8,-bounds.y *1.8,-bounds.z *1.8),Vector(bounds.x *1.8,bounds.y *1.8,bounds.z *1.8))
 
 	if self.OnInit then
 		self:OnInit()
@@ -326,7 +336,19 @@ function ENT:OnKeyPressed(ply,key)
 			})
 			if tr.Hit && IsValid(tr.Entity) then
 				local ent = tr.Entity
-				self:DistractionCode(ent)
+				if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
+					if self.CanAttack && !self:IsBusy() then
+						local canUse, inFront = self:CanUseFatality(ent)
+						if canUse then
+							self:DoFatality(ent,inFront)
+						end
+					end
+				else
+					if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+						self:DistractionCode(ent)
+					end
+					ent:Fire("Use",nil,0,ply,self)
+				end
 			end
 		end
     elseif key == KEY_G then
@@ -492,11 +514,11 @@ function ENT:AttackCode()
 		anim[2] = string_Replace(anim[2],"[SIDE]",self.AttackSide)
 		anim[3] = string_Replace(anim[3],"[SIDE]",self.AttackSide)
 		self:PlaySound(self.SoundTbl_Attack,78)
-		self:VJ_ACT_PLAYACTIVITY(anim[1],true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:VJ_ACT_PLAYACTIVITY(anim[1],true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
 			local hitEnts = self:RunDamageCode()
 			if #hitEnts > 0 then
-				self:VJ_ACT_PLAYACTIVITY(anim[2],true,false,false,0,{AlwaysUseGesture=true})
+				self:VJ_ACT_PLAYACTIVITY(anim[2],true,false,true,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				self:OnHit(hitEnts)
 				VJ.EmitSound(self,sdClawFlesh,75)
@@ -882,6 +904,10 @@ function ENT:CustomOnThink_AIEnabled()
 		self.AnimTbl_Run = {moveAct}
 	end
 
+	if self.Flinching && self:OnGround() then
+		self:SetVelocity(self:GetMoveVelocity())
+	end
+
 	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
 	if IsValid(ply) && self:GetBeam() == true then
 		local closeDist = 999999
@@ -1067,6 +1093,52 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 	end
+
+	if self.FootData then
+		for attName,var in pairs(self.FootData) do
+			local attID = self:LookupAttachment(attName)
+			if !attID then continue end
+
+			local footPos = self:GetAttachment(attID).Pos
+			local checkPos = self:GetPos()
+			checkPos.x = footPos.x
+			checkPos.y = footPos.y
+			local dist = footPos:Distance(checkPos)
+
+			if dist > var.Range then
+				var.OnGround = false
+			else
+				if var.OnGround == false then
+					var.OnGround = true
+					self:FootStep(footPos,attName)
+				end
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:FootStep(pos,name)
+	if !self:IsOnGround() then return end
+	if self.CurrentSet == 2 && (name == "lhand" or name == "rhand") then return end
+	local tbl = self.SoundTbl_FootSteps
+	if !tbl then return end
+	local tr = util.TraceLine({
+		start = self:GetPos(),
+		endpos = self:GetPos() +Vector(0,0,-150),
+		filter = {self}
+	})
+	if tr.MatType && tbl[tr.MatType] == nil then
+		tr.MatType = MAT_CONCRETE
+	end
+	if tr.Hit && tbl[tr.MatType] then
+		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self.FootStepSoundLevel or 65,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self.OnStep then
+		self:OnStep(pos,name)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Camo(set)
@@ -1128,9 +1200,14 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
+		self.Flinching = true
 		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted then return end
+			if interrupted && self.NextFlinchT < CurTime() then
+				self.Flinching = false
+				return
+			end
 			self:SetState()
+			self.Flinching = false
 			-- self.CanFlinch = 1
 		end})
 		self.NextCallForBackUpOnDamageT = CurTime() +1

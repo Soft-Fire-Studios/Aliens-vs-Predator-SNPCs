@@ -21,6 +21,7 @@ ENT.VJC_Data = {
 ENT.RangeAttackAnimationStopMovement = false
 
 ENT.HasBreath = true
+ENT.FootStepSoundLevel = 82
 
 ENT.SummonClasses = {
 	"npc_vj_avp_xeno_warrior",
@@ -97,12 +98,22 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_01.ogg",
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_02.ogg",
 	}
+	self.FootData = {
+		["lfoot"] = {Range=15.5,OnGround=true},
+		["rfoot"] = {Range=15,OnGround=true},
+		["lhand"] = {Range=8.5,OnGround=true},
+		["rhand"] = {Range=8.5,OnGround=true}
+	}
 	self.NextSummonT = CurTime() +60
 	timer.Simple(0,function()
 		if IsValid(self) then
-			self:DoSummon()
+			-- self:DoSummon()
 		end
 	end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnStep(pos,name)
+	util.ScreenShake(pos,5,100,0.35,500)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_abs = math.abs
@@ -164,8 +175,15 @@ function ENT:DoSummon()
 	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnKey(ply,key)
+	if key == KEY_B && CurTime() > self.NextSummonT && !self:IsBusy() then
+		self:DoSummon()
+		self.NextSummonT = CurTime() +60
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCustomAttack(ply,ent,vis,dist)
-	if CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
+	if !IsValid(ply) && CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
 		self:DoSummon()
 		self.NextSummonT = CurTime() +math.random(60,120)
 	end

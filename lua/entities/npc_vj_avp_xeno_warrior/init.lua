@@ -17,12 +17,30 @@ ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allie
 
 ENT.HasMeleeAttack = false
 
+-- Example scenario:
+--      [A]       <- Apex
+--     /   \
+--    /     [S]   <- Start
+--  [E]           <- End
+ENT.JumpVars = {
+	MaxRise = 1200, -- How high it can jump up ((S -> A) AND (S -> E))
+	MaxDrop = 2500, -- How low it can jump down (E -> S)
+	MaxDistance = 1000, -- Maximum distance between Start and End
+}
+
 ENT.VJC_Data = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
     FirstP_Offset = Vector(15, 0, 0),
     FirstP_ShrinkBone = false
+}
+
+ENT.FootData = {
+	["lfoot"] = {Range=12,OnGround=true},
+	["rfoot"] = {Range=12,OnGround=true},
+	["lhand"] = {Range=8.5,OnGround=true},
+	["rhand"] = {Range=8.5,OnGround=true}
 }
 
 ENT.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
@@ -37,6 +55,7 @@ ENT.RangeUseAttachmentForPos = true
 ENT.RangeUseAttachmentForPosID = "eyes"
 ENT.DisableDefaultRangeAttackCode = true
 
+ENT.DisableFootStepSoundTimer = true
 ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
 
@@ -96,6 +115,131 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["v_alien_tailstab_head_front_grapple"] = "v_alien_tailstab_head_front_grapple_victim",
 }
 
+ENT.FootStepSoundLevel = 60
+ENT.SoundTbl_FootSteps = {
+	[MAT_CONCRETE] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_08.ogg"
+	},
+	[MAT_DIRT] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_10.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_11.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_12.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_13.ogg"
+	},
+	[MAT_GRATE] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_10.ogg"
+	},
+	[MAT_METAL] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_10.ogg"
+	},
+	[MAT_FOLIAGE] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_10.ogg"
+	},
+	[MAT_SLOSH] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_10.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_11.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_12.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_dirt_walk_13.ogg"
+	},
+	[MAT_TILE] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_08.ogg"
+	},
+	[85] = { -- Grass
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_forest_run_10.ogg"
+	},
+	[MAT_VENT] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_10.ogg"
+	},
+	[MAT_GLASS] = {
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_01.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_02.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_03.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_04.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_05.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_06.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_07.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_08.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_09.ogg",
+		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_metal_walk_10.ogg"
+	}
+}
 ENT.SoundTbl_Alert = {
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_01.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_hiss_long_02.ogg",
@@ -182,6 +326,7 @@ local math_acos = math.acos
 local math_deg = math.deg
 local math_rad = math.rad
 local math_abs = math.abs
+local toSeq = VJ_SequenceToActivity
 --
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
@@ -195,6 +340,8 @@ function ENT:CustomOnChangeActivity(act)
 		end
 	elseif act == ACT_JUMP then
 		VJ_CreateSound(self,self.SoundTbl_Jump,76)
+	elseif act == ACT_SPRINT then
+		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -249,6 +396,30 @@ function ENT:CustomOnInitialize()
     end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:FootStep(pos,name)
+	if !self:IsOnGround() then return end
+	if self.CurrentSet == 2 && (name == "lhand" or name == "rhand") then return end
+	local tbl = self.SoundTbl_FootSteps
+	if !tbl then return end
+	local tr = util.TraceLine({
+		start = self:GetPos(),
+		endpos = self:GetPos() +Vector(0,0,-150),
+		filter = {self}
+	})
+	if tr.MatType && tbl[tr.MatType] == nil then
+		tr.MatType = MAT_CONCRETE
+	end
+	if tr.Hit && tbl[tr.MatType] then
+		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self.FootStepSoundLevel or 65,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self.OnStep then
+		self:OnStep(pos,name)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local NPCTbl_Animals = {npc_barnacle=true,npc_crow=true,npc_pigeon=true,npc_seagull=true,monster_cockroach=true}
 --
 function ENT:CheckRelationship(ent)
@@ -274,6 +445,9 @@ function ENT:CheckRelationship(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
+	if self.OnKey then
+		self:OnKey(ply,key)
+	end
     if key == KEY_E then
 		local tr = util.TraceLine({
 			start = self:EyePos(),
@@ -282,7 +456,16 @@ function ENT:OnKeyPressed(ply,key)
 		})
 		local ent = tr.Entity
 		if tr.Hit && IsValid(ent) then
-			ent:Fire("Use",nil,0,ply,self)
+			if ent:IsNPC() then
+				if self.CanAttack && self.NearestPointToEnemyDistance <= self.AttackDistance && !self:IsBusy() then
+					local canUse, inFront = self:CanUseFatality(ent)
+					if canUse then
+						self:DoFatality(ent,inFront)
+					end
+				end
+			else
+				ent:Fire("Use",nil,0,ply,self)
+			end
 		end
     end
 end
@@ -473,7 +656,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self.LongJumping = false
 		self:SetLocalVelocity(Vector(0,0,0))
 		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
-		VJ.EmitSound(self,"cpthazama/avp/humans/human/jumplands/human_land_dirt_01.ogg",75)
+		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/land/alien_land_stone_1"  .. math.random(0,2) .. ".ogg",75)
 		local tr = util.TraceLine({
 			start = self:GetPos(),
 			endpos = self:GetPos() +self:GetUp() *-100,
@@ -575,7 +758,7 @@ end
 function ENT:GetFatalityOffset(ent)
 	local offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *2
 	if ent.VJ_AVP_Xenomorph then
-		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1
+		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.02
 	elseif ent.VJ_AVP_Predator then
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.5
 	end
@@ -585,7 +768,8 @@ end
 function ENT:CustomAttack(ent,visible)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.LastEnemyDistance
+	local dist = self.NearestPointToEnemyDistance
+	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 
 	if self.OnCustomAttack then
@@ -926,6 +1110,10 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	self:SetGroundAngle(curSet)
 
+	if self.Flinching && self:OnGround() then
+		self:SetVelocity(self:GetMoveVelocity())
+	end
+
 	if self.LongJumping && self.LongJumpPos then
 		self.JumpT = self.JumpT +0.1
 		local currentPos = self:GetPos()
@@ -1042,6 +1230,28 @@ function ENT:CustomOnThink_AIEnabled()
 	if IsValid(ent) then
 		self.LastEnemyDistance = self:VJ_GetNearestPointToEntityDistance(ent)
 	end
+
+	if self.FootData then
+		for attName,var in pairs(self.FootData) do
+			local attID = self:LookupAttachment(attName)
+			if !attID then continue end
+
+			local footPos = self:GetAttachment(attID).Pos
+			local checkPos = self:GetPos()
+			checkPos.x = footPos.x
+			checkPos.y = footPos.y
+			local dist = footPos:Distance(checkPos)
+
+			if dist > var.Range then
+				var.OnGround = false
+			else
+				if var.OnGround == false then
+					var.OnGround = true
+					self:FootStep(footPos,attName)
+				end
+			end
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
@@ -1073,9 +1283,14 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
+		self.Flinching = true
 		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted then return end
+			if interrupted && self.NextFlinchT < CurTime() then
+				self.Flinching = false
+				return
+			end
 			self:SetState()
+			self.Flinching = false
 			-- self.CanFlinch = 1
 		end})
 		self.NextCallForBackUpOnDamageT = CurTime() +1

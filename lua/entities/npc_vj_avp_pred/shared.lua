@@ -310,6 +310,17 @@ if CLIENT then
 		return trSt.HitPos
 	end
 
+	local matTT_Thermal = Material("hud/cpthazama/avp/tt_thermal")
+	local matTT_Thermal_Overlay = Material("hud/cpthazama/avp/tt_thermal_overlay")
+	local matXenoOverlay = Material("models/cpthazama/avp/xenovision")
+	local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
+	local matHUD = Material("hud/cpthazama/avp/predator_hud.png")
+	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png")
+	local matNil = Material(" ")
+	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
+	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
+	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
+	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
 	net.Receive("VJ_AVP_Predator_Client",function(len,pl)
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
@@ -339,7 +350,7 @@ if CLIENT then
 						cam.Start3D(EyePos(),EyeAngles())
 							if util.IsValidModel(v:GetModel()) then
 								render.SetBlend(1)
-								render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && Material("hud/cpthazama/avp/tt_thermal") or Material("hud/cpthazama/avp/tt_thermal_overlay"))
+								render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && matTT_Thermal or matTT_Thermal_Overlay)
 								v:DrawModel()
 								render.MaterialOverride(0)
 								render.SetBlend(1)
@@ -350,7 +361,7 @@ if CLIENT then
 					cam.Start3D(EyePos(),EyeAngles())
 						if util.IsValidModel(v:GetModel()) then
 							render.SetBlend(0.6)
-							render.MaterialOverride(Material("models/cpthazama/avp/xenovision"))
+							render.MaterialOverride(matXenoOverlay)
 							v:DrawModel()
 							render.MaterialOverride(0)
 							render.SetBlend(1)
@@ -360,7 +371,7 @@ if CLIENT then
 					cam.Start3D(EyePos(),EyeAngles())
 						if util.IsValidModel(v:GetModel()) then
 							render.SetBlend(1)
-							render.MaterialOverride(Material("hud/cpthazama/avp/tt_tech_overlay"))
+							render.MaterialOverride(matColdOverlay)
 							v:DrawModel()
 							render.MaterialOverride(0)
 							render.SetBlend(1)
@@ -403,7 +414,7 @@ if CLIENT then
 			end
 
 			surface.SetDrawColor(Color(r,g,b,a))
-			surface.SetMaterial(Material("hud/cpthazama/avp/predator_hud.png"))
+			surface.SetMaterial(matHUD)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 			
 			local fov = ply:GetFOV()
@@ -411,7 +422,7 @@ if CLIENT then
 			ent.VJ_AVP_FOV = ent.VJ_AVP_FOV or 0
 			ent.VJ_AVP_FOV = Lerp(FrameTime() *5,ent.VJ_AVP_FOV,isZoomed && 255 or 0)
 			surface.SetDrawColor(Color(r,g,b,ent.VJ_AVP_FOV))
-			surface.SetMaterial(Material("hud/cpthazama/avp/predator_zoom.png"))
+			surface.SetMaterial(matHUDZoom)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Predator_HUD") end
@@ -584,7 +595,7 @@ if CLIENT then
 			if mode != ent.PreviousVisionMode then
 				DrawColorModify(gDefault)
 				DrawBloom(0.65,1,4,4,4,2,255,255,255)
-				DrawTexturize(0,Material(" "))
+				DrawTexturize(0,matNil)
 				ent.PreviousVisionMode = mode
 				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(255,255,0,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(0,213,90) or Color(124,0,0),0.3,0)
 			end
@@ -601,15 +612,15 @@ if CLIENT then
 			if mode == 1 && hasMask then
 				DrawColorModify(tab_thermal)
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
-				DrawTexturize(0,Material("hud/cpthazama/avp/thermal_gradient.png"))
+				DrawTexturize(0,matGradientThermal)
 			elseif mode == 2 && hasMask then
 				DrawColorModify(tab_xeno) 
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
-				DrawTexturize(0,Material("hud/cpthazama/avp/grey_gradient.png"))
+				DrawTexturize(0,matGradientXeno)
 			elseif mode == 3 && hasMask then
 				DrawColorModify(tab_tech) 
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
-				DrawTexturize(0,Material("hud/cpthazama/avp/tech_gradient.png"))
+				DrawTexturize(0,matGradientTech)
 			else
 				local maskBG = ent:FindBodygroupByName("mask")
 				if maskBG > -1 then
@@ -617,7 +628,7 @@ if CLIENT then
 					if mask == 0 then
 						DrawColorModify(tab_nomask) 
 						DrawBloom(0,0.5,1,1,0,0,10,10,10)
-						DrawTexturize(0,Material("hud/cpthazama/avp/tech_world_gradient_darker.png"))
+						DrawTexturize(0,matGradientNoMask)
 					end
 				end
 			end

@@ -76,6 +76,8 @@ function ENT:DoFatality(ent,inFront)
 		ent:ClearGoal()
 		ent:StopMoving()
 		ent:SetMaxYawSpeed(0)
+		self:SetLocalVelocity(Vector(0,0,0))
+		ent:SetLocalVelocity(Vector(0,0,0))
 		if self.OnHit then
 			self:OnHit({ent})
 		end
