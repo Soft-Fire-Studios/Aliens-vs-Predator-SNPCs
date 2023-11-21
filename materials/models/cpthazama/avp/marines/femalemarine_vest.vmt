@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/femalemarine_vest_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/femalemarine_vest_norm"
+	"$phongexponenttexture"		"models/cpthazama/avp/marines/femalemarine_vest_spec"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "5"
+	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phongalbedotint"           "1"
+	"$phongalbedoboost"          "30"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

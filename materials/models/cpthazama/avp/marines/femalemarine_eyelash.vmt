@@ -1,0 +1,17 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/femalemarine_eyelash_col"
+	"$bumpmap"					"vj_base/flat"
+
+    "$nodecal" 					"1"
+    "$nocull" 					"1"
+    "$translucent" 				"1"
+    "$allowalphatocoverage" 	"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongexponent"            "2"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

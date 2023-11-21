@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/tequila_arm"
+	"$bumpmap"					"models/cpthazama/avp/marines/femalemarine_arms_norm"
+
+    "$nodecal" 					"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "3"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"		"[0.67 0.83 1]"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

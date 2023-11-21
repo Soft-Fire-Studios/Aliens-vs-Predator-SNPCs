@@ -66,8 +66,7 @@ if VJExists == true then
 	VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
 
 	VJ.AddNPC("Sentry Gun","npc_vj_avp_hum_sentrygun",vCat_M)
-	VJ.AddNPC_HUMAN("Marine Base (Male)","npc_vj_avp_hum_male",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Marine Base (Female)","npc_vj_avp_hum_female",{"weapon_vj_avp_pistol"},vCat_M)
+	-- VJ.AddNPC_HUMAN("Marine Base","npc_vj_avp_hum_male",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Van Zandt","npc_vj_avp_hum_van",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Connor","npc_vj_avp_hum_connor",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Franco","npc_vj_avp_hum_franco",{"weapon_vj_avp_pistol"},vCat_M)
@@ -77,10 +76,16 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Roper","npc_vj_avp_hum_roper",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_pistol"},vCat_M)
+
+	VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",{"weapon_vj_avp_pistol"},vCat_M)
+	// For some reason only the generic males got official names, so we're just gonna make the names up using an online name generator for the generic females LOL
+	VJ.AddNPC_HUMAN("Butch","npc_vj_avp_hum_butch",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Elaine","npc_vj_avp_hum_blonde",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Charity","npc_vj_avp_hum_black",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Monica","npc_vj_avp_hum_black2",{"weapon_vj_avp_pistol"},vCat_M)
 
 	VJ.AddParticle("particles/vj_avp_blood.pcf",{
 		"vj_avp_blood_predator",

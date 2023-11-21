@@ -24,16 +24,12 @@ ENT.HasMeleeAttack = true
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:GetBodyData()
-	return self.ModelData
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/alex.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnPreInitialize()
-	self.Gender = 1 // math.random(1,2)
+	-- self.Gender = self.Gender or 1 // math.random(1,2)
 	self.Model = self:GenderInit(self.Gender)
 
 	if self.VJ_AVP_IsTech then
