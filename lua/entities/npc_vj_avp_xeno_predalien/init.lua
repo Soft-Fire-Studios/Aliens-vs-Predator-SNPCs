@@ -218,7 +218,7 @@ function ENT:CustomOnThink()
 	if IsValid(enemy) then
 		local dist = enemy:GetPos():Distance(self:GetPos())
 		local npc = enemy:IsNPC()
-		if dist <= 125 && !self.MeleeAttacking && ((enemy:IsNPC() && enemy:GetHullType() == HULL_HUMAN && (enemy:Health() <= enemy:GetMaxHealth() /3)) or enemy:IsPlayer()) then
+		if dist <= 125 && !self.AttackType != VJ.ATTACK_TYPE_MELEE && ((enemy:IsNPC() && enemy:GetHullType() == HULL_HUMAN && (enemy:Health() <= enemy:GetMaxHealth() /3)) or enemy:IsPlayer()) then
 			if math.random(1,4) == 1 && !IsValid(self.GrabbedEntity) && self:GetState() != VJ_STATE_ONLY_ANIMATION then
 				self:SetState(VJ_STATE_ONLY_ANIMATION)
 				self:StopMoving()
