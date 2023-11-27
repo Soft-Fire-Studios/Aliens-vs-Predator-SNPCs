@@ -11,7 +11,7 @@ ENT.VJC_Data = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
-    FirstP_Offset = Vector(6.5, 0, 4.5),
+    FirstP_Offset = Vector(4, 0, 1.5),
 }
 
 ENT.BloodColor = "Red"
@@ -256,6 +256,7 @@ function ENT:CustomOnInitialize()
 	self.Moveset = 0
 	self.Ping_ClosestDist = 0
 	self.Ping_NextPingT = CurTime() +1
+	self.NextHealT = CurTime() +1
 
 	self.AnimTbl_ScaredBehaviorMovement = {toSeq(self,"nwn_Panic_run_fwd_look_fwd")}
 
@@ -351,7 +352,22 @@ function ENT:OnKeyPressed(ply,key)
 		if tr.Hit && IsValid(ent) then
 			ent:Fire("Use",nil,0,ply,self)
 		end
+    elseif key == KEY_G then
+		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
+			self:UseStimpack()
+			self.NextHealT = CurTime() +3
+		end
     end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:UseStimpack()
+	if self.InFatality or self.DoingFatality then return end
+	if self:IsBusy() then return end
+	self:VJ_ACT_PLAYACTIVITY("vjges_ohwa_pistol_stim",true,false,false,0,{OnFinish=function(i)
+		if i then return end
+		self:SetHealth(self:GetMaxHealth())
+	end})
+	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnSetupWeaponHoldTypeAnims(hType)
@@ -452,9 +468,14 @@ function ENT:CustomOnThink()
 			self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 			self:SetSprinting(false)
 		end
+
+		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
+			self:UseStimpack()
+			self.NextHealT = CurTime() +math.Rand(45,60)
+		end
 	end
 	if self:GetSprinting() then
-		self.SprintT = self.SprintT +0.2
+		self.SprintT = self.SprintT +0.1
 		if self.SprintT >= 4 then
 			self.NextSprintT = curTime +3
 		end

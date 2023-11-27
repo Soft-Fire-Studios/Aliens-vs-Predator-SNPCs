@@ -6,7 +6,7 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/queen.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
-ENT.StartHealth = 5000
+ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
 
 ENT.VJC_Data = {

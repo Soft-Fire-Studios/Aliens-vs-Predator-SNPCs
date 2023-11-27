@@ -13,35 +13,36 @@ if CLIENT then
 	local string_EndsWith = string.EndsWith
 	local string_Replace = string.Replace
 	local file_Exists = file.Exists
+
+	ENT.XenoMaterials = {
+		["models/cpthazama/avp/xeno/facehugger/facehugger"] = "models/cpthazama/avp/xeno/facehugger/facehugger_xv",
+		["models/cpthazama/avp/xeno/facehugger/facehugger_royal"] = "models/cpthazama/avp/xeno/facehugger/facehugger_royal_xv",
+
+	}
+
 	function ENT:Initialize()
-		self.SubMaterials = {}
-		self.SubMaterials.Normal = {}
-		self.SubMaterials.XenoVision = {}
-		for i = 0, #self:GetMaterials() - 1 do
-			local mat = self:GetSubMaterial(i)
-			if string_EndsWith(mat,"_xv") then
-				self.SubMaterials.XenoVision[i] = mat
-			else
-				self.SubMaterials.Normal[i] = mat
-			end
-		end
+		self.HasResetMaterials = true
 	end
 
-	function ENT:CustomOnDraw()
+	function ENT:Draw()
+		self:DrawModel()
 		local ply = LocalPlayer()
 		if ply.VJTag_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator && ply.VJCE_NPC.PreviousVisionMode == 2 then
-			for i = 0, #self:GetMaterials() - 1 do
-				local mat = self:GetSubMaterial(i)
-				if !string_EndsWith(mat,"_xv") && self.SubMaterials.XenoVision[i] then
-					self:SetSubMaterial(i,mat .. "_xv")
+		-- if ply:Health() == 100 then
+			self.HasResetMaterials = false
+			for i,v in pairs(self:GetMaterials()) do
+				if self.XenoMaterials[v] then
+					local xvMat = self.XenoMaterials[v]
+					local mat = self:GetSubMaterial(i)
+					if (mat == "" or mat != xvMat) then
+						self:SetSubMaterial(i -1,xvMat)
+					end
 				end
 			end
 		else
-			for i = 0, #self:GetMaterials() - 1 do
-				-- local mat = self:GetSubMaterial(i)
-				-- if string_EndsWith(mat,"_xv") then
-					self:SetSubMaterial(i,"")
-				-- end
+			if !self.HasResetMaterials then
+				self.HasResetMaterials = true
+				self:SetSubMaterial()
 			end
 		end
 	end

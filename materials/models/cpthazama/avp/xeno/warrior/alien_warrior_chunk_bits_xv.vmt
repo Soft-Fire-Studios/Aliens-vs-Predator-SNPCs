@@ -1,10 +1,9 @@
 "VertexLitGeneric"
 {
-	"$basetexture" 				"models/cpthazama/avp/xenovision"
+	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_normal"
 	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_specular"
 
-	"$selfillum"				"1"
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"
 
@@ -19,4 +18,14 @@
 	"$rimlightboost"			"0.2"
 
 	"$normalmapalphaenvmapmask"	"1"
+
+	"$emissiveBlendEnabled" 		"1"
+    "$emissiveBlendTexture"    		"dev/null"
+    "$emissiveBlendFlowTexture"     "dev/null"
+    "$emissiveBlendTint" 			"[1 1 1]"
+    "$emissiveBlendStrength" 		"1"
+    "$emissiveBlendScrollVector" 	"[0 0]"
+    "$emissiveBlendBaseTexture"     "models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_xv"
+
+	"$lightwarptexture" 		"models/cpthazama/avp/xeno_gradient"
 }

@@ -6,4 +6,4 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/drone_grid.mdl"}
-ENT.StartHealth = 300
+ENT.StartHealth = 200

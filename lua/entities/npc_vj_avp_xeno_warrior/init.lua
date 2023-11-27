@@ -7,7 +7,7 @@ include("vj_base/extensions/avp_fatality_module.lua")
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
-ENT.StartHealth = 225
+ENT.StartHealth = 140
 ENT.HullType = HULL_HUMAN
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ ENT.VJC_Data = {
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
     FirstP_Offset = Vector(15, 0, 0),
-    FirstP_ShrinkBone = false
+    FirstP_ShrinkBone = true
 }
 
 ENT.FootData = {
@@ -410,7 +410,9 @@ function ENT:FootStep(pos,name)
 		tr.MatType = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[tr.MatType] then
-		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self.FootStepSoundLevel or 65,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		local snd = VJ.PICK(tbl[tr.MatType])
+		sound.Play(snd,pos,self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,snd,10)
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
 		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))

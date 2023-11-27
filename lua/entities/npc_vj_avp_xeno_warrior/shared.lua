@@ -16,21 +16,110 @@ function ENT:SetupDataTables()
 end
 
 if CLIENT then
+    -- matproxy.Add({
+    --     name = "AVP_XenoVision",
+    --     init = function(self,mat,values)
+    --         self.Result = values.resultvar
+	-- 		print("INIT")
+	-- 		-- self.LightwarpTexture = mat:GetString("$lightwarptexture") or ""
+    --     end,
+    --     bind = function(self,mat,ent)
+    --         if (!IsValid(ent)) then return end
+
+	-- 		ent.Mat_XVFactor = ent.Mat_XVFactor or 0
+	-- 		ent.Mat_XVLightwarp = ent.Mat_XVLightwarp or ""
+	-- 		local curValue = ent.Mat_XVFactor
+	-- 		local finalResult = curValue or 0
+	-- 		local lightwarp = "models/cpthazama/avp/xeno_gradient"
+	-- 		local ply = LocalPlayer()
+	-- 		-- if ply.VJTag_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator && ply.VJCE_NPC.PreviousVisionMode == 2 then
+	-- 		if ply:Health() == 99 then
+	-- 			finalResult = 1
+	-- 			-- lightwarp = "models/cpthazama/avp/xeno_gradient"
+	-- 		else
+	-- 			finalResult = 0
+	-- 			-- lightwarp = ""
+	-- 		end
+	-- 		print(finalResult,lightwarp)
+	-- 		ent.Mat_XVFactor = finalResult
+	-- 		ent.Mat_XVLightwarp = lightwarp
+	-- 		mat:SetFloat(self.Result,ent.Mat_XVFactor)
+	-- 		mat:SetString("$lightwarptexture",ent.Mat_XVLightwarp)
+	-- 		PrintTable(mat:GetKeyValues())
+	-- 		print("Enabled",mat:GetFloat(self.Result))
+	-- 		print("Lightwarp",mat:GetString("$lightwarptexture"))
+    --     end
+    -- })
+
 	local string_EndsWith = string.EndsWith
 	local string_Replace = string.Replace
 	local file_Exists = file.Exists
+
+	ENT.XenoMaterials = {
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_body"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_body_xv",
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_head"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_head_xv",
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_gib"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_gib_xv",
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_xv",
+		["models/cpthazama/avp/xeno/warrior/dismemberedalien_innards"] = "models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_xv",
+
+		["models/cpthazama/avp/xeno/praetorian/praetorian_body"] = "models/cpthazama/avp/xeno/praetorian/praetorian_body_xv",
+		["models/cpthazama/avp/xeno/praetorian/praetorian_head"] = "models/cpthazama/avp/xeno/praetorian/praetorian_head_xv",
+		["models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits"] = "models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_xv",
+
+		["models/cpthazama/avp/xeno/predalien/predalien_hybrid_head"] = "models/cpthazama/avp/xeno/predalien/predalien_hybrid_head_xv",
+		["models/cpthazama/avp/xeno/predalien/predalien_hybrid_body"] = "models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_xv",
+		["models/cpthazama/avp/xeno/predalien/dreads"] = "models/cpthazama/avp/xeno/predalien/dreads_xv",
+
+		["models/cpthazama/avp/xeno/queen/alien_queen_body"] = "models/cpthazama/avp/xeno/queen/alien_queen_body_xv",
+		["models/cpthazama/avp/xeno/queen/alien_queen_head"] = "models/cpthazama/avp/xeno/queen/alien_queen_head_xv",
+
+		["models/cpthazama/avp/xeno/runner/jungle_alien_body"] = "models/cpthazama/avp/xeno/runner/jungle_alien_body_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_head"] = "models/cpthazama/avp/xeno/runner/jungle_alien_head_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_dome"] = "models/cpthazama/avp/xeno/runner/jungle_alien_dome_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits"] = "models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_chunk"] = "models/cpthazama/avp/xeno/runner/jungle_alien_chunk_xv",
+		["models/cpthazama/avp/xeno/runner/dismemberedalien_innards"] = "models/cpthazama/avp/xeno/runner/dismemberedalien_innards_xv",
+
+		["models/cpthazama/avp/xeno/warrior/rigid_alien_head"] = "models/cpthazama/avp/xeno/warrior/rigid_alien_head_xv",
+		["models/cpthazama/avp/xeno/drone/alien_warrior_dome"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
+		["models/cpthazama/avp/xeno/warrior/grid_alien_head"] = "models/cpthazama/avp/xeno/warrior/grid_alien_head_xv",
+		["models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment"] = "models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment_xv",
+
+		["models/cpthazama/avp/xeno/hag/hag_body"] = "models/cpthazama/avp/xeno/hag/hag_body_xv",
+		["models/cpthazama/avp/xeno/hag/hag_crown"] = "models/cpthazama/avp/xeno/hag/hag_crown_xv",
+		["models/cpthazama/avp/xeno/hag/hag_face"] = "models/cpthazama/avp/xeno/hag/hag_face_xv",
+		["models/cpthazama/avp/xeno/hag/hag_limb"] = "models/cpthazama/avp/xeno/hag/hag_limb_xv",
+
+		// K-Series
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_body_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_body_xv",
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_head_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_head_xv",
+		["models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_xv",
+
+		["models/cpthazama/avp/xeno/praetorian/praetorian_body_k"] = "models/cpthazama/avp/xeno/praetorian/praetorian_body_xv",
+		["models/cpthazama/avp/xeno/praetorian/praetorian_head_k"] = "models/cpthazama/avp/xeno/praetorian/praetorian_head_xv",
+		["models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_k"] = "models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_xv",
+
+		["models/cpthazama/avp/xeno/predalien/predalien_hybrid_head_k"] = "models/cpthazama/avp/xeno/predalien/predalien_hybrid_head_xv",
+		["models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_k"] = "models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_xv",
+		["models/cpthazama/avp/xeno/predalien/dreads_k"] = "models/cpthazama/avp/xeno/predalien/dreads_xv",
+
+		["models/cpthazama/avp/xeno/queen/alien_queen_body_k"] = "models/cpthazama/avp/xeno/queen/alien_queen_body_xv",
+		["models/cpthazama/avp/xeno/queen/alien_queen_head_k"] = "models/cpthazama/avp/xeno/queen/alien_queen_head_xv",
+
+		["models/cpthazama/avp/xeno/runner/jungle_alien_body_k"] = "models/cpthazama/avp/xeno/runner/jungle_alien_body_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_head_k"] = "models/cpthazama/avp/xeno/runner/jungle_alien_head_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_dome_k"] = "models/cpthazama/avp/xeno/runner/jungle_alien_dome_xv",
+		["models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_k"] = "models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_xv",
+
+		["models/cpthazama/avp/xeno/warrior/rigid_alien_head_k"] = "models/cpthazama/avp/xeno/warrior/rigid_alien_head_xv",
+		["models/cpthazama/avp/xeno/drone/alien_warrior_dome_k"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
+	}
+
 	function ENT:Initialize()
-		self.SubMaterials = {}
-		self.SubMaterials.Normal = {}
-		self.SubMaterials.XenoVision = {}
-		for i = 0, #self:GetMaterials() - 1 do
-			local mat = self:GetSubMaterial(i)
-			if string_EndsWith(mat,"_xv") then
-				self.SubMaterials.XenoVision[i] = mat
-			else
-				self.SubMaterials.Normal[i] = mat
-			end
-		end
+		-- for i,v in pairs(self:GetMaterials()) do
+		-- 	print(v)
+		-- end
+		self.HasResetMaterials = true
 	end
 
 	local vec0 = Vector(0,0,0)
@@ -52,21 +141,25 @@ if CLIENT then
 		return false
 	end
 
-	function ENT:CustomOnDraw()
+	function ENT:Draw()
+		self:DrawModel()
 		local ply = LocalPlayer()
 		if ply.VJTag_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator && ply.VJCE_NPC.PreviousVisionMode == 2 then
-			for i = 0, #self:GetMaterials() - 1 do
-				local mat = self:GetSubMaterial(i)
-				if !string_EndsWith(mat,"_xv") && self.SubMaterials.XenoVision[i] then
-					self:SetSubMaterial(i,mat .. "_xv")
+		-- if ply:Health() == 100 then
+			self.HasResetMaterials = false
+			for i,v in pairs(self:GetMaterials()) do
+				if self.XenoMaterials[v] then
+					local xvMat = self.XenoMaterials[v]
+					local mat = self:GetSubMaterial(i)
+					if (mat == "" or mat != xvMat) then
+						self:SetSubMaterial(i -1,xvMat)
+					end
 				end
 			end
 		else
-			for i = 0, #self:GetMaterials() - 1 do
-				-- local mat = self:GetSubMaterial(i)
-				-- if string_EndsWith(mat,"_xv") then
-					self:SetSubMaterial(i,"")
-				-- end
+			if !self.HasResetMaterials then
+				self.HasResetMaterials = true
+				self:SetSubMaterial()
 			end
 		end
 	end
@@ -84,6 +177,17 @@ if CLIENT then
 	local matSixHud = Material("hud/cpthazama/avp/alien_six_hud.png")
 	local matGridHud = Material("hud/cpthazama/avp/alien_grid_hud.png")
 	local render_GetLightColor = render.GetLightColor
+	local tab_xeno = {
+		["$pp_colour_addr"] 		= 0,
+		["$pp_colour_addg"] 		= 0.25,
+		["$pp_colour_addb"] 		= 1,
+		["$pp_colour_brightness"] 	= 0.3,
+		["$pp_colour_contrast"] 	= 0.15,
+		["$pp_colour_colour"] 		= 0.3,
+		["$pp_colour_mulr"] 		= 0,
+		["$pp_colour_mulg"] 		= 0.5,
+		["$pp_colour_mulb"] 		= 1,
+	}
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
@@ -119,18 +223,13 @@ if CLIENT then
 		if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
-			local tab_xeno = {
-				["$pp_colour_addr"] 		= -0.4,
-				["$pp_colour_addg"] 		= -0.37,
-				["$pp_colour_addb"] 		= -0,
-				["$pp_colour_brightness"] 	= 0.34,
-				["$pp_colour_contrast"] 	= 0.2,
-				["$pp_colour_colour"] 		= 0.3,
-				["$pp_colour_mulr"] 		= 0,
-				["$pp_colour_mulg"] 		= 0,
-				["$pp_colour_mulb"] 		= 0,
-			}
-			DrawColorModify(tab_xeno) 
+			if !IsValid(ent) then return end
+			if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
+				tab_xeno["$pp_colour_brightness"] = 0.6
+			else
+				tab_xeno["$pp_colour_brightness"] = 0.3
+			end
+			DrawColorModify(tab_xeno)
 			DrawBloom(0,1,1,1,8,3,5,5,2.5)
 		end)
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
@@ -176,7 +275,7 @@ if CLIENT then
 			-- if GetConVar("mat_fullbright"):GetInt() != 0 then
 			-- 	RunConsoleCommand("mat_fullbright","0")
 			-- end
-		-- else
+		else
 		-- 	if GetConVar("mat_fullbright"):GetInt() != 1 then
 		-- 		RunConsoleCommand("mat_fullbright","1")
 		-- 	end

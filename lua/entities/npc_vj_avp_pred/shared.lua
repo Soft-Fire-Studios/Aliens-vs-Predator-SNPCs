@@ -359,11 +359,11 @@ if CLIENT then
 							end
 						cam.End3D()
 					end
-				elseif ent.PreviousVisionMode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then
+				elseif ent.PreviousVisionMode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
 					cam.Start3D(EyePos(),EyeAngles())
 						if util.IsValidModel(v:GetModel()) then
-							render.SetBlend(0.6)
-							render.MaterialOverride(matXenoOverlay)
+							-- render.SetBlend(0.6)
+							-- render.MaterialOverride(matXenoOverlay)
 							v:DrawModel()
 							render.MaterialOverride(0)
 							render.SetBlend(1)
@@ -646,14 +646,23 @@ if CLIENT then
 				DrawColorModify(tab_thermal)
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawTexturize(0,matGradientThermal)
+				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+				-- 	RunConsoleCommand("mat_fullbright","0")
+				-- end
 			elseif mode == 2 && hasMask then
 				DrawColorModify(tab_xeno) 
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawTexturize(0,matGradientXeno)
+				-- if GetConVar("mat_fullbright"):GetInt() != 1 then
+				-- 	RunConsoleCommand("mat_fullbright","1")
+				-- end
 			elseif mode == 3 && hasMask then
 				DrawColorModify(tab_tech) 
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawTexturize(0,matGradientTech)
+				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+				-- 	RunConsoleCommand("mat_fullbright","0")
+				-- end
 			else
 				local maskBG = ent:FindBodygroupByName("mask")
 				if maskBG > -1 then
@@ -664,6 +673,9 @@ if CLIENT then
 						DrawTexturize(0,matGradientNoMask)
 					end
 				end
+				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+				-- 	RunConsoleCommand("mat_fullbright","0")
+				-- end
 			end
 		end)
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_Vision") end

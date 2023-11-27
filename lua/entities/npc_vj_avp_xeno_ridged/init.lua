@@ -6,4 +6,4 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/warrior_rigid.mdl"}
-ENT.StartHealth = 400
+ENT.StartHealth = 225

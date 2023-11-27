@@ -6,7 +6,7 @@ include('shared.lua')
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/praetorian.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
-ENT.StartHealth = 2500
+ENT.StartHealth = 1000
 ENT.VJ_IsHugeMonster = true
 ENT.HullType = HULL_LARGE
 
@@ -107,7 +107,7 @@ function ENT:OnInit()
 	self.NextSummonT = CurTime() +60
 	timer.Simple(0,function()
 		if IsValid(self) then
-			-- self:DoSummon()
+			self:DoSummon()
 		end
 	end)
 end

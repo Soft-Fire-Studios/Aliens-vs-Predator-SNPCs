@@ -87,6 +87,24 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Charity","npc_vj_avp_hum_black",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Monica","npc_vj_avp_hum_black2",{"weapon_vj_avp_pistol"},vCat_M)
 
+	if SERVER then
+		util.AddNetworkString("VJ_AVP_Marine_Client")
+		util.AddNetworkString("VJ_AVP_Predator_Client")
+		util.AddNetworkString("VJ_AVP_Xeno_Client")
+	end
+
+	/*
+		Colonist/Marine - HP = 100
+		Tequila - HP = 200
+		Sentrygun - HP = 1000
+		Android - HP = 200
+		Android Elite - HP = 500
+		Xenomorph Facehugger - HP = 15
+		Xenomorph Warrior - HP = 140
+		Xenomorph Jungle - HP = 60
+		Xenomorph Praetorian - HP = 1000
+	*/
+
 	VJ.AddParticle("particles/vj_avp_blood.pcf",{
 		"vj_avp_blood_predator",
 		"vj_avp_blood_xeno",

@@ -93,13 +93,13 @@ function ENT:DoFatality(ent,inFront)
 					if ent.ResetFatality then
 						ent:ResetFatality()
 					end
-					if IsValid(self) then
+					if IsValid(ent) then
 						local dmginfo = DamageInfo()
 						dmginfo:SetDamage(ent:Health())
 						dmginfo:SetDamageType(DMG_SLASH)
-						dmginfo:SetDamageForce(self:GetForward() *250)
-						dmginfo:SetAttacker(self)
-						dmginfo:SetInflictor(self)
+						dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+						dmginfo:SetAttacker(IsValid(self) && self or ent)
+						dmginfo:SetInflictor(IsValid(self) && self or ent)
 						ent:TakeDamageInfo(dmginfo)
 					end
 				end})
@@ -108,6 +108,21 @@ function ENT:DoFatality(ent,inFront)
 				if int then return end
 				self:SetState()
 				self:ResetFatality()
+				if IsValid(ent) then
+					if ent.ResetFatality then
+						ent:ResetFatality()
+					end
+					if !counter then
+						ent.HasDeathAnimation = false
+						local dmginfo = DamageInfo()
+						dmginfo:SetDamage(ent:Health())
+						dmginfo:SetDamageType(DMG_SLASH)
+						dmginfo:SetDamageForce(self:GetForward() *250)
+						dmginfo:SetAttacker(self)
+						dmginfo:SetInflictor(self)
+						ent:TakeDamageInfo(dmginfo)
+					end
+				end
 			end})
 		else
 			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
@@ -136,14 +151,14 @@ function ENT:DoFatality(ent,inFront)
 									if ent.ResetFatality then
 										ent:ResetFatality()
 									end
-									if !counter && IsValid(self) then
+									if !counter && IsValid(ent) then
 										ent.HasDeathAnimation = false
 										local dmginfo = DamageInfo()
 										dmginfo:SetDamage(ent:Health())
 										dmginfo:SetDamageType(DMG_SLASH)
-										dmginfo:SetDamageForce(self:GetForward() *250)
-										dmginfo:SetAttacker(self)
-										dmginfo:SetInflictor(self)
+										dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+										dmginfo:SetAttacker(IsValid(self) && self or ent)
+										dmginfo:SetInflictor(IsValid(self) && self or ent)
 										ent:TakeDamageInfo(dmginfo)
 									end
 								end})
@@ -153,6 +168,21 @@ function ENT:DoFatality(ent,inFront)
 							if int then return end
 							self:SetState()
 							self:ResetFatality()
+							if IsValid(ent) then
+								if ent.ResetFatality then
+									ent:ResetFatality()
+								end
+								if !counter then
+									ent.HasDeathAnimation = false
+									local dmginfo = DamageInfo()
+									dmginfo:SetDamage(ent:Health())
+									dmginfo:SetDamageType(DMG_SLASH)
+									dmginfo:SetDamageForce(self:GetForward() *250)
+									dmginfo:SetAttacker(self)
+									dmginfo:SetInflictor(self)
+									ent:TakeDamageInfo(dmginfo)
+								end
+							end
 						end})
 					end})
 				else
@@ -165,14 +195,14 @@ function ENT:DoFatality(ent,inFront)
 								if ent.ResetFatality then
 									ent:ResetFatality()
 								end
-								if !counter && IsValid(self) then
+								if !counter && IsValid(ent) then
 									ent.HasDeathAnimation = false
 									local dmginfo = DamageInfo()
 									dmginfo:SetDamage(ent:Health())
 									dmginfo:SetDamageType(DMG_SLASH)
-									dmginfo:SetDamageForce(self:GetForward() *250)
-									dmginfo:SetAttacker(self)
-									dmginfo:SetInflictor(self)
+									dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+									dmginfo:SetAttacker(IsValid(self) && self or ent)
+									dmginfo:SetInflictor(IsValid(self) && self or ent)
 									ent:TakeDamageInfo(dmginfo)
 								end
 							end})
@@ -182,6 +212,21 @@ function ENT:DoFatality(ent,inFront)
 						if int then return end
 						self:SetState()
 						self:ResetFatality()
+						if IsValid(ent) then
+							if ent.ResetFatality then
+								ent:ResetFatality()
+							end
+							if !counter then
+								ent.HasDeathAnimation = false
+								local dmginfo = DamageInfo()
+								dmginfo:SetDamage(ent:Health())
+								dmginfo:SetDamageType(DMG_SLASH)
+								dmginfo:SetDamageForce(self:GetForward() *250)
+								dmginfo:SetAttacker(self)
+								dmginfo:SetInflictor(self)
+								ent:TakeDamageInfo(dmginfo)
+							end
+						end
 					end})
 				end
 			end})
