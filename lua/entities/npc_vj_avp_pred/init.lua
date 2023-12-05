@@ -37,7 +37,8 @@ ENT.VJC_Data = {
     ThirdP_Offset = Vector(0, 0, -35), -- The offset for the controller when the camera is in third person
     FirstP_Bone = "Bip01 Head", -- If left empty, the base will attempt to calculate a position for first person
     FirstP_Offset = Vector(15, 0, 2), -- The offset for the controller when the camera is in first person
-    FirstP_CameraBoneAng = 1
+    FirstP_CameraBoneAng = 1,
+    VJC_FP_CameraBoneAng_Offset = 0
 }
 
 ENT.HasDeathAnimation = true
@@ -226,6 +227,7 @@ local bounds = Vector(14,14,84)
 --
 function ENT:CustomOnInitialize()
 	self:SetVisionMode(0)
+	self:SetEquipment(1)
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
 	self.NextFindStalkPos = 0
 	self.NextCloakT = CurTime() +1.5
@@ -315,6 +317,14 @@ function ENT:CustomOnInitialize()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
+	-- print("----------------------------------")
+	-- print(key)
+	-- for k, v in pairs(_G) do
+	-- 	if isnumber(v) && v == key && string.StartWith(k,"KEY_") then
+	-- 		Entity(1):ChatPrint(k)
+	-- 		break
+	-- 	end
+	-- end
     if key == KEY_E then
 		local tr = util.TraceLine({
 			start = self:EyePos(),
@@ -356,6 +366,18 @@ function ENT:OnKeyPressed(ply,key)
 			self:UseStimpack()
 			self.NextHealT = CurTime() +3
 		end
+    elseif key == KEY_1 then
+		self:SetEquipment(1)
+		ply:ChatPrint("Changed Equipment: Plasma-Caster")
+	elseif key == KEY_2 then
+		self:SetEquipment(2)
+		ply:ChatPrint("Changed Equipment: Mines")
+	elseif key == KEY_3 then
+		self:SetEquipment(3)
+		ply:ChatPrint("Changed Equipment: Smart-Disc")
+	elseif key == KEY_4 then
+		self:SetEquipment(4)
+		ply:ChatPrint("Changed Equipment: Combi-Stick")
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -393,7 +415,7 @@ function ENT:CustomAttack(ent,vis)
 		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
 		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_JUMP) && !cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_DUCK) && !self:IsBusy() then
-			self:SpecialAttackCode(self.CurrentEquipment)
+			self:SpecialAttackCode(self:GetEquipment())
 		end
 	else
 		if dist <= self.AttackDistance && !self:IsBusy() && vis then
@@ -409,6 +431,10 @@ function ENT:CustomAttack(ent,vis)
 			self:DistractionCode(ent)
 		elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
 			self:SpecialAttackCode(1)
+		elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+			self:SpecialAttackCode(3)
+		elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+			self:SpecialAttackCode(4)
 		end
 		local pos = ent:GetPos()
 		local heightDif = math.abs(pos.z -self:GetPos().z)
@@ -426,7 +452,7 @@ function ENT:CustomAttack(ent,vis)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
-	if self.InFatality or self.DoingFatality then return end
+	if self.InFatality or self.DoingFatality or IsValid(self:GetDisc()) then return end
 	local atk = atk or 1
 	if atk == 1 then
 		self:SetBeam(true)
@@ -472,6 +498,52 @@ function ENT:SpecialAttackCode(atk)
 			self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				self:SetBeam(false)
 			end})
+			self.NextChaseTime = 0
+		end})
+		self.NextChaseTime = 0
+	elseif atk == 2 then
+		local att = self:GetAttachment(self:LookupAttachment("Pred_Mine"))
+		local mine = ents.Create("prop_vj_animatable")
+		mine:SetModel("models/cpthazama/avp/predators/equipment/mine.mdl")
+		mine:SetPos(att.Pos)
+		mine:SetAngles(att.Ang)
+		mine:SetOwner(self)
+		mine:Spawn()
+		mine:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		mine:SetSolid(SOLID_NONE)
+		mine:SetParent(self)
+		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		self:DeleteOnRemove(mine)
+		self.Mine = mine
+		self:VJ_ACT_PLAYACTIVITY("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true})
+		self.NextChaseTime = 0
+	elseif atk == 3 then
+		self:SetBeam(true)
+		self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			if interrupted then self:SetBeam(false) return end
+			self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end})
+		self.NextChaseTime = 0
+	elseif atk == 4 then
+		if IsValid(self:GetSpear()) then return end -- If we've already thrown the spear, go get it back or you can't use this attack!
+		local att = self:GetAttachment(self:LookupAttachment("spear"))
+		local spear = ents.Create("prop_vj_animatable")
+		spear:SetModel("models/cpthazama/avp/predators/equipment/spear.mdl")
+		spear:SetPos(att.Pos)
+		spear:SetAngles(att.Ang)
+		spear:SetOwner(self)
+		spear:Spawn()
+		spear:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		spear:SetSolid(SOLID_NONE)
+		spear:SetParent(self)
+		spear:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		self:DeleteOnRemove(spear)
+		self.SpearProp = spear
+		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
+		self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			if interrupted then return end
+			self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end})
 		self.NextChaseTime = 0
@@ -690,6 +762,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
+	-- print(key)
 	if key == "jump_start" then
 		self:SetJumpPosition(self.LongJumpPos)
 		self.LongJumping = true
@@ -742,8 +815,159 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_jab_01.ogg",75)
 	elseif key == "stimpack_scream" then
 		self:PlaySound(self.SoundTbl_Stimpack,100)
+	elseif key == "mine_charge" then
+		VJ.EmitSound(self.Mine or self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",70)
+		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("Pred_Mine"))
+	elseif key == "mine_beep" then
+		VJ.EmitSound(self,"cpthazama/avp/shared/console_button_beep_01.ogg",75)
+	elseif key == "mine_done" then
+		self:StopParticles()
+	elseif key == "mine_throw" then
+		SafeRemoveEntity(self.Mine)
+		local att = self:GetAttachment(self:LookupAttachment("Pred_Mine"))
+		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():GetPos() or self:GetPos() +self:GetForward() *225
+		local targetAng = (targetPos -att.Pos):Angle()
+		local proj = ents.Create("obj_vj_avp_projectile")
+		proj.Model = "models/cpthazama/avp/predators/equipment/mine.mdl"
+		proj:SetPos(att.Pos)
+		proj:SetAngles(targetAng)
+		proj:SetOwner(self)
+		proj:SetAttackType(2,150,DMG_BLAST,500,45,true)
+		proj:SetNoDraw(false)
+		proj:Spawn()
+		proj:SetTagOwner(self)
+		self:DeleteOnRemove(proj)
+		proj.RemoveOnHit = false
+		proj.Predator = self
+		proj:DrawShadow(true)
+		-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
+		proj.DecalTbl_DeathDecals = {"Scorch"}
+		proj.OnThink = function(projEnt)
+			if !IsValid(projEnt.Predator) && !projEnt.Dead then
+				projEnt:Remove()
+				return
+			end
+			if !projEnt.IsArmed then return end
+			for _,v in pairs(ents.FindInSphere(projEnt:GetPos(),250)) do
+				if self:Visible(v) && self:CheckRelationship(v) == D_HT && v:GetClass() != "obj_vj_bullseye" then
+					projEnt.IsArmed = false
+					projEnt.DeathSnd = CreateSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_triggered_01.ogg")
+					projEnt.DeathSnd:SetSoundLevel(85)
+					projEnt.DeathSnd:Play()
+					local hitNr = (v:GetPos() -projEnt:GetPos()):GetNormalized()
+					timer.Simple(1.5,function()
+						if IsValid(projEnt) then
+							projEnt.DeathSnd:Stop()
+							local data = {}
+							data.HitEntity = v
+							data.HitPos = projEnt:GetPos()
+							data.HitNormal = hitNr
+							local phys = projEnt:GetPhysicsObject()
+							projEnt.Dead = true
+							projEnt:DoDamageCode(data, phys)
+							if projEnt.ShakeWorldOnDeath == true then util.ScreenShake(projEnt:GetPos() +projEnt:GetUp() *10, projEnt.ShakeWorldOnDeathAmplitude or 16, projEnt.ShakeWorldOnDeathFrequency or 200, projEnt.ShakeWorldOnDeathDuration or 1, projEnt.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
+							projEnt:SetDeathVariablesTrue(data, phys, true)
+							projEnt:Remove()
+						end
+					end)
+					break
+				end
+			end
+		end
+		proj.CustomOnPhysicsCollide = function(projEnt,data,phys)
+			if projEnt.HasLanded then return end
+
+			phys:EnableMotion(false)
+			phys:EnableGravity(false)
+			projEnt.HasLanded = true
+			VJ.EmitSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_arm_01.ogg",80)
+			timer.Simple(3,function()
+				if IsValid(projEnt) then
+					projEnt.IsArmed = true
+				end
+			end)
+			local hitNr = data.HitPos +data.HitNormal *-1.1
+			local hitAng = data.HitNormal:Angle()
+			hitAng:RotateAroundAxis(hitAng:Right(),90)
+			projEnt:SetPos(hitNr)
+			projEnt:SetAngles(hitAng)
+		end
+		proj.OnDeath = function(projEnt,data, defAng, HitPos)
+			ParticleEffect("vj_avp_predator_plasma_impact",HitPos,defAng)
+			sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",HitPos,90)
+		end
+		-- proj:AddSound("cpthazama/resistance2/chimera/titan/cha_titan_projectilefireloop_jcm.wav",80)
+		-- ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
+
+		local phys = proj:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:EnableGravity(true)
+			phys:SetVelocity(proj:GetForward() *500)
+		end
+	elseif key == "disc_show" then
+		local att = self:GetAttachment(self:LookupAttachment("battledisc"))
+		local disc = ents.Create("prop_vj_animatable")
+		disc:SetModel("models/cpthazama/avp/predators/equipment/battledisc.mdl")
+		disc:SetPos(att.Pos)
+		disc:SetAngles(att.Ang)
+		disc:SetOwner(self)
+		disc:Spawn()
+		disc:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		disc:SetSolid(SOLID_NONE)
+		disc:SetParent(self)
+		disc:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		self:DeleteOnRemove(disc)
+		self.Disc = disc
+	elseif key == "disc_extend" then
+		
+	elseif key == "disc_throw" then
+		SafeRemoveEntity(self.Disc)
+		local att = self:GetAttachment(self:LookupAttachment("battledisc"))
+		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *500
+		local targetAng = (targetPos -att.Pos):Angle()
+		local proj = ents.Create("obj_vj_avp_pred_disc")
+		proj:SetPos(att.Pos)
+		proj:SetAngles(targetAng)
+		proj:SetOwner(self)
+		proj:SetAttackType(1,45,bit.bor(DMG_SLASH,DMG_VEHICLE))
+		proj:SetNoDraw(false)
+		proj:Spawn()
+		self:DeleteOnRemove(proj)
+		proj.Predator = self
+
+		self.HasBattleDisc = true
+		self:SetDisc(proj)
+	elseif key == "disc_hide" then
+		SafeRemoveEntity(self.Disc)
 	elseif key == "stimpack_drop" then
 		
+	elseif key == "spear_throw" then
+		SafeRemoveEntity(self.SpearProp)
+		local att = self:GetAttachment(self:LookupAttachment("spear"))
+		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *500
+		local targetAng = (targetPos -att.Pos):Angle()
+		local proj = ents.Create("obj_vj_avp_pred_spear")
+		proj:SetPos(att.Pos)
+		proj:SetAngles(targetAng)
+		proj:SetOwner(self)
+		proj:SetAttackType(1,150,bit.bor(DMG_SLASH,DMG_DIRECT,DMG_VEHICLE))
+		proj:SetNoDraw(false)
+		proj:Spawn()
+		self:DeleteOnRemove(proj)
+		VJ.EmitSound(proj,"cpthazama/avp/weapons/predator/crossbow/crossbowfire_0" .. math.random(1,5) .. ".ogg",75)
+		proj.Predator = self
+		self:SetSpear(proj)
+
+		local phys = proj:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:SetVelocity(proj:GetForward() *2500)
+		end
+	elseif key == "spear_retract" then
+		if IsValid(self.SpearProp) then
+			VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
+		end
+	elseif key == "spear_hide" then
+		SafeRemoveEntity(self.SpearProp)
 	elseif key == "cin_predintro_ship_uncloak" then
 		local ship = self.PredShip
 		if !IsValid(ship) then return end
@@ -827,6 +1051,50 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnCatchDisc(ent)
+	local att = self:GetAttachment(self:LookupAttachment("battledisc"))
+	local disc = ents.Create("prop_vj_animatable")
+	disc:SetModel("models/cpthazama/avp/predators/equipment/battledisc.mdl")
+	disc:SetPos(att.Pos)
+	disc:SetAngles(att.Ang)
+	disc:SetOwner(self)
+	disc:Spawn()
+	disc:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+	disc:SetSolid(SOLID_NONE)
+	disc:SetParent(self)
+	disc:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+	self:DeleteOnRemove(disc)
+	self.Disc = disc
+	SafeRemoveEntityDelayed(disc,1)
+	self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_catch",true,false,true,0,{AlwaysUseGesture=true})
+	self.NextChaseTime = 0
+	self:SetDisc(nil)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnGrabSpear(ent)
+	local att = self:GetAttachment(self:LookupAttachment("spear"))
+	local spear = ents.Create("prop_vj_animatable")
+	spear:SetModel("models/cpthazama/avp/predators/equipment/spear.mdl")
+	spear:SetPos(att.Pos)
+	spear:SetAngles(att.Ang)
+	spear:SetOwner(self)
+	spear:Spawn()
+	spear:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+	spear:SetSolid(SOLID_NONE)
+	spear:SetParent(self)
+	spear:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+	self:DeleteOnRemove(spear)
+	self.SpearProp = spear
+	SafeRemoveEntityDelayed(spear,1)
+	self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_retract",true,false,true,0,{AlwaysUseGesture=true})
+	self.NextChaseTime = 0
+	self:SetSpear(nil)
+
+	if IsValid(self.VJ_TheController) then
+		self.VJ_TheController:ChatPrint("[Dev] Grabbed Combi-Stick!")
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(dist)
 	local act = ACT_WALK
 	local ply = self.VJ_TheController
@@ -907,6 +1175,15 @@ function ENT:CustomOnThink_AIEnabled()
 	-- if self.Flinching && self:OnGround() then
 	-- 	self:SetVelocity(self:GetMoveVelocity())
 	-- end
+
+	if IsValid(self:GetDisc()) then
+		self:SetBeam(true)
+	else
+		if self.HasBattleDisc then
+			self.HasBattleDisc = false
+			self:SetBeam(false)
+		end
+	end
 
 	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
 	if IsValid(ply) then

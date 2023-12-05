@@ -224,11 +224,7 @@ if CLIENT then
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
 			if !IsValid(ent) then return end
-			if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
-				tab_xeno["$pp_colour_brightness"] = 0.6
-			else
-				tab_xeno["$pp_colour_brightness"] = 0.3
-			end
+			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 && 0.6 or 0.3)
 			DrawColorModify(tab_xeno)
 			DrawBloom(0,1,1,1,8,3,5,5,2.5)
 		end)

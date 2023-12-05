@@ -7,6 +7,10 @@ ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Information		= "Projectiles for my addons"
 ENT.Category		= "Projectiles"
+
+function ENT:SetupDataTables()
+	self:NetworkVar("Entity",0,"TagOwner")
+end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if !SERVER then return end
 

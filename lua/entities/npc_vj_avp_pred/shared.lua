@@ -16,7 +16,10 @@ ENT.VJ_AVP_Predator = true
 function ENT:SetupDataTables()
 	self:NetworkVar("Entity",0,"LockOn")
 	self:NetworkVar("Entity",1,"VM")
+	self:NetworkVar("Entity",2,"Spear")
+	self:NetworkVar("Entity",3,"Disc")
 	self:NetworkVar("Int",0,"VisionMode")
+	self:NetworkVar("Int",1,"Equipment")
 	self:NetworkVar("Bool",0,"Cloaked")
 	self:NetworkVar("Bool",1,"Sprinting")
 	self:NetworkVar("Bool",2,"Beam")
@@ -148,9 +151,11 @@ if CLIENT then
 			ent.Mat_cloakfactor = ent.Mat_cloakfactor or 0
 			local curValue = ent.Mat_cloakfactor
 			local finalResult = curValue or 0
-			if ent.GetCloaked then
-				if ent:GetCloaked() then
-					finalResult = ent:IsNPC() && (ent:GetSprinting() or ent:GetJumpPosition() != scale0) && 0.97 or 0.997
+			local parent = ent:GetParent()
+			local checkEnt = IsValid(parent) && parent or ent
+			if checkEnt.GetCloaked then
+				if checkEnt:GetCloaked() then
+					finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or checkEnt:GetJumpPosition() != scale0) && 0.97 or 0.997
 				else
 					finalResult = 0
 					finalResultRefract = 0
@@ -318,7 +323,11 @@ if CLIENT then
 	local matHUD = Material("hud/cpthazama/avp/predator_hud.png")
 	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png")
 	local matHUDTarget = Material("hud/cpthazama/avp/predator_target.png")
+	local matHUDEquip_Spear = Material("hud/cpthazama/avp/avp_p_wps_realspear_highlight_v2.png")
+	local matHUDEquip_Disc = Material("hud/cpthazama/avp/avp_p_wps_disc_highlight_v2.png")
+	local matHUDEquip_Mine = Material("hud/cpthazama/avp/avp_p_wps_mine_highlight_v3.png")
 	local matNil = Material(" ")
+	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
 	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
 	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
@@ -351,9 +360,13 @@ if CLIENT then
 						if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
 						cam.Start3D(EyePos(),EyeAngles())
 							if util.IsValidModel(v:GetModel()) then
+								render.OverrideDepthEnable(true,false)
+								render.SetLightingMode(2)
 								render.SetBlend(1)
 								render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && matTT_Thermal or matTT_Thermal_Overlay)
 								v:DrawModel()
+								render.OverrideDepthEnable(false,false)
+								render.SetLightingMode(0)
 								render.MaterialOverride(0)
 								render.SetBlend(1)
 							end
@@ -426,7 +439,39 @@ if CLIENT then
 			surface.SetDrawColor(Color(r,g,b,ent.VJ_AVP_FOV))
 			surface.SetMaterial(matHUDZoom)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+	
+			local spear = ent:GetSpear()
+			if IsValid(spear) then
+				local entPos = (spear:GetPos() +spear:OBBCenter() +spear:GetForward() *-15):ToScreen()
+				local size = 125
+				size = size +math.sin(CurTime() *10) *10
+				surface.SetDrawColor(Color(r,g,b,a *math.Clamp(spear:GetPos():Distance(ent:GetPos()) /1000,0,1)))
+				surface.SetMaterial(matHUDEquip_Spear)
+				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+			end
+	
+			local disc = ent:GetDisc()
+			if IsValid(disc) then
+				local entPos = (disc:GetPos() +disc:OBBCenter()):ToScreen()
+				local size = 125
+				size = size +math.sin(CurTime() *10) *10
+				surface.SetDrawColor(Color(r,g,b,a *math.Clamp(disc:GetPos():Distance(ent:GetPos()) /1500,0,1)))
+				surface.SetMaterial(matHUDEquip_Disc)
+				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+			end
 
+			for i, v in ents.Iterator() do
+				if v:GetClass() == "obj_vj_avp_projectile" && v:GetOwner() == ent then
+					local entPos = (v:GetPos() +v:OBBCenter()):ToScreen()
+					local size = 75
+					size = size +math.sin(CurTime() *10) *10
+					surface.SetDrawColor(Color(r,g,b,a *math.Clamp(v:GetPos():Distance(ent:GetPos()) /1000,0,1)))
+					surface.SetMaterial(matHUDEquip_Mine)
+					surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+				end
+			end
+
+			if ent:GetEquipment() != 1 then return end
 			local lockOn = ent:GetLockOn()
 			if lockOn != ent.LastLockOn then
 				if IsValid(ent.LastLockOn) then
