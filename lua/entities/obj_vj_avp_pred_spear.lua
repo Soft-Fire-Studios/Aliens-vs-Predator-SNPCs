@@ -69,9 +69,9 @@ function ENT:CustomOnInitialize()
 		self:OnInit()
 	end
 
-	if self.LifeTime then
-		SafeRemoveEntityDelayed(self,self.LifeTime)
-	end
+	-- if self.LifeTime then
+		SafeRemoveEntityDelayed(self,60)
+	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink()

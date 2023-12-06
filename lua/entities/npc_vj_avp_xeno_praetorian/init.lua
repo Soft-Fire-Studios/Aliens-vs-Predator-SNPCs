@@ -104,12 +104,13 @@ function ENT:OnInit()
 		["lhand"] = {Range=8.5,OnGround=true},
 		["rhand"] = {Range=8.5,OnGround=true}
 	}
-	self.NextSummonT = CurTime() +60
-	timer.Simple(0,function()
-		if IsValid(self) then
-			self:DoSummon()
-		end
-	end)
+	self.NextSummonT = CurTime() +1
+	-- self.NextSummonT = CurTime() +60
+	-- timer.Simple(0,function()
+	-- 	if IsValid(self) then
+	-- 		self:DoSummon()
+	-- 	end
+	-- end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)

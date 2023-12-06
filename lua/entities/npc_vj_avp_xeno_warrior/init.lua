@@ -1430,3 +1430,103 @@ function ENT:GetDamageDirection(dmginfo)
 
 	return hitDir
 end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local angY45 = Angle(0, 45, 0)
+local angYN45 = Angle(0, -45, 0)
+local angY90 = Angle(0, 90, 0)
+local angYN90 = Angle(0, -90, 0)
+local defAng = Angle(0, 0, 0)
+--
+function ENT:Controller_Movement(cont, ply, bullseyePos)
+	if self.MovementType != VJ_MOVETYPE_STATIONARY then
+		local gerta_lef = ply:KeyDown(IN_MOVELEFT)
+		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
+		local gerta_arak = ply:KeyDown(IN_SPEED)
+		local aimVector = ply:GetAimVector()
+		
+		if ply:KeyDown(IN_FORWARD) then
+			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
+				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
+			else
+				if gerta_lef then
+					self:StartMovement(cont, aimVector, angY45)
+				elseif gerta_rig then
+					self:StartMovement(cont, aimVector, angYN45)
+				else
+					self:StartMovement(cont, aimVector, defAng)
+				end
+			end
+		elseif ply:KeyDown(IN_BACK) then
+			if gerta_lef then
+				self:StartMovement(cont, aimVector*-1, angYN45)
+			elseif gerta_rig then
+				self:StartMovement(cont, aimVector*-1, angY45)
+			else
+				self:StartMovement(cont, aimVector*-1, defAng)
+			end
+		elseif gerta_lef then
+			self:StartMovement(cont, aimVector, angY90)
+		elseif gerta_rig then
+			self:StartMovement(cont, aimVector, angYN90)
+		else
+			self:StopMoving()
+			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
+				self:AA_StopMoving()
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:StartMovement(cont, Dir, Rot)
+	local self = cont.VJCE_NPC
+	local ply = cont.VJCE_Player
+	if self:GetState() != VJ_STATE_NONE then return end
+
+	local DEBUG = ply:GetInfoNum("vj_npc_cont_devents", 0) == 1
+	local plyAimVec = Dir
+	plyAimVec.z = 0
+	plyAimVec:Rotate(Rot)
+	local selfPos = self:GetPos()
+	local centerToPos = self:OBBCenter():Distance(self:OBBMins()) + 20 // self:OBBMaxs().z
+	local NPCPos = selfPos + self:GetUp()*centerToPos
+	local groundSpeed = math.Clamp(self:GetSequenceGroundSpeed(self:GetSequence()), 300, 9999)
+	local defaultFilter = {cont, self, ply}
+	local forwardTr = util.TraceHull({start = NPCPos, endpos = NPCPos + plyAimVec * groundSpeed, filter = defaultFilter, mins = Vector(-4,-4,-4), maxs = Vector(4,4,4)})
+	local forwardDist = NPCPos:Distance(forwardTr.HitPos)
+	local wallToSelf = forwardDist - (self:OBBMaxs().y *2.5) -- Use Y instead of X because X is left/right whereas Y is forward/backward
+	if DEBUG then
+		VJ.DEBUG_TempEnt(NPCPos, cont:GetAngles(), Color(0, 255, 255)) -- NPC's calculated position
+		VJ.DEBUG_TempEnt(forwardTr.HitPos, cont:GetAngles(), Color(255, 255, 0)) -- forward trace position
+	end
+	if forwardDist >= 25 then
+		local finalPos = Vector((selfPos + plyAimVec * wallToSelf).x, (selfPos + plyAimVec * wallToSelf).y, forwardTr.HitPos.z)
+		local downTr = util.TraceLine({start = finalPos, endpos = finalPos + cont:GetUp()*-(200 + centerToPos), filter = defaultFilter})
+		local downDist = (finalPos.z - centerToPos) - downTr.HitPos.z
+		if downDist >= 150 then -- If the drop is this big, then don't move!
+			//wallToSelf = wallToSelf - downDist -- No need, we are returning anyway
+			return
+		end
+		if forwardDist <= 225 && !forwardTr.Hit then
+			finalPos = Vector((selfPos + plyAimVec * groundSpeed).x, (selfPos + plyAimVec * groundSpeed).y, forwardTr.HitPos.z)
+		else
+			finalPos = Vector((selfPos + plyAimVec * wallToSelf).x, (selfPos + plyAimVec * wallToSelf).y, forwardTr.HitPos.z)
+		end
+		if DEBUG then
+			VJ.DEBUG_TempEnt(downTr.HitPos, cont:GetAngles(), Color(255, 0, 255)) -- Down trace position
+			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
+		end
+		self:SetLastPosition(finalPos)
+		self:VJ_TASK_GOTO_LASTPOS(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
+				x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+				x.CanShootWhenMoving = true
+			else
+				if cont.VJC_BullseyeTracking then
+					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+				else
+					x:EngTask("TASK_FACE_LASTPOSITION", 0)
+				end
+			end
+		end)
+	end
+end

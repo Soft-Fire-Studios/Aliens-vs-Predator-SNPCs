@@ -104,7 +104,7 @@ function ENT:CustomOnThink()
 	if IsValid(self.Predator) then
 		local pred = self.Predator
 		local lockOn = pred:GetLockOn()
-		local goalPos = IsValid(pred.VJ_TheController) && (IsValid(lockOn) && lockOn:Visible(self) && lockOn:EyePos() or !IsValid(lockOn) && pred:GetEnemy():EyePos()) or false
+		local goalPos = IsValid(pred.VJ_TheController) && (IsValid(lockOn) && lockOn:Visible(self) && lockOn:EyePos() or !IsValid(lockOn) && pred:GetEnemy():EyePos()) or !IsValid(pred.VJ_TheController) && (IsValid(pred:GetEnemy()) && pred:GetEnemy():EyePos() or false)
 		if CurTime() > self.ReturnTime then
 			self.ReturnTo = true
 			goalPos = pred:GetPos() +pred:OBBCenter()
@@ -119,7 +119,7 @@ function ENT:CustomOnThink()
 			local tr = util.TraceLine({
 				start = att.Pos,
 				endpos = att.Pos +att.Ang:Forward() *2000,
-				filter = self,
+				filter = {self,pred},
 				mask = MASK_SHOT
 			})
 			goalPos = tr.HitPos

@@ -20,7 +20,7 @@ ENT.VJC_Data = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "body",
-    FirstP_Offset = Vector(2, 0, 3),
+    FirstP_Offset = Vector(2, 0, 6),
     FirstP_ShrinkBone = false
 }
 
