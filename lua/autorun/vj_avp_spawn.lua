@@ -347,6 +347,28 @@ if VJExists == true then
 			end
 		end)
 
+		VJ_AVP_PMV = {
+			["Tech"] = {
+				"models/player/combine_soldier.mdl",
+				"models/player/combine_soldier_prisonguard.mdl",
+				"models/player/combine_super_soldier.mdl",
+			},
+			["Xeno"] = {},
+		}
+		hook.Add("PlayerSetModel","VJ_AVP_Classify",function(ent)
+			timer.Simple(0,function()
+				if IsValid(ent) then
+					if VJ_AVP_PMV["Tech"][ent:GetModel()] then
+						ent:SetNW2Bool("AVP.IsTech",true)
+						ent.VJ_AVP_IsTech = true
+					elseif VJ_AVP_PMV["Xeno"][ent:GetModel()] then
+						ent:SetNW2Bool("AVP.Xenomorph",true)
+						ent.VJ_AVP_Xenomorph = true
+					end
+				end
+			end)
+		end)
+
 		hook.Add("EntityRemoved","VJ_AVP_XenoRemoveCheck",function(ent)
 			if ent:IsNPC() && ent.VJ_AVP_Xenomorph then
 				for k,v in ipairs(VJ_AVP_XENOS) do

@@ -67,10 +67,12 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 				ply:SetFOV(fov <= 1 && GetConVarNumber("fov_desired") or math.Clamp(fov -20,1,180),0.25)
 				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom.ogg",65)
 				cent.VJC_Camera_CurZoom = Vector(0,0,0)
+				ply.VJ_AVP_IsUsingZoom = true
 			elseif button == KEY_MOUSESCROLL_DOWN then
 				ply:SetFOV(GetConVarNumber("fov_desired"),0.1)
 				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom_out.ogg",65)
 				cent.VJC_Camera_CurZoom = Vector(0,0,0)
+				ply.VJ_AVP_IsUsingZoom = false
 			end
 		end
 	end
@@ -282,9 +284,11 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
-	function ENT:CustomOnCalcView(ply, origin, angles, fov, camera, cameraMode)
+	function ENT:CustomOnCalcView(ply, origin, angles, myFOV, camera, cameraMode)
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
+		local newFOV = myFOV
+		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
 			local setPos = self:EyePos() + self:GetForward()*20
 			local offset = ply.VJC_FP_Offset
@@ -303,7 +307,7 @@ if CLIENT then
 				end
 			end
 			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
-			fov = 90
+			newFOV = 90
 		else -- Third person
 			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
@@ -322,9 +326,17 @@ if CLIENT then
 				mask = MASK_SHOT,
 			})
 			pos = tr.HitPos + tr.HitNormal*2
-			fov = 75
+			newFOV = 75
 		end
-		return {origin = pos, angles = ang, fov = fov}
+		if self:GetSprinting() or self:GetJumpPosition() != vec0 then
+			newFOV = newFOV +10
+		end
+		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
+		if ply:GetFOV() != GetConVarNumber("fov_desired") then
+			newFOV = nil
+		end
+		self.LastFOV = newFOV
+		return {origin = pos, angles = ang, fov = newFOV}
 	end
 
 	local function GetLandingPosition(self,ply)
@@ -395,6 +407,15 @@ if CLIENT then
 			if cont.VisionBuzz then cont.VisionBuzz:Stop() end
 			-- if cont.VisionIdle then cont.VisionIdle:Stop() end
 			hook.Remove("PlayerButtonDown","VJ_AVP_Predator_Buttons")
+			if ply.VJC_FP_Bone != -1 && IsValid(ent) then
+				ent:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
+				local child = ent:GetChildBones(ply.VJC_FP_Bone)
+				if child then
+					for _,v in pairs(child) do
+						ent:ManipulateBoneScale(v, vec1)
+					end
+				end
+			end
 		else
 			ent.VJ_TheControllerEntity = cont
 			ent.VJ_TheController = ply

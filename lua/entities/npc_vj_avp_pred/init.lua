@@ -25,6 +25,12 @@ ENT.JumpVars = {
 	MaxDistance = 750, -- Maximum distance between Start and End
 }
 
+ENT.FootData = {
+	["lfoot"] = {Range=9.53,OnGround=true},
+	["rfoot"] = {Range=9.53,OnGround=true},
+}
+ENT.FootStepSoundLevel = 62
+
 ENT.HasMeleeAttack = false
 
 ENT.PoseParameterLooking_InvertYaw = true
@@ -805,7 +811,18 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
 		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "stimpack_grab" then
-		
+		local stim = ents.Create("prop_vj_animatable")
+		stim:SetModel("models/cpthazama/avp/predators/equipment/stim.mdl")
+		stim:SetPos(self:GetPos())
+		stim:SetAngles(self:GetAngles())
+		stim:SetOwner(self)
+		stim:Spawn()
+		stim:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		stim:SetSolid(SOLID_NONE)
+		stim:SetParent(self)
+		stim:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		self:DeleteOnRemove(stim)
+		self.Stimpack = stim
 	elseif key == "stimpack_unscrew" then
 		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_twist_01.ogg",70)
 	elseif key == "stimpack_unscrewed" then
@@ -815,6 +832,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_jab_01.ogg",75)
 	elseif key == "stimpack_scream" then
 		self:PlaySound(self.SoundTbl_Stimpack,100)
+	elseif key == "stimpack_drop" then
+		SafeRemoveEntity(self.Stimpack)
 	elseif key == "mine_charge" then
 		VJ.EmitSound(self.Mine or self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",70)
 		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("Pred_Mine"))
@@ -840,6 +859,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		proj.RemoveOnHit = false
 		proj.Predator = self
 		proj:DrawShadow(true)
+		proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
 		-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
 		proj.DecalTbl_DeathDecals = {"Scorch"}
 		proj.OnThink = function(projEnt)
@@ -849,7 +869,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			end
 			if !projEnt.IsArmed then return end
 			for _,v in pairs(ents.FindInSphere(projEnt:GetPos(),250)) do
-				if self:Visible(v) && self:CheckRelationship(v) == D_HT && v:GetClass() != "obj_vj_bullseye" then
+				if projEnt:Visible(v) && projEnt.Predator:CheckRelationship(v) == D_HT && v:GetClass() != "obj_vj_bullseye" then
 					projEnt.IsArmed = false
 					projEnt.DeathSnd = CreateSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_triggered_01.ogg")
 					projEnt.DeathSnd:SetSoundLevel(85)
@@ -880,10 +900,23 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			phys:EnableMotion(false)
 			phys:EnableGravity(false)
 			projEnt.HasLanded = true
+			SafeRemoveEntity(projEnt.Trail)
 			VJ.EmitSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_arm_01.ogg",80)
 			timer.Simple(3,function()
 				if IsValid(projEnt) then
 					projEnt.IsArmed = true
+					local glow1 = ents.Create("env_sprite")
+					glow1:SetKeyValue("model","sprites/light_glow02_add.vmt")
+					glow1:SetKeyValue("scale","0.1")
+					glow1:SetKeyValue("rendermode","9")
+					glow1:SetKeyValue("rendercolor","255 55 55")
+					glow1:SetKeyValue("spawnflags","0.1")
+					glow1:SetParent(proj)
+					glow1:SetOwner(proj)
+					glow1:Fire("SetParentAttachment","1",0)
+					glow1:AddEffects(EF_PARENT_ANIMATES)
+					glow1:Spawn()
+					proj:DeleteOnRemove(glow1)
 				end
 			end)
 			local hitNr = data.HitPos +data.HitNormal *-1.1
@@ -939,8 +972,6 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self:SetDisc(proj)
 	elseif key == "disc_hide" then
 		SafeRemoveEntity(self.Disc)
-	elseif key == "stimpack_drop" then
-		
 	elseif key == "spear_throw" then
 		SafeRemoveEntity(self.SpearProp)
 		local att = self:GetAttachment(self:LookupAttachment("spear"))
@@ -1344,7 +1375,7 @@ function ENT:CustomOnThink_AIEnabled()
 				else
 					self:SetVisionMode(1)
 				end
-				if !enemy.VJ_AVP_Predator && (enemy:IsPlayer() or enemy:IsNPC() && enemy:Disposition(self) != D_HT) && dist > 1000 && !self:IsBusy() then
+				if !enemy.VJ_AVP_Predator && (enemy:IsPlayer() or enemy:IsNPC() && enemy:GetEnemy() != self) && dist > 700 && !self:IsBusy() then
 					self.DisableChasingEnemy = true
 					if curTime > self.NextFindStalkPos then
 						local vis = self:Visible(enemy)
@@ -1363,7 +1394,7 @@ function ENT:CustomOnThink_AIEnabled()
 							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
 							vsched.MoveType = 1
 						end
-						vsched.ConstantlyFaceEnemyVisible = true
+						vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 						self:StartSchedule(vsched)
 						self.NextFindStalkPos = curTime +math.Rand(5,20)
 					end
@@ -1397,9 +1428,62 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+ENT.SoundTbl_FootSteps = {
+	[MAT_DIRT] = {
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_dirt_15.ogg"
+	},
+	[MAT_GRASS] = {
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_15.ogg"
+	},
+	[MAT_CONCRETE] = {
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_15.ogg"
+	}
+}
+--
 function ENT:FootStep(pos,name)
 	if !self:IsOnGround() then return end
-	if self.CurrentSet == 2 && (name == "lhand" or name == "rhand") then return end
 	local tbl = self.SoundTbl_FootSteps
 	if !tbl then return end
 	local tr = util.TraceLine({
@@ -1411,7 +1495,7 @@ function ENT:FootStep(pos,name)
 		tr.MatType = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[tr.MatType] then
-		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self.FootStepSoundLevel or 65,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
 		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))

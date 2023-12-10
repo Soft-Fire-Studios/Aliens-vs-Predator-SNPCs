@@ -124,9 +124,11 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
-	function ENT:CustomOnCalcView(ply, origin, angles, fov, camera, cameraMode)
+	function ENT:CustomOnCalcView(ply, origin, angles, myFOV, camera, cameraMode)
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
+		local newFOV = myFOV
+		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
 			local setPos = self:EyePos() + self:GetForward()*20
 			local offset = ply.VJC_FP_Offset
@@ -145,7 +147,7 @@ if CLIENT then
 				end
 			end
 			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
-			fov = 130
+			newFOV = 130
 		else -- Third person
 			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
@@ -164,9 +166,17 @@ if CLIENT then
 				mask = MASK_SHOT,
 			})
 			pos = tr.HitPos + tr.HitNormal*2
-			fov = 75
+			newFOV = 75
 		end
-		return {origin = pos, angles = ang, fov = fov}
+		if self:GetSprinting() then
+			newFOV = newFOV +10
+		end
+		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
+		if ply:GetFOV() != GetConVarNumber("fov_desired") then
+			newFOV = nil
+		end
+		self.LastFOV = newFOV
+		return {origin = pos, angles = ang, fov = newFOV}
 	end
 
 	function ENT:Draw()

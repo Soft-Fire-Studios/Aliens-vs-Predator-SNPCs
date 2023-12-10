@@ -104,7 +104,7 @@ function ENT:OnInit()
 		["lhand"] = {Range=8.5,OnGround=true},
 		["rhand"] = {Range=8.5,OnGround=true}
 	}
-	self.NextSummonT = CurTime() +1
+	self.NextSummonT = CurTime() +3
 	-- self.NextSummonT = CurTime() +60
 	-- timer.Simple(0,function()
 	-- 	if IsValid(self) then
@@ -126,10 +126,9 @@ function ENT:DoSummon()
 		if interrupted then self:SetState() return end
 		self:StopAllCommonSpeechSounds()
 		VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
-		self:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted then self:SetState() return end
-			self:SetState()
 
+		self:Allies_CallHelp(8000)
+		self:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 			local enemyEnts = {}
 			for _,v in pairs(ents.GetAll()) do
 				if (v:IsNPC() && (v.VJ_NPC_Class != nil && !VJ_HasValue(v.VJ_NPC_Class,self.VJ_NPC_Class[1] or "CLASS_XENOMORPH") or v.VJ_NPC_Class == nil)) or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) then
@@ -168,10 +167,13 @@ function ENT:DoSummon()
 					xeno:Spawn()
 					xeno:Activate()
 					xeno.VJ_NPC_Class = self.VJ_NPC_Class
-					xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+					if !self.VJ_IsBeingControlled then xeno:VJ_DoSetEnemy(self:GetEnemy(),true) end
 					table.insert(self.Summons,xeno)
 				end
 			end
+
+			if interrupted then self:SetState() return end
+			self:SetState()
 		end})
 	end})
 end
