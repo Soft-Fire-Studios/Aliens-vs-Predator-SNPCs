@@ -13,6 +13,7 @@ ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
+ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
 
 ENT.HasMeleeAttack = false
@@ -317,6 +318,7 @@ ENT.CanSpit = false
 ENT.CanStand = true
 ENT.CanLeap = true
 ENT.CanAttack = true
+ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.AlwaysStand = false
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED}
@@ -328,6 +330,13 @@ local math_rad = math.rad
 local math_abs = math.abs
 local toSeq = VJ_SequenceToActivity
 --
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateActivity(act)
+	if self.TranslateActivities[act] then
+		return self.TranslateActivities[act]
+	end
+	return act
+end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
 	-- if self.AnimationBehaviors[act] then
@@ -366,6 +375,24 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(ply)
 		net.Send(ply)
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnAlert(ent)
+	if !self.CanScreamForHelp then return end
+	if math.random(1,4) == 1 && !self:IsBusy() then
+		self:StopAllCommonSpeechSounds()
+		self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
+		self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
+		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnCallForHelp(ally)
+	if !self.CanScreamForHelp or self:IsBusy() then return end
+	self:StopAllCommonSpeechSounds()
+	self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
+	self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
+	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialize()
@@ -650,12 +677,17 @@ local string_StartWith = string.StartWith
 local string_Replace = string.Replace
 --
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
+	if self.OnInput then
+		self:OnInput(key)
+	end
 	if key == "jump_start" then
+		self:SetJumpPosition(self.LongJumpPos)
 		self.LongJumping = true
 		self.JumpStart = self:GetPos()
 		self:PlaySound(self.SoundTbl_Jump,75)
 	elseif key == "jump_end" then
 		self.LongJumping = false
+		self:SetJumpPosition(Vector(0,0,0))
 		self:SetLocalVelocity(Vector(0,0,0))
 		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/land/alien_land_stone_1"  .. math.random(0,2) .. ".ogg",75)
@@ -676,7 +708,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				util.Effect("GlassImpact",fx)
 			end
 		end
-		if self.LongJumpType > 0 && self:GetPos():Distance(self.LongJumpPos) <= 60 then
+		if self.LongJumpType && self.LongJumpType > 0 && self:GetPos():Distance(self.LongJumpPos) <= 60 then
 			self:SetMoveType(MOVETYPE_NONE)
 			self:CapabilitiesRemove(CAP_MOVE_GROUND)
 		end
@@ -1075,6 +1107,22 @@ function ENT:SetGroundAngle(curSet)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:JumpVelocityCode()
+	self.JumpT = self.JumpT +0.1
+	local currentPos = self:GetPos()
+	local dist = currentPos:Distance(self.LongJumpPos)
+	local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() *0.3 or self:OBBCenter() *0.5)
+	local moveDirection = (targetPos -currentPos):GetNormalized()
+	local moveSpeed = (dist < 250 && 800 or dist *4)
+	local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
+	self:SetLocalVelocity(moveDirection *moveSpeed)
+	if dist >= 70 && self.JumpT <= 1 then
+		self:SetCycle(0.5)
+		self.NextChaseTime = CurTime() +1
+		self.NextIdleTime = CurTime() +1
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
 local startCycle = 0.23
 local endCycle = 0.65
@@ -1117,19 +1165,7 @@ function ENT:CustomOnThink_AIEnabled()
 	-- end
 
 	if self.LongJumping && self.LongJumpPos then
-		self.JumpT = self.JumpT +0.1
-		local currentPos = self:GetPos()
-		local dist = currentPos:Distance(self.LongJumpPos)
-		local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() *0.3 or self:OBBCenter() *0.5)
-		local moveDirection = (targetPos -currentPos):GetNormalized()
-		local moveSpeed = (dist < 250 && 800 or dist *4)
-		local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
-		self:SetLocalVelocity(moveDirection *moveSpeed)
-		if dist >= 70 && self.JumpT <= 1 then
-			self:SetCycle(0.5)
-			self.NextChaseTime = CurTime() +1
-			self.NextIdleTime = CurTime() +1
-		end
+		self:JumpVelocityCode()
 	end
 
 	if self.OnThink then

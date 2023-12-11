@@ -531,7 +531,7 @@ if CLIENT then
 			end
 
 			for i, v in ents.Iterator() do
-				if v:GetClass() == "obj_vj_avp_projectile" && v:GetTagOwner() == ent then
+				if IsValid(v) && v:GetClass() == "obj_vj_avp_projectile" && v:GetTagOwner() == ent then
 					local entPos = (v:GetPos() +v:OBBCenter()):ToScreen()
 					local size = 75
 					size = size +math.sin(CurTime() *10) *10

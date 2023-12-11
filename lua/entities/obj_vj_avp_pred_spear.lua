@@ -118,7 +118,7 @@ function ENT:CustomOnPhysicsCollide(data, phys)
 		fx:SetMagnitude(2)
 		fx:SetNormal(data.HitNormal)
 		util.Effect("ElectricSpark",fx)
-		self:SetPos(data.HitPos +data.HitNormal *2)
+		self:SetPos(data.HitPos +data.HitNormal *-20)
 		local ang = data.HitNormal:Angle()
 		-- local ang2 = self:GetAngles()
 		-- ang.y = ang2.y +15

@@ -23,6 +23,7 @@ ENT.RangeAttackAnimationStopMovement = false
 ENT.HasBreath = true
 ENT.FootStepSoundLevel = 82
 
+ENT.CanScreamForHelp = false
 ENT.SummonClasses = {
 	"npc_vj_avp_xeno_warrior",
 	"npc_vj_avp_xeno_warrior",

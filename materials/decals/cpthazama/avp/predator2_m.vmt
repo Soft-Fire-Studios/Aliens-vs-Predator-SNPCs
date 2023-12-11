@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 		"decals/cpthazama/avp/predator2"
+
+	"$translucent" 		"1"
+    // "$selfillum" 		"1"
+}

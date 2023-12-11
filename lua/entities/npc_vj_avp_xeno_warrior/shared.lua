@@ -13,6 +13,7 @@ ENT.VJ_AVP_XenoHUD = 0
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
+	self:NetworkVar("Vector",0,"JumpPosition")
 end
 
 if CLIENT then

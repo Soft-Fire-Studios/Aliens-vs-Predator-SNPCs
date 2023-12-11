@@ -117,6 +117,9 @@ if VJExists == true then
 		"vj_avp_predator_hud_landing_mech",
 	})
 
+	game.AddDecal("VJ_AVP_BloodPredator", {"decals/cpthazama/avp/predator1","decals/cpthazama/avp/predator2","decals/cpthazama/avp/predator3","decals/cpthazama/avp/predator4"})
+	game.AddDecal("VJ_AVP_BloodXenomorph", {"decals/cpthazama/avp/xeno1","decals/cpthazama/avp/xeno2","decals/cpthazama/avp/xeno3","decals/cpthazama/avp/xeno4"})
+
 	local function AddWep(name,class)
 		VJ.AddNPCWeapon("VJ_" .. name, class, vCat)
 		VJ.AddWeapon(name, class, false, vCat)

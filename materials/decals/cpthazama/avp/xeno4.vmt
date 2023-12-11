@@ -1,0 +1,11 @@
+"LightmappedGeneric"
+{
+	"$basetexture" 		"decals/cpthazama/avp/xeno4"
+	"$modelmaterial" 	"decals/cpthazama/avp/xeno4_m"
+
+	"$translucent" 		"1"
+
+	"$decal" 			"1"
+	// "$Size"				"256 256"
+	"$decalscale" 		"0.165"
+}

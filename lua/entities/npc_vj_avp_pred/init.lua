@@ -12,6 +12,7 @@ ENT.HullType = HULL_HUMAN
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = "Green" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
+ENT.CustomBlood_Decal = {"VJ_AVP_BloodPredator"}
 ENT.VJ_NPC_Class = {"CLASS_PREDATOR"} -- NPCs with the same class with be allied to each other
 
 -- Example scenario:
@@ -195,6 +196,17 @@ ENT.AttackDamageDistance = 110
 ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateActivity(act)
+	if act == ACT_IDLE then
+		if self.AttackIdleTime > CurTime() then
+			return self.AttackIdle
+		elseif self.Alerted then
+			return self.AlertedIdle
+		end
+	end
+	return act
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local toSeq = VJ.SequenceToActivity
 local math_deg = math.deg
 local math_atan2 = math.atan2
@@ -240,11 +252,14 @@ function ENT:CustomOnInitialize()
 	self.SprintT = 0
 	self.NextSprintT = 0
 	self.NextHealT = 0
+	self.AttackIdleTime = 0
 	self.LookForHidingSpotAttempts = 0
 	self.NextLookForHidingSpotT = 0
 
 	self:SetCollisionBounds(bounds,Vector(-bounds.x,-bounds.y,0))
 	self:SetSurroundingBounds(Vector(-bounds.x *1.8,-bounds.y *1.8,-bounds.z *1.8),Vector(bounds.x *1.8,bounds.y *1.8,bounds.z *1.8))
+	self.AlertedIdle = toSeq(self,"predator_claws_ai_idle")
+	self.AttackIdle = toSeq(self,"predator_claws_idle_aim")
 
 	if self.OnInit then
 		self:OnInit()
@@ -586,22 +601,25 @@ function ENT:AttackCode()
 	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack then return end
 	self.AttackSide = self.AttackSide == "right" && "left" or "right"
+	local side = self.AttackSide
 	local anim = VJ.PICK(self.AttackAnimations)
 	if anim then
-		anim[1] = string_Replace(anim[1],"[SIDE]",self.AttackSide)
-		anim[2] = string_Replace(anim[2],"[SIDE]",self.AttackSide)
-		anim[3] = string_Replace(anim[3],"[SIDE]",self.AttackSide)
+		local start,hit,miss = anim[1],anim[2],anim[3]
+		start = string_Replace(start,"[SIDE]",side)
+		hit = string_Replace(hit,"[SIDE]",side)
+		miss = string_Replace(miss,"[SIDE]",side)
 		self:PlaySound(self.SoundTbl_Attack,78)
-		self:VJ_ACT_PLAYACTIVITY(anim[1],true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
+		self:VJ_ACT_PLAYACTIVITY(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
 			local hitEnts = self:RunDamageCode()
 			if #hitEnts > 0 then
-				self:VJ_ACT_PLAYACTIVITY(anim[2],true,false,true,0,{AlwaysUseGesture=true})
+				self:VJ_ACT_PLAYACTIVITY(hit,true,false,true,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				self:OnHit(hitEnts)
 				VJ.EmitSound(self,sdClawFlesh,75)
 			else
-				self:VJ_ACT_PLAYACTIVITY(anim[3],true,false,false,0,{AlwaysUseGesture=true})
+				self:VJ_ACT_PLAYACTIVITY(miss,true,0.15,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				VJ.EmitSound(self,sdClawMiss,75)
 			end
@@ -1154,14 +1172,6 @@ function ENT:SelectMovementActivity(dist)
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectIdleActivity(dist)
-	local act = ACT_IDLE
-	if self.Alerted then
-		act = toSeq(self,"predator_claws_ai_idle")
-	end
-	return act
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnFoundHidingSpot()
 	if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
 		self:UseStimpack()
@@ -1189,14 +1199,8 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
-	local idleAct = self:SelectIdleActivity(dist)
 	local moveAct = self:SelectMovementActivity(dist)
 	local ply = self.VJ_TheController
-	if self.LastIdleActivity != idleAct then
-		self.LastIdleActivity = idleAct
-		self:SetIdleAnimation({idleAct})
-		self:SetArrivalActivity(idleAct)
-	end
 	if self.LastMovementActivity != moveAct then
 		self.LastMovementActivity = moveAct
 		self.AnimTbl_Walk = {moveAct}
@@ -1721,6 +1725,10 @@ function ENT:StartMovement(cont, Dir, Rot)
 	local plyAimVec = Dir
 	plyAimVec.z = 0
 	plyAimVec:Rotate(Rot)
+
+	-- self:SetMovementActivity(ply:KeyDown(IN_SPEED) && VJ.PICK(self.AnimTbl_Run) or VJ.PICK(self.AnimTbl_Walk))
+	-- self:ResetIdealActivity(self:GetMovementActivity())
+
 	local selfPos = self:GetPos()
 	local centerToPos = self:OBBCenter():Distance(self:OBBMins()) + 20 // self:OBBMaxs().z
 	local NPCPos = selfPos + self:GetUp()*centerToPos
@@ -1733,7 +1741,7 @@ function ENT:StartMovement(cont, Dir, Rot)
 		VJ.DEBUG_TempEnt(NPCPos, cont:GetAngles(), Color(0, 255, 255)) -- NPC's calculated position
 		VJ.DEBUG_TempEnt(forwardTr.HitPos, cont:GetAngles(), Color(255, 255, 0)) -- forward trace position
 	end
-	if forwardDist >= 25 then
+	if forwardDist >= 1 then
 		local finalPos = Vector((selfPos + plyAimVec * wallToSelf).x, (selfPos + plyAimVec * wallToSelf).y, forwardTr.HitPos.z)
 		local downTr = util.TraceLine({start = finalPos, endpos = finalPos + cont:GetUp()*-(200 + centerToPos), filter = defaultFilter})
 		local downDist = (finalPos.z - centerToPos) - downTr.HitPos.z

@@ -1,0 +1,13 @@
+"LightmappedGeneric"
+{
+	"$basetexture" 		"decals/cpthazama/avp/predator2"
+	"$modelmaterial" 	"decals/cpthazama/avp/predator2_m"
+
+	"$translucent" 		"1"
+    // "$additive" 		"1"
+
+	"$decal" 			"1"
+	// "$Size"				"256 256"
+	"$decalscale" 		"0.25"
+	"$overbrightfactor" "4"
+}

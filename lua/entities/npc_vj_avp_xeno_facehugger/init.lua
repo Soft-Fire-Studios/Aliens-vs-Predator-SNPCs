@@ -12,6 +12,7 @@ ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
+ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
 
 ENT.HasMeleeAttack = false
