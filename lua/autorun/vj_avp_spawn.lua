@@ -64,6 +64,7 @@ if VJExists == true then
 	VJ.AddNPC("Spartan","npc_vj_avp_pred_spartan",vCat_P)
 	VJ.AddNPC("Lord","npc_vj_avp_pred_lord",vCat_P)
 	VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
+	VJ.AddNPC("Pred-Lord","npc_vj_avp_pred_predlord",vCat_P)
 
 	VJ.AddNPC("Sentry Gun","npc_vj_avp_hum_sentrygun",vCat_M)
 	-- VJ.AddNPC_HUMAN("Marine Base","npc_vj_avp_hum_male",{"weapon_vj_avp_pistol"},vCat_M)

@@ -451,10 +451,13 @@ function ENT:CustomAttack(ent,vis)
 		elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 			self:DistractionCode(ent)
 		elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+			self:SetEquipment(1)
 			self:SpecialAttackCode(1)
 		elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
 			self:SpecialAttackCode(3)
+			self:SpecialAttackCode(3)
 		elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+			self:SpecialAttackCode(4)
 			self:SpecialAttackCode(4)
 		end
 		local pos = ent:GetPos()
@@ -630,6 +633,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RunDamageCode(mult)
 	local mult = mult or 1
+	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
@@ -1218,6 +1222,10 @@ function ENT:CustomOnThink_AIEnabled()
 			self.HasBattleDisc = false
 			self:SetBeam(false)
 		end
+	end
+
+	if self.OnThink then
+		self:OnThink()
 	end
 
 	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
