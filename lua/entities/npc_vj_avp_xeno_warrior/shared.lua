@@ -217,15 +217,16 @@ if CLIENT then
 	local matGridHud = Material("hud/cpthazama/avp/alien_grid_hud.png")
 	local render_GetLightColor = render.GetLightColor
 	local tab_xeno = {
-		["$pp_colour_addr"] 		= 0,
-		["$pp_colour_addg"] 		= 0.25,
-		["$pp_colour_addb"] 		= 1,
-		["$pp_colour_brightness"] 	= 0.3,
-		["$pp_colour_contrast"] 	= 0.15,
-		["$pp_colour_colour"] 		= 0.3,
+		["$pp_colour_addr"] 		= 0.65,
+		["$pp_colour_addg"] 		= 0.03,
+		["$pp_colour_addb"] 		= 0,
+		["$pp_colour_brightness"] 	= -0.1,
+		["$pp_colour_contrast"] 	= 1,
+		["$pp_colour_colour"] 		= 1,
 		["$pp_colour_mulr"] 		= 0,
-		["$pp_colour_mulg"] 		= 0.5,
-		["$pp_colour_mulb"] 		= 1,
+		["$pp_colour_mulg"] 		= 0,
+		["$pp_colour_mulb"] 		= 0,
+		["$pp_colour_inv"] 			= 1,
 	}
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
@@ -263,9 +264,7 @@ if CLIENT then
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
 			if !IsValid(ent) then return end
-			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 && 0.6 or 0.3)
 			DrawColorModify(tab_xeno)
-			DrawBloom(0,1,1,1,8,3,5,5,2.5)
 		end)
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
 

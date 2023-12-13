@@ -7,7 +7,7 @@ ENT.Purpose 		= "Spawn it and fight with it!"
 ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= ""
 
-include("vj_base/extensions/avp_viewmodel_module.lua")
+-- include("vj_base/extensions/avp_viewmodel_module.lua")
 
 ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Creature = true
