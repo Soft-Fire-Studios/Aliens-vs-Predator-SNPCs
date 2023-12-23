@@ -16,6 +16,9 @@ if VJExists == true then
 
 	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_survival_bots",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_survival_maxbots",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_survival_music",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_a",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -30,6 +33,8 @@ if VJExists == true then
 	VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp_xeno16.png"})
 	VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 	
+	VJ.AddNPC("Survival","sent_vj_avp_survival",vCat)
+
 	VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_xeno_facehugger",vCat_A)
 	VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_xeno_facehugger_queen",vCat_A)
@@ -78,6 +83,7 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_pistol"},vCat_M)
 
 	VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",{"weapon_vj_avp_pistol"},vCat_M)
@@ -92,6 +98,22 @@ if VJExists == true then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
 		util.AddNetworkString("VJ_AVP_Predator_Client")
 		util.AddNetworkString("VJ_AVP_Xeno_Client")
+		util.AddNetworkString("VJ_AVP_CSound")
+
+		function VJ_AVP_CSound(ent,snd)
+			net.Start("VJ_AVP_CSound")
+				net.WriteString(snd)
+				net.WriteEntity(ent)
+			net.Send(ent)
+		end
+	else
+		net.Receive("VJ_AVP_CSound",function(len,pl)
+			local sound = net.ReadString()
+			local ent = net.ReadEntity()
+
+			ent:EmitSound(sound,0)
+			print("Playing sound " .. sound .. " on " .. ent:Nick())
+		end)
 	end
 
 	/*
@@ -111,6 +133,9 @@ if VJExists == true then
 		"vj_avp_blood_xeno",
 	})
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
+	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
+		"vj_avp_wep_rifle_muzzle",
+	})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",
 		"vj_avp_predator_hud_landing_heat",

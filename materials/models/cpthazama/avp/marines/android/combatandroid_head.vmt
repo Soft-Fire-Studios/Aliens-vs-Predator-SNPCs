@@ -1,0 +1,17 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/android/combatandroid_head_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/android/combatandroid_head_norms"
+
+	"$selfillum"				"1"
+	"$selfillummask"			"models/cpthazama/avp/marines/android/combatandroid_head_selfillum"
+
+    "$nodecal" 					"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"		"[0.67 0.83 1]"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

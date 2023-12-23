@@ -1,0 +1,13 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/weapons/ld_pulse_rifle_ammo_counter"
+	"$bumpmap"					"vj_base/flat"
+
+    "$nocull" 					"1"
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "1"
+	"$phongexponent"             "15"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+}

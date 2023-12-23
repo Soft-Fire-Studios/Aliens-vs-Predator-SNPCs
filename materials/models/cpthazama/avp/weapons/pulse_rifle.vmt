@@ -1,0 +1,51 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/weapons/pulse_rifle_col"
+	"$bumpmap"					"models/cpthazama/avp/weapons/pulse_rifle_norm"
+	"$phongexponenttexture"		"models/cpthazama/avp/weapons/pulse_rifle_spec"
+
+    "$nocull" 					"1"
+    "$nodecal" 					"1"
+    "$alphatest" 				"1"
+	"$allowalphatocoverage" 	"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "3"
+	// "$phongexponent"             "35"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.1 0.1 0.1]"
+
+	"$emissiveBlendEnabled"			"1"
+	"$emissiveBlendTexture"			"vgui/white"
+	"$emissiveBlendBaseTexture"		"models/cpthazama/avp/weapons/pulse_rifle_glow"
+	"$emissiveBlendFlowTexture"		"vgui/white"
+	"$emissiveBlendTint"			"[1 1 1]"
+	"$emissiveBlendStrength"    	"0"
+	"$emissiveBlendScrollVector"	"[0 0]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.35"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+		"AVP_GunHeat"
+		{
+			resultVar	"$emissiveBlendStrength"
+		}
+		// "EfxEmissive"
+		// {
+		// 	"index" 		1
+		// 	"color" 		$emissiveBlendTint
+		// 	"brightness" 	$emissiveBlendStrength
+		// 	"emissivetexture" $emissiveBlendBaseTexture
+		// }
+	}
+}

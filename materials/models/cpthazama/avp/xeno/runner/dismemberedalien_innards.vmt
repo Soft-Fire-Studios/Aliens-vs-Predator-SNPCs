@@ -4,18 +4,23 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_normal_new"
 	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour_specular"
 
-	"$ambientocclusion"			"1"
-	"$nodecal"					"1"
+	"$phong"                     "1"
+	"$phongboost"                "10"
+	"$phongfresnelranges"        "[0.35 0.745 0.215]"
 
-	"$phong"					"1"
-	"$phongboost"				"5"
-	"$phongexponent"			"30"
-	"$phongfresnelranges"		"[0.67 0.83 1]"
-	"$phongalbedotint" 			"1"
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.1 0.1 0.1]"
 
-	"$rimlight"					"1"
-	"$rimlightexponent"			"2"
-	"$rimlightboost"			"0.2"
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.45"
 
-	"$normalmapalphaenvmapmask"	"1"
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
 }
