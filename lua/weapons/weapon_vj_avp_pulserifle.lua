@@ -17,6 +17,8 @@ SWEP.HoldType 					= "ar2"
 SWEP.Spawnable					= true
 SWEP.AdminSpawnable				= false
 
+SWEP.HasMotionTracker			= true
+
 SWEP.Primary.Damage				= 8
 SWEP.Primary.ClipSize			= 99
 SWEP.Primary.RPM				= 900

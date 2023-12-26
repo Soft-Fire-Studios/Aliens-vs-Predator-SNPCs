@@ -20,6 +20,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Entity",3,"Disc")
 	self:NetworkVar("Int",0,"VisionMode")
 	self:NetworkVar("Int",1,"Equipment")
+	self:NetworkVar("Int",2,"StimCount")
+	self:NetworkVar("Int",3,"Energy")
+	self:NetworkVar("Int",4,"HP")
+	self:NetworkVar("Float",0,"EquipmentShowTime")
 	self:NetworkVar("Bool",0,"Cloaked")
 	self:NetworkVar("Bool",1,"Sprinting")
 	self:NetworkVar("Bool",2,"Beam")
@@ -379,18 +383,83 @@ if CLIENT then
 	local matTT_Thermal_Overlay = Material("hud/cpthazama/avp/tt_thermal_overlay")
 	local matXenoOverlay = Material("models/cpthazama/avp/xenovision")
 	local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
-	local matHUD = Material("hud/cpthazama/avp/predator_hud.png")
-	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png")
-	local matHUDTarget = Material("hud/cpthazama/avp/predator_target.png")
-	local matHUDEquip_Spear = Material("hud/cpthazama/avp/avp_p_wps_realspear_highlight_v2.png")
-	local matHUDEquip_Disc = Material("hud/cpthazama/avp/avp_p_wps_disc_highlight_v2.png")
-	local matHUDEquip_Mine = Material("hud/cpthazama/avp/avp_p_wps_mine_highlight_v3.png")
+	local matHUD = Material("hud/cpthazama/avp/predator_hud.png","smooth additive")
+	local matHUD_Cloaked = Material("hud/cpthazama/avp/predator_cloak_hud.png","smooth additive")
+	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png","smooth additive")
+	local matHUDTarget = Material("hud/cpthazama/avp/predator_target.png","smooth additive")
+	local matHUDEquip_Spear = Material("hud/cpthazama/avp/avp_p_wps_realspear_highlight_v2.png","smooth additive")
+	local matHUDEquip_Disc = Material("hud/cpthazama/avp/avp_p_wps_disc_highlight_v2.png","smooth additive")
+	local matHUDEquip_Mine = Material("hud/cpthazama/avp/avp_p_wps_mine_highlight_v3.png","smooth additive")
+	local matHUDCrosshair_Plasma = Material("hud/cpthazama/avp/avp_p_reticle_plasma.png","smooth additive")
+	local matHUDCrosshair_Other = Material("hud/cpthazama/avp/avp_p_reticle_other.png","smooth additive")
+	local matHUDCrosshair_Spear = Material("hud/cpthazama/avp/avp_p_reticle_spear.png","smooth additive")
+	local matHUDEquipSelect_Base = Material("hud/cpthazama/avp/pred_wepicon.png","smooth additive")
+	local matHUDEquipSelect_Plasma = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_plasma.png","smooth additive")
+	local matHUDEquipSelect_Mine = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_mine.png","smooth additive")
+	local matHUDEquipSelect_Disc = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_disc.png","smooth additive")
+	local matHUDEquipSelect_Spear = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_spear.png","smooth additive")
+	local matHUD_HP = Material("hud/cpthazama/avp/pred_hp.png","smooth additive")
+	local matHUD_HP_Base = Material("hud/cpthazama/avp/pred_hp_bar.png","smooth additive")
+	local matHUD_EP = Material("hud/cpthazama/avp/pred_energy.png","smooth additive")
+	local matHUD_Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive")
+	local matHUDCloak_Solid = Material("hud/cpthazama/avp/predmask_solid.png","smooth additive")
+	local matHUDCloak_Outline = Material("hud/cpthazama/avp/predmask_outline.png","smooth additive")
 	local matNil = Material(" ")
 	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
 	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
 	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
+
+	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
+	local function ScreenPos(x,y)
+		local w = ScrW()
+		local h = ScrH()
+		local pos = {}
+		pos.x = w *0.5 +w *x *0.01
+		pos.y = h *0.5 +w *y *0.01
+
+		return pos
+	end
+
+	local function ScreenScale(x,y)
+		local w = ScrW()
+		local h = ScrH()
+		local size = {}
+		size.x = (w *x *0.01)
+		size.y = (w *y *0.01)
+
+		return size
+	end
+
+	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
+		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x,y)
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+	end
+
+	local function DrawIcon_UV(mat,x,y,width,height,uv,r,g,b,a)
+		local uv = uv or {0,0,1,1}
+		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x,y)
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
+	end
+
+	local stimsA = {255,255,255,255,255}
+	local energysA = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255}
+	local cloakA = 0
+
+	local debugEquipT = CurTime() +1.5
+	local equipPoints = {
+		{x=0,y=-10},
+		{x=-10,y=0},
+		{x=0,y=10},
+		{x=10,y=0},
+	}
 	
 	local render_GetLightColor = render.GetLightColor
 	net.Receive("VJ_AVP_Predator_Client",function(len,pl)
@@ -473,22 +542,28 @@ if CLIENT then
 			local g = 0
 			local b = 0
 			local a = 250
+			local hpColor = Color(r,g,b)
+			local energyColor = Color(197,220,230)
 
 			local mode = ent:GetVisionMode()
 			if mode == 0 then -- No Mask
 				-- a = 250
+				hpColor = Color(255,150,0)
 			elseif mode == 1 then -- Thermal mode
 				r = 0
 				g = 90
 				b = 255
+				hpColor = Color(0,221,255)
 			elseif mode == 2 then -- Alien mode
 				r = 0
 				g = 255
 				b = 0
+				hpColor = Color(255,247,0)
 			elseif mode == 3 then -- Tech mode
 				r = 80
 				g = 80
 				b = 80
+				hpColor = Color(0,255,115)
 			end
 			local maskBG = ent:FindBodygroupByName("mask")
 			if maskBG > -1 then
@@ -498,9 +573,65 @@ if CLIENT then
 				end
 			end
 
+			local FT = FrameTime()
+			local HP = ent:GetHP()
+			local maxHP = ent:GetMaxHealth()
+			local hpPer = HP /maxHP
+
+			local cloaked = ent:GetCloaked()
+			cloakA = Lerp(FT,cloakA,cloaked && 50 or 0)
+			if cloaked then
+				surface.SetDrawColor(Color(r,g,b,cloakA))
+				surface.SetMaterial(matHUD_Cloaked)
+				surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+			end
+
 			surface.SetDrawColor(Color(r,g,b,a))
 			surface.SetMaterial(matHUD)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+
+			DrawIcon(cloaked && matHUDCloak_Outline or matHUDCloak_Solid,0,25.5,4.5,4.5,r,g,b,a)
+
+			local equip = ent:GetEquipment()
+			DrawIcon(equip == 1 && matHUDCrosshair_Plasma or equip == 4 && matHUDCrosshair_Spear or matHUDCrosshair_Other,0,0,2,2,r,g,b,a)
+
+			local equipShowT = ent:GetEquipmentShowTime()
+			if equipShowT > CurTime() then
+				for i = 1,4 do
+					local x,y = equipPoints[i].x,equipPoints[i].y
+					local alpha = (equip == i && a or 25) *(equipShowT -CurTime())
+					DrawIcon(matHUDEquipSelect_Base,x,y,10,8,r,g,b,alpha)
+					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or matHUDEquipSelect_Spear,x,y,8,6,r,g,b,alpha)
+				end
+			end
+
+			local stimCount = ent:GetStimCount()
+			local maxStimCount = 5
+			local stimPos = 9
+			local stimX = 0
+			for i = 1,maxStimCount do
+				stimX = stimX +1.1
+				stimsA[i] = Lerp(FT *4,stimsA[i],stimCount < i && 50 or a)
+				DrawIcon(matHUD_Item_HP,stimPos +stimX,26.5,3.25,3.25,r,g,b,stimsA[i])
+			end
+
+			DrawIcon(matHUD_HP_Base,23.5,22.3,27,4,hpColor.r,hpColor.g,hpColor.b,a)
+			DrawIcon_UV(matHUD_HP,9,19,hpPer *30,6,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,a)
+
+			local energy = ent:GetEnergy()
+			local maxEnergy = 200
+			local energyPer = energy /maxEnergy
+			local energyPosX = -35
+			local energyPosY = 22.4
+			local energySize = 5
+			local maxEnergyTiles = 20
+			for i = 1,maxEnergyTiles do
+				energysA[i] = Lerp(FT *4,energysA[i],energyPer < i /maxEnergyTiles && 25 or a)
+				DrawIcon(matHUD_EP,energyPosX,energyPosY,energySize,energySize,energyColor.r,energyColor.g,energyColor.b,energysA[i])
+				energyPosX = energyPosX +1.25
+				energyPosY = energyPosY -0.09
+				energySize = energySize -0.1
+			end
 			
 			local fov = ply:GetFOV()
 			local isZoomed = fov != GetConVarNumber("fov_desired")
@@ -541,7 +672,7 @@ if CLIENT then
 				end
 			end
 
-			if ent:GetEquipment() != 1 then return end
+			if equip != 1 then return end
 			local lockOn = ent:GetLockOn()
 			if lockOn != ent.LastLockOn then
 				if IsValid(ent.LastLockOn) then
@@ -574,18 +705,18 @@ if CLIENT then
 
 		hook.Add("Think","VJ_AVP_Predator_VisionLight",function()
 			if IsValid(ent) then
-				local light = DynamicLight(ent:EntIndex())
-				if (light) then
-					light.Pos = ent:GetPos()
-					light.r = 2
-					light.g = 0
-					light.b = 0
-					light.Brightness = 0
-					light.Size = 550
-					light.Decay = 0
-					light.DieTime = CurTime() +0.2
-					light.Style = 0
-				end
+				-- local light = DynamicLight(ent:EntIndex())
+				-- if (light) then
+				-- 	light.Pos = ent:GetPos()
+				-- 	light.r = 2
+				-- 	light.g = 0
+				-- 	light.b = 0
+				-- 	light.Brightness = 0
+				-- 	light.Size = 550
+				-- 	light.Decay = 0
+				-- 	light.DieTime = CurTime() +0.2
+				-- 	light.Style = 0
+				-- end
 				
 				local mode = ent:GetVisionMode()
 				local maskBG = ent:FindBodygroupByName("mask")
@@ -691,7 +822,8 @@ if CLIENT then
 			["$pp_colour_colour"] = 1,
 			["$pp_colour_mulr"] = 0,
 			["$pp_colour_mulg"] = 0,
-			["$pp_colour_mulb"] = 0
+			["$pp_colour_mulb"] = 0,
+			["$pp_colour_inv"] = 0,
 		}
 		local tab_nomask = {
 			["$pp_colour_addr"] 		= -0.5,
@@ -703,6 +835,7 @@ if CLIENT then
 			["$pp_colour_mulr"] 		= 1,
 			["$pp_colour_mulg"] 		= 1,
 			["$pp_colour_mulb"] 		= 2,
+			["$pp_colour_inv"] = 0,
 		}
 		local tab_thermal = {
 			["$pp_colour_addr"] 		= -.5,
@@ -714,6 +847,7 @@ if CLIENT then
 			["$pp_colour_mulr"] 		= 10,
 			["$pp_colour_mulg"] 		= 0,
 			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
 		}
 		local tab_xeno = {
 			["$pp_colour_addr"] 		= .5,
@@ -725,17 +859,19 @@ if CLIENT then
 			["$pp_colour_mulr"] 		= 0,
 			["$pp_colour_mulg"] 		= 10,
 			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
 		}
 		local tab_tech = {
 			["$pp_colour_addr"] 		= -.5,
 			["$pp_colour_addg"] 		= -.5,
 			["$pp_colour_addb"] 		= -.5,
 			["$pp_colour_brightness"] 	= 0.6,
-			["$pp_colour_contrast"] 	= 0.2,
+			["$pp_colour_contrast"] 	= 0.12,
 			["$pp_colour_colour"] 		= 1,
 			["$pp_colour_mulr"] 		= 10,
 			["$pp_colour_mulg"] 		= 0,
 			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
 		}
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_Vision",function()
 			if !IsValid(ent) then return end
@@ -745,7 +881,7 @@ if CLIENT then
 				DrawBloom(0.65,1,4,4,4,2,255,255,255)
 				DrawTexturize(0,matNil)
 				ent.PreviousVisionMode = mode
-				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(255,255,0,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(0,213,90) or Color(124,0,0),0.3,0)
+				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(255,255,0,128) or mode == 2 && Color(0,52,53) or mode == 3 && Color(8,86,41) or Color(124,0,0),0.3,0)
 			end
 
 			local hasMask = true
@@ -759,6 +895,14 @@ if CLIENT then
 
 			local lightLevel = render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length()
 			local isDark = lightLevel <= 0.1
+			ent.AVP_LastDark = ent.AVP_LastDark or isDark
+			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
+			if mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
+				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,math.random(95,110))
+				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(106,29,102) or Color(124,0,0),0.3,0)
+				ent.AVP_LastDark = isDark
+				ent.AVP_LastDarkT = CurTime() +1.5
+			end
 			-- print(lightLevel,isDark)
 
 			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],isDark && 0.9 or 0.6)

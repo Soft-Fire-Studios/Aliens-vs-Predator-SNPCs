@@ -242,25 +242,25 @@ if CLIENT then
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Xenomorph_HUD") end
 
-		hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
-			if IsValid(ent) then
-				if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
-					local light = DynamicLight(ent:EntIndex())
-					if (light) then
-						light.Pos = ent:GetPos()
-						light.r = 1
-						light.g = 1
-						light.b = 1
-						light.Brightness = 6
-						light.Size = 2000
-						light.Decay = 0
-						light.DieTime = CurTime() +0.3
-						light.Style = 0
-					end
-				end
-			end
-		end)
-		if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
+		-- hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
+			-- if IsValid(ent) then
+				-- if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
+					-- local light = DynamicLight(ent:EntIndex())
+					-- if (light) then
+					-- 	light.Pos = ent:GetPos()
+					-- 	light.r = 1
+					-- 	light.g = 1
+					-- 	light.b = 1
+					-- 	light.Brightness = 6
+					-- 	light.Size = 2000
+					-- 	light.Decay = 0
+					-- 	light.DieTime = CurTime() +0.3
+					-- 	light.Style = 0
+					-- end
+				-- end
+			-- end
+		-- end)
+		-- if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
 			if !IsValid(ent) then return end

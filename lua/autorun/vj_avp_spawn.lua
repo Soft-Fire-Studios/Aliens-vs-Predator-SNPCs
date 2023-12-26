@@ -106,6 +106,91 @@ if VJExists == true then
 				net.WriteEntity(ent)
 			net.Send(ent)
 		end
+
+		local table_insert = table.insert
+		local math_abs = math.abs
+		local math_cos = math.cos
+		local math_rad = math.rad
+
+		local function FindEntitiesInConeAndRadius(self)
+			local origin = self:GetPos()
+			local radius = 2250
+			local coneAngle = 360
+			-- local coneAngle = 180
+			local height = 1250
+			local zPosition = origin.z
+			local entities = ents.FindInSphere(origin, radius)
+			local result = {}
+
+			for _, ent in pairs(entities) do
+				if ent == self then continue end
+				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent)) then continue end
+				if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
+				if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
+				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 0 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 0 then continue end
+				local direction = (ent:GetPos() - origin):GetNormalized()
+				local forward = self:GetForward()
+				local dot = direction:Dot(forward)
+				local deltaZ = math_abs(ent:GetPos().z - origin.z)
+
+				if dot >= math_cos(math_rad(coneAngle / 2)) and deltaZ <= height then
+					table_insert(result, ent)
+				end
+			end
+
+			return result
+		end
+
+		function VJ_AVP_MotionTracker(self)
+			local curTime = CurTime()
+			if curTime > (self.Ping_NextPingT or 0) then
+				self.Ping_NextPingT = curTime +0.85
+				local pingEnts = FindEntitiesInConeAndRadius(self)
+				local closestEnt = NULL
+				local closestDist = 0
+				for _,v in pairs(pingEnts) do
+					if IsValid(v) then
+						local dist = self:GetPos():Distance(v:GetPos())
+						if closestEnt == NULL or dist < closestDist then
+							closestEnt = v
+							closestDist = dist
+						end
+					end
+				end
+				if IsValid(closestEnt) then
+					self.Ping_ClosestDist = closestDist
+					self.Ping_ClosestEnt = closestEnt
+					local perDist = (closestDist /2250)
+					local sndPitch = 100
+					if closestDist <= 100 then
+						sndPitch = 140
+					else
+						sndPitch = 100 +((1 -perDist) *40)
+					end
+					VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_bleep_stevie.ogg",55,sndPitch)
+					if self.IsVJBaseSNPC && self.CanInvestigate && self.NextInvestigationMove < CurTime() then
+						if !VJ.IsProp(closestEnt) then
+							if self:Visible(closestEnt) then
+								self:StopMoving()
+								self:SetTarget(closestEnt)
+								self:VJ_TASK_FACE_X("TASK_FACE_TARGET")
+								self.NextInvestigationMove = CurTime() +0.3
+							elseif self.IsFollowing == false && math.random(1,15) == 1 then
+								self:SetLastPosition(closestEnt:GetPos())
+								self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH")
+								self.NextInvestigationMove = CurTime() +10
+							end
+							self:CustomOnInvestigate(v)
+						end
+						if self.VJ_AVP_NPC && math.random(1,6) == 1 then
+							self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+						end
+					end
+				else
+					VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_pulse_01.ogg",55)
+				end
+			end
+		end
 	else
 		net.Receive("VJ_AVP_CSound",function(len,pl)
 			local sound = net.ReadString()
@@ -203,7 +288,7 @@ if VJExists == true then
 	local NPC = FindMetaTable("NPC")
 	
 	function NPC:Acid(pos,dist,dmg)
-		VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 60,dmg or 10,DMG_ACID,true,true,{},function(ent)
+		VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 65,dmg or 5,DMG_ACID,true,true,{},function(ent)
 			if ent.VJ_AVP_Xenomorph then
 				return false
 			end

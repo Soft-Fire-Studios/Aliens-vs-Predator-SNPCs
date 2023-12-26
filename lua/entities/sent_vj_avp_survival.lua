@@ -103,8 +103,8 @@ if CLIENT then
 	return
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.MaxNPCs = 48
-ENT.IncrementAmount = 6
+ENT.MaxNPCs = 24
+ENT.IncrementAmount = 4
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpawnBot(count,respawn)
 	local plys = player.GetAll()
@@ -162,18 +162,31 @@ function ENT:Initialize()
 	self.Bosses = {}
 	self.Bots = {}
 	self.Entities = {}
-	self:SetWaveSwitching(false)
-	self:SetWave(1)
+	self:SetWaveSwitching(true)
+	self:SetWave(0)
 	self:SetWaveSwitchVolTime(CurTime() +10)
 	self.CurrentMaxNPCs = self.IncrementAmount
 	self.KillsToNextWave = self.IncrementAmount
-	self.KillsLeft = self.KillsToNextWave
+	self.KillsLeft = 0
 	self.NextSpawnAttemptT = CurTime() +math.Rand(2,6)
+
+	timer.Simple(10,function()
+		if IsValid(self) then
+			self:SetSpecialRound(false)
+			self:SetWaveSwitching(false)
+			self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
+			self:SetWave(self:GetWave() +1)
+			self.KillsLeft = self.IncrementAmount *self:GetWave()
+			for _,v in pairs(player.GetAll()) do
+				VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
+				v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
+			end
+		end
+	end)
 
 	for _,v in pairs(plys) do
 		v:SetNW2Int("AVP_Score",500)
-		VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
-		v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
+		v:ChatPrint("Survival will begin in 10 seconds...")
 	end
 
 	if self.AllowBots then
@@ -201,7 +214,7 @@ function ENT:Initialize()
 				self:SetWaveSwitchVolTime(CurTime() +20)
 				for _,v in pairs(player.GetAll()) do
 					VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
-					v:ChatPrint("Wave " .. self:GetWave() .. " has ended...")
+					v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
 				end
 
 				if self.AllowBots then

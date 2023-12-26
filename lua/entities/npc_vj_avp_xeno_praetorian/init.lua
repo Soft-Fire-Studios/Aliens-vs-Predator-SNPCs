@@ -22,6 +22,8 @@ ENT.RangeAttackAnimationStopMovement = false
 
 ENT.HasBreath = true
 ENT.FootStepSoundLevel = 82
+ENT.FootStepPitch1 = 75
+ENT.FootStepPitch2 = 85
 
 ENT.CanScreamForHelp = false
 ENT.SummonClasses = {

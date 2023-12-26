@@ -153,7 +153,9 @@ function SWEP:CustomOnPrimaryAttack_AfterShoot()
 		self:OnShoot()
 	end
 	if CLIENT then return end
-	self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
+	if math.random(1,2) == 1 then
+		self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
+	end
 	self.CoolDownT = CurTime() +(self:GetOverHeat() *6)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -169,6 +171,11 @@ function SWEP:CustomOnThink()
 	if curTime > self.CoolDownT then
 		self:SetOverHeat(math_Clamp(self:GetOverHeat() -0.0025,0,1))
 	end
+
+	if SERVER && self.HasMotionTracker then
+		VJ_AVP_MotionTracker(owner)
+	end
+
 	if !owner:IsPlayer() then return end
 	if self:GetSprinting() then
 		self:SetHoldType((self.HoldType == "crossbow" or self.HoldType == "smg" or self.HoldType == "rpg" or self.HoldType == "shotgun" or self.HoldType == "ar2" or self.HoldType == "physgun") && "passive" or "normal")

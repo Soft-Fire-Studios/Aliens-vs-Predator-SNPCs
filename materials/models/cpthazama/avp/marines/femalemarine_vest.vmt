@@ -7,10 +7,8 @@
     "$nodecal" 					"1"
 
 	"$phong"                     "1"
-	"$phongboost"                "5"
+	"$phongboost"                "10"
 	"$phongfresnelranges"        "[0.35 0.745 0.215]"
-	"$phongalbedotint"           "1"
-	"$phongalbedoboost"          "30"
 
 	"$normalmapalphaenvmapmask"  "1"
 }

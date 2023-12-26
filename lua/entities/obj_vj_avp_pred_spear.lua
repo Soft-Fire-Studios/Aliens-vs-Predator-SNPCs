@@ -137,6 +137,9 @@ function ENT:DeathEffects(data, phys)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
+	if !self.IsBeingGrabbed && IsValid(self.Predator) then
+		self.Predator:SetBodygroup(self.Predator:FindBodygroupByName("equip_spear"),1)
+	end
 	for _,snd in pairs(self.DeleteSounds) do
 		if snd then
 			snd:Stop()

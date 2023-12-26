@@ -401,35 +401,6 @@ local table_insert = table.insert
 local math_abs = math.abs
 local math_cos = math.cos
 local math_rad = math.rad
-
-local function FindEntitiesInConeAndRadius(self)
-	local origin = self:GetPos()
-	local radius = 1500
-	local coneAngle = 360
-	-- local coneAngle = 180
-	local height = 1000
-	local zPosition = origin.z
-    local entities = ents.FindInSphere(origin, radius)
-    local result = {}
-
-    for _, ent in pairs(entities) do
-		if ent == self then continue end
-		if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent)) then continue end
-		if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_LI then continue end
-		if ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
-		if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 0 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 0 then continue end
-        local direction = (ent:GetPos() - origin):GetNormalized()
-        local forward = self:GetForward()
-        local dot = direction:Dot(forward)
-        local deltaZ = math_abs(ent:GetPos().z - origin.z)
-
-        if dot >= math_cos(math_rad(coneAngle / 2)) and deltaZ <= height then
-            table_insert(result, ent)
-        end
-    end
-
-    return result
-end
 --
 function ENT:CustomOnThink()
 	local curTime = CurTime()
@@ -485,52 +456,8 @@ function ENT:CustomOnThink()
 		end
 	end
 
-	if self.HasMotionTracker && curTime > self.Ping_NextPingT then
-		self.Ping_NextPingT = curTime +0.85
-		local pingEnts = FindEntitiesInConeAndRadius(self)
-		local closestEnt = NULL
-		local closestDist = 0
-		for _,v in pairs(pingEnts) do
-			if IsValid(v) then
-				local dist = self:GetPos():Distance(v:GetPos())
-				if closestEnt == NULL or dist < closestDist then
-					closestEnt = v
-					closestDist = dist
-				end
-			end
-		end
-		if IsValid(closestEnt) then
-			self.Ping_ClosestDist = closestDist
-			self.Ping_ClosestEnt = closestEnt
-			local perDist = (closestDist /1500)
-			local sndPitch = 100
-			if closestDist <= 100 then
-				sndPitch = 140
-			else
-				sndPitch = 100 +((1 -perDist) *40)
-			end
-			VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_bleep_stevie.ogg",55,sndPitch)
-			if self.CanInvestigate && self.NextInvestigationMove < CurTime() then
-				if !VJ.IsProp(closestEnt) then
-					if self:Visible(closestEnt) then
-						self:StopMoving()
-						self:SetTarget(closestEnt)
-						self:VJ_TASK_FACE_X("TASK_FACE_TARGET")
-						self.NextInvestigationMove = CurTime() +0.3
-					elseif self.IsFollowing == false && math.random(1,15) == 1 then
-						self:SetLastPosition(closestEnt:GetPos())
-						self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH")
-						self.NextInvestigationMove = CurTime() +10
-					end
-					self:CustomOnInvestigate(v)
-				end
-				if math.random(1,6) == 1 then
-					self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
-				end
-			end
-		else
-			VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_pulse_01.ogg",55)
-		end
+	if self.HasMotionTracker then
+		VJ_AVP_MotionTracker(self)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

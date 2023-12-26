@@ -3,5 +3,5 @@
 	"$basetexture" 		"decals/cpthazama/avp/xeno3"
 
 	"$translucent" 		"1"
-    "$selfillum" 		"1"
+    // "$selfillum" 		"1"
 }

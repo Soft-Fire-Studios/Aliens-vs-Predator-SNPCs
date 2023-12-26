@@ -16,6 +16,16 @@ function ENT:OnInit()
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Annihilation.mp3"}
 	end
 
+	self.SoundTbl_Idle = {
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_01.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_02.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_03.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_04.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_05.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_06.ogg",
+		"cpthazama/avp/predator/vocals/predlord/predlord_hologram_short_07.ogg",
+	}
+
 	self.PlasmaVisible = true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

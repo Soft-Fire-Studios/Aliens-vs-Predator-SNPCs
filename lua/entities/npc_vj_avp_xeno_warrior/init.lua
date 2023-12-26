@@ -9,6 +9,8 @@ include("vj_base/extensions/avp_fatality_module.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 140
 ENT.HullType = HULL_HUMAN
+ENT.PoseParameterLooking_InvertPitch = true
+ENT.PoseParameterLooking_InvertYaw = true
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
@@ -397,13 +399,17 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialize()
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
+	self.LastSet = 0
 	self.LastIdleActivity = ACT_IDLE
 	self.LastMovementActivity = ACT_RUN
 	self.ChangeSetT = CurTime() +1
 	self.IsUsingFaceAnimation = false
 	self.SprintT = 0
 	self.NextSprintT = 0
+	self.AI_IsSprinting = false
 	self.LastEnemyDistance = 999999
+	self.NextMoveRandomlyT = 0
+	self.MoveAroundRandomlyT = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -805,6 +811,7 @@ function ENT:CustomAttack(ent,visible)
 	local dist = self.NearestPointToEnemyDistance
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
+	local curTime = CurTime()
 
 	if self.OnCustomAttack then
 		self:OnCustomAttack(cont,ent,visible,dist)
@@ -830,10 +837,25 @@ function ENT:CustomAttack(ent,visible)
 						self:AttackCode(isCrawling)
 					end
 				else
-					self:AttackCode(isCrawling)
+					self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
 				end
 			end
 		end
+
+		// You absolute dumb fuck, how did you forget to add the SNEAK ANIMATIONS on the alien...
+		-- if math.random(1,1) == 1 && isCrawling && !self:IsBusy() && dist <= 600 && dist > 225 && curTime > self.NextMoveRandomlyT then
+		-- 	local moveCheck = VJ.PICK(self:VJ_CheckAllFourSides(300, true, "0011"))
+		-- 	if moveCheck then
+		-- 		self:SetLastPosition(moveCheck)
+		-- 		self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+		-- 			x:EngTask("TASK_FACE_ENEMY",0)
+		-- 			x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+		-- 		end)
+		-- 		self.MoveAroundRandomlyT = curTime +self:GetPathTimeToGoal() +math.Rand(1,2.5)
+		-- 		self.NextMoveRandomlyT = self.MoveAroundRandomlyT +math.random(3,8)
+		-- 		self.NextChaseTime = self.MoveAroundRandomlyT +math.Rand(0.5,1)
+		-- 	end
+		-- end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -847,7 +869,9 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				// Leap attack
 				self.AttackType = 3
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
-				self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted,anim)
+				self:SetGroundEntity(NULL)
+				-- self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), self:GetPos() +self:GetForward() *400 +self:GetUp() *50, 900))
+				self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide,true,false,false,0,{OnFinish=function(interrupted,anim)
 					if interrupted or self.InFatality then return end
 					self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
 				end})
@@ -1155,6 +1179,31 @@ function ENT:CustomOnThink_AIEnabled()
 		self.AnimTbl_Run = {moveAct}
 	end
 
+	if self.LastSet != curSet then
+		local oldSet = self.LastSet
+		self.LastSet = curSet
+		self.PoseParameterLooking_Names = {
+			pitch= curSet == 1 && {"head_pitch"} or {"standing_head_pitch","standing_body_pitch"},
+			yaw= curSet == 1 && {"head_yaw"} or {"standing_head_yaw","standing_body_yaw"},
+			roll={}
+		}
+		if oldSet == 1 then
+			self:SetPoseParameter("standing_head_yaw",self:GetPoseParameter("head_yaw"))
+			self:SetPoseParameter("standing_head_pitch",self:GetPoseParameter("head_pitch"))
+			self:SetPoseParameter("standing_body_yaw",self:GetPoseParameter("head_yaw"))
+			self:SetPoseParameter("standing_body_pitch",self:GetPoseParameter("head_pitch"))
+			self:SetPoseParameter("head_yaw",0)
+			self:SetPoseParameter("head_pitch",0)
+		else
+			self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
+			self:SetPoseParameter("head_pitch",self:GetPoseParameter("standing_head_pitch"))
+			self:SetPoseParameter("standing_head_yaw",0)
+			self:SetPoseParameter("standing_head_pitch",0)
+			self:SetPoseParameter("standing_body_yaw",0)
+			self:SetPoseParameter("standing_body_pitch",0)
+		end
+	end
+
 	if self.HasBreath then
 		self:Breathe()
 	end
@@ -1183,6 +1232,9 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 		self.SprintT = self.SprintT +0.05
 		if self.SprintT >= 4 then
+			if self.AI_IsSprinting then
+				self.AI_IsSprinting = false
+			end
 			self.NextSprintT = curTime +3
 		end
 	else
@@ -1244,12 +1296,18 @@ function ENT:CustomOnThink_AIEnabled()
 	else
 		self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
 		if IsValid(ent) then
+			if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.MoveAroundRandomlyT && curTime > self.NextSprintT && math.random(1,12) == 1 then
+				self.AI_IsSprinting = true
+			end
 			local dist = self.LastEnemyDistance
-			if curTime > self.ChangeSetT then
+			if  curTime > self.ChangeSetT then
 				if curSet == 1 then
 					if self.CanStand && (self.AlwaysStand or !self.AlwaysStand && dist < 750 && math.random(1,20) == 1) then
 						self.CurrentSet = 2
 						self.ChangeSetT = curTime +math.Rand(15,35)
+						-- self.MoveAroundRandomlyT = 0
+						-- self.NextMoveRandomlyT = curTime +math.random(3,8)
+						-- self.NextChaseTime = 0
 					end
 				else
 					if !self.AlwaysStand && dist >= 750 && math.random(1,10) == 1 then
@@ -1306,7 +1364,7 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
-	self:Acid(dmginfo:GetDamagePosition(),125,5)
+	self:Acid(dmginfo:GetDamagePosition())
 
 	local explosion = dmginfo:IsExplosionDamage()
 	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
@@ -1337,7 +1395,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),200,25)
+	self:Acid(self:GetPos(),150,20)
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
 			if math.random(1,4) <= 3 then continue end
@@ -1358,11 +1416,12 @@ end
 function ENT:SelectMovementActivity()
 	local act = ACT_RUN
 	local ply = self.VJ_TheController
+	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
 			act = standing && ACT_WALK or ACT_WALK_RELAXED
-		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < CurTime() then
+		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then
 			act = standing && ACT_MP_SPRINT or ACT_SPRINT
 		else
 			act = standing && ACT_RUN or ACT_RUN_RELAXED
@@ -1371,10 +1430,11 @@ function ENT:SelectMovementActivity()
 	end
 	local currentSchedule = self.CurrentSchedule
 	if currentSchedule != nil then
-		if currentSchedule.MoveType == 0 then
-			act = standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+		local moveRandom = curTime < self.MoveAroundRandomlyT
+		if moveRandom or currentSchedule.MoveType == 0 then
+			act = standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
 		else
-			if self.NextSprintT < CurTime() then
+			if self.NextSprintT < curTime && self.AI_IsSprinting then
 				act = standing && ACT_MP_SPRINT or ACT_SPRINT
 			else
 				act = standing && ACT_RUN or ACT_RUN_RELAXED
