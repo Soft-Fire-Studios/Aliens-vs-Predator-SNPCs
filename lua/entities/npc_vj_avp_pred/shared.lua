@@ -34,29 +34,35 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 	if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 		local cent = ply.VJ_TheControllerEntity
 		local npc = cent.VJCE_NPC
-		if npc.VJ_AVP_Creature then
+		if npc.VJ_AVP_NPC then
 			ply:AllowFlashlight(false)
 		end
 
-		if button == KEY_F && npc.VJ_AVP_Predator then
-			local mode = npc:GetVisionMode()
-			if mode == 0 then
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
-			elseif mode == 3 then
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
-			else
-				ply:EmitSound(VJ.PICK({
-					"cpthazama/avp/predator/vision/vision_change_01.ogg",
-					"cpthazama/avp/predator/vision/vision_change_02.ogg",
-					"cpthazama/avp/predator/vision/vision_change_04.ogg",
-					"cpthazama/avp/predator/vision/vision_change_05.ogg",
-				}),65)
+		if button == KEY_F then
+			if npc.VJ_AVP_Predator then
+				local mode = npc:GetVisionMode()
+				if mode == 0 then
+					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
+				elseif mode == 3 then
+					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
+				else
+					ply:EmitSound(VJ.PICK({
+						"cpthazama/avp/predator/vision/vision_change_01.ogg",
+						"cpthazama/avp/predator/vision/vision_change_02.ogg",
+						"cpthazama/avp/predator/vision/vision_change_04.ogg",
+						"cpthazama/avp/predator/vision/vision_change_05.ogg",
+					}),65)
+				end
+				npc:SetVisionMode(mode +1 > 3 && 0 or mode +1)
+				-- local snd = CreateSound(ply,"cpthazama/avp/predator/vision_change_01.wav")
+				-- snd:SetSoundLevel(0)
+				-- snd:Play()
+				-- snd:ChangeVolume(70)
+			elseif npc.VJ_AVP_Xenomorph then
+				npc:SetVision(!npc:GetVision())
+				ply:EmitSound("cpthazama/avp/weapons/alien/alien_vision.wav",0)
+				ply:ScreenFade(SCREENFADE.IN,Color(255,255,255),0.35,0.1)
 			end
-			npc:SetVisionMode(mode +1 > 3 && 0 or mode +1)
-			-- local snd = CreateSound(ply,"cpthazama/avp/predator/vision_change_01.wav")
-			-- snd:SetSoundLevel(0)
-			-- snd:Play()
-			-- snd:ChangeVolume(70)
 		end
 		
 		local fov = ply:GetFOV()
@@ -66,7 +72,7 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 		-- 		ply:EmitSound("cpthazama/avp/predator/prd_vision_mode_zoom_out.wav",65)
 		-- 	end
 		-- end
-		if cent.VJC_Camera_Mode == 2 then
+		if cent.VJC_Camera_Mode == 2 && npc.VJ_AVP_Predator then
 			if button == KEY_MOUSESCROLL_UP then
 				ply:SetFOV(fov <= 1 && GetConVarNumber("fov_desired") or math.Clamp(fov -20,1,180),0.25)
 				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom.ogg",65)
@@ -399,6 +405,7 @@ if CLIENT then
 	local matHUDEquipSelect_Disc = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_disc.png","smooth additive")
 	local matHUDEquipSelect_Spear = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_spear.png","smooth additive")
 	local matHUD_HP = Material("hud/cpthazama/avp/pred_hp.png","smooth additive")
+	local matHUD_HP_Warning = Material("hud/cpthazama/avp/pred_hp_warning.png","smooth additive")
 	local matHUD_HP_Base = Material("hud/cpthazama/avp/pred_hp_bar.png","smooth additive")
 	local matHUD_EP = Material("hud/cpthazama/avp/pred_energy.png","smooth additive")
 	local matHUD_Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive")
@@ -599,7 +606,7 @@ if CLIENT then
 			if equipShowT > CurTime() then
 				for i = 1,4 do
 					local x,y = equipPoints[i].x,equipPoints[i].y
-					local alpha = (equip == i && a or 25) *(equipShowT -CurTime())
+					local alpha = (equip == i && a or 50) *(equipShowT -CurTime())
 					DrawIcon(matHUDEquipSelect_Base,x,y,10,8,r,g,b,alpha)
 					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or matHUDEquipSelect_Spear,x,y,8,6,r,g,b,alpha)
 				end
@@ -617,6 +624,7 @@ if CLIENT then
 
 			DrawIcon(matHUD_HP_Base,23.5,22.3,27,4,hpColor.r,hpColor.g,hpColor.b,a)
 			DrawIcon_UV(matHUD_HP,9,19,hpPer *30,6,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,a)
+			DrawIcon(matHUD_HP_Warning,24,22,30,6,hpColor.r *1.25,hpColor.g *1.25,hpColor.b *1.25,hpPer <= 0.4 && math.abs(math.sin(CurTime() *4) *a) or a)
 
 			local energy = ent:GetEnergy()
 			local maxEnergy = 200

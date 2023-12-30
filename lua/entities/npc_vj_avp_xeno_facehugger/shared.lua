@@ -7,7 +7,13 @@ ENT.Purpose 		= "Spawn it and fight with it!"
 ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= ""
 
+ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Xenomorph = true
+
+function ENT:SetupDataTables()
+	self:NetworkVar("Bool",0,"Vision")
+	self:NetworkVar("Int",0,"HP")
+end
 
 if CLIENT then
 	local string_EndsWith = string.EndsWith

@@ -13,7 +13,10 @@ ENT.VJ_AVP_XenoHUD = 0
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
+	self:NetworkVar("Bool",1,"Vision")
+	self:NetworkVar("Bool",2,"JumpAbility")
 	self:NetworkVar("Vector",0,"JumpPosition")
+	self:NetworkVar("Int",0,"HP")
 end
 
 if CLIENT then
@@ -212,9 +215,19 @@ if CLIENT then
 	local table_Count = table.Count
 	local table_insert = table.insert
 	local VJ_HasValue = VJ.HasValue
-	local matHud = Material("hud/cpthazama/avp/alien_hud.png")
-	local matSixHud = Material("hud/cpthazama/avp/alien_six_hud.png")
-	local matGridHud = Material("hud/cpthazama/avp/alien_grid_hud.png")
+
+	local matHud = Material("hud/cpthazama/avp/alien_hud.png","smooth additive")
+	local matSixHud = Material("hud/cpthazama/avp/alien_six_hud.png","smooth additive")
+	local matGridHud = Material("hud/cpthazama/avp/alien_grid_hud.png","smooth additive")
+	local matHP = Material("hud/cpthazama/avp/avp_a_health_bar_new.png","smooth additive")
+	local matHP_Base = Material("hud/cpthazama/avp/avp_a_health_bg_full.png","smooth additive")
+	local matHP_B = Material("hud/cpthazama/avp/avp_a_health_bar_b.png","smooth additive")
+	local matHP_Base_B = Material("hud/cpthazama/avp/avp_a_health_bg_b.png","smooth additive")
+	local matHP_Full = Material("hud/cpthazama/avp/avp_a_health_bar_full.png","smooth additive")
+	local matOrient = Material("hud/cpthazama/avp/avp_a_orient_ret2.png","smooth additive")
+	local matOrient_CanJump = Material("hud/cpthazama/avp/avp_a_orient_ret1.png","smooth additive")
+	local matOrient_NoJump = Material("hud/cpthazama/avp/avp_a_reticle_halo1.png","smooth additive")
+
 	local render_GetLightColor = render.GetLightColor
 	local tab_xeno = {
 		["$pp_colour_addr"] 		= 0.65,
@@ -228,9 +241,52 @@ if CLIENT then
 		["$pp_colour_mulb"] 		= 0,
 		["$pp_colour_inv"] 			= 1,
 	}
+
+	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
+	local function ScreenPos(x,y)
+		local w = ScrW()
+		local h = ScrH()
+		local pos = {}
+		pos.x = w *0.5 +w *x *0.01
+		pos.y = h *0.5 +w *y *0.01
+
+		return pos
+	end
+
+	local function ScreenScale(x,y)
+		local w = ScrW()
+		local h = ScrH()
+		local size = {}
+		size.x = (w *x *0.01)
+		size.y = (w *y *0.01)
+
+		return size
+	end
+
+	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
+		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x,y)
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+	end
+
+	local function DrawIcon_UV(mat,x,y,width,height,uv,r,g,b,a)
+		local uv = uv or {0,0,1,1}
+		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x,y)
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
+	end
+
+	local orients = {255,255,255}
+
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
+		local cont = net.ReadEntity()
+		local ply = cont
 
 		hook.Add("HUDPaint","VJ_AVP_Xenomorph_HUD",function()
 			if !IsValid(ent) then return end
@@ -239,11 +295,73 @@ if CLIENT then
 			surface.SetDrawColor(color_white)
 			surface.SetMaterial(xenoHUD == 1 && matSixHud or xenoHUD == 2 && matGridHud or matHud)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+
+			ent.AVP_HUD_HPLerp = Lerp(FrameTime() *5,ent.AVP_HUD_HPLerp or 0,ent:GetHP())
+			local maxHP = ent:GetMaxHealth()
+			local hpPer = ent.AVP_HUD_HPLerp /maxHP
+			local hpColor = ent.VJ_AVP_K_Xenomorph && Color(255,214,127) or Color(191,255,127)
+			local a = 255
+			local blink = 2
+			local danger = hpPer <= 0.4
+			if hpPer <= 0.5 && hpPer > 0.25 then
+				hpColor = Color(255,145,0)
+			elseif hpPer <= 0.24 then
+				hpColor = Color(255,0,0)
+				blink = 4
+			end
+			if ent:GetVision() then
+				hpColor = Color(255 -hpColor.r,255 -hpColor.g,255 -hpColor.b)
+			end
+			ent.AVP_HUD_HPColor = LerpVector(FrameTime() *2,ent.AVP_HUD_HPColor or Vector(255,255,255),Vector(hpColor.r,hpColor.g,hpColor.b))
+			hpColor = Color(ent.AVP_HUD_HPColor.x,ent.AVP_HUD_HPColor.y,ent.AVP_HUD_HPColor.z)
+
+			DrawIcon(matHP_Base,0,-22.3,70,5,hpColor.r,hpColor.g,hpColor.b,a)
+			DrawIcon_UV(matHP_Full,-22.85,-23.9,45 *hpPer,2.2,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,danger && math.abs(math.sin(CurTime() *blink) *a) or a)
+
+			if ent.GetJumpAbility && ent:GetJumpAbility() == true then
+				local tr1 = util.TraceLine({
+					start = cont:EyePos(),
+					endpos = cont:EyePos() +cont:GetAimVector() *1100,
+					filter = {ent,cont}
+				})
+
+				local orient = 1
+				local hitPos = tr1.HitPos
+				local hitNormal = tr1.HitNormal
+				local hitX = math.abs(hitNormal.x)
+				local hitY = math.abs(hitNormal.y)
+				if hitX > 0 or hitY > 0 then
+					orient = 2
+				elseif hitNormal.z == -1 then
+					orient = 3
+				end
+				for i = 1,3 do
+					orients[i] = Lerp(FrameTime() *10,orients[i],orient == i && 255 or 0)
+				end
+				local ang = -ent:GetAngles().r
+				DrawIcon(matOrient,0,0,8,8,hpColor.r,hpColor.g,hpColor.b,orients[1],ang)
+				DrawIcon(matOrient_CanJump,0,0,5,5,hpColor.r,hpColor.g,hpColor.b,orients[2],ang)
+				DrawIcon(matOrient_NoJump,0,0,5,5,hpColor.r,hpColor.g,hpColor.b,orients[3],ang)
+			end
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Xenomorph_HUD") end
 
-		-- hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
-			-- if IsValid(ent) then
+		hook.Add("Think","VJ_AVP_Xeno_VisionLight",function()
+			if IsValid(ent) then
+				local vision = ent:GetVision()
+				if vision then
+					if cont.VisionSound == nil then
+						cont.VisionSound = CreateSound(cont,"cpthazama/avp/weapons/alien/alien_vision_loop.wav")
+						cont.VisionSound:SetSoundLevel(0)
+						cont.VisionSound:Play()
+						cont.VisionSound:ChangeVolume(1)
+					end
+				else
+					if cont.VisionSound then
+						cont.VisionSound:Stop()
+						cont.VisionSound = nil
+					end
+				end
 				-- if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
 					-- local light = DynamicLight(ent:EntIndex())
 					-- if (light) then
@@ -258,13 +376,20 @@ if CLIENT then
 					-- 	light.Style = 0
 					-- end
 				-- end
-			-- end
-		-- end)
-		-- if delete == true then hook.Remove("Think","VJ_AVP_Xeno_VisionLight") end
+			end
+		end)
+		if delete == true then
+			hook.Remove("Think","VJ_AVP_Xeno_VisionLight")
+			if cont.VisionSound then
+				cont.VisionSound:Stop()
+			end
+		end
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
 			if !IsValid(ent) then return end
-			DrawColorModify(tab_xeno)
+			if ent:GetVision() then
+				DrawColorModify(tab_xeno)
+			end
 		end)
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
 
@@ -298,11 +423,11 @@ if CLIENT then
 					end
 				end
 			end
-			halo_Add(VJ_AVP_HALOS.Xenomorphs,col_xeno,4,4,15,true,true)
-			halo_Add(VJ_AVP_HALOS.KXenomorphs,col_kxeno,4,4,15,true,true)
-			halo_Add(VJ_AVP_HALOS.Predators,col_pred,4,4,15,true,true)
-			halo_Add(VJ_AVP_HALOS.Tech,col_tech,4,4,15,true,true)
-			halo_Add(VJ_AVP_HALOS.Other,col_enemy,4,4,15,true,true)
+			halo_Add(VJ_AVP_HALOS.Xenomorphs,col_xeno,10,10,15,true,true)
+			halo_Add(VJ_AVP_HALOS.KXenomorphs,col_kxeno,10,10,15,true,true)
+			halo_Add(VJ_AVP_HALOS.Predators,col_pred,10,10,15,true,true)
+			halo_Add(VJ_AVP_HALOS.Tech,col_tech,10,10,15,true,true)
+			halo_Add(VJ_AVP_HALOS.Other,col_enemy,10,10,15,true,true)
 		end)
 		if delete == true then
 			hook.Remove("PreDrawHalos","VJ_AVP_Xeno_Halo")

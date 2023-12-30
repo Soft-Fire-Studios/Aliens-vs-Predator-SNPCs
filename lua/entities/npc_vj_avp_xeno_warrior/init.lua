@@ -8,6 +8,9 @@ include("vj_base/extensions/avp_fatality_module.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 140
+ENT.HasHealthRegeneration = true
+ENT.HealthRegenerationAmount = 1
+ENT.HealthRegenerationDelay = VJ.SET(0.5,0.5)
 ENT.HullType = HULL_HUMAN
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
@@ -415,6 +418,8 @@ function ENT:CustomOnInitialize()
 		self:OnInit()
 	end
 
+	self:SetJumpAbility(self.CanLeap)
+
 	if self.CanSpit then
 		self.HasRangeAttack = true
 	end
@@ -729,27 +734,29 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			local targetAng = (targetPos -att.Pos):Angle()
 			local ang = self:GetAngles()
 			targetAng.y = math.Clamp(targetAng.y, ang.y - 80, ang.y + 80)
-			local proj = ents.Create("obj_vj_avp_projectile")
-			proj:SetPos(att.Pos)
-			proj:SetAngles(targetAng)
-			proj:SetOwner(self)
-			proj:SetAttackType(2,50 *mult,DMG_ACID,150,10,true)
-			proj:SetNoDraw(true)
-			proj:Spawn()
-			proj.DecalTbl_DeathDecals = {"BeerSplash"}
-			proj.OnDeath = function(projEnt,data, defAng, HitPos)
-				ParticleEffect("acidbug_spit_impact",HitPos,defAng)
-				sound.Play("cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",HitPos,70)
-			end
-			VJ.EmitSound(proj,"cpthazama/avp/weapons/alien/spit/alien_spitacid_tp_" .. math.random(1,3) .. ".ogg",75)
-			proj:AddSound("cpthazama/avp/xeno/alien/blood/alien_blood_fizz_loop_01.wav",65)
-			ParticleEffectAttach("acidbug_spit_trail",PATTACH_POINT_FOLLOW,proj,0)
+			for i = 1,self.VJ_AVP_XenomorphLarge && 3 or 1 do
+				local proj = ents.Create("obj_vj_avp_projectile")
+				proj:SetPos(att.Pos)
+				proj:SetAngles(targetAng)
+				proj:SetOwner(self)
+				proj:SetAttackType(2,50 *mult,DMG_ACID,150,10,true)
+				proj:SetNoDraw(true)
+				proj:Spawn()
+				proj.DecalTbl_DeathDecals = {"BeerSplash"}
+				proj.OnDeath = function(projEnt,data, defAng, HitPos)
+					ParticleEffect("vj_avp_xeno_spit_impact",HitPos,defAng)
+					sound.Play("cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",HitPos,70)
+				end
+				VJ.EmitSound(proj,"cpthazama/avp/weapons/alien/spit/alien_spitacid_tp_" .. math.random(1,3) .. ".ogg",75)
+				proj:AddSound("cpthazama/avp/xeno/alien/blood/alien_blood_fizz_loop_01.wav",65)
+				ParticleEffectAttach("vj_avp_xeno_spit",PATTACH_POINT_FOLLOW,proj,0)
 
-			local phys = proj:GetPhysicsObject()
-			if IsValid(phys) then
-				phys:EnableGravity(true)
-				phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), targetPos, 1500))
-				-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
+				local phys = proj:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:EnableGravity(true)
+					phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), i > 1 && targetPos +VectorRand(-135,135) or targetPos, 1500))
+					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
+				end
 			end
 		end
 	elseif key == "attack" then
@@ -1178,6 +1185,8 @@ function ENT:CustomOnThink_AIEnabled()
 		self.AnimTbl_Walk = {moveAct}
 		self.AnimTbl_Run = {moveAct}
 	end
+	
+	self:SetHP(self:Health())
 
 	if self.LastSet != curSet then
 		local oldSet = self.LastSet
@@ -1365,6 +1374,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition())
+	self.HealthRegenerationDelayT = CurTime() +5
 
 	local explosion = dmginfo:IsExplosionDamage()
 	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then

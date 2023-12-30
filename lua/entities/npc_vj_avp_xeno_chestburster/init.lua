@@ -26,9 +26,9 @@ ENT.TimeUntilMeleeAttackDamage = false
 
 ENT.VJC_Data = {
     CameraMode = 2,
-    ThirdP_Offset = Vector(0, 0, -15),
+    ThirdP_Offset = Vector(0, 0, 10),
     FirstP_Bone = "Head",
-    FirstP_Offset = Vector(3, 0, 3.35),
+    FirstP_Offset = Vector(3, 0, 4.5),
     FirstP_ShrinkBone = true
 }
 
@@ -54,14 +54,21 @@ ENT.SoundTbl_MeleeAttackExtra = {
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_05.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Controller_Initialize(ply)
+function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
 		net.WriteBool(false)
 		net.WriteEntity(self)
 		net.WriteEntity(ply)
     net.Send(ply)
 
-	function self.VJ_TheControllerEntity:CustomOnStopControlling()
+	controlEnt.VJC_Player_DrawHUD = false
+
+	function controlEnt:CustomOnThink()
+		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+	end
+
+	function controlEnt:CustomOnStopControlling()
 		net.Start("VJ_AVP_Xeno_Client")
 			net.WriteBool(true)
 			net.WriteEntity(self)
@@ -91,6 +98,11 @@ function ENT:CustomOnInitialize()
 			end})
 		end
 	end)
+
+	self:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
+	self.GrowT = CurTime() +60
+	self.DidGrow = false
+	self:SetModelScale(2.5,60)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
@@ -99,6 +111,41 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	end
 	if key == "bite" then
 		self:MeleeAttackCode()
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnThink_AIEnabled()
+	if self.Dead then return end
+
+	self:SetHP(self:Health())
+	self:SetGroundAngle()
+
+	if !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "vj_cover_from_enemy") then
+		self:VJ_TASK_COVER_FROM_ENEMY("TASK_RUN_PATH")
+	end
+
+	local remainingTime = self.GrowT -CurTime()
+	if remainingTime <= 0 && !self.DidGrow then
+		self.DidGrow = true
+		local class = self.XenoClass or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
+		local ent = ents.Create(class)
+		ent:SetPos(self:GetPos())
+		ent:SetAngles(self:GetAngles())
+		ent:SetOwner(self:GetOwner())
+		ent:Spawn()
+		ent:Activate()
+		ent:SetModelScale(0.75)
+		ent:SetModelScale(1,1)
+		ent:VJ_ACT_PLAYACTIVITY("climb_stop",true,false,false)
+		undo.ReplaceEntity(self,ent)
+		self:Remove()
+		return
+	end
+	if self.VJ_AVP_K_Xenomorph then
+		self:SetColor(Color(167 *(1 -(remainingTime /120)),134 *(1 -(remainingTime /120)),44 *(1 -(remainingTime /120))))
+	else
+		local col = math.Clamp((remainingTime /120) *255,65,255)
+		self:SetColor(Color(col,col,col))
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -183,8 +230,4 @@ function ENT:SetGroundAngle()
 		-- self:ManipulateBonePosition(0,Vector(0,0,Lerp(refreshRate,self:GetManipulateBonePosition(0).z,0)))
 		self:SetAngles(LerpAngle(refreshRate,self:GetAngles(),Angle(0,ang.y,0)))
 	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
-	self:SetGroundAngle()
 end

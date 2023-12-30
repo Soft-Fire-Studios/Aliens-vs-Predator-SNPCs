@@ -217,6 +217,10 @@ if VJExists == true then
 		"vj_avp_blood_predator",
 		"vj_avp_blood_xeno",
 	})
+	VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
+		"vj_avp_xeno_spit",
+		"vj_avp_xeno_spit_impact",
+	})
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
 		"vj_avp_wep_rifle_muzzle",
@@ -337,6 +341,7 @@ if VJExists == true then
 		function VJ_AVP_QueenExists(self)
 			for _,v in ipairs(VJ_AVP_XENOS) do
 				if v.VJ_AVP_Xenomorph_Queen && v != self then
+					if self.VJ_AVP_K_Xenomorph && !v.VJ_AVP_K_Xenomorph or v.VJ_AVP_K_Xenomorph && !self.VJ_AVP_K_Xenomorph then continue end
 					return true
 				end
 			end

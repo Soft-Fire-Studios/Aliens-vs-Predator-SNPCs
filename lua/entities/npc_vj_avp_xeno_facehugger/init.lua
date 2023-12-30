@@ -19,23 +19,29 @@ ENT.HasMeleeAttack = false
 
 ENT.VJC_Data = {
     CameraMode = 2,
-    ThirdP_Offset = Vector(0, 0, -35),
+    ThirdP_Offset = Vector(0, 0,-15),
     FirstP_Bone = "body",
     FirstP_Offset = Vector(2, 0, 6),
     FirstP_ShrinkBone = false
 }
 
 ENT.GeneralSoundPitch1 = 100
-
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Controller_Initialize(ply)
+function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
 		net.WriteBool(false)
 		net.WriteEntity(self)
 		net.WriteEntity(ply)
     net.Send(ply)
 
-	function self.VJ_TheControllerEntity:CustomOnStopControlling()
+	controlEnt.VJC_Player_DrawHUD = false
+
+	function controlEnt:CustomOnThink()
+		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+	end
+
+	function controlEnt:CustomOnStopControlling()
 		net.Start("VJ_AVP_Xeno_Client")
 			net.WriteBool(true)
 			net.WriteEntity(self)
@@ -140,6 +146,9 @@ function ENT:SetGroundAngle()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
+function ENT:CustomOnThink_AIEnabled()
+	if self.Dead then return end
+
+	self:SetHP(self:Health())
 	self:SetGroundAngle()
 end
