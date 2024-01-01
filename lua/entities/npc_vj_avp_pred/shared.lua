@@ -149,7 +149,7 @@ if CLIENT then
 	end
 
 	local math_abs = math.abs
-	local blueFX = Vector(0.5,2,6)
+	local blueFX = Vector(0,0.4,6)
 	local whiteFX = Vector(1,1,1)
     matproxy.Add({
         name = "AVP_Cloak",
@@ -498,50 +498,6 @@ if CLIENT then
 		end
 
 		local index = ent:EntIndex()
-		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_XenoFX", function()
-			if !IsValid(ent) then return end
-			for _,v in pairs(ents.GetAll()) do
-				if ent.PreviousVisionMode == 1 then
-					if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
-						if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
-						cam.Start3D(EyePos(),EyeAngles())
-							if util.IsValidModel(v:GetModel()) then
-								render.OverrideDepthEnable(true,false)
-								render.SetLightingMode(2)
-								render.SetBlend(1)
-								render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && matTT_Thermal or matTT_Thermal_Overlay)
-								v:DrawModel()
-								render.OverrideDepthEnable(false,false)
-								render.SetLightingMode(0)
-								render.MaterialOverride(0)
-								render.SetBlend(1)
-							end
-						cam.End3D()
-					end
-				elseif ent.PreviousVisionMode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
-					cam.Start3D(EyePos(),EyeAngles())
-						if util.IsValidModel(v:GetModel()) then
-							-- render.SetBlend(0.6)
-							-- render.MaterialOverride(matXenoOverlay)
-							v:DrawModel()
-							render.MaterialOverride(0)
-							render.SetBlend(1)
-						end
-					cam.End3D()
-				elseif ent.PreviousVisionMode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
-					cam.Start3D(EyePos(),EyeAngles())
-						if util.IsValidModel(v:GetModel()) then
-							render.SetBlend(1)
-							render.MaterialOverride(matColdOverlay)
-							v:DrawModel()
-							render.MaterialOverride(0)
-							render.SetBlend(1)
-						end
-					cam.End3D()
-				end
-			end
-		end)
-		if delete == true then hook.Remove("PreDrawHalos","VJ_AVP_Predator_XenoFX") end
 
 		hook.Add("HUDPaint","VJ_AVP_Predator_HUD",function()
 			if !IsValid(ent) then return end
@@ -922,6 +878,60 @@ if CLIENT then
 			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],isDark && 0.9 or 0.6)
 			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],isDark && 0.1 or 0.2)
 
+			if mode > 0 && hasMask then
+				DrawMotionBlur(0.4,0.8,0.015)
+				for _,v in ents.Iterator() do
+					if mode == 1 then
+						if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
+							if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
+							cam.Start3D(EyePos(),EyeAngles())
+								if util.IsValidModel(v:GetModel()) then
+									render.OverrideDepthEnable(true,false)
+									render.SetLightingMode(2)
+									render.SetBlend(1)
+									render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && matTT_Thermal or matTT_Thermal_Overlay)
+									v:DrawModel()
+									render.OverrideDepthEnable(false,false)
+									render.SetLightingMode(0)
+									render.MaterialOverride(0)
+									render.SetBlend(1)
+								end
+							cam.End3D()
+						end
+					-- elseif mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
+					-- 	cam.Start3D(EyePos(),EyeAngles())
+					-- 		if util.IsValidModel(v:GetModel()) then
+					-- 			render.OverrideDepthEnable(true,false)
+					-- 			render.SetLightingMode(1)
+					-- 			v:DrawModel()
+					-- 			render.OverrideDepthEnable(false,false)
+					-- 			render.SetLightingMode(0)
+					-- 		end
+					-- 		-- if util.IsValidModel(v:GetModel()) then
+					-- 		-- 	-- render.SetBlend(0.6)
+					-- 		-- 	-- render.MaterialOverride(matXenoOverlay)
+					-- 		-- 	v:DrawModel()
+					-- 		-- 	render.MaterialOverride(0)
+					-- 		-- 	render.SetBlend(1)
+					-- 		-- end
+					-- 	cam.End3D()
+					elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
+						cam.Start3D(EyePos(),EyeAngles())
+							if util.IsValidModel(v:GetModel()) then
+								render.SetBlend(1)
+								render.MaterialOverride(matColdOverlay)
+								v:DrawModel()
+								render.MaterialOverride(0)
+								render.SetBlend(1)
+							end
+						cam.End3D()
+					end
+				end
+				if IsValid(cont) then
+					cont:SetDSP(31)
+				end
+			end
+
 			if mode == 1 && hasMask then
 				DrawColorModify(tab_thermal)
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
@@ -930,14 +940,14 @@ if CLIENT then
 				-- 	RunConsoleCommand("mat_fullbright","0")
 				-- end
 			elseif mode == 2 && hasMask then
-				DrawColorModify(tab_xeno) 
+				DrawColorModify(tab_xeno)
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawTexturize(0,matGradientXeno)
 				-- if GetConVar("mat_fullbright"):GetInt() != 1 then
 				-- 	RunConsoleCommand("mat_fullbright","1")
 				-- end
 			elseif mode == 3 && hasMask then
-				DrawColorModify(tab_tech) 
+				DrawColorModify(tab_tech)
 				DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawTexturize(0,matGradientTech)
 				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
@@ -953,11 +963,56 @@ if CLIENT then
 						DrawTexturize(0,matGradientNoMask)
 					end
 				end
+				if IsValid(cont) then
+					cont:SetDSP(1)
+				end
 				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
 				-- 	RunConsoleCommand("mat_fullbright","0")
 				-- end
 			end
 		end)
-		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_Vision") end
+		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision",function()
+			if !IsValid(ent) then return end
+			local mode = ent:GetVisionMode()
+
+			local hasMask = true
+			local maskBG = ent:FindBodygroupByName("mask")
+			if maskBG > -1 then
+				local mask = ent:GetBodygroup(maskBG)
+				if mask == 0 then
+					hasMask = false
+				end
+			end
+
+			if mode > 0 && hasMask then
+				for _,v in ents.Iterator() do
+					if mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
+						cam.Start3D(EyePos(),EyeAngles())
+							if util.IsValidModel(v:GetModel()) then
+								render.OverrideDepthEnable(true,false)
+								render.SetLightingMode(2)
+								v:DrawModel()
+								render.OverrideDepthEnable(false,false)
+								render.SetLightingMode(0)
+							end
+							-- if util.IsValidModel(v:GetModel()) then
+							-- 	-- render.SetBlend(0.6)
+							-- 	-- render.MaterialOverride(matXenoOverlay)
+							-- 	v:DrawModel()
+							-- 	render.MaterialOverride(0)
+							-- 	render.SetBlend(1)
+							-- end
+						cam.End3D()
+					end
+				end
+			end
+		end)
+		if delete == true then
+			hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_Vision")
+			hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision")
+			if IsValid(cont) then
+				cont:SetDSP(1)
+			end
+		end
 	end)
 end

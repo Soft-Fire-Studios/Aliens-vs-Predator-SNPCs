@@ -1597,7 +1597,7 @@ function ENT:Camo(set)
 			self:GetActiveWeapon():SetMaterial("models/cpthazama/avp/cloak")
 		end
 		self:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
-		for _, x in ipairs(ents.GetAll()) do
+		for _,x in ents.Iterator() do
 			if (x:GetClass() != self:GetClass() && x:GetClass() != "npc_grenade_frag") && x:IsNPC() && self:Visible(x) then
 				x:AddEntityRelationship(self,D_NU,99)
 				if x.IsVJBaseSNPC == true then
