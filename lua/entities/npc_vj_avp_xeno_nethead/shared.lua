@@ -7,4 +7,5 @@ ENT.Purpose 		= "Spawn it and fight with it!"
 ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= ""
 
+ENT.VJ_AVP_XenomorphID = "drone"
 ENT.VJ_AVP_XenoHUD = 2

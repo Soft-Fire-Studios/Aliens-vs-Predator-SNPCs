@@ -419,6 +419,7 @@ function ENT:CustomOnInitialize()
 	end
 
 	self:SetJumpAbility(self.CanLeap)
+	self:CapabilitiesAdd(bit.bor(CAP_USE))
 
 	if self.CanSpit then
 		self.HasRangeAttack = true

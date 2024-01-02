@@ -44,6 +44,7 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_xeno_jungle",vCat_A)
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_xeno_ridged",vCat_A)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_xeno_praetorian",vCat_A)
+	VJ.AddNPC("Xenomorph Egg","npc_vj_avp_xeno_egg",vCat_A)
 	VJ.AddNPC("The Abomination","npc_vj_avp_xeno_predalien",vCat_A)
 	VJ.AddNPC("Nethead","npc_vj_avp_xeno_nethead",vCat_A)
 	VJ.AddNPC("Specimen Six","npc_vj_avp_xeno_six",vCat_A)
@@ -106,6 +107,8 @@ if VJExists == true then
 				net.WriteEntity(ent)
 			net.Send(ent)
 		end
+
+		VJ_AVP_MAX_EGGS = 50
 
 		local table_insert = table.insert
 		local math_abs = math.abs

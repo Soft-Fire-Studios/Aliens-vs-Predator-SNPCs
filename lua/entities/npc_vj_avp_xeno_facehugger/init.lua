@@ -81,9 +81,9 @@ function ENT:SetGroundAngle()
 	local len = self:GetUp() *50
 	local ang = self:GetAngles()
 	local ang_y = Angle(0,ang.y,0)
+	local refreshRate = FrameTime() *20
 	if self:OnGround() then
 		local mins, maxs = self:GetCollisionBounds()
-		local refreshRate = FrameTime() *20
 		local posForward, posBackward, posRight, posLeft
 		local directionVectors = {
 			forward = ang_y:Forward(),
