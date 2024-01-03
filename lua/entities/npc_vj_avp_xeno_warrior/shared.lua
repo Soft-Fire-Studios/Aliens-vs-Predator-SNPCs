@@ -234,13 +234,25 @@ if CLIENT then
 		["$pp_colour_addr"] 		= 0.65,
 		["$pp_colour_addg"] 		= 0.03,
 		["$pp_colour_addb"] 		= 0,
-		["$pp_colour_brightness"] 	= -0.1,
+		["$pp_colour_brightness"] 	= 0.2,
 		["$pp_colour_contrast"] 	= 1,
 		["$pp_colour_colour"] 		= 1,
 		["$pp_colour_mulr"] 		= 0,
 		["$pp_colour_mulg"] 		= 0,
 		["$pp_colour_mulb"] 		= 0,
 		["$pp_colour_inv"] 			= 1,
+	}
+	local tab_default = {
+		["$pp_colour_addr"] 		= 0,
+		["$pp_colour_addg"] 		= 0,
+		["$pp_colour_addb"] 		= 0,
+		["$pp_colour_brightness"] 	= 0.1,
+		["$pp_colour_contrast"] 	= 1,
+		["$pp_colour_colour"] 		= 1,
+		["$pp_colour_mulr"] 		= 0,
+		["$pp_colour_mulg"] 		= 0,
+		["$pp_colour_mulb"] 		= 0,
+		["$pp_colour_inv"] 			= 0,
 	}
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
@@ -388,9 +400,9 @@ if CLIENT then
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
 			if !IsValid(ent) then return end
-			if ent:GetVision() then
-				DrawColorModify(tab_xeno)
-			end
+			local lightColor = render_GetLightColor(ent:GetPos() +ent:OBBCenter())
+			tab_default["$pp_colour_brightness"] = Lerp(FrameTime() *5,tab_default["$pp_colour_brightness"],lightColor:Length() <= 0.1 && 0.3 or 0.1)
+			DrawColorModify(ent:GetVision() && tab_xeno or tab_default)
 		end)
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
 

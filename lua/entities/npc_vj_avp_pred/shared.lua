@@ -415,7 +415,7 @@ if CLIENT then
 	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
 	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
-	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
+	local matGradientTech = Material("hud/cpthazama/avp/thermal_gradient_cold.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
@@ -523,9 +523,9 @@ if CLIENT then
 				b = 0
 				hpColor = Color(255,247,0)
 			elseif mode == 3 then -- Tech mode
-				r = 80
-				g = 80
-				b = 80
+				r = 255
+				g = 150
+				b = 20
 				hpColor = Color(0,255,115)
 			end
 			local maskBG = ent:FindBodygroupByName("mask")

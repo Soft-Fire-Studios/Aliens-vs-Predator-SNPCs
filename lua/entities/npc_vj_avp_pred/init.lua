@@ -241,7 +241,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local bounds = Vector(14,14,84)
+local bounds = Vector(14,14,75)
 --
 function ENT:CustomOnInitialize()
 	self:SetVisionMode(0)

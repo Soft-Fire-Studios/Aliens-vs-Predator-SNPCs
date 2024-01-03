@@ -473,7 +473,7 @@ function ENT:CheckRelationship(ent)
 		if VJ.HasValue(self.VJ_AddCertainEntityAsFriendly, ent) then return D_LI end
 		if VJ.HasValue(self.VJ_AddCertainEntityAsEnemy, ent) then return D_HT end
 		local entDisp = ent.Disposition and ent:Disposition(self)
-		if !self.AlwaysAlerted && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.3 then
+		if !self.AlwaysAlerted && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.2 then
 			return D_NU
 		end
 		if (ent:IsNPC() && ((entDisp == D_HT) or (entDisp == D_NU && ent.VJ_IsBeingControlled))) or (isPly && !self.PlayerFriendly && ent:Alive()) then

@@ -22,6 +22,7 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_bosstheme_a",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
@@ -100,6 +101,7 @@ if VJExists == true then
 		util.AddNetworkString("VJ_AVP_Predator_Client")
 		util.AddNetworkString("VJ_AVP_Xeno_Client")
 		util.AddNetworkString("VJ_AVP_CSound")
+		util.AddNetworkString("VJ_AVP_PingTable")
 
 		function VJ_AVP_CSound(ent,snd)
 			net.Start("VJ_AVP_CSound")
@@ -115,6 +117,8 @@ if VJExists == true then
 		local math_cos = math.cos
 		local math_rad = math.rad
 
+		local moveEnts = {func_door=true,func_door_rotating=true,func_train=true,prop_dynamic_override=true,prop_door=true,prop_door_rotating=true}
+
 		local function FindEntitiesInConeAndRadius(self)
 			local origin = self:GetPos()
 			local radius = 2250
@@ -127,7 +131,7 @@ if VJExists == true then
 
 			for _, ent in pairs(entities) do
 				if ent == self then continue end
-				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent)) then continue end
+				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
 				if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
 				if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
 				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 0 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 0 then continue end
@@ -146,9 +150,14 @@ if VJExists == true then
 
 		function VJ_AVP_MotionTracker(self)
 			local curTime = CurTime()
+			self:SetNW2Float("AVP.MotionTracker.Ping",self.Ping_NextPingT or 0)
 			if curTime > (self.Ping_NextPingT or 0) then
 				self.Ping_NextPingT = curTime +0.85
 				local pingEnts = FindEntitiesInConeAndRadius(self)
+				net.Start("VJ_AVP_PingTable")
+					net.WriteEntity(self)
+					net.WriteTable(pingEnts)
+				net.Broadcast()
 				local closestEnt = NULL
 				local closestDist = 0
 				for _,v in pairs(pingEnts) do
@@ -172,7 +181,7 @@ if VJExists == true then
 					end
 					VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_bleep_stevie.ogg",55,sndPitch)
 					if self.IsVJBaseSNPC && self.CanInvestigate && self.NextInvestigationMove < CurTime() then
-						if !VJ.IsProp(closestEnt) then
+						if closestEnt:IsNPC() or closestEnt:IsPlayer() or closestEnt:IsNextBot() then
 							if self:Visible(closestEnt) then
 								self:StopMoving()
 								self:SetTarget(closestEnt)
@@ -184,9 +193,9 @@ if VJExists == true then
 								self.NextInvestigationMove = CurTime() +10
 							end
 							self:CustomOnInvestigate(v)
-						end
-						if self.VJ_AVP_NPC && math.random(1,6) == 1 then
-							self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+							if self.VJ_AVP_NPC && math.random(1,6) == 1 then
+								self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+							end
 						end
 					end
 				else
@@ -194,6 +203,14 @@ if VJExists == true then
 				end
 			end
 		end
+
+		hook.Add("Think","VJ_AVP_HUD_Setup",function()
+			for _,ply in ents.Iterator() do
+				if ply:IsPlayer() && ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC then
+					VJ_AVP_MotionTracker(ply)
+				end
+			end
+		end)
 	else
 		net.Receive("VJ_AVP_CSound",function(len,pl)
 			local sound = net.ReadString()
@@ -202,6 +219,24 @@ if VJExists == true then
 			ent:EmitSound(sound,0)
 			print("Playing sound " .. sound .. " on " .. ent:Nick())
 		end)
+
+		surface.CreateFont("VJFont_AVP_Marine", {
+			font = "Orbitron Regular",
+			size = 32,
+			weight = 600,
+			blursize = 1,
+			antialias = true,
+			italic = false,
+		})
+
+		surface.CreateFont("VJFont_AVP_MarineSmall", {
+			font = "Orbitron Regular",
+			size = 29,
+			weight = 600,
+			blursize = 1,
+			antialias = true,
+			italic = false,
+		})
 	end
 
 	/*

@@ -172,7 +172,7 @@ function SWEP:CustomOnThink()
 		self:SetOverHeat(math_Clamp(self:GetOverHeat() -0.0025,0,1))
 	end
 
-	if SERVER && self.HasMotionTracker then
+	if SERVER && self.HasMotionTracker && owner:IsNPC() then
 		VJ_AVP_MotionTracker(owner)
 	end
 
