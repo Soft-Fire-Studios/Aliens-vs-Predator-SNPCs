@@ -804,7 +804,7 @@ if CLIENT then
 		local tab_thermal = {
 			["$pp_colour_addr"] 		= -.5,
 			["$pp_colour_addg"] 		= -.5,
-			["$pp_colour_addb"] 		= -.5,
+			["$pp_colour_addb"] 		= -.8,
 			["$pp_colour_brightness"] 	= 0.6,
 			["$pp_colour_contrast"] 	= 0.12,
 			["$pp_colour_colour"] 		= 1,
@@ -863,7 +863,7 @@ if CLIENT then
 			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
 			if mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
 				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,math.random(95,110))
-				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(106,29,102) or Color(124,0,0),0.3,0)
+				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(64,117,126) or Color(124,0,0),0.3,0)
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5
 			end
@@ -915,16 +915,20 @@ if CLIENT then
 					-- 		-- 	render.SetBlend(1)
 					-- 		-- end
 					-- 	cam.End3D()
-					elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
-						cam.Start3D(EyePos(),EyeAngles())
-							if util.IsValidModel(v:GetModel()) then
-								render.SetBlend(1)
-								render.MaterialOverride(matColdOverlay)
-								v:DrawModel()
-								render.MaterialOverride(0)
-								render.SetBlend(1)
-							end
-						cam.End3D()
+					-- elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
+					-- 	cam.Start3D(EyePos(),EyeAngles())
+					-- 		if util.IsValidModel(v:GetModel()) then
+					-- 			render.OverrideDepthEnable(true,false)
+					-- 			render.SetLightingMode(2)
+					-- 			render.SetBlend(1)
+					-- 			render.MaterialOverride(matColdOverlay)
+					-- 			v:DrawModel()
+					-- 			render.OverrideDepthEnable(false,false)
+					-- 			render.SetLightingMode(0)
+					-- 			render.MaterialOverride(0)
+					-- 			render.SetBlend(1)
+					-- 		end
+					-- 	cam.End3D()
 					end
 				end
 				if IsValid(cont) then
@@ -1002,6 +1006,20 @@ if CLIENT then
 							-- 	render.MaterialOverride(0)
 							-- 	render.SetBlend(1)
 							-- end
+						cam.End3D()
+					elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
+						cam.Start3D(EyePos(),EyeAngles())
+							if util.IsValidModel(v:GetModel()) then
+								render.OverrideDepthEnable(true,false)
+								render.SetLightingMode(2)
+								render.SetBlend(1)
+								render.MaterialOverride(matColdOverlay)
+								v:DrawModel()
+								render.OverrideDepthEnable(false,false)
+								render.SetLightingMode(0)
+								render.MaterialOverride(0)
+								render.SetBlend(1)
+							end
 						cam.End3D()
 					end
 				end
