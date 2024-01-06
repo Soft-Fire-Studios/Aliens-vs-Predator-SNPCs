@@ -134,7 +134,7 @@ if VJExists == true then
 				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
 				if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
 				if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
-				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 0 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 0 then continue end
+				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 1 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 1 then continue end
 				local direction = (ent:GetPos() - origin):GetNormalized()
 				local forward = self:GetForward()
 				local dot = direction:Dot(forward)
@@ -207,6 +207,7 @@ if VJExists == true then
 		hook.Add("Think","VJ_AVP_HUD_Setup",function()
 			for _,ply in ents.Iterator() do
 				if ply:IsPlayer() && ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC then
+					if GetConVar("ai_ignoreplayers"):GetBool() then return end
 					VJ_AVP_MotionTracker(ply)
 				end
 			end
@@ -258,6 +259,8 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
 		"vj_avp_xeno_spit",
 		"vj_avp_xeno_spit_impact",
+		"vj_avp_xeno_queenmarker",
+		"vj_avp_xeno_queenmarker_pointer",
 	})
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{

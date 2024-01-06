@@ -326,8 +326,129 @@ ENT.CanAttack = true
 ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.AlwaysStand = false
-ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED}
+ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED,ACT_WALK_RELAXED}
 ENT.TranslateActivities = {}
+ENT.HitGroups = {
+	[HITGROUP_HEAD] = {
+		HP = 100,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_head"),1)
+			self:SetBodygroup(self:FindBodygroupByName("m_mouth"),1)
+			self:SetBodygroup(self:FindBodygroupByName("m_mouth_mini"),1)
+			self:SetBodygroup(self:FindBodygroupByName("m_face"),2)
+			self:SetHealth(0)
+			self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+		end,
+	},
+	[HITGROUP_LEFTARM] = {
+		HP = 75,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_larm"),1)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.LeftArm = true
+			if self.Gibbed.RightArm then
+				self:SetHealth(0)
+				self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+				self:StopAttacks(true)
+				self.CurrentAttackAnimationTime = 0	
+				self:StopMoving()
+				self:CapabilitiesRemove(CAP_MOVE_JUMP)
+			end
+		end,
+	},
+	[HITGROUP_RIGHTARM] = {
+		HP = 75,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_rarm"),1)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.RightArm = true
+			if self.Gibbed.LeftArm then
+				self:SetHealth(0)
+				self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+				self:StopAttacks(true)
+				self.CurrentAttackAnimationTime = 0	
+				self:StopMoving()
+				self:CapabilitiesRemove(CAP_MOVE_JUMP)
+			end
+		end,
+	},
+	[HITGROUP_LEFTLEG] = {
+		HP = 75,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_lleg"),1)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.LeftLeg = true
+			self:StopAttacks(true)
+			self.CurrentAttackAnimationTime = 0	
+			self:StopMoving()
+			self:CapabilitiesRemove(CAP_MOVE_JUMP)
+		end,
+	},
+	[HITGROUP_RIGHTLEG] = {
+		HP = 75,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_rleg"),1)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.RightLeg = true
+			self:StopAttacks(true)
+			self.CurrentAttackAnimationTime = 0	
+			self:StopMoving()
+			self:CapabilitiesRemove(CAP_MOVE_JUMP)
+		end,
+	},
+	[111] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_tail_end"),1)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.Tail = true
+		end,
+	},
+	[110] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_tail_main"),1)
+			self:SetBodygroup(self:FindBodygroupByName("m_tail_end"),2)
+			self.Gibbed = self.Gibbed or {}
+			self.Gibbed.Tail = true
+		end,
+	},
+	[100] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_ltubes"),1)
+		end,
+	},
+	[102] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_ltubes"),1)
+		end,
+	},
+	[101] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_rtubes"),1)
+		end,
+	},
+	[103] = {
+		HP = 50,
+		Dead = false,
+		OnDecap = function(self,dmginfo,hitgroup)
+			self:SetBodygroup(self:FindBodygroupByName("m_rtubes"),1)
+		end,
+	},
+}
 --
 local math_acos = math.acos
 local math_deg = math.deg
@@ -340,6 +461,37 @@ function ENT:TranslateActivity(act)
 	if self.TranslateActivities[act] then
 		return self.TranslateActivities[act]
 	end
+	if act == ACT_IDLE && self.CurrentSet == 2 then
+		return ACT_IDLE_ANGRY
+	end
+	-- if act == ACT_WALK or act == ACT_RUN then
+	-- 	local ply = self.VJ_TheController
+	-- 	local curTime = CurTime()
+	-- 	local standing = self.CurrentSet == 2
+	-- 	if IsValid(ply) then
+	-- 		if ply:KeyDown(IN_WALK) then
+	-- 			return standing && ACT_WALK or ACT_WALK_RELAXED
+	-- 		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then
+	-- 			return standing && ACT_MP_SPRINT or ACT_SPRINT
+	-- 		else
+	-- 			return standing && ACT_RUN or ACT_RUN_RELAXED
+	-- 		end
+	-- 	end
+	-- 	local moveRandom = curTime < self.MoveAroundRandomlyT
+	-- 	if moveRandom then
+	-- 		return ACT_WALK_RELAXED
+	-- 	else
+	-- 		if act == ACT_WALK then
+	-- 			return standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+	-- 		else
+	-- 			if self.NextSprintT < curTime && self.AI_IsSprinting then
+	-- 				return standing && ACT_MP_SPRINT or ACT_SPRINT
+	-- 			else
+	-- 				return standing && ACT_RUN or ACT_RUN_RELAXED
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -400,6 +552,9 @@ function ENT:CustomOnCallForHelp(ally)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local defStandingBounds = Vector(13,13,72)
+local defCrawlingBounds = Vector(13,13,34)
+--
 function ENT:CustomOnInitialize()
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
 	self.LastSet = 0
@@ -413,6 +568,7 @@ function ENT:CustomOnInitialize()
 	self.LastEnemyDistance = 999999
 	self.NextMoveRandomlyT = 0
 	self.MoveAroundRandomlyT = 0
+	self.NextGibbedFXTime = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -423,6 +579,14 @@ function ENT:CustomOnInitialize()
 
 	if self.CanSpit then
 		self.HasRangeAttack = true
+	end
+
+	if self.CurrentSet == 2 then
+		local bounds = self.StandingBounds or defStandingBounds
+		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+	elseif self.CurrentSet == 1 then
+		local bounds = self.CrawlingBounds or defCrawlingBounds
+		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
 	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
@@ -820,6 +984,10 @@ function ENT:CustomAttack(ent,visible)
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 	local curTime = CurTime()
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		return
+	end
 
 	if self.OnCustomAttack then
 		self:OnCustomAttack(cont,ent,visible,dist)
@@ -829,6 +997,7 @@ function ENT:CustomAttack(ent,visible)
 		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
+			if self.CanSpit && self.IsAbleToRangeAttack then return end
 			self:AttackCode(isCrawling,5)
 		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
@@ -850,26 +1019,45 @@ function ENT:CustomAttack(ent,visible)
 			end
 		end
 
-		// You absolute dumb fuck, how did you forget to add the SNEAK ANIMATIONS on the alien...
-		-- if math.random(1,1) == 1 && isCrawling && !self:IsBusy() && dist <= 600 && dist > 225 && curTime > self.NextMoveRandomlyT then
-		-- 	local moveCheck = VJ.PICK(self:VJ_CheckAllFourSides(300, true, "0011"))
-		-- 	if moveCheck then
-		-- 		self:SetLastPosition(moveCheck)
-		-- 		self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
-		-- 			x:EngTask("TASK_FACE_ENEMY",0)
-		-- 			x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
-		-- 		end)
-		-- 		self.MoveAroundRandomlyT = curTime +self:GetPathTimeToGoal() +math.Rand(1,2.5)
-		-- 		self.NextMoveRandomlyT = self.MoveAroundRandomlyT +math.random(3,8)
-		-- 		self.NextChaseTime = self.MoveAroundRandomlyT +math.Rand(0.5,1)
-		-- 	end
-		-- end
+		if math.random(1,10) == 1 && isCrawling && !self:IsBusy() && dist <= 900 && dist > 225 && curTime > self.NextMoveRandomlyT then
+			local moveCheck = VJ.PICK(self:VJ_CheckAllFourSides(300, true, "0011"))
+			if moveCheck then
+				self:SetLastPosition(moveCheck)
+				self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+					x:EngTask("TASK_FACE_ENEMY",0)
+					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+				end)
+				self.MoveAroundRandomlyT = curTime +self:GetPathTimeToGoal() +math.Rand(1,2.5)
+				self.NextMoveRandomlyT = self.MoveAroundRandomlyT +math.random(3,8)
+				self.NextChaseTime = self.MoveAroundRandomlyT +math.Rand(0.5,1)
+			end
+		end
+
+		if curTime < self.MoveAroundRandomlyT && dist <= 180 && !self:IsBusy() then
+			self.NextChaseTime = 0
+			self.MoveAroundRandomlyT = 0
+			self:ClearGoal()
+			self:StopMoving()
+			self.NextMoveRandomlyT = curTime +math.random(3,8)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
 	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack then return end
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		self.AttackType = 2
+		self.AttackSide = self.AttackSide == "right" && "left" or "right"
+		self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+			if interrupted or self.InFatality then return end
+			self:VJ_ACT_PLAYACTIVITY("claw_swipe_" .. self.AttackSide .. "_mid_return",true,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end})
+		self.NextChaseTime = 0
+		return
+	end
 	if isCrawling then
 		-- print(isCrawling,self:IsMoving(),forceAttack)
 		if self:IsMoving() then
@@ -1189,31 +1377,6 @@ function ENT:CustomOnThink_AIEnabled()
 	
 	self:SetHP(self:Health())
 
-	if self.LastSet != curSet then
-		local oldSet = self.LastSet
-		self.LastSet = curSet
-		self.PoseParameterLooking_Names = {
-			pitch= curSet == 1 && {"head_pitch"} or {"standing_head_pitch","standing_body_pitch"},
-			yaw= curSet == 1 && {"head_yaw"} or {"standing_head_yaw","standing_body_yaw"},
-			roll={}
-		}
-		if oldSet == 1 then
-			self:SetPoseParameter("standing_head_yaw",self:GetPoseParameter("head_yaw"))
-			self:SetPoseParameter("standing_head_pitch",self:GetPoseParameter("head_pitch"))
-			self:SetPoseParameter("standing_body_yaw",self:GetPoseParameter("head_yaw"))
-			self:SetPoseParameter("standing_body_pitch",self:GetPoseParameter("head_pitch"))
-			self:SetPoseParameter("head_yaw",0)
-			self:SetPoseParameter("head_pitch",0)
-		else
-			self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
-			self:SetPoseParameter("head_pitch",self:GetPoseParameter("standing_head_pitch"))
-			self:SetPoseParameter("standing_head_yaw",0)
-			self:SetPoseParameter("standing_head_pitch",0)
-			self:SetPoseParameter("standing_body_yaw",0)
-			self:SetPoseParameter("standing_body_pitch",0)
-		end
-	end
-
 	if self.HasBreath then
 		self:Breathe()
 	end
@@ -1234,102 +1397,190 @@ function ENT:CustomOnThink_AIEnabled()
 	self:SetSprinting(self:IsMoving() && (self:GetActivity() == ACT_SPRINT or self:GetActivity() == ACT_MP_SPRINT))
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
-	local sprinting = self:GetSprinting()
-	-- self.CanAttack = !sprinting
-	if sprinting then
-		if self:GetActivity() == ACT_SPRINT && self:OnGround() then
-			self:SetVelocity(self:GetMoveVelocity() *1.25)
-		end
-		self.SprintT = self.SprintT +0.05
-		if self.SprintT >= 4 then
-			if self.AI_IsSprinting then
-				self.AI_IsSprinting = false
-			end
-			self.NextSprintT = curTime +3
-		end
-	else
-		if self.SprintT > 0 then
-			self.SprintT = self.SprintT -0.25
-		end
-	end
-	self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
-	if self.AlwaysStand && self.CanStand && self.CurrentSet == 1 then
-		self.CurrentSet = 2
-	end
-	if IsValid(ply) then
-		-- if ply:KeyDown(IN_WALK) then -- Wall walking
-		-- 	if ply:KeyDown(IN_FORWARD) then
-		-- 		local tr = util.TraceLine({
-		-- 			start = self:GetPos(),
-		-- 			endpos = self:GetPos() +ply:GetAimVector() *250,
-		-- 			filter = {self,ply}
-		-- 		})
-		-- 		local touchDir = {L=false,R=false,U=false,D=false}
-		-- 		for i = 1,4 do
-		-- 			local dir = i == 1 && ply:GetRight() or i == 2 && ply:GetRight() *-1 or i == 3 && ply:GetUp() or ply:GetUp() *-1
-		-- 			local tr = util.TraceLine({
-		-- 				start = self:GetPos(),
-		-- 				endpos = self:GetPos() +dir *250,
-		-- 				filter = {self,ply}
-		-- 			})
-		-- 			if tr.Hit then
-		-- 				if i == 1 then
-		-- 					touchDir.R = true
-		-- 				elseif i == 2 then
-		-- 					touchDir.L = true
-		-- 				elseif i == 3 then
-		-- 					touchDir.U = true
-		-- 				elseif i == 4 then
-		-- 					touchDir.D = true
-		-- 				end
-		-- 			end
-		-- 		end
-		-- 		local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
-		-- 		local moveDirection = (tr.HitPos -self:GetPos()):GetNormalized()
-		-- 		self:SetLocalVelocity(moveDirection *(moveSpeed <= 0 && 100 or moveSpeed))
-		-- 		self:SetMoveType(MOVETYPE_STEP)
-		-- 		self:SetNavType(NAV_FLY)
-		-- 		self:ResetIdealActivity(moveAct)
-		-- 	else
-		-- 		self:SetLocalVelocity(Vector(0,0,0))
-		-- 		self:SetMoveType(MOVETYPE_NONE)
-		-- 		self:SetNavType(NAV_GROUND)
-		-- 		self:ResetIdealActivity(idleAct)
-		-- 	end
-		-- end
-		if ply:KeyDown(IN_DUCK) then
-			if curTime > self.ChangeSetT then
-				self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
-				self.ChangeSetT = curTime +0.5
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		if curTime > self.NextGibbedFXTime then
+			self.NextGibbedFXTime = curTime +math.Rand(0.1,0.5)
+	
+			local pos = self:GetPos()
+			
+			local tr = util.TraceLine({start = pos, endpos = pos +self:GetUp() *-150, filter = self})
+			if !tr.HitWorld then return end
+			local trNormalP = tr.HitPos +tr.HitNormal
+			local trNormalN = tr.HitPos -tr.HitNormal
+			-- local particle = ents.Create("info_particle_system")
+			-- particle:SetKeyValue("effect_name",VJ.PICK(self.CustomBlood_Particle))
+			-- particle:SetPos(trNormalP)
+			-- particle:Spawn()
+			-- particle:Activate()
+			-- particle:Fire("Start")
+			-- particle:Fire("Kill","",0.1)
+			util.Decal(VJ.PICK(self.CustomBlood_Decal), trNormalP, trNormalN, self)
+			for _ = 1, 2 do
+				if math.random(1, 2) == 1 then util.Decal(VJ.PICK(self.CustomBlood_Decal), trNormalP + Vector(math.random(-25, 25), math.random(-25, 25), 0), trNormalN, self) end
 			end
 		end
 	else
-		self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
-		if IsValid(ent) then
-			if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.MoveAroundRandomlyT && curTime > self.NextSprintT && math.random(1,12) == 1 then
-				self.AI_IsSprinting = true
+		if self.AlwaysStand && curSet != 2 then
+			self.CurrentSet = 2
+			self.NextIdleTime = 0
+			self.NextIdleStandTime = 0
+			curSet = 2
+		end
+
+		if self.LastSet != curSet then
+			local oldSet = self.LastSet
+			self.LastSet = curSet
+			self.PoseParameterLooking_Names = {
+				pitch= curSet == 1 && {"head_pitch"} or {"standing_head_pitch","standing_body_pitch"},
+				yaw= curSet == 1 && {"head_yaw"} or {"standing_head_yaw","standing_body_yaw"},
+				roll={}
+			}
+			if oldSet == 1 then -- We're changing from crawling to standing
+				self:SetPoseParameter("standing_head_yaw",self:GetPoseParameter("head_yaw"))
+				self:SetPoseParameter("standing_head_pitch",self:GetPoseParameter("head_pitch"))
+				self:SetPoseParameter("standing_body_yaw",self:GetPoseParameter("head_yaw"))
+				self:SetPoseParameter("standing_body_pitch",self:GetPoseParameter("head_pitch"))
+				self:SetPoseParameter("head_yaw",0)
+				self:SetPoseParameter("head_pitch",0)
+				local bounds = self.StandingBounds or defStandingBounds
+				self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+				if !self.VJ_AVP_XenomorphLarge then
+					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
+					self.RangeAttackAnimationStopMovement = false
+				end
+				self.VJC_Data.ThirdP_Offset = Vector(0, 0, -35)
+				-- print("standing")
+			else -- We're changing from standing to crawling
+				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
+				self:SetPoseParameter("head_pitch",self:GetPoseParameter("standing_head_pitch"))
+				self:SetPoseParameter("standing_head_yaw",0)
+				self:SetPoseParameter("standing_head_pitch",0)
+				self:SetPoseParameter("standing_body_yaw",0)
+				self:SetPoseParameter("standing_body_pitch",0)
+				local bounds = self.CrawlingBounds or defCrawlingBounds
+				self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+				if !self.VJ_AVP_XenomorphLarge then
+					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
+					self.RangeAttackAnimationStopMovement = true
+				end
+				self.VJC_Data.ThirdP_Offset = Vector(0, 0, 0)
+				-- print("crawling")
 			end
-			local dist = self.LastEnemyDistance
-			if  curTime > self.ChangeSetT then
-				if curSet == 1 then
-					if self.CanStand && (self.AlwaysStand or !self.AlwaysStand && dist < 750 && math.random(1,20) == 1) then
-						self.CurrentSet = 2
-						self.ChangeSetT = curTime +math.Rand(15,35)
-						-- self.MoveAroundRandomlyT = 0
-						-- self.NextMoveRandomlyT = curTime +math.random(3,8)
-						-- self.NextChaseTime = 0
-					end
-				else
-					if !self.AlwaysStand && dist >= 750 && math.random(1,10) == 1 then
-						self.CurrentSet = 1
-						self.ChangeSetT = curTime +math.Rand(15,35)
-					end
+		end
+		local sprinting = self:GetSprinting()
+		-- self.CanAttack = !sprinting
+		if sprinting then
+			if self:GetActivity() == ACT_SPRINT && self:OnGround() then
+				self:SetVelocity(self:GetMoveVelocity() *1.25)
+			end
+			self.SprintT = self.SprintT +0.05
+			if self.SprintT >= 4 then
+				if self.AI_IsSprinting then
+					self.AI_IsSprinting = false
+				end
+				self.NextSprintT = curTime +3
+			end
+		else
+			if self.SprintT > 0 then
+				self.SprintT = self.SprintT -0.25
+			end
+		end
+		self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
+		if self.AlwaysStand && self.CanStand && self.CurrentSet == 1 then
+			self.CurrentSet = 2
+			self.NextIdleTime = 0
+			self.NextIdleStandTime = 0
+		end
+		if IsValid(ply) then
+			-- if ply:KeyDown(IN_WALK) then -- Wall walking
+			-- 	if ply:KeyDown(IN_FORWARD) then
+			-- 		local tr = util.TraceLine({
+			-- 			start = self:GetPos(),
+			-- 			endpos = self:GetPos() +ply:GetAimVector() *250,
+			-- 			filter = {self,ply}
+			-- 		})
+			-- 		local touchDir = {L=false,R=false,U=false,D=false}
+			-- 		for i = 1,4 do
+			-- 			local dir = i == 1 && ply:GetRight() or i == 2 && ply:GetRight() *-1 or i == 3 && ply:GetUp() or ply:GetUp() *-1
+			-- 			local tr = util.TraceLine({
+			-- 				start = self:GetPos(),
+			-- 				endpos = self:GetPos() +dir *250,
+			-- 				filter = {self,ply}
+			-- 			})
+			-- 			if tr.Hit then
+			-- 				if i == 1 then
+			-- 					touchDir.R = true
+			-- 				elseif i == 2 then
+			-- 					touchDir.L = true
+			-- 				elseif i == 3 then
+			-- 					touchDir.U = true
+			-- 				elseif i == 4 then
+			-- 					touchDir.D = true
+			-- 				end
+			-- 			end
+			-- 		end
+			-- 		local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
+			-- 		local moveDirection = (tr.HitPos -self:GetPos()):GetNormalized()
+			-- 		self:SetLocalVelocity(moveDirection *(moveSpeed <= 0 && 100 or moveSpeed))
+			-- 		self:SetMoveType(MOVETYPE_STEP)
+			-- 		self:SetNavType(NAV_FLY)
+			-- 		self:ResetIdealActivity(moveAct)
+			-- 	else
+			-- 		self:SetLocalVelocity(Vector(0,0,0))
+			-- 		self:SetMoveType(MOVETYPE_NONE)
+			-- 		self:SetNavType(NAV_GROUND)
+			-- 		self:ResetIdealActivity(idleAct)
+			-- 	end
+			-- end
+			if ply:KeyDown(IN_DUCK) then
+				if curTime > self.ChangeSetT then
+					self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
+					self.ChangeSetT = curTime +0.5
+					self.NextIdleTime = 0
+					self.NextIdleStandTime = 0
 				end
 			end
 		else
-			if curTime > self.ChangeSetT then
-				self.CurrentSet = 1
-				self.ChangeSetT = curTime +math.Rand(3,8)
+			self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
+			if curTime > self.MoveAroundRandomlyT then
+				if IsValid(ent) then
+					if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.MoveAroundRandomlyT && curTime > self.NextSprintT && math.random(1,12) == 1 then
+						self.AI_IsSprinting = true
+					end
+					local dist = self.LastEnemyDistance
+					if curTime > self.ChangeSetT then
+						if curSet == 1 then
+							if self.CanStand && (self.AlwaysStand or !self.AlwaysStand && dist < 750 && math.random(1,20) == 1) then
+								self.CurrentSet = 2
+								self.NextIdleTime = 0
+								self.NextIdleStandTime = 0
+								self.ChangeSetT = curTime +math.Rand(15,35)
+								self.MoveAroundRandomlyT = 0
+								self.NextMoveRandomlyT = curTime +math.random(3,8)
+								self.NextChaseTime = 0
+							end
+						else
+							if !self.AlwaysStand && dist >= 750 && math.random(1,10) == 1 then
+								self.CurrentSet = 1
+								self.NextIdleTime = 0
+								self.NextIdleStandTime = 0
+								self.ChangeSetT = curTime +math.Rand(15,35)
+							end
+						end
+					end
+				else
+					if curTime > self.ChangeSetT then
+						self.CurrentSet = self.AlwaysStand && 2 or 1
+						self.NextIdleTime = 0
+						self.NextIdleStandTime = 0
+						self.ChangeSetT = curTime +math.Rand(3,8)
+					end
+				end
+			else
+				if self:GetGoalPos():Distance(self:GetPos()) > 50 then
+					self.MoveAroundRandomlyT = curTime +self:GetPathTimeToGoal()
+				end
 			end
 		end
 	end
@@ -1376,12 +1627,40 @@ end
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition())
 	self.HealthRegenerationDelayT = CurTime() +5
+	if self.MoveAroundRandomlyT > CurTime() then
+		self.NextChaseTime = 0
+		self.MoveAroundRandomlyT = 0
+		self:ClearGoal()
+		self:StopMoving()
+	end
+
+	local decap = self.HitGroups[hitgroup]
+	if decap then
+		if decap.Dead then return end
+		decap.HP = decap.HP -dmginfo:GetDamage()
+		if decap.HP <= 0 then
+			decap.Dead = true
+			if decap.OnDecap then
+				decap.OnDecap(self,dmginfo,hitgroup)
+			end
+		end
+	end
 
 	local explosion = dmginfo:IsExplosionDamage()
 	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
+		if self:Health() <= self:GetMaxHealth() *0.25 then
+			local decap = self.HitGroups[math.random(4,7)]
+			if decap then
+				if decap.Dead then return end
+				decap.Dead = true
+				if decap.OnDecap then
+					decap.OnDecap(self,dmginfo,hitgroup)
+				end
+			end
+		end
 		self:TaskComplete()
 		self:StopMoving()
 		self:ClearSchedule()
@@ -1429,26 +1708,31 @@ function ENT:SelectMovementActivity()
 	local ply = self.VJ_TheController
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
+	end
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
-			act = standing && ACT_WALK or ACT_WALK_RELAXED
+			return standing && ACT_WALK or ACT_WALK_RELAXED
 		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then
-			act = standing && ACT_MP_SPRINT or ACT_SPRINT
+			return standing && ACT_MP_SPRINT or ACT_SPRINT
 		else
-			act = standing && ACT_RUN or ACT_RUN_RELAXED
+			return standing && ACT_RUN or ACT_RUN_RELAXED
 		end
-		return act
 	end
 	local currentSchedule = self.CurrentSchedule
 	if currentSchedule != nil then
-		local moveRandom = curTime < self.MoveAroundRandomlyT
-		if moveRandom or currentSchedule.MoveType == 0 then
-			act = standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+		if curTime < self.MoveAroundRandomlyT then
+			return ACT_WALK_RELAXED
+		end
+		if currentSchedule.MoveType == 0 then
+			return standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
 		else
 			if self.NextSprintT < curTime && self.AI_IsSprinting then
-				act = standing && ACT_MP_SPRINT or ACT_SPRINT
+				return standing && ACT_MP_SPRINT or ACT_SPRINT
 			else
-				act = standing && ACT_RUN or ACT_RUN_RELAXED
+				return standing && ACT_RUN or ACT_RUN_RELAXED
 			end
 		end
 	end
@@ -1458,6 +1742,10 @@ end
 function ENT:SelectIdleActivity()
 	local act = ACT_IDLE
 	local standing = self.CurrentSet == 2
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
+	end
 	-- if standing then
 		-- act = ACT_IDLE_STIMULATED
 	-- else

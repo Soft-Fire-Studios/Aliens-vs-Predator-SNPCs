@@ -17,6 +17,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",1,"Vision")
 	self:NetworkVar("Bool",2,"JumpAbility")
 	self:NetworkVar("Vector",0,"JumpPosition")
+	self:NetworkVar("Vector",1,"QueenMarker")
 	self:NetworkVar("Int",0,"HP")
 end
 
@@ -125,6 +126,21 @@ if CLIENT then
 		-- 	print(v)
 		-- end
 		self.HasResetMaterials = true
+
+		self.QueenMarkerPoints = {}
+	end
+
+	function ENT:OnRemove()
+		if IsValid(self.QueenMarkerFX) then
+			self.QueenMarkerFX:StopEmission(false,true)
+			self.QueenMarkerFX = nil
+		end
+		for _,v in pairs(self.QueenMarkerPoints) do
+			if IsValid(v) then
+				v:StopEmission(false,true)
+				v = nil
+			end
+		end
 	end
 
 	local vec0 = Vector(0, 0, 0)
@@ -369,10 +385,62 @@ if CLIENT then
 						cont.VisionSound:Play()
 						cont.VisionSound:ChangeVolume(1)
 					end
+					local queenMarker = ent:GetQueenMarker()
+					ent.LastQueenMarker = ent.LastQueenMarker or queenMarker
+					if ent.LastQueenMarker != queenMarker then
+						ent.LastQueenMarker = queenMarker
+						if IsValid(ent.QueenMarkerFX) then
+							ent.QueenMarkerFX:StopEmission(false,true)
+							ent.QueenMarkerFX = nil
+						end
+					end
+					if queenMarker != vector_origin then
+						if !IsValid(ent.QueenMarkerFX) then
+							ent.QueenMarkerFX = CreateParticleSystemNoEntity("vj_avp_xeno_queenmarker",queenMarker)
+							ent.QueenMarkerFX:SetControlPoint(0,queenMarker)
+						end
+						local startPos = ent:EyePos() +ent:GetVelocity()
+						for i = 1,5 do
+							if !IsValid(ent.QueenMarkerPoints[i]) then
+								ent.QueenMarkerPoints[i] = CreateParticleSystemNoEntity("vj_avp_xeno_queenmarker_pointer",queenMarker)
+							else
+								if IsValid(ent.QueenMarkerFX) then
+									local ang = (queenMarker -startPos):Angle():Forward() *(100 *i)
+									local tr = util.TraceLine({
+										start = startPos,
+										endpos = startPos +ang,
+										filter = {ent,cont}
+									})
+									ent.QueenMarkerPoints[i]:SetControlPoint(0,tr.HitPos +tr.HitNormal *4)
+								end
+							end
+						end
+					else
+						if IsValid(ent.QueenMarkerFX) then
+							ent.QueenMarkerFX:StopEmission(false,true)
+							ent.QueenMarkerFX = nil
+						end
+						for _,v in pairs(ent.QueenMarkerPoints) do
+							if IsValid(v) then
+								v:StopEmission(false,true)
+								v = nil
+							end
+						end
+					end
 				else
 					if cont.VisionSound then
 						cont.VisionSound:Stop()
 						cont.VisionSound = nil
+					end
+					if IsValid(ent.QueenMarkerFX) then
+						ent.QueenMarkerFX:StopEmission(false,true)
+						ent.QueenMarkerFX = nil
+					end
+					for _,v in pairs(ent.QueenMarkerPoints) do
+						if IsValid(v) then
+							v:StopEmission(false,true)
+							v = nil
+						end
 					end
 				end
 				-- if render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length() <= 0.1 then
@@ -396,6 +464,14 @@ if CLIENT then
 			if cont.VisionSound then
 				cont.VisionSound:Stop()
 			end
+			if IsValid(ent.QueenMarkerFX) then
+				ent.QueenMarkerFX:StopEmission(false,true)
+				ent.QueenMarkerFX = nil
+			end
+			if IsValid(ent.QueenMarkerPointerFX) then
+				ent.QueenMarkerPointerFX:StopEmission(false,true)
+				ent.QueenMarkerPointerFX = nil
+			end
 		end
 
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision",function()
@@ -407,11 +483,11 @@ if CLIENT then
 		if delete == true then hook.Remove("RenderScreenspaceEffects","VJ_AVP_Xeno_Vision") end
 
 		hook.Add("PreDrawHalos","VJ_AVP_Xeno_Halo",function()
-			local tbl = select(2,ents.Iterator())
-			for _,v in pairs(tbl) do
+			if !IsValid(ent) then return end
+			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
 				if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
-					if v:GetClass() == "obj_vj_bullseye" then continue end
+					if v:GetClass() == "obj_vj_bullseye" or v:GetPos():Distance(ent:GetPos()) > 2000 then continue end
 					if (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && !v.VJ_AVP_K_Xenomorph && !VJ_HasValue(VJ_AVP_HALOS.Xenomorphs,v) && v != ent then
 						table_insert(VJ_AVP_HALOS.Xenomorphs,v)
 						-- print("Added",v,"Xeno")

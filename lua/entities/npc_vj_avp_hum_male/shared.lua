@@ -86,6 +86,7 @@ if CLIENT then
 	local matHUD_Stims = Material("hud/cpthazama/avp/avp_m_hud_icon_hp.png","smooth additive")
 	local matHUD_MotionTracker = Material("hud/cpthazama/avp/avp_m_hud_motiontracker.png","smooth additive")
 	local matHUD_MotionTracker_Half = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_half.png","smooth additive")
+	local matHUD_MotionTracker_HalfBG = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_half_bg.png","smooth additive")
 	local matHUD_MotionTracker_Base = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_base.png","smooth additive")
 	local matHUD_MotionTracker_Scan = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_ping.png","smooth additive")
 	local matHUD_MotionTracker_Enemy = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_dot_enemy.png","smooth additive")
@@ -106,7 +107,7 @@ if CLIENT then
 		local ent
 		if ply.VJTag_IsControllingNPC == true then
 			local npc = ply.VJCE_NPC
-			if npc.VJ_AVP_Marine then
+			if npc.VJ_AVP_Marine && !npc.VJ_AVP_Civilian then
 				ent = npc
 			else
 				ent = false
@@ -210,6 +211,7 @@ if CLIENT then
 		local radarPosW = 14.75
 		local radarPosH = 8
 		DrawIcon(matHUD_MotionTracker_Base,-33.5,21.6,14.75,2,r,g,b,a)
+		-- DrawIcon(matHUD_MotionTracker_HalfBG,radarPosX,radarPosY,radarPosW,radarPosH,r,g,b,50)
 		DrawIcon(matHUD_MotionTracker_Half,radarPosX,radarPosY,radarPosW,radarPosH,r,g,b,a)
 
 		local pingT = ent:GetNW2Float("AVP.MotionTracker.Ping",0)
@@ -222,6 +224,7 @@ if CLIENT then
 		local radarCenterY = radarPosY +radarPosH *0.5
 		local blipSize = 3
 		if pingTable and pingT > CurTime() then
+			if ent:IsPlayer() && GetConVar("ai_ignoreplayers"):GetBool() then return end
 			local time = pingT - CurTime()
 			local alpha = math.Clamp(time *255,0,255)
 

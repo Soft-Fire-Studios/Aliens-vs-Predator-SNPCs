@@ -14,6 +14,9 @@ ENT.SoundTbl_FootStep = {
 	"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
 	"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 }
+
+ENT.StandingBounds = Vector(25,25,200)
+ENT.CrawlingBounds = Vector(25,25,200)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if VJ_AVP_MatriarchExists(self) then
@@ -27,15 +30,21 @@ function ENT:OnInit()
 		end
 		return
 	end
-	self.CurrentSet = 2
 	self.SoundTbl_FootStep = {
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 	}
+	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
+		self.HasSoundTrack = true
+		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
+	end
 
 	self.InBirth = false
 	self.NextLookForBirthT = CurTime() +5
+	self.NextSpawnEggT = 0
+	self.NextCommandXenosT = 0
+	self.Eggs = {}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity()

@@ -46,6 +46,9 @@ ENT.TranslateActivities = {
 	[ACT_TURN_RIGHT] = ACT_ROLL_RIGHT,
 }
 ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2MP_RUN_SMG1}
+
+ENT.StandingBounds = Vector(16,16,100)
+ENT.CrawlingBounds = Vector(16,16,100)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2
@@ -114,6 +117,98 @@ function ENT:OnInit()
 	-- 		self:DoSummon()
 	-- 	end
 	-- end)
+
+	self.HitGroups = {
+		[HITGROUP_HEAD] = {
+			HP = 800,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("head"),1)
+				self:SetBodygroup(self:FindBodygroupByName("face"),2)
+				self:SetHealth(0)
+				self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+			end,
+		},
+		[HITGROUP_LEFTARM] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("larm"),1)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.LeftArm = true
+				if self.Gibbed.RightArm then
+					self:SetHealth(0)
+					self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+					self:StopAttacks(true)
+					self.CurrentAttackAnimationTime = 0	
+					self:StopMoving()
+					self:CapabilitiesRemove(CAP_MOVE_JUMP)
+				end
+			end,
+		},
+		[HITGROUP_RIGHTARM] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("rarm"),1)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.RightArm = true
+				if self.Gibbed.LeftArm then
+					self:SetHealth(0)
+					self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
+					self:StopAttacks(true)
+					self.CurrentAttackAnimationTime = 0	
+					self:StopMoving()
+					self:CapabilitiesRemove(CAP_MOVE_JUMP)
+				end
+			end,
+		},
+		[HITGROUP_LEFTLEG] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("lleg"),1)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.LeftLeg = true
+				self:StopAttacks(true)
+				self.CurrentAttackAnimationTime = 0	
+				self:StopMoving()
+				self:CapabilitiesRemove(CAP_MOVE_JUMP)
+			end,
+		},
+		[HITGROUP_RIGHTLEG] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("rleg"),1)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.RightLeg = true
+				self:StopAttacks(true)
+				self.CurrentAttackAnimationTime = 0	
+				self:StopMoving()
+				self:CapabilitiesRemove(CAP_MOVE_JUMP)
+			end,
+		},
+		[111] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("tail_end"),1)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.Tail = true
+			end,
+		},
+		[110] = {
+			HP = 500,
+			Dead = false,
+			OnDecap = function(self,dmginfo,hitgroup)
+				self:SetBodygroup(self:FindBodygroupByName("tail"),1)
+				self:SetBodygroup(self:FindBodygroupByName("tail_end"),2)
+				self.Gibbed = self.Gibbed or {}
+				self.Gibbed.Tail = true
+			end,
+		},
+	}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)
@@ -217,6 +312,10 @@ function ENT:TranslateActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectIdleActivity()
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
+	end
 	return ACT_IDLE
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

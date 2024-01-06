@@ -21,6 +21,10 @@ ENT.HasBreath = true
 
 ENT.CanLeap = false
 ENT.CanSetGroundAngle = false
+ENT.AlwaysStand = true
+
+ENT.StandingBounds = Vector(25,25,160)
+ENT.CrawlingBounds = Vector(25,25,160)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if VJ_AVP_QueenExists(self) then
@@ -34,7 +38,6 @@ function ENT:OnInit()
 		end
 		return
 	end
-	self.CurrentSet = 2
 	self.SoundTbl_FootStep = {
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
@@ -71,7 +74,7 @@ function ENT:OnThink()
 			if (customFunc) then customFunc(vsched) end
 			self:StartSchedule(vsched)
 		end
-		local check = Vector(self:OBBMaxs().x *4,self:OBBMaxs().y *4,0)
+		local check = Vector(self:OBBMaxs().x,self:OBBMaxs().y,0)
 		local trHull = util.TraceHull({
 			start = self:GetPos(),
 			endpos = self:GetPos(),
@@ -101,7 +104,7 @@ function ENT:OnThink()
 			self:DeleteOnRemove(eggsack)
 			self.EggSack = eggsack
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_enter",true,false,false)
-			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},150)
+			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},120)
 			self:SetIdleAnimation({ACT_IDLE_RELAXED},true)
 			self.NextSpawnEggT = curTime +5
 			self.NextCommandXenosT = curTime +math.random(5,10)
@@ -138,7 +141,7 @@ function ENT:OnThink()
 
 			if !command.Drone && !command.Warrior && !command.Praetorian then return end
 
-			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},150)
+			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},100)
 			RunConsoleCommand("ai_clear_bad_links")
 
 			local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
@@ -155,6 +158,12 @@ function ENT:OnThink()
 					if node then
 						-- print("Sending ",v," to ",node)
 						v:StopMoving()
+						if v.SetQueenMarker then
+							v:SetQueenMarker(node)
+							if IsValid(v.VJ_TheController) then
+								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+							end
+						end
 						v:SetLastPosition(node)
 						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
@@ -176,6 +185,12 @@ function ENT:OnThink()
 					if node then
 						-- print("Sending ",v," to ",node)
 						v:StopMoving()
+						if v.SetQueenMarker then
+							v:SetQueenMarker(node)
+							if IsValid(v.VJ_TheController) then
+								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+							end
+						end
 						v:SetLastPosition(node)
 						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
@@ -197,6 +212,12 @@ function ENT:OnThink()
 					if node then
 						-- print("Sending ",v," to ",node)
 						v:StopMoving()
+						if v.SetQueenMarker then
+							v:SetQueenMarker(node)
+							if IsValid(v.VJ_TheController) then
+								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+							end
+						end
 						v:SetLastPosition(node)
 						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}

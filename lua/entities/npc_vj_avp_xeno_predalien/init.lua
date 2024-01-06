@@ -30,6 +30,9 @@ ENT.TranslateActivities = {
 	-- [ACT_TURN_RIGHT] = ACT_ROLL_RIGHT,
 }
 ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
+
+ENT.StandingBounds = Vector(16,16,74)
+ENT.CrawlingBounds = Vector(16,16,74)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2
