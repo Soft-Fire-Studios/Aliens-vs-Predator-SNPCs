@@ -23,6 +23,7 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
+	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
@@ -208,6 +209,7 @@ if VJExists == true then
 			for _,ply in ents.Iterator() do
 				if ply:IsPlayer() && ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC then
 					if GetConVar("ai_ignoreplayers"):GetBool() then return end
+					if ply:GetInfoNum("vj_avp_hud_ping",1) == 0 then return end
 					VJ_AVP_MotionTracker(ply)
 				end
 			end
