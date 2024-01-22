@@ -37,7 +37,7 @@ ENT.AttackDamageMultiplier = 2
 ENT.RangeAttackDamageMultiplier = 1.25
 ENT.CanSpit = true
 ENT.AlwaysStand = true
-ENT.TranslateActivities = {
+ENT.AnimTranslations = {
 	[ACT_IDLE] = ACT_HL2MP_IDLE_SMG1,
 	[ACT_WALK] = ACT_HL2MP_WALK_SMG1,
 	[ACT_RUN] = ACT_HL2MP_WALK_CROUCH_SMG1,
@@ -304,14 +304,7 @@ function ENT:Breathe()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:TranslateActivity(act)
-	if self.TranslateActivities[act] then
-		return self.TranslateActivities[act]
-	end
-	return act
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectIdleActivity()
+function ENT:SelectIdleActivity(act)
 	local gib = self.Gibbed
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH

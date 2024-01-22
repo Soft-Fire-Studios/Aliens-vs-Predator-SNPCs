@@ -244,7 +244,7 @@ function ENT:CustomOnAlert(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local toSeq = VJ.SequenceToActivity
+local toAct = VJ.SequenceToActivity
 --
 function ENT:CustomOnInitialize()
 	if self.OnInit then
@@ -258,7 +258,7 @@ function ENT:CustomOnInitialize()
 	self.Ping_NextPingT = CurTime() +1
 	self.NextHealT = CurTime() +1
 
-	self.AnimTbl_ScaredBehaviorMovement = {toSeq(self,"nwn_Panic_run_fwd_look_fwd")}
+	self.AnimTbl_ScaredBehaviorMovement = {toAct(self,"nwn_Panic_run_fwd_look_fwd")}
 
 	local att = self:LookupAttachment("flashlight")
 	if att > 0 && self.HasFlashlight then
@@ -370,29 +370,69 @@ function ENT:UseStimpack()
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnSetupWeaponHoldTypeAnims(hType)
-	//toSeq(self, "walkaimall1_ar2")
-	self.WeaponAnimTranslations[ACT_COWER] 								= {toSeq(self, "nwa_Cower1"),toSeq(self, "nwa_stand_alert_PanicA"),toSeq(self, "nwa_panic_idle")}
+function ENT:TranslateActivity(act)
+	if self.Moveset == 1 then
+		if act == ACT_RUN then
+			act = ACT_WALK
+		end
+	elseif self.Moveset == 2 then
+		if act == ACT_RUN then
+			return ACT_SPRINT
+		end
+		if act == ACT_WALK then
+			act = ACT_RUN
+		end
+	elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
+		if act == ACT_WALK then
+			act = ACT_RUN
+		end
+	end
+
+	if act == ACT_IDLE then
+		if self.NoWeapon_UseScaredBehavior_Active == true then
+			return ACT_COWER
+		elseif self.Alerted && self:GetWeaponState() != VJ.NPC_WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
+			return ACT_IDLE_ANGRY
+		end
+	elseif act == ACT_RUN && self.NoWeapon_UseScaredBehavior_Active == true && !self.VJ_IsBeingControlled then
+		return ACT_RUN_PROTECTED
+	elseif (act == ACT_RUN or act == ACT_WALK) && self.HasShootWhileMoving == true && IsValid(self:GetEnemy()) then
+		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:IsAbleToShootWeapon(true, false) == true then
+			local anim = self:TranslateToWeaponAnim(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
+			if VJ.AnimExists(self, anim) == true then
+				self.DoingWeaponAttack = true
+				self.DoingWeaponAttack_Standing = false
+				return anim
+			end
+		end
+	end
+
+	return act
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SetAnimationTranslations(hType)
+	//toAct(self, "walkaimall1_ar2")
+	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
 	if hType == "pistol" then
-		self.WeaponAnimTranslations[ACT_RANGE_ATTACK1] 					= toSeq(self, "ohwa_pistol_idle")
-		self.WeaponAnimTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_ohwa_pistol_shoot"
-		self.WeaponAnimTranslations[ACT_RANGE_ATTACK1_LOW] 				= toSeq(self, "OHWA_crouch_idle")
-		self.WeaponAnimTranslations[ACT_RELOAD] 						= "vjges_ohwa_pistol_reload"
-		self.WeaponAnimTranslations[ACT_RELOAD_LOW] 					= "vjges_ohwa_pistol_reload"
-		self.WeaponAnimTranslations[ACT_COVER_LOW] 						= toSeq(self, "OHWA_crouch_idle")
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "ohwa_pistol_idle")
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_ohwa_pistol_shoot"
+		self.AnimationTranslations[ACT_RANGE_ATTACK1_LOW] 				= toAct(self, "OHWA_crouch_idle")
+		self.AnimationTranslations[ACT_RELOAD] 							= "vjges_ohwa_pistol_reload"
+		self.AnimationTranslations[ACT_RELOAD_LOW] 						= "vjges_ohwa_pistol_reload"
+		self.AnimationTranslations[ACT_COVER_LOW] 						= toAct(self, "OHWA_crouch_idle")
 		
-		self.WeaponAnimTranslations[ACT_IDLE] 							= toSeq(self, "ohwn_pistol_idle")
-		self.WeaponAnimTranslations[ACT_IDLE_ANGRY] 					= {toSeq(self, "ohwa_alert_idle_1"),toSeq(self, "ohwa_alert_panic"),toSeq(self, "ohwa_alert_watchfulA")}
-		-- self.WeaponAnimTranslations[ACT_JUMP] 							= ACT_HL2MP_JUMP_PISTOL
-		-- self.WeaponAnimTranslations[ACT_GLIDE] 							= ACT_HL2MP_JUMP_PISTOL
-		-- self.WeaponAnimTranslations[ACT_LAND] 							= ACT_HL2MP_IDLE_PISTOL
+		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= {toAct(self, "ohwa_alert_idle_1"),toAct(self, "ohwa_alert_panic"),toAct(self, "ohwa_alert_watchfulA")}
+		-- self.AnimationTranslations[ACT_JUMP] 							= ACT_HL2MP_JUMP_PISTOL
+		-- self.AnimationTranslations[ACT_GLIDE] 							= ACT_HL2MP_JUMP_PISTOL
+		-- self.AnimationTranslations[ACT_LAND] 							= ACT_HL2MP_IDLE_PISTOL
 		
-		self.WeaponAnimTranslations[ACT_WALK] 							= toSeq(self, "ohwn_Walk")
-		self.WeaponAnimTranslations[ACT_WALK_AIM] 						= toSeq(self, "OHWA_Walk")
+		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "ohwn_Walk")
+		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "OHWA_Walk")
 		
-		self.WeaponAnimTranslations[ACT_RUN] 							= toSeq(self, "ohwn_Run")
-		self.WeaponAnimTranslations[ACT_RUN_AIM] 						= toSeq(self, "ohwa_Run_fwd_Look_fwd")
-		self.WeaponAnimTranslations[ACT_SPRINT] 						= toSeq(self, "ohwn_sprint")
+		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "ohwn_Run")
+		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "ohwa_Run_fwd_Look_fwd")
+		self.AnimationTranslations[ACT_SPRINT] 							= toAct(self, "ohwn_sprint")
 	end
 	return true
 end
@@ -411,34 +451,34 @@ function ENT:CustomOnThink()
 		local sprint = cont:KeyDown(IN_SPEED)
 		if walk && self.Moveset != 1 then
 			self.Moveset = 1
-			self.AnimTbl_Walk = {ACT_WALK}
-			self.AnimTbl_Run = {ACT_WALK}
-			self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
-			self.AnimTbl_ShootWhileMovingRun = {ACT_WALK_AIM}
+		-- 	self.AnimTbl_Walk = {ACT_WALK}
+		-- 	self.AnimTbl_Run = {ACT_WALK}
+		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
+		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_WALK_AIM}
 		elseif !walk && self.Moveset != 2 then
 			self.Moveset = 2
-			self.AnimTbl_Walk = {ACT_RUN}
-			self.AnimTbl_Run = {ACT_SPRINT}
-			self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
-			self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
+		-- 	self.AnimTbl_Walk = {ACT_RUN}
+		-- 	self.AnimTbl_Run = {ACT_SPRINT}
+		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
+		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 		elseif !walk && self.Moveset != 3 && curTime < self.NextSprintT then
 			self.Moveset = 3
-			self.AnimTbl_Walk = {ACT_RUN}
-			self.AnimTbl_Run = {ACT_RUN}
-			self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
-			self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
+		-- 	self.AnimTbl_Walk = {ACT_RUN}
+		-- 	self.AnimTbl_Run = {ACT_RUN}
+		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
+		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 			sprint = false
 		end
 		self:SetSprinting(sprint)
 	else
-		if self.Moveset != 0 then
-			self.Moveset = 0
-			self.AnimTbl_Walk = {ACT_WALK}
-			self.AnimTbl_Run = {ACT_RUN}
-			self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
-			self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
-			self:SetSprinting(false)
-		end
+		-- if self.Moveset != 0 then
+		-- 	self.Moveset = 0
+		-- 	self.AnimTbl_Walk = {ACT_WALK}
+		-- 	self.AnimTbl_Run = {ACT_RUN}
+		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
+		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
+		-- 	self:SetSprinting(false)
+		-- end
 
 		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
 			self:UseStimpack()
@@ -504,6 +544,9 @@ local angY45 = Angle(0, 45, 0)
 local angYN45 = Angle(0, -45, 0)
 local angY90 = Angle(0, 90, 0)
 local angYN90 = Angle(0, -90, 0)
+local angY135 = Angle(0, 135, 0)
+local angYN135 = Angle(0, -135, 0)
+local angY180 = Angle(0, 180, 0)
 local defAng = Angle(0, 0, 0)
 --
 function ENT:Controller_Movement(cont, ply, bullseyePos)
@@ -512,31 +555,26 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
 		local gerta_arak = ply:KeyDown(IN_SPEED)
 		local aimVector = ply:GetAimVector()
+		local FT = FrameTime() *(self.TurningSpeed *2.25)
+
+		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				if gerta_lef then
-					self:StartMovement(cont, aimVector, angY45)
-				elseif gerta_rig then
-					self:StartMovement(cont, aimVector, angYN45)
-				else
-					self:StartMovement(cont, aimVector, defAng)
-				end
+				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			if gerta_lef then
-				self:StartMovement(cont, aimVector*-1, angYN45)
-			elseif gerta_rig then
-				self:StartMovement(cont, aimVector*-1, angY45)
-			else
-				self:StartMovement(cont, aimVector*-1, defAng)
-			end
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_lef then
-			self:StartMovement(cont, aimVector, angY90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_rig then
-			self:StartMovement(cont, aimVector, angYN90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

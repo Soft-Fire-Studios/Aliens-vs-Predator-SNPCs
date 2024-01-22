@@ -327,7 +327,6 @@ ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.AlwaysStand = false
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED,ACT_WALK_RELAXED}
-ENT.TranslateActivities = {}
 ENT.HitGroups = {
 	[HITGROUP_HEAD] = {
 		HP = 100,
@@ -457,41 +456,40 @@ local math_abs = math.abs
 local toSeq = VJ_SequenceToActivity
 --
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoTranslations(act)
+	local anim = false
+	print(anim,act)
+	if act == ACT_IDLE then
+		anim = self:SelectIdleActivity(act)
+	elseif act == ACT_WALK or act == ACT_RUN then
+		anim = self:SelectMovementActivity(act)
+	end
+	print(anim,act)
+	return anim
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
-	if self.TranslateActivities[act] then
-		return self.TranslateActivities[act]
+	local avp = self:DoTranslations(act)
+	-- print(avp)
+	if avp then
+		-- print(act,avp,self.AnimTranslations[avp])
+		if self.AnimTranslations && self.AnimTranslations[avp] then
+			return self.AnimTranslations[avp]
+		end
+		return avp
 	end
-	if act == ACT_IDLE && self.CurrentSet == 2 then
-		return ACT_IDLE_ANGRY
+
+	local translation = self.AnimationTranslations[act]
+	if translation then
+		if istable(translation) then
+			if act == ACT_IDLE then
+				self:ResolveAnimation(translation)
+			end
+			return translation[math.random(1, #translation)] or act -- "or act" = To make sure it doesn't return nil when the table is empty!
+		else
+			return translation
+		end
 	end
-	-- if act == ACT_WALK or act == ACT_RUN then
-	-- 	local ply = self.VJ_TheController
-	-- 	local curTime = CurTime()
-	-- 	local standing = self.CurrentSet == 2
-	-- 	if IsValid(ply) then
-	-- 		if ply:KeyDown(IN_WALK) then
-	-- 			return standing && ACT_WALK or ACT_WALK_RELAXED
-	-- 		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then
-	-- 			return standing && ACT_MP_SPRINT or ACT_SPRINT
-	-- 		else
-	-- 			return standing && ACT_RUN or ACT_RUN_RELAXED
-	-- 		end
-	-- 	end
-	-- 	local moveRandom = curTime < self.MoveAroundRandomlyT
-	-- 	if moveRandom then
-	-- 		return ACT_WALK_RELAXED
-	-- 	else
-	-- 		if act == ACT_WALK then
-	-- 			return standing && (self.Alerted == true && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
-	-- 		else
-	-- 			if self.NextSprintT < curTime && self.AI_IsSprinting then
-	-- 				return standing && ACT_MP_SPRINT or ACT_SPRINT
-	-- 			else
-	-- 				return standing && ACT_RUN or ACT_RUN_RELAXED
-	-- 			end
-	-- 		end
-	-- 	end
-	-- end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -500,10 +498,10 @@ function ENT:CustomOnChangeActivity(act)
 	-- 	self.AnimationBehaviors[act](self)
 	-- end
 	if act == ACT_IDLE then
-		local idleAct = self:SelectIdleActivity()
-		if idleAct != act then
-			self:ResetIdealActivity(idleAct)
-		end
+		-- local idleAct = self:SelectIdleActivity()
+		-- if idleAct != act then
+		-- 	self:ResetIdealActivity(idleAct)
+		-- end
 	elseif act == ACT_JUMP then
 		VJ_CreateSound(self,self.SoundTbl_Jump,76)
 	elseif act == ACT_SPRINT then
@@ -522,7 +520,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 	function controlEnt:CustomOnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 	end
 
 	function controlEnt:CustomOnStopControlling()
@@ -564,6 +562,7 @@ function ENT:CustomOnInitialize()
 	self.IsUsingFaceAnimation = false
 	self.SprintT = 0
 	self.NextSprintT = 0
+	self.WasSprinting = false
 	self.AI_IsSprinting = false
 	self.LastEnemyDistance = 999999
 	self.NextMoveRandomlyT = 0
@@ -1362,17 +1361,27 @@ function ENT:CustomOnThink_AIEnabled()
 	local ent = self:GetEnemy()
 	local ply = self.VJ_TheController
 	local curSet = self.CurrentSet
-	local idleAct = self:SelectIdleActivity()
-	local moveAct = self:SelectMovementActivity()
-	if self.LastIdleActivity != idleAct then
-		self.LastIdleActivity = idleAct
-		self:SetIdleAnimation({idleAct})
-		self:SetArrivalActivity(idleAct)
-	end
-	if self.LastMovementActivity != moveAct then
-		self.LastMovementActivity = moveAct
-		self.AnimTbl_Walk = {moveAct}
-		self.AnimTbl_Run = {moveAct}
+	-- local idleAct = self:SelectIdleActivity()
+	-- local moveAct = self:SelectMovementActivity()
+	-- if self.LastIdleActivity != idleAct then
+	-- 	self.LastIdleActivity = idleAct
+	-- 	self:SetIdleAnimation({idleAct})
+	-- 	self:SetArrivalActivity(idleAct)
+	-- end
+	-- if self.LastMovementActivity != moveAct then
+	-- 	self.LastMovementActivity = moveAct
+	-- 	self.AnimTbl_Walk = {moveAct}
+	-- 	self.AnimTbl_Run = {moveAct}
+	-- end
+	local transAct = self:GetSequenceActivity(self:GetInternalVariable("m_nIdealSequence"))
+	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting
+	print(self:GetActivity(),transAct)
+
+	if !self.WasSprinting && sprinting then
+		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
+		self.WasSprinting = true
+	elseif self.WasSprinting && !sprinting then
+		self.WasSprinting = false
 	end
 	
 	self:SetHP(self:Health())
@@ -1394,7 +1403,7 @@ function ENT:CustomOnThink_AIEnabled()
 		self:OnThink()
 	end
 
-	self:SetSprinting(self:IsMoving() && (self:GetActivity() == ACT_SPRINT or self:GetActivity() == ACT_MP_SPRINT))
+	self:SetSprinting(self:IsMoving() && sprinting)
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
 	local gib = self.Gibbed
@@ -1471,7 +1480,7 @@ function ENT:CustomOnThink_AIEnabled()
 		local sprinting = self:GetSprinting()
 		-- self.CanAttack = !sprinting
 		if sprinting then
-			if self:GetActivity() == ACT_SPRINT && self:OnGround() then
+			if transAct == ACT_SPRINT && self:OnGround() then
 				self:SetVelocity(self:GetMoveVelocity() *1.25)
 			end
 			self.SprintT = self.SprintT +0.05
@@ -1703,8 +1712,8 @@ function ENT:CustomOnKilled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectMovementActivity()
-	local act = ACT_RUN
+function ENT:SelectMovementActivity(act)
+	-- local act = ACT_RUN
 	local ply = self.VJ_TheController
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
@@ -1739,18 +1748,18 @@ function ENT:SelectMovementActivity()
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectIdleActivity()
-	local act = ACT_IDLE
+function ENT:SelectIdleActivity(act)
+	-- local act = ACT_IDLE
 	local standing = self.CurrentSet == 2
 	local gib = self.Gibbed
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
 	end
-	-- if standing then
-		-- act = ACT_IDLE_STIMULATED
-	-- else
+	if standing then
+		act = ACT_IDLE_ANGRY
+	else
 		act = ACT_IDLE
-	-- end
+	end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1830,6 +1839,9 @@ local angY45 = Angle(0, 45, 0)
 local angYN45 = Angle(0, -45, 0)
 local angY90 = Angle(0, 90, 0)
 local angYN90 = Angle(0, -90, 0)
+local angY135 = Angle(0, 135, 0)
+local angYN135 = Angle(0, -135, 0)
+local angY180 = Angle(0, 180, 0)
 local defAng = Angle(0, 0, 0)
 --
 function ENT:Controller_Movement(cont, ply, bullseyePos)
@@ -1838,31 +1850,26 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
 		local gerta_arak = ply:KeyDown(IN_SPEED)
 		local aimVector = ply:GetAimVector()
+		local FT = FrameTime() *(self.TurningSpeed *2.25)
+
+		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				if gerta_lef then
-					self:StartMovement(cont, aimVector, angY45)
-				elseif gerta_rig then
-					self:StartMovement(cont, aimVector, angYN45)
-				else
-					self:StartMovement(cont, aimVector, defAng)
-				end
+				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			if gerta_lef then
-				self:StartMovement(cont, aimVector*-1, angYN45)
-			elseif gerta_rig then
-				self:StartMovement(cont, aimVector*-1, angY45)
-			else
-				self:StartMovement(cont, aimVector*-1, defAng)
-			end
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_lef then
-			self:StartMovement(cont, aimVector, angY90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_rig then
-			self:StartMovement(cont, aimVector, angYN90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

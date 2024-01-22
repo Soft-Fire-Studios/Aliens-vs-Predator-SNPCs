@@ -21,7 +21,7 @@ ENT.VJC_Data = {
 ENT.FootStepSoundLevel = 82
 
 ENT.AlwaysStand = true
-ENT.TranslateActivities = {
+ENT.AnimTranslations = {
 	[ACT_IDLE] = ACT_HL2MP_IDLE_SMG1,
 	[ACT_WALK] = ACT_HL2MP_WALK_SMG1,
 	[ACT_RUN] = ACT_HL2MP_RUN_SMG1,
@@ -93,13 +93,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)
 	util.ScreenShake(pos,5,100,0.35,500)
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:TranslateActivity(act)
-	if self.TranslateActivities[act] then
-		return self.TranslateActivities[act]
-	end
-	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)

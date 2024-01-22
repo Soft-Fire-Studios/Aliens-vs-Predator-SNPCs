@@ -204,6 +204,30 @@ function ENT:TranslateActivity(act)
 			return self.AlertedIdle
 		end
 	end
+	if act == ACT_WALK or act == ACT_RUN then
+		return self:SelectMovementActivity(act)
+	end
+	return act
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SelectMovementActivity(act)
+	local dist = self.NearestPointToEnemyDistance
+	local ply = self.VJ_TheController
+	if IsValid(ply) then
+		if ply:KeyDown(IN_WALK) then
+			return ACT_WALK
+		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < CurTime() then
+			return ACT_SPRINT
+		else
+			return ACT_RUN
+		end
+	else
+		if act == ACT_RUN then
+			if dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
+				return ACT_SPRINT
+			end
+		end
+	end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -212,9 +236,9 @@ local math_deg = math.deg
 local math_atan2 = math.atan2
 --
 function ENT:CustomOnChangeActivity(newAct)
-	if newAct == ACT_SPRINT then
-		VJ.EmitSound(self,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg",70)
-	end
+	-- if newAct == ACT_SPRINT then
+	-- 	VJ.EmitSound(self,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg",70)
+	-- end
 	self.LongJumping = false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -226,10 +250,11 @@ function ENT:Controller_Initialize(ply,controlEnt)
     net.Send(ply)
 
 	controlEnt.VJC_Player_DrawHUD = false
+	controlEnt.VJC_NPC_CanTurn = false
 
 	function controlEnt:CustomOnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 	end
 
 	function controlEnt:CustomOnStopControlling()
@@ -1195,34 +1220,6 @@ function ENT:OnGrabSpear(ent)
 	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectMovementActivity(dist)
-	local act = ACT_WALK
-	local ply = self.VJ_TheController
-	if IsValid(ply) then
-		if ply:KeyDown(IN_WALK) then
-			act = ACT_WALK
-		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < CurTime() then
-			act = ACT_SPRINT
-		else
-			act = ACT_RUN
-		end
-		return act
-	end
-	local currentSchedule = self.CurrentSchedule
-	if currentSchedule != nil then
-		if currentSchedule.MoveType == 0 then
-			act = ACT_WALK
-		else
-			if dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
-				act = ACT_SPRINT
-			else
-				act = ACT_RUN
-			end
-		end
-	end
-	return act
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnFoundHidingSpot()
 	if self:Health() < self:GetMaxHealth() && self:GetStimCount() > 0 && CurTime() > self.NextHealT then
 		self:UseStimpack()
@@ -1250,13 +1247,26 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
-	local moveAct = self:SelectMovementActivity(dist)
+	-- local moveAct = self:SelectMovementActivity(dist)
 	local ply = self.VJ_TheController
-	if self.LastMovementActivity != moveAct then
-		self.LastMovementActivity = moveAct
-		self.AnimTbl_Walk = {moveAct}
-		self.AnimTbl_Run = {moveAct}
+	local transAct = self:GetSequenceActivity(self:GetInternalVariable("m_nIdealSequence"))
+	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT) or self.AI_IsSprinting
+
+	if !self.WasSprinting && sprinting then
+		if IsValid(ply) then
+			VJ_AVP_CSound(ply,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg")
+		end
+		-- VJ.EmitSound(self,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg",70)
+		self.WasSprinting = true
+	elseif self.WasSprinting && !sprinting then
+		self.WasSprinting = false
 	end
+
+	-- if self.LastMovementActivity != moveAct then
+	-- 	self.LastMovementActivity = moveAct
+	-- 	self.AnimTbl_Walk = {moveAct}
+	-- 	self.AnimTbl_Run = {moveAct}
+	-- end
 
 	-- if self.Flinching && self:OnGround() then
 	-- 	self:SetVelocity(self:GetMoveVelocity())
@@ -1280,7 +1290,7 @@ function ENT:CustomOnThink_AIEnabled()
 		self:OnThink()
 	end
 
-	self:SetSprinting(self:IsMoving() && self:GetActivity() == ACT_SPRINT)
+	self:SetSprinting(sprinting)
 	if IsValid(ply) then
 		if self:GetBeam() == true then
 			local closeDist = 999999
@@ -1751,6 +1761,9 @@ local angY45 = Angle(0, 45, 0)
 local angYN45 = Angle(0, -45, 0)
 local angY90 = Angle(0, 90, 0)
 local angYN90 = Angle(0, -90, 0)
+local angY135 = Angle(0, 135, 0)
+local angYN135 = Angle(0, -135, 0)
+local angY180 = Angle(0, 180, 0)
 local defAng = Angle(0, 0, 0)
 --
 function ENT:Controller_Movement(cont, ply, bullseyePos)
@@ -1759,31 +1772,26 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
 		local gerta_arak = ply:KeyDown(IN_SPEED)
 		local aimVector = ply:GetAimVector()
+		local FT = FrameTime() *(self.TurningSpeed *2.25)
+
+		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				if gerta_lef then
-					self:StartMovement(cont, aimVector, angY45)
-				elseif gerta_rig then
-					self:StartMovement(cont, aimVector, angYN45)
-				else
-					self:StartMovement(cont, aimVector, defAng)
-				end
+				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			if gerta_lef then
-				self:StartMovement(cont, aimVector*-1, angYN45)
-			elseif gerta_rig then
-				self:StartMovement(cont, aimVector*-1, angY45)
-			else
-				self:StartMovement(cont, aimVector*-1, defAng)
-			end
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_lef then
-			self:StartMovement(cont, aimVector, angY90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_rig then
-			self:StartMovement(cont, aimVector, angYN90)
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
