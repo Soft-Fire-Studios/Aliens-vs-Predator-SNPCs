@@ -159,6 +159,7 @@ if CLIENT then
         end,
         bind = function(self,mat,ent)
             if (!IsValid(ent)) then return end
+			local ply = LocalPlayer()
 
 			ent.Mat_cloakfactor = ent.Mat_cloakfactor or 0
 			local curValue = ent.Mat_cloakfactor
@@ -175,6 +176,10 @@ if CLIENT then
 			end
 			ent.Mat_cloakfactor = Lerp(FrameTime() *0.3,curValue,finalResult)
 			self.CloakColorTint = LerpVector(FrameTime() *0.3,self.CloakColorTint,math_abs(curValue -finalResult) > 0.1 && blueFX or whiteFX)
+			if IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_Predator && ent:GetClass() == "viewmodel" && ent:GetOwner() == ply then
+				ent.Mat_cloakfactor = ply.VJCE_NPC.Mat_cloakfactor
+				ent.CloakColorTint = ply.VJCE_NPC.CloakColorTint
+			end
 			mat:SetVector("$cloakcolortint",self.CloakColorTint)
 			mat:SetFloat(self.Result,ent.Mat_cloakfactor)
         end
@@ -192,93 +197,55 @@ if CLIENT then
 	}
 	local math_angDif = math.AngleDifference
 	function ENT:Draw()
-		self:DrawModel()
-		
-		local attStart = self:LookupAttachment("laser")
-		if !self:GetBeam() then return end
-		local att = self:GetAttachment(attStart)
-		local startPos = att.Pos
-		local endPos = att.Ang:Forward() *2000
-		local ent = false
-		local lockOn = self:GetLockOn()
-		if IsValid(lockOn) then
-			ent = true
-			endPos = lockOn:EyePos() -(lockOn:OBBCenter() /2)
-			local angDif = math_angDif((lockOn:GetPos() -self:GetPos()):Angle().y, self:GetAngles().y)
-			if math_abs(angDif) > 80 then
-				endPos = startPos +att.Ang:Forward() *2000
-				endPos.z = lockOn:GetPos().z
+		local ply = LocalPlayer()
+		local checkEnt = self
+		if IsValid(ply) && ply.VJCE_NPC == self && ply.VJC_Camera_Mode == 2 then
+			checkEnt = ply:GetViewModel()
+
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				if self:GetVisionMode() == 1 then
+					vm:SetMaterial(self:GetCloaked() && "hud/cpthazama/avp/tt_thermal" or "hud/cpthazama/avp/tt_thermal_overlay")
+				else
+					vm:SetMaterial("")
+				end
 			end
 		end
-		render.SetMaterial(matLaserStart)
-		render.DrawSprite(startPos,5,5,laserColor)
-		for i = 1,3 do
-			startPos = startPos +att.Ang:Right() *(i == 1 && -0.1 or i == 2 && 0.3 or 0) +att.Ang:Up() *(i == 3 && 0.3 or 0)
-			local tr = util.TraceLine({
-				start = startPos,
-				endpos = ent && endPos or startPos +endPos,
-				filter = self,
-				mask = MASK_SHOT
-			})
-			render.SetMaterial(matLaser)
-			render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
+
+		if checkEnt == self then
+			self:DrawModel()
 		end
-		-- local vm = self.VM
-		-- local ply = self.VJ_TheController
-		-- if IsValid(vm) then
-		-- 	if IsValid(ply) && ply.VJC_Camera_Mode == 2 then
-		-- 		local pos = ply:GetShootPos()
-		-- 		local ang = ply:EyeAngles()
-		-- 		vm:SetRenderOrigin(pos)
-		-- 		vm:SetRenderAngles(ang)
-		-- 		vm:SetNoDraw(false)
-		-- 		if CurTime() > vm.CurrentAnimTime then
-		-- 			self:VM_PlayAnimation("fire",1)
-		-- 		end
-		-- 	elseif !IsValid(ply) then
-		-- 		vm:Remove()
-		-- 	elseif IsValid(ply) && ply.VJC_Camera_Mode == 1 then
-		-- 		vm:SetNoDraw(true)
-		-- 	end
-		-- else
-		-- 	if IsValid(ply) && ply.VJC_Camera_Mode == 2 then
-		-- 		local ent = self:VM_Initialize("models/weapons/v_pistol.mdl",ply)
-		-- 		self:SetVM(ent)
-		-- 		ent:SetParent(ply.VJCE_Camera)
-		-- 		ent:AddEffects(EF_PARENT_ANIMATES)
-		-- 	end
-		-- end
-
-		-- local ply = self.VJ_TheController
-		-- local bone = self:LookupBone("Bip01 Mask")
-		-- if IsValid(ply) && ply.VJC_Camera_Mode == 2 then
-		-- 	if bone then
-		-- 		self:ManipulateBoneScale(bone,scale0)
-		-- 	end
-		-- else
-		-- 	if bone then
-		-- 		self:ManipulateBoneScale(bone,scale1)
-		-- 	end
-		-- end
-
-		-- local maskBG = self:FindBodygroupByName("mask")
-		-- if maskBG == -1 then return end
-		-- local mask = self:GetBodygroup(maskBG)
-		-- if mask != 0 then
-		-- 	for _,v in pairs(faceBones) do
-		-- 		local bone = self:LookupBone(v)
-		-- 		if bone then
-		-- 			self:ManipulateBoneScale(bone,scale0)
-		-- 		end
-		-- 	end
-		-- else
-		-- 	for _,v in pairs(faceBones) do
-		-- 		local bone = self:LookupBone(v)
-		-- 		if bone then
-		-- 			self:ManipulateBoneScale(bone,scale1)
-		-- 		end
-		-- 	end
-		-- end
+		
+		local attStart = checkEnt:LookupAttachment("laser")
+		if self:GetBeam() then
+			local att = checkEnt:GetAttachment(attStart)
+			local startPos = att.Pos
+			local endPos = att.Ang:Forward() *2000
+			local ent = false
+			local lockOn = self:GetLockOn()
+			if IsValid(lockOn) then
+				ent = true
+				endPos = lockOn:EyePos() -(lockOn:OBBCenter() /2)
+				local angDif = math_angDif((lockOn:GetPos() -self:GetPos()):Angle().y, self:GetAngles().y)
+				if math_abs(angDif) > 80 then
+					endPos = startPos +att.Ang:Forward() *2000
+					endPos.z = lockOn:GetPos().z
+				end
+			end
+			render.SetMaterial(matLaserStart)
+			render.DrawSprite(startPos,5,5,laserColor)
+			for i = 1,3 do
+				startPos = startPos +att.Ang:Right() *(i == 1 && -0.1 or i == 2 && 0.3 or 0) +att.Ang:Up() *(i == 3 && 0.3 or 0)
+				local tr = util.TraceLine({
+					start = startPos,
+					endpos = ent && endPos or startPos +endPos,
+					filter = self,
+					mask = MASK_SHOT
+				})
+				render.SetMaterial(matLaser)
+				render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
+			end
+		end
 	end
 
 	function ENT:OnRemove()
@@ -298,6 +265,7 @@ if CLIENT then
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
 		local newFOV = myFOV
+		local refreshRate = nil
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
 			local setPos = self:EyePos() + self:GetForward()*20
@@ -318,6 +286,7 @@ if CLIENT then
 			end
 			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
 			newFOV = 90
+			refreshRate = 0
 		else -- Third person
 			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
@@ -346,7 +315,8 @@ if CLIENT then
 			newFOV = nil
 		end
 		self.LastFOV = newFOV
-		return {origin = pos, angles = ang, fov = newFOV}
+		self.VJ_AVP_ViewModelData = {origin = pos, angles = ang, fov = newFOV}
+		return {origin = pos, angles = ang, fov = newFOV, speed = refreshRate}
 	end
 
 	local function GetLandingPosition(self,ply)
@@ -417,6 +387,8 @@ if CLIENT then
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
 	local matGradientTech = Material("hud/cpthazama/avp/thermal_gradient_cold.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
+
+	local acceptableClasses = {viewmodel=true}
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
 	local function ScreenPos(x,y)
@@ -889,7 +861,7 @@ if CLIENT then
 									render.OverrideDepthEnable(true,false)
 									render.SetLightingMode(2)
 									render.SetBlend(1)
-									render.MaterialOverride(v.VJ_AVP_Predator && v:GetCloaked() && matTT_Thermal or matTT_Thermal_Overlay)
+									render.MaterialOverride((v.VJ_AVP_Predator && v:GetCloaked()) && matTT_Thermal or matTT_Thermal_Overlay)
 									v:DrawModel()
 									render.OverrideDepthEnable(false,false)
 									render.SetLightingMode(0)
@@ -1030,6 +1002,11 @@ if CLIENT then
 			hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision")
 			if IsValid(cont) then
 				cont:SetDSP(1)
+				cont.VJCE_NPC = nil
+				local vm = cont:GetViewModel()
+				if IsValid(vm) then
+					vm:SetMaterial("")
+				end
 			end
 		end
 	end)

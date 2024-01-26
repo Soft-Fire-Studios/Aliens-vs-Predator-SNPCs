@@ -43,7 +43,8 @@ ENT.VJC_Data = {
     CameraMode = 2, -- Sets the default camera mode | 1 = Third Person, 2 = First Person
     ThirdP_Offset = Vector(0, 0, -35), -- The offset for the controller when the camera is in third person
     FirstP_Bone = "Bip01 Head", -- If left empty, the base will attempt to calculate a position for first person
-    FirstP_Offset = Vector(10, 0, 3), -- The offset for the controller when the camera is in first person
+    FirstP_Offset = Vector(0, 0, 0), -- The offset for the controller when the camera is in first person
+    -- FirstP_Offset = Vector(10, 0, 3), -- The offset for the controller when the camera is in first person
     FirstP_CameraBoneAng = 1,
     VJC_FP_CameraBoneAng_Offset = 0
 }
@@ -633,6 +634,13 @@ function ENT:SpecialAttackCode(atk)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetViewModel()
+	local ply = self.VJ_TheController
+	if IsValid(ply) && IsValid(ply.VJ_AVP_ViewModel) then
+		return ply.VJ_AVP_ViewModel
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
 	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
@@ -670,6 +678,10 @@ function ENT:AttackCode()
 		start = string_Replace(start,"[SIDE]",side)
 		hit = string_Replace(hit,"[SIDE]",side)
 		miss = string_Replace(miss,"[SIDE]",side)
+		local vm = self:GetViewModel()
+		if vm then
+			vm:PrimaryAttack()
+		end
 		self:PlaySound(self.SoundTbl_Attack,78)
 		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
 		self:VJ_ACT_PLAYACTIVITY(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
@@ -1234,6 +1246,36 @@ function ENT:OnFailedHidingSpot()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local model = "models/cpthazama/avp/predators/hud.mdl"
+--
+function ENT:SetViewModelWeapon(wep,ply)
+	local vm = ply:GetViewModel()
+	if IsValid(vm) then
+		local isScripted = wep:IsScripted()
+
+		local fov = -1
+
+		if isScripted and wep.ViewModelFOV then
+			fov = wep.ViewModelFOV
+		end
+
+		if (self:GetVM() != wep or vm:GetModel() != model) then
+			vm:SetModel(model)
+			vm:SetNoDraw(false)
+
+			if isScripted then
+				timer.Simple(0, function()
+					if wep:IsValid() then
+						wep:Deploy()
+					end
+				end)
+			end
+
+			self:SetVM(wep)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 	if self.InFatality then
@@ -1271,7 +1313,6 @@ function ENT:CustomOnThink_AIEnabled()
 	-- if self.Flinching && self:OnGround() then
 	-- 	self:SetVelocity(self:GetMoveVelocity())
 	-- end
-
 	self:SetHP(self:Health())
 	if curTime > self.NextRegenEnergyT then
 		self:SetEnergy(math.Clamp(self:GetEnergy() +10,0,200))
@@ -1373,6 +1414,15 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 
 	if IsValid(ply) then
+		if !IsValid(ply.VJ_AVP_ViewModel) then
+			ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
+			self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)
+		else
+			local wep = ply.VJ_AVP_ViewModel
+			ply.VJ_AVP_ViewModelNPC = self
+			self:SetViewModelWeapon(wep,ply)
+			wep:Think(self)
+		end
 		if ply:KeyDown(IN_RELOAD) && curTime > self.NextCloakT then
 			self:Camo(!self:GetCloaked())
 			if !self:IsBusy() then
@@ -1517,6 +1567,17 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnPlaySound(sdFile)
+	if VJ.HasValue(self.SoundTbl_Idle,sdFile) then
+		local ply = self.VJ_TheController
+		if IsValid(ply) && IsValid(ply.VJ_AVP_ViewModel) then
+			local wep = ply.VJ_AVP_ViewModel
+			wep:OnPlaySound(sdFile)
+		end
+	end
+	return sdFile
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.SoundTbl_FootSteps = {

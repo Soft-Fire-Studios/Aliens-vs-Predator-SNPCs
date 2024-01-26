@@ -223,6 +223,41 @@ if VJExists == true then
 			print("Playing sound " .. sound .. " on " .. ent:Nick())
 		end)
 
+		hook.Add("CalcViewModelView","VJ_AVP_ViewModel",function(wep,vm,opos,oang,pos,ang)
+			local ply = LocalPlayer()
+			if IsValid(ply) then
+				local possessing = ply.VJCE_NPC
+				if IsValid(possessing) && possessing.VJ_AVP_Predator && possessing.VJ_AVP_ViewModelData then
+					local att = possessing:LookupAttachment("pov")
+					local data = possessing.VJ_AVP_ViewModelData
+					local pos2 = data.origin
+					local ang2 = data.angles
+					if att > 0 then
+						local attPos = possessing:GetAttachment(att)
+						if attPos then
+							ang2 = attPos.Ang
+						end
+					end
+					local origin, angles = pos2 +(opos -pos),ang2 +(oang -ang)
+
+					angles.p = math.Clamp(angles.p,-40,70)
+
+					ply.VJ_AVP_ViewModelCalcData = {origin,angles}
+		
+					return origin, angles
+				end
+			end
+		end)
+		
+		hook.Add("PreDrawViewModel","VJ_AVP_ViewModel",function(vm,ply)
+			local possessing = ply.VJCE_NPC
+			if IsValid(possessing) && possessing.VJ_AVP_Predator then
+				if !IsValid(possessing:GetVM()) or ply.VJC_Camera_Mode != 2 then
+					return true
+				end
+			end
+		end)
+
 		surface.CreateFont("VJFont_AVP_Marine", {
 			font = "Orbitron Regular",
 			size = 32,
