@@ -28,7 +28,13 @@ SWEP.Secondary.Ammo 			= "none"
 
 SWEP.DeploySound = {"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_draw_01.ogg","cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_draw_02.ogg"}
 
-SWEP.Translations = {}
+SWEP.Translations = {
+	["predator_claws_console_use"] = "predator_hud_console_open",
+	["predator_mine_throw"] = "predator_hud_predmine_console_use",
+	["predator_battledisc_throw"] = "predator_hud_battledisc_throw_complete",
+	["predator_plasma_caster_extend"] = "predator_hud_plasma_console_open",
+	["predator_spear_2nd_throw"] = "predator_hud_spear_throw",
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Initialize()
 	self.SequenceTime = 0
@@ -119,6 +125,7 @@ function SWEP:OnChangeActivity(npc,act)
 	local vmSeqEdit = string_replace(vmSeq,"_hud_","_")
 	local trans = self.Translations[curSeq]
 	local lastSeq = self.LastSequence
+	-- print("Requested:",curSeq)
 	if trans then
 		if vmSeq != trans then
 			self.NextIdleT = CurTime() +self:PlayWeaponAnimation(trans)
@@ -126,7 +133,6 @@ function SWEP:OnChangeActivity(npc,act)
 		end
 	else
 		if VJ.AnimExists(vm,curSeqEdit) && vmSeq != curSeqEdit then
-			-- if vm:GetCycle() >= 1 or lastSeq == curSeqEdit then return end
 			self.NextIdleT = CurTime() +self:PlayWeaponAnimation(curSeqEdit)
 			return
 		end
@@ -160,24 +166,6 @@ function SWEP:Think()
 					self.AnimTbl_Idle = {"predator_hud_claws_rest"}
 				end
 			end
-			-- local curSeq = npc:GetSequenceName(npc:GetSequence())
-			-- local curSeqEdit = string_replace(curSeq,"predator_","predator_hud_")
-			-- local vmSeq = vm:GetSequenceName(vm:GetSequence())
-			-- local vmSeqEdit = string_replace(vmSeq,"_hud_","_")
-			-- local trans = self.Translations[curSeq]
-			-- local lastSeq = self.LastSequence
-			-- if trans then
-			-- 	if vmSeq != trans then
-			-- 		self.NextIdleT = CurTime() +self:PlayWeaponAnimation(trans)
-			-- 		return
-			-- 	end
-			-- else
-			-- 	if VJ.AnimExists(vm,curSeqEdit) && vmSeq != curSeqEdit then
-			-- 		if vm:GetCycle() >= 1 or lastSeq == curSeqEdit then return end
-			-- 		self.NextIdleT = CurTime() +self:PlayWeaponAnimation(curSeqEdit)
-			-- 		return
-			-- 	end
-			-- end
 		end
 	end
 

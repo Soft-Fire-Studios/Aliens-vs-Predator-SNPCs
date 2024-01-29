@@ -4,8 +4,9 @@
 	"$bumpmap"					"vj_base/flat"
 
     "$nodecal" 					"1"
-    "$translucent" 				"1"
-    "$allowalphatocoverage" 	"1"
+    "$selfillum" 				"1"
+    // "$translucent" 				"1"
+    // "$allowalphatocoverage" 	"1"
 
 	"$cloakpassenabled"			"1"
 	"$cloakfactor"				"0"

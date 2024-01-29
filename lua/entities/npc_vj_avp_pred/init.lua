@@ -712,15 +712,18 @@ function ENT:SpecialAttackCode(atk)
 		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(mine)
 		self.Mine = mine
-		self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true})
+		self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			SafeRemoveEntity(self.Mine)
+		end})
 		self.NextChaseTime = 0
-
 		self:SetBodygroup(self:FindBodygroupByName("equip_mine"),0)
 	elseif atk == 3 then
 		self:SetBeam(true)
 		self:PlayAnimation("vjges_predator_battledisc_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			if interrupted then self:SetBeam(false) return end
-			self:PlayAnimation("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true})
+			if interrupted then self:SetBeam(false) SafeRemoveEntity(self.Disc) return end
+			self:PlayAnimation("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+				SafeRemoveEntity(self.Disc)
+			end})
 			self.NextChaseTime = 0
 		end})
 		self.NextChaseTime = 0
@@ -741,8 +744,10 @@ function ENT:SpecialAttackCode(atk)
 		self.SpearProp = spear
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
 		self:PlayAnimation("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			if interrupted then return end
-			self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true})
+			if interrupted then SafeRemoveEntity(self.SpearProp) return end
+			self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+				SafeRemoveEntity(self.SpearProp)
+			end})
 			self.NextChaseTime = 0
 		end})
 		self:SetBodygroup(self:FindBodygroupByName("equip_spear"),0)

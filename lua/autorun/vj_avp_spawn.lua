@@ -220,7 +220,7 @@ if VJExists == true then
 			local ent = net.ReadEntity()
 
 			ent:EmitSound(sound,0)
-			print("Playing sound " .. sound .. " on " .. ent:Nick())
+			-- print("Playing sound " .. sound .. " on " .. ent:Nick())
 		end)
 
 		hook.Add("PlayerBindPress","VJ.AVP.BindPressFix",function(ply,bind,pressed)
