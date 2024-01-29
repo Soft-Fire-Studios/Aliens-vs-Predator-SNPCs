@@ -184,9 +184,11 @@ if CLIENT then
 			if IsValid(vm) then
 				vm:SetSkin(self.VJ_AVP_Predator_IsDark && 1 or 0)
 				if self:GetVisionMode() == 1 then
-					vm:SetMaterial(self:GetCloaked() && "hud/cpthazama/avp/tt_thermal" or "hud/cpthazama/avp/tt_thermal_overlay")
+					vm:SetBodygroup(1,self:GetCloaked() && 2 or 1)
+					-- vm:SetMaterial(self:GetCloaked() && "hud/cpthazama/avp/tt_thermal" or "hud/cpthazama/avp/tt_thermal_overlay")
 				else
-					vm:SetMaterial("")
+					vm:SetBodygroup(1,0)
+					-- vm:SetMaterial("")
 				end
 			end
 		end
