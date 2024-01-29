@@ -228,19 +228,26 @@ if VJExists == true then
 			if IsValid(ply) then
 				local possessing = ply.VJCE_NPC
 				if IsValid(possessing) && possessing.VJ_AVP_Predator && possessing.VJ_AVP_ViewModelData then
-					local att = possessing:LookupAttachment("pov")
+					local att = vm:LookupAttachment("pov")
 					local data = possessing.VJ_AVP_ViewModelData
 					local pos2 = data.origin
 					local ang2 = data.angles
-					if att > 0 then
-						local attPos = possessing:GetAttachment(att)
-						if attPos then
-							ang2 = attPos.Ang
-						end
-					end
-					local origin, angles = pos2 +(opos -pos),ang2 +(oang -ang)
+					-- if att > 0 then
+						-- local attPos = vm:GetAttachment(att)
+						-- if attPos then
+							-- local localVec = ply:WorldToLocal(attPos.Pos)
+							-- local diff = localVec -pos2
+							-- print(localVec,diff)
+							-- print("-------------------")
+							-- print("Pos2",pos2,"attPos",attPos.Pos,"Diff",diff,"pos2 +diff",pos2 +diff)
+							-- pos2 = pos2 +diff
+							-- pos2 = pos2 +Vector(0,0,5)
+						-- end
+					-- end
+					local origin = pos2 + (opos - pos)
+					local angles = ang2 + (oang - ang)
 
-					angles.p = math.Clamp(angles.p,-40,70)
+					angles.p = math.Clamp(angles.p,-40,78)
 
 					ply.VJ_AVP_ViewModelCalcData = {origin,angles}
 		

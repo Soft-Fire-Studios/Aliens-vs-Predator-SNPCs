@@ -204,6 +204,7 @@ if CLIENT then
 
 			local vm = ply:GetViewModel()
 			if IsValid(vm) then
+				vm:SetSkin(self.VJ_AVP_Predator_IsDark && 1 or 0)
 				if self:GetVisionMode() == 1 then
 					vm:SetMaterial(self:GetCloaked() && "hud/cpthazama/avp/tt_thermal" or "hud/cpthazama/avp/tt_thermal_overlay")
 				else
@@ -274,9 +275,9 @@ if CLIENT then
 			if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
 				local bonePos, boneAng = self:GetBonePosition(ply.VJC_FP_Bone)
 				setPos = bonePos
-				if ply.VJC_FP_CameraBoneAng > 0 then
-					ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
-				end
+				-- if ply.VJC_FP_CameraBoneAng > 0 then
+				-- 	ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
+				-- end
 				if ply.VJC_FP_ShrinkBone then
 					self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
 					for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
@@ -284,18 +285,26 @@ if CLIENT then
 					end
 				end
 			end
-			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
+			-- local vm = ply:GetViewModel()
+			-- local att = vm:LookupAttachment("pov")
+			pos = setPos +(self:GetForward() *offset.x +self:GetRight() *offset.y +self:GetUp() *offset.z)
+			-- if att > 0 then
+			-- 	local attPos = vm:GetAttachment(att)
+			-- 	if attPos then
+			-- 		local diff = attPos.Pos -pos
+			-- 		pos = pos +diff
+			-- 	end
+			-- end
 			newFOV = 90
 			refreshRate = 0
-		else -- Third person
-			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
+		else
+			if ply.VJC_FP_Bone != -1 then
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
 				for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
 					self:ManipulateBoneScale(v, vec1)
 				end
 			end
 			local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
 				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),

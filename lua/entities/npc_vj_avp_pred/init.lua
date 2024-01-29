@@ -240,9 +240,23 @@ function ENT:CustomOnChangeActivity(newAct)
 	-- if newAct == ACT_SPRINT then
 	-- 	VJ.EmitSound(self,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg",70)
 	-- end
+	local vm = self:GetViewModel()
+	if vm then
+		vm:OnChangeActivity(self,act)
+	end
 	self.LongJumping = false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
+	local anim,animDur = self:VJ_ACT_PLAYACTIVITY(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	local vm = self:GetViewModel()
+	if vm then
+		vm:OnChangeActivity(self,anim)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local vecZ20 = Vector(0, 0, 20)
+--
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Predator_Client")
 		net.WriteBool(false)
@@ -264,6 +278,108 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(self)
 			net.WriteEntity(ply)
 		net.Send(ply)
+	end
+
+	function controlEnt:Think()
+		local ply = self.VJCE_Player
+		local npc = self.VJCE_NPC
+		local camera = self.VJCE_Camera
+		if (!camera:IsValid()) then self:StopControlling() return end
+		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJTag_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
+		if ply.VJTag_IsControllingNPC != true then return end
+		local curTime = CurTime()
+		if ply.VJTag_IsControllingNPC && IsValid(npc) then
+			local npcWeapon = npc:GetActiveWeapon()
+			self.VJC_NPC_LastPos = npc:GetPos()
+			ply:SetPos(self.VJC_NPC_LastPos + vecZ20) -- Set the player's location
+			self:SendDataToClient()
+			
+			-- HUD
+			if self.VJC_Player_DrawHUD then
+				net.Start("vj_controller_hud")
+					net.WriteBool(ply:GetInfoNum("vj_npc_cont_hud", 1) == 1)
+					net.WriteFloat(npc:GetMaxHealth())
+					net.WriteFloat(npc:Health())
+					net.WriteString(npc:GetName())
+					net.WriteInt(npc.HasMeleeAttack == true && (((npc.IsAbleToMeleeAttack != true or npc.AttackType == VJ.ATTACK_TYPE_MELEE) and 2) or 1) or 0, 3)
+					net.WriteInt(npc.HasRangeAttack == true && (((npc.IsAbleToRangeAttack != true or npc.AttackType == VJ.ATTACK_TYPE_RANGE) and 2) or 1) or 0, 3)
+					net.WriteInt(npc.HasLeapAttack == true && (((npc.IsAbleToLeapAttack != true or npc.AttackType == VJ.ATTACK_TYPE_LEAP) and 2) or 1) or 0, 3)
+					net.WriteBool(IsValid(npcWeapon))
+					net.WriteInt(IsValid(npcWeapon) && npcWeapon:Clip1() or 0, 32)
+					net.WriteInt(npc.HasGrenadeAttack == true && ((curTime <= npc.NextThrowGrenadeT and 2) or 1) or 0, 3)
+				net.Send(ply)
+			end
+			
+			local wepList = ply:GetWeapons()
+			if #wepList > 0 then
+				for _, v in ipairs(wepList) do
+					if !v.VJBase_IsControllerWeapon then
+						ply:StripWeapon(v:GetClass())
+					end
+				end
+			end
+	
+			local bullseyePos = self.VJCE_Bullseye:GetPos()
+			if ply:GetInfoNum("vj_npc_cont_devents", 0) == 1 then
+				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
+				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
+				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
+			end
+			
+			self:CustomOnThink()
+	
+			local canTurn = true
+			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
+	
+			-- Weapon attack
+			if npc.IsVJBaseSNPC_Human == true then
+				if IsValid(npcWeapon) && !npc:IsMoving() && npcWeapon.IsVJBaseWeapon == true && ply:KeyDown(IN_ATTACK2) && npc.AttackType == VJ.ATTACK_TYPE_NONE && npc.vACT_StopAttacks == false && npc:GetWeaponState() == VJ.NPC_WEP_STATE_READY then
+					//npc:SetAngles(Angle(0,math.ApproachAngle(npc:GetAngles().y,ply:GetAimVector():Angle().y,100),0))
+					npc:SetTurnTarget(bullseyePos, 0.2)
+					canTurn = false
+					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
+						npc:CustomOnWeaponAttack()
+						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
+						npc:VJ_ACT_PLAYACTIVITY(npc.CurrentWeaponAnimation, false, 2, false)
+						npc.DoingWeaponAttack = true
+						npc.DoingWeaponAttack_Standing = true
+					end
+				end
+				if !ply:KeyDown(IN_ATTACK2) then
+					npc.DoingWeaponAttack = false
+					npc.DoingWeaponAttack_Standing = false
+				end
+			end
+			
+			if npc.CurrentAttackAnimationTime < CurTime() && curTime > npc.NextChaseTime && npc.IsVJBaseSNPC_Tank != true then
+				-- Turning
+				if !npc:IsMoving() && canTurn && npc.MovementType != VJ_MOVETYPE_PHYSICS && ((npc.IsVJBaseSNPC_Human && npc:GetWeaponState() != VJ.NPC_WEP_STATE_RELOADING) or (!npc.IsVJBaseSNPC_Human)) then
+					npc:VJ_TASK_IDLE_STAND()
+					if self.VJC_NPC_CanTurn == true then
+						local turnData = npc.TurnData
+						if turnData.Target != self.VJCE_Bullseye then
+							npc:SetTurnTarget(self.VJCE_Bullseye, 1)
+						elseif npc:GetActivity() == ACT_IDLE && npc:GetIdealActivity() == ACT_IDLE then -- Check both current act AND ideal act because certain activities only change the current act (Ex: UpdateTurnActivity function)
+							npc:UpdateTurnActivity()
+							if npc:GetIdealActivity() != ACT_IDLE then -- If ideal act is no longer idle, then we have selected a turn activity!
+								npc.NextIdleTime = CurTime() + npc:DecideAnimationLength(npc:GetIdealActivity())
+							end
+						end
+					end
+					//self.TestLerp = npc:GetAngles().y
+					//npc:SetAngles(Angle(0,Lerp(100*FrameTime(),self.TestLerp,ply:GetAimVector():Angle().y),0))
+				end
+				
+				-- Movement
+				npc:Controller_Movement(self, ply, bullseyePos)
+				
+				//if (ply:KeyDown(IN_USE)) then
+					//npc:StopMoving()
+					//self:StopControlling()
+				//end
+			end
+		end
+		self:NextThink(curTime)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -328,7 +444,7 @@ function ENT:CustomOnInitialize()
 				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetSolid(SOLID_NONE)
 				-- self:DeleteOnRemove(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:VJ_ACT_PLAYACTIVITY("predator_intro",true,false,false,0,{OnFinish=function()
+				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
 				-- 	if IsValid(self) then
 				-- 		self.DisableFindEnemy = false
 				-- 		self:SetState()
@@ -350,7 +466,7 @@ function ENT:CustomOnInitialize()
 				predmobile:ResetSequence("predator_intro")
 				self.PredShip = predmobile
 				self:DeleteOnRemove(predmobile)
-				self:VJ_ACT_PLAYACTIVITY("predator_intro",true,false,false,0,{OnFinish=function()
+				self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
 					self.DisableFindEnemy = false
 					self:SetState()
 					self:RemoveFlags(FL_NOTARGET)
@@ -394,7 +510,7 @@ function ENT:OnKeyPressed(ply,key)
 			local tr = util.TraceHull({
 				start = self:EyePos(),
 				endpos = self:EyePos() +ply:GetAimVector() *6000,
-				filter = {self,ply,self.VJ_TheControllerBullseye},
+				filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
 				mins = Vector(-10,-10,-10),
 				maxs = Vector(10,10,10)
 			})
@@ -423,7 +539,7 @@ function ENT:OnKeyPressed(ply,key)
     elseif key == KEY_1 then
 		self:SetEquipment(1)
 		if !self:IsBusy() then
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end
 		self:SetEquipmentShowTime(CurTime() +1.5)
@@ -431,7 +547,7 @@ function ENT:OnKeyPressed(ply,key)
 	elseif key == KEY_2 then
 		self:SetEquipment(2)
 		if !self:IsBusy() then
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end
 		self:SetEquipmentShowTime(CurTime() +1.5)
@@ -439,7 +555,7 @@ function ENT:OnKeyPressed(ply,key)
 	elseif key == KEY_3 then
 		self:SetEquipment(3)
 		if !self:IsBusy() then
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end
 		self:SetEquipmentShowTime(CurTime() +1.5)
@@ -447,7 +563,7 @@ function ENT:OnKeyPressed(ply,key)
 	elseif key == KEY_4 then
 		self:SetEquipment(4)
 		if !self:IsBusy() then
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end
 		self:SetEquipmentShowTime(CurTime() +1.5)
@@ -536,7 +652,7 @@ function ENT:SpecialAttackCode(atk)
 		self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
 		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
-		self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
 
 			if self:GetEnergy() >= 50 then
@@ -576,7 +692,7 @@ function ENT:SpecialAttackCode(atk)
 			self:SetPoseParameter("plasma_pitch",0)
 			self:SetPoseParameter("plasma_yaw",0)
 			self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				self:SetBeam(false)
 			end})
 			self.NextChaseTime = 0
@@ -596,15 +712,15 @@ function ENT:SpecialAttackCode(atk)
 		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(mine)
 		self.Mine = mine
-		self:VJ_ACT_PLAYACTIVITY("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true})
+		self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true})
 		self.NextChaseTime = 0
 
 		self:SetBodygroup(self:FindBodygroupByName("equip_mine"),0)
 	elseif atk == 3 then
 		self:SetBeam(true)
-		self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:PlayAnimation("vjges_predator_battledisc_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then self:SetBeam(false) return end
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end})
 		self.NextChaseTime = 0
@@ -624,9 +740,9 @@ function ENT:SpecialAttackCode(atk)
 		self:DeleteOnRemove(spear)
 		self.SpearProp = spear
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
-		self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:PlayAnimation("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
-			self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true})
+			self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end})
 		self:SetBodygroup(self:FindBodygroupByName("equip_spear"),0)
@@ -644,7 +760,7 @@ end
 function ENT:UseStimpack()
 	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
-	self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_healthstab",true,false,false)
+	self:PlayAnimation("vjges_predator_claws_healthstab",true,false,false)
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -678,22 +794,18 @@ function ENT:AttackCode()
 		start = string_Replace(start,"[SIDE]",side)
 		hit = string_Replace(hit,"[SIDE]",side)
 		miss = string_Replace(miss,"[SIDE]",side)
-		local vm = self:GetViewModel()
-		if vm then
-			vm:PrimaryAttack()
-		end
 		self:PlaySound(self.SoundTbl_Attack,78)
 		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
-		self:VJ_ACT_PLAYACTIVITY(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:PlayAnimation(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
 			local hitEnts = self:RunDamageCode()
 			if #hitEnts > 0 then
-				self:VJ_ACT_PLAYACTIVITY(hit,true,false,true,0,{AlwaysUseGesture=true})
+				self:PlayAnimation(hit,true,false,true,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				self:OnHit(hitEnts)
 				VJ.EmitSound(self,sdClawFlesh,75)
 			else
-				self:VJ_ACT_PLAYACTIVITY(miss,true,0.15,false,0,{AlwaysUseGesture=true})
+				self:PlayAnimation(miss,true,0.15,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 				VJ.EmitSound(self,sdClawMiss,75)
 			end
@@ -799,7 +911,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 		end
 	end
 	self:FaceCertainPosition(self.LongJumpPos,1)
-	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
+	self:PlayAnimation(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
@@ -1201,7 +1313,7 @@ function ENT:OnCatchDisc(ent)
 	self:DeleteOnRemove(disc)
 	self.Disc = disc
 	SafeRemoveEntityDelayed(disc,1)
-	self:VJ_ACT_PLAYACTIVITY("vjges_predator_battledisc_catch",true,false,true,0,{AlwaysUseGesture=true})
+	self:PlayAnimation("vjges_predator_battledisc_catch",true,false,true,0,{AlwaysUseGesture=true})
 	self.NextChaseTime = 0
 	self:SetDisc(nil)
 end
@@ -1222,7 +1334,7 @@ function ENT:OnGrabSpear(ent)
 	self:DeleteOnRemove(spear)
 	self.SpearProp = spear
 	SafeRemoveEntityDelayed(spear,1)
-	self:VJ_ACT_PLAYACTIVITY("vjges_predator_spear_retract",true,false,true,0,{AlwaysUseGesture=true})
+	self:PlayAnimation("vjges_predator_spear_retract",true,false,true,0,{AlwaysUseGesture=true})
 	self.NextChaseTime = 0
 	self:SetSpear(nil)
 	self:PlaySound({"^cpthazama/avp/predator/vocals/pred_laugh_taunt_bill.ogg","^cpthazama/avp/predator/vocals/pred_laugh_taunt_glenn.ogg"},80)
@@ -1426,7 +1538,7 @@ function ENT:CustomOnThink_AIEnabled()
 		if ply:KeyDown(IN_RELOAD) && curTime > self.NextCloakT then
 			self:Camo(!self:GetCloaked())
 			if !self:IsBusy() then
-				self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+				self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 			end
 			self.NextCloakT = curTime +1
@@ -1493,7 +1605,7 @@ function ENT:CustomOnThink_AIEnabled()
 			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
-					self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+					self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 					self.NextChaseTime = 0
 				end
 				self.NextCloakT = curTime +1
@@ -1538,7 +1650,7 @@ function ENT:CustomOnThink_AIEnabled()
 			if !self:GetCloaked() && curTime > self.NextCloakT && math.random(1,100) == 1 then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
-					self:VJ_ACT_PLAYACTIVITY("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+					self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
 					self.NextChaseTime = 0
 				end
 				self.NextCloakT = curTime +1
@@ -1717,7 +1829,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		-- self.Flinching = true
-		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+		self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then
 			-- if interrupted && self.NextFlinchT < CurTime() then
 				-- self.Flinching = false
