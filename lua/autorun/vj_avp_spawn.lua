@@ -223,6 +223,14 @@ if VJExists == true then
 			print("Playing sound " .. sound .. " on " .. ent:Nick())
 		end)
 
+		hook.Add("PlayerBindPress","VJ.AVP.BindPressFix",function(ply,bind,pressed)
+			if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_NPC then
+				if bind == "invprev" or bind == "invnext" then
+					return true
+				end
+			end
+		end)
+
 		hook.Add("CalcViewModelView","VJ_AVP_ViewModel",function(wep,vm,opos,oang,pos,ang)
 			local ply = LocalPlayer()
 			if IsValid(ply) then

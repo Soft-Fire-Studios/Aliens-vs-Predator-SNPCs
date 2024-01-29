@@ -124,28 +124,6 @@ if CLIENT then
         --         render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
         --     end
         -- end)
-
-		-- hook.Add("PlayerBindPress",self,function(self,ply,bind,pressed)
-		-- 	if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
-		-- 		-- local cent = ply.VJ_TheControllerEntity
-		-- 		if pressed && ply.VJC_Camera_Mode == 2 then
-		-- 		-- if pressed then
-		-- 			bind = string_lower(bind)
-		-- 			local fov = ply:GetFOV()
-		-- 			if string_find(bind,"invprev") then
-		-- 				ply:SetFOV(fov <= 1 && GetConVarNumber("fov_desired") or math.Clamp(fov -20,1,180),0.25)
-		-- 				ply:EmitSound("cpthazama/avp/predator/prd_vision_mode_zoom.wav",65)
-		-- 				-- cent.VJC_Camera_CurZoom = Vector(0,0,0)
-		-- 				return true
-		-- 			elseif string_find(bind,"invnext") then
-		-- 				ply:SetFOV(GetConVarNumber("fov_desired"),0.1)
-		-- 				ply:EmitSound("cpthazama/avp/predator/prd_vision_mode_zoom_out.wav",65)
-		-- 				-- cent.VJC_Camera_CurZoom = Vector(0,0,0)
-		-- 				return true
-		-- 			end
-		-- 		end
-		-- 	end
-		-- end)
 	end
 
 	local math_abs = math.abs
@@ -317,7 +295,7 @@ if CLIENT then
 			newFOV = 75
 		end
 		if self:GetSprinting() or self:GetJumpPosition() != vec0 then
-			newFOV = newFOV +10
+			newFOV = newFOV +20
 		end
 		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
 		if ply:GetFOV() != GetConVarNumber("fov_desired") then
