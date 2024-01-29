@@ -1748,6 +1748,15 @@ ENT.SoundTbl_FootSteps = {
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_13.ogg",
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_14.ogg",
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_15.ogg"
+	},
+	[MAT_METAL] = {
+		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
+	},
+	[MAT_GRATE] = {
+		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
+	},
+	[MAT_GLASS] = {
+		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
 	}
 }
 --
@@ -1760,11 +1769,17 @@ function ENT:FootStep(pos,name)
 		endpos = self:GetPos() +Vector(0,0,-150),
 		filter = {self}
 	})
-	if tr.MatType && tbl[tr.MatType] == nil then
-		tr.MatType = MAT_CONCRETE
+	local mat = tr.MatType
+	if mat && tbl[mat] == nil then
+		mat = MAT_CONCRETE
 	end
-	if tr.Hit && tbl[tr.MatType] then
-		VJ.EmitSound(self,VJ_PICK(tbl[tr.MatType]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	if tr.Hit && tbl[mat] then
+		if (mat == MAT_GLASS or mat == MAT_METAL or mat == MAT_GRATE) then
+			VJ.EmitSound(self,VJ_PICK(tbl[MAT_CONCRETE]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+			VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 45 or (self.FootStepSoundLevel or 65),math.random(98,107))
+		else
+			VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		end
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
 		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))

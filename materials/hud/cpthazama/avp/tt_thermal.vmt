@@ -15,7 +15,7 @@
 	"$FleshSubsurfaceTexture"	 	"hud/cpthazama/avp/thermal_gradient_flip"
 	"$FleshSubsurfaceTint" 			"[1 1 1]"
 	"$FleshBorderNoiseScale"     	"15"
-	"$FleshBorderWidth"				"1.7"
+	"$FleshBorderWidth"				"1.5"
 	"$FleshBorderSoftness"			"0"
 	"$FleshBorderTint"				"[2 2 2]"
 	"$FleshScrollSpeed"				"10"
