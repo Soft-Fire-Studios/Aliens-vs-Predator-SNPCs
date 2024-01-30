@@ -448,6 +448,56 @@ ENT.HitGroups = {
 		end,
 	},
 }
+---------------------------------------------------------------------------------------------------------------------------------------------
+local defStandingBounds = Vector(13,13,72)
+local defCrawlingBounds = Vector(13,13,34)
+--
+function ENT:CustomOnInitialize()
+	self.CurrentSet = 1 -- Crawl | 2 = Stand
+	self.LastSet = 0
+	self.LastIdleActivity = ACT_IDLE
+	self.LastMovementActivity = ACT_RUN
+	self.ChangeSetT = CurTime() +1
+	self.IsUsingFaceAnimation = false
+	self.SprintT = 0
+	self.NextSprintT = 0
+	self.WasSprinting = false
+	self.AI_IsSprinting = false
+	self.LastEnemyDistance = 999999
+	self.NextMoveRandomlyT = 0
+	self.MoveAroundRandomlyT = 0
+	self.NextGibbedFXTime = 0
+	self.DarknessLevel = false
+	self.LastNetworkT = 0
+
+	if self.OnInit then
+		self:OnInit()
+	end
+
+	self:SetJumpAbility(self.CanLeap)
+	self:CapabilitiesAdd(bit.bor(CAP_USE))
+
+	if self.CanSpit then
+		self.HasRangeAttack = true
+	end
+
+	if self.CurrentSet == 2 then
+		local bounds = self.StandingBounds or defStandingBounds
+		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+	elseif self.CurrentSet == 1 then
+		local bounds = self.CrawlingBounds or defCrawlingBounds
+		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+	end
+
+	hook.Add("PlayerButtonDown", self, function(self, ply, button)
+		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+			local cent = ply.VJ_TheControllerEntity
+            if cent.VJCE_NPC == self then
+                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            end
+        end
+    end)
+end
 --
 local math_acos = math.acos
 local math_deg = math.deg
@@ -550,54 +600,72 @@ function ENT:CustomOnCallForHelp(ally)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local defStandingBounds = Vector(13,13,72)
-local defCrawlingBounds = Vector(13,13,34)
---
-function ENT:CustomOnInitialize()
-	self.CurrentSet = 1 -- Crawl | 2 = Stand
-	self.LastSet = 0
-	self.LastIdleActivity = ACT_IDLE
-	self.LastMovementActivity = ACT_RUN
-	self.ChangeSetT = CurTime() +1
-	self.IsUsingFaceAnimation = false
-	self.SprintT = 0
-	self.NextSprintT = 0
-	self.WasSprinting = false
-	self.AI_IsSprinting = false
-	self.LastEnemyDistance = 999999
-	self.NextMoveRandomlyT = 0
-	self.MoveAroundRandomlyT = 0
-	self.NextGibbedFXTime = 0
-	self.DarknessLevel = false
-	self.LastNetworkT = 0
-
-	if self.OnInit then
-		self:OnInit()
+function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
+	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph then
+		local tName = "VJ.AVP.Timer.BlackGoo." .. v:EntIndex()
+		if v:IsPlayer() && !timer.Exists(tName) then
+			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")
+			v:ScreenFade(SCREENFADE.IN,Color(0,0,0),0.35,0.1)
+		end
+		timer.Create(tName,10,10,function()
+			if IsValid(v) && v:Health() > 0 then
+				local pos = v:EyePos() +v:GetForward() *5
+				local att = v:LookupAttachment("mouth")
+				if att > 0 then
+					pos = v:GetAttachment(att).Pos
+				end
+				local particle = ents.Create("info_particle_system")
+				particle:SetKeyValue("effect_name","vj_avp_xeno_blackgoo")
+				particle:SetPos(pos)
+				particle:Spawn()
+				particle:Activate()
+				particle:SetParent(v)
+				particle:Fire("Start")
+				particle:Fire("Kill","",1.25)
+				if att > 0 then
+					particle:Fire("SetParentAttachment","mouth",0)
+				end
+				if v:IsPlayer() then
+					v:ScreenFade(SCREENFADE.IN,Color(0,0,0,245),0.35,0.8)
+				end
+				for i = 1,15 do
+					timer.Simple(i *0.05,function()
+						if IsValid(v) && v:Health() > 0 then
+							local oldBleeds = v.Bleeds
+							local oldCallForBackUpOnDamage = v.CallForBackUpOnDamage
+							local oldHideOnUnknownDamage = v.HideOnUnknownDamage
+							if v.IsVJBaseSNPC then
+								v.Bleeds = false
+								v.CallForBackUpOnDamage = false
+								v.HideOnUnknownDamage = false
+							end
+							local dmgEnt = IsValid(self) && self or v
+							local dmginfo = DamageInfo()
+							dmginfo:SetDamage(1)
+							dmginfo:SetDamageType(i == 1 && bit.bor(DMG_ACID,DMG_DIRECT,DMG_DROWN) or bit.bor(DMG_ACID,DMG_DIRECT))
+							dmginfo:SetAttacker(dmgEnt)
+							dmginfo:SetInflictor(dmgEnt)
+							dmginfo:SetDamagePosition(pos)
+							v:TakeDamageInfo(dmginfo)
+							if v:IsPlayer() then
+								v:ViewPunch(Angle(10,0,0))
+								v:SetVelocity(v:GetVelocity() *-1.3)
+							end
+							if v.IsVJBaseSNPC then
+								v.Bleeds = oldBleeds
+								v.CallForBackUpOnDamage = oldCallForBackUpOnDamage
+								v.HideOnUnknownDamage = oldHideOnUnknownDamage
+							end
+						else
+							timer.Remove(tName)
+						end
+					end)
+				end
+			else
+				timer.Remove(tName)
+			end
+		end)
 	end
-
-	self:SetJumpAbility(self.CanLeap)
-	self:CapabilitiesAdd(bit.bor(CAP_USE))
-
-	if self.CanSpit then
-		self.HasRangeAttack = true
-	end
-
-	if self.CurrentSet == 2 then
-		local bounds = self.StandingBounds or defStandingBounds
-		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
-	elseif self.CurrentSet == 1 then
-		local bounds = self.CrawlingBounds or defCrawlingBounds
-		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
-	end
-
-	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
-            end
-        end
-    end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)
@@ -982,6 +1050,7 @@ function ENT:RunDamageCode(mult)
 	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
+		self:CustomOnMeleeAttack_AfterChecks(ent, false)
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
 	end)
 	return hitEnts

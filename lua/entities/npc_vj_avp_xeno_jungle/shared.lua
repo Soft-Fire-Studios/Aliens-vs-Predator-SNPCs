@@ -8,3 +8,4 @@ ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= ""
 
 ENT.VJ_AVP_XenomorphID = "drone"
+ENT.VJ_AVP_XenomorphRunner = true

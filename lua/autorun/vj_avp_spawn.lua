@@ -328,6 +328,7 @@ if VJExists == true then
 		"vj_avp_blood_xeno",
 	})
 	VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
+		"vj_avp_xeno_blackgoo",
 		"vj_avp_xeno_spit",
 		"vj_avp_xeno_spit_impact",
 		"vj_avp_xeno_queenmarker",
