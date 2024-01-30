@@ -25,6 +25,9 @@ ENT.AlwaysStand = true
 
 ENT.StandingBounds = Vector(25,25,160)
 ENT.CrawlingBounds = Vector(25,25,160)
+ENT.AnimTranslations = {
+	[ACT_IDLE] = ACT_IDLE
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if VJ_AVP_QueenExists(self) then
@@ -98,6 +101,7 @@ function ENT:OnThink()
 			eggsack:SetRenderMode(RENDERMODE_TRANSALPHA)
 			eggsack:SetColor(Color(255,255,255,0))
 			eggsack:SetRenderFX(kRenderFxSolidSlow)
+			timer.Simple(1,function() if IsValid(eggsack) then eggsack:SetRenderFX(kRenderFxNone) eggsack:SetColor(Color(255,255,255,255)) end end)
 			eggsack:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 			eggsack:AddEffects(EF_PARENT_ANIMATES)
 			eggsack:ResetSequence("idle")
@@ -105,7 +109,7 @@ function ENT:OnThink()
 			self.EggSack = eggsack
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_enter",true,false,false)
 			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},120)
-			self:SetIdleAnimation({ACT_IDLE_RELAXED},true)
+			self.AnimTranslations[ACT_IDLE] = ACT_IDLE_RELAXED
 			self.NextSpawnEggT = curTime +5
 			self.NextCommandXenosT = curTime +math.random(5,10)
 		end
@@ -292,6 +296,7 @@ function ENT:OnThink()
 					egg:SetRenderMode(RENDERMODE_TRANSALPHA)
 					egg:SetColor(Color(255,255,255,0))
 					egg:SetRenderFX(kRenderFxSolidSlow)
+					timer.Simple(1,function() if IsValid(egg) then egg:SetRenderFX(kRenderFxNone) egg:SetColor(Color(255,255,255,255)) end end)
 
 					local particle = ents.Create("info_particle_system")
 					particle:SetKeyValue("effect_name", "vj_avp_xeno_spit_impact")

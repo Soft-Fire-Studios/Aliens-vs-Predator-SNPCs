@@ -458,13 +458,13 @@ local toSeq = VJ_SequenceToActivity
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoTranslations(act)
 	local anim = false
-	print(anim,act)
+	-- print(anim,act)
 	if act == ACT_IDLE then
 		anim = self:SelectIdleActivity(act)
 	elseif act == ACT_WALK or act == ACT_RUN then
 		anim = self:SelectMovementActivity(act)
 	end
-	print(anim,act)
+	-- print(anim,act)
 	return anim
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -568,6 +568,8 @@ function ENT:CustomOnInitialize()
 	self.NextMoveRandomlyT = 0
 	self.MoveAroundRandomlyT = 0
 	self.NextGibbedFXTime = 0
+	self.DarknessLevel = false
+	self.LastNetworkT = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -596,6 +598,25 @@ function ENT:CustomOnInitialize()
             end
         end
     end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomBeforeApplyRelationship(v)
+	local darkness = self.DarknessLevel
+	if darkness && darkness <= 0.065 && !self:IsMoving() then
+		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator && v:GetVisionMode() == 2 then
+			return
+		end
+		if v:GetPos():Distance(self:GetPos()) > (650 *(darkness *10)) then
+			if v:HasEnemyMemory(self) then
+				v:ClearEnemyMemory(self)
+			end
+			if v:GetEnemy() == self then
+				v:SetEnemy(nil)
+			end
+			self:AddEntityRelationship(v, D_NU, 10)
+			return false
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:FootStep(pos,name)
@@ -1361,6 +1382,11 @@ function ENT:CustomOnThink_AIEnabled()
 	local ent = self:GetEnemy()
 	local ply = self.VJ_TheController
 	local curSet = self.CurrentSet
+	if self.DarknessLevel != false && curTime -self.LastNetworkT >= 5 then
+		self.DarknessLevel = false
+		self.HasIdleSounds = true
+		self.HasAlertSounds = true
+	end
 	-- local idleAct = self:SelectIdleActivity()
 	-- local moveAct = self:SelectMovementActivity()
 	-- if self.LastIdleActivity != idleAct then
@@ -1375,7 +1401,7 @@ function ENT:CustomOnThink_AIEnabled()
 	-- end
 	local transAct = self:GetSequenceActivity(self:GetInternalVariable("m_nIdealSequence"))
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting
-	print(self:GetActivity(),transAct)
+	-- print(self:GetActivity(),transAct)
 
 	if !self.WasSprinting && sprinting then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
@@ -1401,6 +1427,32 @@ function ENT:CustomOnThink_AIEnabled()
 
 	if self.OnThink then
 		self:OnThink()
+	end
+
+	local darkness = self.DarknessLevel
+	if VJ_AVP_CVAR_XENOSTEALTH && darkness && darkness <= 0.065 && !self:IsMoving() then
+		local hasEnemy = false
+		for _,v in ents.Iterator() do
+			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
+				if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator && v:GetVisionMode() == 2 then
+					hasEnemy = true
+					continue
+				end
+				if v:GetPos():Distance(self:GetPos()) > (650 *(darkness *10)) then
+					if v.HasEnemyMemory && v:HasEnemyMemory(self) then
+						v:ClearEnemyMemory(self)
+					end
+					if v.GetEnemy && v:GetEnemy() == self then
+						v:SetEnemy(nil)
+					end
+				else
+					hasEnemy = true
+				end
+			end
+		end
+		if self.NextMoveRandomlyT < curTime && !IsValid(ply) then
+			self.NextMoveRandomlyT = 0
+		end
 	end
 
 	self:SetSprinting(self:IsMoving() && sprinting)

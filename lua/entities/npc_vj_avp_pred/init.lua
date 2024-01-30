@@ -1506,7 +1506,7 @@ function ENT:CustomOnThink_AIEnabled()
 			self.NextCloakT = curTime +2
 		end
 		if !self:GetBeam() then
-			for _,v in pairs(select(2,ents.Iterator())) do
+			for _,v in ents.Iterator() do
 				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
 					local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
 					if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then

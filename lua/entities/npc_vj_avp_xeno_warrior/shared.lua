@@ -126,6 +126,7 @@ if CLIENT then
 		-- 	print(v)
 		-- end
 		self.HasResetMaterials = true
+		self.NextDarknessT = 0
 
 		self.QueenMarkerPoints = {}
 	end
@@ -200,6 +201,7 @@ if CLIENT then
 		return {origin = pos, angles = ang, fov = newFOV}
 	end
 
+	local render_GetLightColor = render.GetLightColor
 	function ENT:Draw()
 		self:DrawModel()
 		local ply = LocalPlayer()
@@ -219,6 +221,17 @@ if CLIENT then
 			if !self.HasResetMaterials then
 				self.HasResetMaterials = true
 				self:SetSubMaterial()
+			end
+		end
+
+		if VJ_AVP_CVAR_XENOSTEALTH then
+			local light = render_GetLightColor(self:GetPos() +self:OBBCenter()):Length()
+			if CurTime() > self.NextDarknessT && light <= 1 then
+				net.Start("VJ_AVP_Xeno_Darkness")
+					net.WriteEntity(self)
+					net.WriteFloat(light,4)
+				net.SendToServer()
+				self.NextDarknessT = CurTime() +math.Rand(1,2)
 			end
 		end
 	end
@@ -245,7 +258,6 @@ if CLIENT then
 	local matOrient_CanJump = Material("hud/cpthazama/avp/avp_a_orient_ret1.png","smooth additive")
 	local matOrient_NoJump = Material("hud/cpthazama/avp/avp_a_reticle_halo1.png","smooth additive")
 
-	local render_GetLightColor = render.GetLightColor
 	local tab_xeno = {
 		["$pp_colour_addr"] 		= 0.65,
 		["$pp_colour_addg"] 		= 0.03,

@@ -430,6 +430,7 @@ if CLIENT then
 	}
 	
 	local render_GetLightColor = render.GetLightColor
+	local math_Clamp = math.Clamp
 	net.Receive("VJ_AVP_Predator_Client",function(len,pl)
 		local delete = net.ReadBool()
 		local ent = net.ReadEntity()
@@ -755,7 +756,7 @@ if CLIENT then
 			["$pp_colour_addg"] 		= -0.5,
 			["$pp_colour_addb"] 		= -0.5,
 			["$pp_colour_brightness"] 	= .25,
-			["$pp_colour_contrast"] 	= 1,
+			["$pp_colour_contrast"] 	= 0.2,
 			["$pp_colour_colour"] 		= 2,
 			["$pp_colour_mulr"] 		= 1,
 			["$pp_colour_mulg"] 		= 1,
@@ -818,7 +819,7 @@ if CLIENT then
 				end
 			end
 
-			local lightLevel = render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length()
+			local lightLevel = math_Clamp(render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length(),0,1)
 			local isDark = lightLevel <= 0.1
 			ent.AVP_LastDark = ent.AVP_LastDark or isDark
 			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
@@ -828,16 +829,17 @@ if CLIENT then
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5
 			end
-			-- print(lightLevel,isDark)
 
-			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],isDark && 0.9 or 0.6)
-			tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],isDark && 0.1 or 0.12)
+			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],(1 -lightLevel) *0.72)
+			tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
 
-			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],isDark && -0.7 or -0.9)
+			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *-1.2,-0.9,-0.65))
 			tab_xeno["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_contrast"],isDark && -0.35 or -0.25)
 
-			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],isDark && 0.9 or 0.6)
-			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],isDark && 0.1 or 0.2)
+			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
+			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.25,0.1,0.2))
+
+			tab_nomask["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_nomask["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
 
 			if mode > 0 && hasMask then
 				DrawMotionBlur(0.4,0.8,0.015)
@@ -859,37 +861,6 @@ if CLIENT then
 								end
 							cam.End3D()
 						end
-					-- elseif mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
-					-- 	cam.Start3D(EyePos(),EyeAngles())
-					-- 		if util.IsValidModel(v:GetModel()) then
-					-- 			render.OverrideDepthEnable(true,false)
-					-- 			render.SetLightingMode(1)
-					-- 			v:DrawModel()
-					-- 			render.OverrideDepthEnable(false,false)
-					-- 			render.SetLightingMode(0)
-					-- 		end
-					-- 		-- if util.IsValidModel(v:GetModel()) then
-					-- 		-- 	-- render.SetBlend(0.6)
-					-- 		-- 	-- render.MaterialOverride(matXenoOverlay)
-					-- 		-- 	v:DrawModel()
-					-- 		-- 	render.MaterialOverride(0)
-					-- 		-- 	render.SetBlend(1)
-					-- 		-- end
-					-- 	cam.End3D()
-					-- elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
-					-- 	cam.Start3D(EyePos(),EyeAngles())
-					-- 		if util.IsValidModel(v:GetModel()) then
-					-- 			render.OverrideDepthEnable(true,false)
-					-- 			render.SetLightingMode(2)
-					-- 			render.SetBlend(1)
-					-- 			render.MaterialOverride(matColdOverlay)
-					-- 			v:DrawModel()
-					-- 			render.OverrideDepthEnable(false,false)
-					-- 			render.SetLightingMode(0)
-					-- 			render.MaterialOverride(0)
-					-- 			render.SetBlend(1)
-					-- 		end
-					-- 	cam.End3D()
 					end
 				end
 				if IsValid(cont) then

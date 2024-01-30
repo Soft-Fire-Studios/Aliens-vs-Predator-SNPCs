@@ -14,8 +14,11 @@ local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
 if VJExists == true then
 	include('autorun/vj_controls.lua')
 
+	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
+
 	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_bots",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_maxbots",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_music",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -96,13 +99,29 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Elaine","npc_vj_avp_hum_blonde",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Charity","npc_vj_avp_hum_black",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Monica","npc_vj_avp_hum_black2",{"weapon_vj_avp_pistol"},vCat_M)
+	
+	cvars.AddChangeCallback("vj_avp_xenostealth", function(convar_name, oldValue, newValue)
+		VJ_AVP_CVAR_XENOSTEALTH = tonumber(newValue) == 1
+	end)
 
 	if SERVER then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
 		util.AddNetworkString("VJ_AVP_Predator_Client")
 		util.AddNetworkString("VJ_AVP_Xeno_Client")
+		util.AddNetworkString("VJ_AVP_Xeno_Darkness")
 		util.AddNetworkString("VJ_AVP_CSound")
 		util.AddNetworkString("VJ_AVP_PingTable")
+
+		net.Receive("VJ_AVP_Xeno_Darkness",function(len,pl)
+			local ent = net.ReadEntity()
+			local light = net.ReadFloat()
+			if IsValid(ent) then
+				ent.DarknessLevel = light
+				ent.LastNetworkT = CurTime()
+				ent.HasIdleSounds = false
+				ent.HasAlertSounds = false
+			end
+		end)
 
 		function VJ_AVP_CSound(ent,snd)
 			net.Start("VJ_AVP_CSound")
@@ -351,6 +370,8 @@ if VJExists == true then
 				Panel:AddPanel(vj_icon)
 				Panel:AddControl("Label", {Text = "Xenomorph Settings"})
 				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"})
+				Panel:AddControl("Checkbox", {Label = "Enable Xenomorph Stealth", Command = "vj_avp_xenostealth"})
+				Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."})
 
 				local vj_icon = vgui.Create("DImage")
 				vj_icon:SetSize(512,130)
