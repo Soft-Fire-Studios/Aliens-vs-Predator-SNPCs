@@ -2,6 +2,7 @@ local math_acos = math.acos
 local math_abs = math.abs
 local math_rad = math.rad
 local math_cos = math.cos
+local string_find = string.find
 ---------------------------------------------------------------------------------------------------------------------------------------------
 cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, newValue)
 	if tonumber(newValue) == 0 then
@@ -14,7 +15,7 @@ end)
 function ENT:CanUseFatality(ent)
 	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront) then
+	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown")) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
 			return false, inFront
 		end

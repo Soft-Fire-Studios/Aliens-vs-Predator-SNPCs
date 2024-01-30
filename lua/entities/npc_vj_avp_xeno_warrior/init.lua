@@ -583,6 +583,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)
+	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
 	if math.random(1,4) == 1 && !self:IsBusy() then
 		self:StopAllCommonSpeechSounds()
@@ -593,7 +594,7 @@ function ENT:CustomOnAlert(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnCallForHelp(ally)
-	if !self.CanScreamForHelp or self:IsBusy() then return end
+	if self.VJ_AVP_XenomorphLarge or !self.CanScreamForHelp or self:IsBusy() then return end
 	self:StopAllCommonSpeechSounds()
 	self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 	self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
@@ -2051,5 +2052,46 @@ function ENT:StartMovement(cont, Dir, Rot)
 				end
 			end
 		end)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_angApproach = math.ApproachAngle
+local math_angDif = math.AngleDifference
+local offset = Vector(0,0,-16)
+--
+function ENT:DoPoseParameterLooking(resetPoses)
+	if !self.HasPoseParameterLooking then return end
+	//self:GetPoseParameters(true)
+	local ene = self:GetEnemy()
+	local newPitch = 0 -- Pitch
+	local newYaw = 0 -- Yaw
+	local newRoll = 0 -- Roll
+	if IsValid(ene) && !resetPoses then
+		local myEyePos = self:EyePos()
+		myEyePos = myEyePos +offset
+		local myAng = self:GetAngles()
+		local enePos = self:GetAimPosition(ene, myEyePos)
+		local eneAng = (enePos - myEyePos):Angle()
+		newPitch = math_angDif(eneAng.p, myAng.p)
+		if self.PoseParameterLooking_InvertPitch == true then newPitch = -newPitch end
+		newYaw = math_angDif(eneAng.y, myAng.y)
+		if self.PoseParameterLooking_InvertYaw == true then newYaw = -newYaw end
+		newRoll = math_angDif(eneAng.z, myAng.z)
+		if self.PoseParameterLooking_InvertRoll == true then newRoll = -newRoll end
+	elseif !self.PoseParameterLooking_CanReset then -- Should it reset its pose parameters if there is no enemies?
+		return
+	end
+	
+	self:CustomOn_PoseParameterLookingCode(newPitch, newYaw, newRoll)
+	
+	local names = self.PoseParameterLooking_Names
+	for x = 1, #names.pitch do
+		self:SetPoseParameter(names.pitch[x], math_angApproach(self:GetPoseParameter(names.pitch[x]), newPitch, self.PoseParameterLooking_TurningSpeed))
+	end
+	for x = 1, #names.yaw do
+		self:SetPoseParameter(names.yaw[x], math_angApproach(self:GetPoseParameter(names.yaw[x]), newYaw, self.PoseParameterLooking_TurningSpeed))
+	end
+	for x = 1, #names.roll do
+		self:SetPoseParameter(names.roll[x], math_angApproach(self:GetPoseParameter(names.roll[x]), newRoll, self.PoseParameterLooking_TurningSpeed))
 	end
 end

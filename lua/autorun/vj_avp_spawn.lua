@@ -14,8 +14,6 @@ local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
 if VJExists == true then
 	include('autorun/vj_controls.lua')
 
-	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
-
 	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -27,6 +25,8 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
+
+	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
 
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
@@ -49,6 +49,7 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_xeno_jungle",vCat_A)
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_xeno_ridged",vCat_A)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_xeno_praetorian",vCat_A)
+	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_xeno_carrier",vCat_A)
 	VJ.AddNPC("Xenomorph Egg","npc_vj_avp_xeno_egg",vCat_A)
 	VJ.AddNPC("The Abomination","npc_vj_avp_xeno_predalien",vCat_A)
 	VJ.AddNPC("Nethead","npc_vj_avp_xeno_nethead",vCat_A)
@@ -64,6 +65,7 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_jungle",vCat_AK)
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
+	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_kxeno_carrier",vCat_AK)
 	VJ.AddNPC("Xenomorph Predalien","npc_vj_avp_kxeno_predalien",vCat_AK)
 
 	VJ.AddNPC("Young Blood","npc_vj_avp_pred",vCat_P)
