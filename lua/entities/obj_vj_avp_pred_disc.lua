@@ -145,7 +145,7 @@ function ENT:CustomOnPhysicsCollide(data, phys)
 	if data.HitEntity == Entity(0) or data.HitWorld then
 		self.HitT = CurTime() +(self.ReturnTo && 0.05 or 0.15)
 		self.HitDir = data.HitNormal +Vector(math.Rand(-0.3,0.3),math.Rand(-0.3,0.3),math.Rand(-0.3,0.3))
-		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",80,math.random(115,120))
+		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/battle_disc/disc_impact_generic_short_0" .. math.random(1,6) .. ".ogg",80)
 		local fx = EffectData()
 		fx:SetOrigin(data.HitPos)
 		fx:SetScale(5)

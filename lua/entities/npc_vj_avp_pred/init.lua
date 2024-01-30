@@ -1732,6 +1732,40 @@ ENT.SoundTbl_FootSteps = {
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_14.ogg",
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_15.ogg"
 	},
+	[MAT_FOLIAGE] = {
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_forest_15.ogg"
+	},
+	[MAT_WOOD] = {
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_wood_15.ogg"
+	},
 	[MAT_CONCRETE] = {
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_01.ogg",
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_02.ogg",
@@ -1750,13 +1784,55 @@ ENT.SoundTbl_FootSteps = {
 		"cpthazama/avp/predator/footsteps/walk/prd_fs_stone_15.ogg"
 	},
 	[MAT_METAL] = {
-		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_15.ogg"
 	},
 	[MAT_GRATE] = {
-		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_15.ogg"
 	},
 	[MAT_GLASS] = {
-		"cpthazama/avp/predator/footsteps/prd_fs_metal_2.ogg"
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_01.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_02.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_03.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_04.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_05.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_06.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_07.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_08.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_09.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_10.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_11.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_12.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_13.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_14.ogg",
+		"cpthazama/avp/predator/footsteps/walk/prd_fs_metal_15.ogg"
 	}
 }
 --
@@ -1774,12 +1850,7 @@ function ENT:FootStep(pos,name)
 		mat = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[mat] then
-		if (mat == MAT_GLASS or mat == MAT_METAL or mat == MAT_GRATE) then
-			VJ.EmitSound(self,VJ_PICK(tbl[MAT_CONCRETE]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
-			VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 45 or (self.FootStepSoundLevel or 65),math.random(98,107))
-		else
-			VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
-		end
+		VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
 		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
