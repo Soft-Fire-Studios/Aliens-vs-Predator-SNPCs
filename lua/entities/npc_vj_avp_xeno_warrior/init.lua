@@ -1469,7 +1469,7 @@ function ENT:CustomOnThink_AIEnabled()
 	-- 	self.AnimTbl_Walk = {moveAct}
 	-- 	self.AnimTbl_Run = {moveAct}
 	-- end
-	local transAct = self:GetSequenceActivity(self:GetInternalVariable("m_nIdealSequence"))
+	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting
 	-- print(self:GetActivity(),transAct)
 

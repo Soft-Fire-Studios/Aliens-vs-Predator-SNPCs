@@ -1408,7 +1408,7 @@ function ENT:CustomOnThink_AIEnabled()
 	local dist = self.NearestPointToEnemyDistance
 	-- local moveAct = self:SelectMovementActivity(dist)
 	local ply = self.VJ_TheController
-	local transAct = self:GetSequenceActivity(self:GetInternalVariable("m_nIdealSequence"))
+	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT) or self.AI_IsSprinting
 
 	if !self.WasSprinting && sprinting then
