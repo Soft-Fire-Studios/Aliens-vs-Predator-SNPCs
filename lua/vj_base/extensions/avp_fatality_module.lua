@@ -53,6 +53,28 @@ function ENT:DoFatality(ent,inFront)
 	if self.OnBeforeDoFatality then
 		tbl = self:OnBeforeDoFatality(ent,fType) or tbl
 	end
+	local names = self.PoseParameterLooking_Names
+	for x = 1, #names.pitch do
+		self:SetPoseParameter(names.pitch[x],0)
+	end
+	for x = 1, #names.yaw do
+		self:SetPoseParameter(names.yaw[x],0)
+	end
+	for x = 1, #names.roll do
+		self:SetPoseParameter(names.roll[x],0)
+	end
+	local names = ent.PoseParameterLooking_Names
+	if names then
+		for x = 1, #names.pitch do
+			ent:SetPoseParameter(names.pitch[x],0)
+		end
+		for x = 1, #names.yaw do
+			ent:SetPoseParameter(names.yaw[x],0)
+		end
+		for x = 1, #names.roll do
+			ent:SetPoseParameter(names.roll[x],0)
+		end
+	end
 	if tbl && (inFront && tbl.Trophy or tbl.Stealth) then
 		tbl = inFront && tbl.Trophy or tbl.Stealth
 		if !tbl or self.DoingFatality or self.InFatality or ent.DoingFatality or ent.InFatality then return false end

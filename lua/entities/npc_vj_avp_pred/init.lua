@@ -1395,7 +1395,18 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
+	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
+		local names = self.PoseParameterLooking_Names
+		for x = 1, #names.pitch do
+			self:SetPoseParameter(names.pitch[x],0)
+		end
+		for x = 1, #names.yaw do
+			self:SetPoseParameter(names.yaw[x],0)
+		end
+		for x = 1, #names.roll do
+			self:SetPoseParameter(names.roll[x],0)
+		end
 		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
 			self:SetHealth(0)

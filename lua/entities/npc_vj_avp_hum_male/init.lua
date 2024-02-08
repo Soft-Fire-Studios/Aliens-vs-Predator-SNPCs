@@ -442,8 +442,18 @@ local math_abs = math.abs
 local math_cos = math.cos
 local math_rad = math.rad
 --
-function ENT:CustomOnThink()
+function ENT:CustomOnThink_AIEnabled()
 	local curTime = CurTime()
+	self.HasPoseParameterLooking = !self.InFatality
+	if self.InFatality then
+		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+			self:ResetFatality()
+			self:SetHealth(0)
+			self:TakeDamage(8000,self,self)
+			-- self:SetCycle(self.FatalityKiller:GetCycle())
+		end
+		return
+	end
 
 	local cont = self.VJ_TheController
 	if IsValid(cont) then
