@@ -187,8 +187,18 @@ ENT.AttackAnimations = {
 	{
 		"predator_claws_attack_[SIDE]_punch_into",
 		"predator_claws_attack_[SIDE]_punch_hit",
-		"predator_claws_attack_[SIDE]_punch_close",
-	}
+		"predator_claws_attack_[SIDE]_punch_miss",
+	},
+	{
+		"predator_claws_attack_[SIDE]_upper_slash_into",
+		"predator_claws_attack_[SIDE]_upper_slash_hit",
+		"predator_claws_attack_[SIDE]_upper_slash_miss",
+	},
+	{
+		"predator_claws_attack_[SIDE]_lower_slash_into",
+		"predator_claws_attack_[SIDE]_lower_slash_hit",
+		"predator_claws_attack_[SIDE]_lower_slash_miss",
+	},
 }
 ENT.CanAttack = true
 ENT.AttackDistance = 70
@@ -235,6 +245,8 @@ end
 local toSeq = VJ.SequenceToActivity
 local math_deg = math.deg
 local math_atan2 = math.atan2
+local string_find = string.find
+local string_Replace = string.Replace
 --
 function ENT:CustomOnChangeActivity(newAct)
 	-- if newAct == ACT_SPRINT then
@@ -253,6 +265,10 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if vm then
 		vm:OnChangeActivity(self,anim)
 	end
+	if extraOptions && extraOptions.AlwaysUseGesture then
+		self.NextChaseTime = 0
+	end
+	return anim,animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ20 = Vector(0, 0, 20)
@@ -264,8 +280,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		net.WriteEntity(ply)
     net.Send(ply)
 
+	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
+	self.AllowMovementJumping = false
 
 	function controlEnt:CustomOnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
@@ -275,9 +293,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	function controlEnt:CustomOnStopControlling()
 		net.Start("VJ_AVP_Predator_Client")
 			net.WriteBool(true)
-			net.WriteEntity(self)
+			net.WriteEntity(npc)
 			net.WriteEntity(ply)
 		net.Send(ply)
+		npc.AllowMovementJumping = true
 	end
 
 	function controlEnt:Think()
@@ -400,6 +419,10 @@ function ENT:CustomOnInitialize()
 	self.LookForHidingSpotAttempts = 0
 	self.NextLookForHidingSpotT = 0
 	self.NextRegenEnergyT = 0
+	self.AI_IsBlocking = false
+	self.IsBlocking = false
+	self.BlockAnimTime = 0
+	self.SpecialBlockAnimTime = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -595,16 +618,27 @@ function ENT:CustomAttack(ent,vis)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
 	local dist = self.NearestPointToEnemyDistance
+	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
+	if CurTime() < self.SpecialBlockAnimTime then
+		doingBlock = false
+	end
+	if !doingBlock && self.IsBlocking then
+		self.IsBlocking = false
+	elseif doingBlock && !self.IsBlocking then
+		self.IsBlocking = true
+	end
 	if IsValid(cont) then
-		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
 			if cont:KeyDown(IN_SPEED) then
 				self:LongJumpCode(nil,true)
 			else
 				self:AttackCode()
 			end
-		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+		elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
+			self:HeavyAttackCode()
+		elseif !doingBlock && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
-		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_JUMP) && !cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_DUCK) && !self:IsBusy() then
+		elseif !doingBlock && !cont:KeyDown(IN_JUMP) && !cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_DUCK) && !self:IsBusy() then
 			self:SpecialAttackCode(self:GetEquipment())
 		end
 	else
@@ -615,7 +649,16 @@ function ENT:CustomAttack(ent,vis)
 					self:AttackCode()
 				end
 			else
-				self:AttackCode()
+				if !self.AI_IsBlocking && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) && math.random(1,2) == 1 then
+					self.AI_IsBlocking = true
+					return
+				else	
+					if math.random(1,6) == 1 then
+						self:HeavyAttackCode()
+					else
+						self:AttackCode()
+					end
+				end
 			end
 		elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 			self:DistractionCode(ent)
@@ -642,6 +685,15 @@ function ENT:CustomAttack(ent,vis)
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:HeavyAttackCode()
+	if self.InFatality or self.DoingFatality then return end
+	if self:IsBusy() then return end
+	self:PlayAnimation("predator_claws_attack_heavy_buildup",true,false,true,0,{OnFinish=function(i)
+		if i then return end
+		self:PlayAnimation("predator_claws_attack_heavy_hit_close",true,false,false)
+	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
@@ -769,7 +821,6 @@ function ENT:UseStimpack()
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local string_Replace = string.Replace
 local sdClawFlesh = {
 	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_01.ogg",
 	"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_02.ogg",
@@ -799,6 +850,9 @@ function ENT:AttackCode()
 		start = string_Replace(start,"[SIDE]",side)
 		hit = string_Replace(hit,"[SIDE]",side)
 		miss = string_Replace(miss,"[SIDE]",side)
+		if side == "left" && string_find(miss,"upper_slash") then // Why the Predator doesn't have a left upper slash miss animation is beyond me...
+			miss = hit
+		end
 		self:PlaySound(self.SoundTbl_Attack,78)
 		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
 		self:PlayAnimation(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
@@ -900,19 +954,30 @@ function ENT:LongJumpCode(gotoPos,atk)
 	local anim
 	local dist = self:GetPos():Distance(self.LongJumpPos)
 	local height = self:GetPos().z -self.LongJumpPos.z
+	local atkAnim = "predator_claws_attack_left_lower_slash_medium"
+	if atk then
+		self.AttackSide = self.AttackSide == "right" && "left" or "right"
+		local side = self.AttackSide
+		local atkType = VJ.PICK({"lower_slash","punch","upper_slash"})
+		local atkDistType = dist > 1200 && "long" or "medium"
+		local testAnim = "predator_claws_attack_" .. side .. "_" .. atkType .. "_" .. atkDistType
+		if VJ.AnimExists(self,testAnim) then
+			atkAnim = testAnim
+		end
+	end
 	if height < -150 then
 		anim = "predator_claws_jump_gain_height"
 	elseif height > 150 then
 		anim = "predator_claws_jump_drop_down"
 	else
 		if dist > 1500 then
-			anim = atk && {"predator_claws_attack_left_lower_slash_long"} or "predator_claws_jump_long"
+			anim = atk && atkAnim or "predator_claws_jump_long"
 		elseif dist > 1200 then
-			anim = atk && {"predator_claws_attack_left_lower_slash_medium"} or "predator_claws_jump_medium"
+			anim = atk && atkAnim or "predator_claws_jump_medium"
 		elseif dist > 800 then
-			anim = atk && {"predator_claws_attack_left_lower_slash_medium"} or "predator_claws_jump_shallow"
+			anim = atk && atkAnim or "predator_claws_jump_shallow"
 		else
-			anim = atk && {"predator_claws_attack_left_lower_slash_medium"} or "predator_claws_jump_short"
+			anim = atk && atkAnim or "predator_claws_jump_short"
 		end
 	end
 	self:FaceCertainPosition(self.LongJumpPos,1)
@@ -1012,13 +1077,13 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self.AttackDamageType = DMG_SLASH
 		VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_heavy" then
-		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE,DMG_SNIPER)
 		VJ.EmitSound(self,#self:RunDamageCode(1.75) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_jump" then
 		self.AttackDamageType = DMG_SLASH
 		VJ.EmitSound(self,#self:RunDamageCode(1.25) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "attack_jump_heavy" then
-		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE,DMG_SNIPER)
 		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdClawFlesh or sdClawMiss,75)
 	elseif key == "stimpack_grab" then
 		local stim = ents.Create("prop_vj_animatable")
@@ -1422,6 +1487,19 @@ function ENT:CustomOnThink_AIEnabled()
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT) or self.AI_IsSprinting
 
+	if self.IsBlocking then
+		-- if !self:IsPlayingGesture(self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))) then
+		if CurTime() > (self.BlockAnimTime or 0) then
+			self:PlayAnimation("predator_claws_guard_loop",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end
+	elseif !self.IsBlocking then
+		local anim = self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))
+		if self:IsPlayingGesture(anim) then
+			self:RemoveGesture(anim)
+		end
+	end
+
 	if !self.WasSprinting && sprinting then
 		if IsValid(ply) then
 			VJ_AVP_CSound(ply,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg")
@@ -1618,7 +1696,7 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 		if IsValid(enemy) then
-			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 then
+			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 && !enemy.VJ_AVP_Xenomorph then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
 					self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
@@ -1695,6 +1773,10 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:IsBusy()
+	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.IsBlocking
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnPlaySound(sdFile)
@@ -1911,6 +1993,43 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
 --
+function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
+	local dmgType = dmginfo:GetDamageType()
+	if self.IsBlocking && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+		local attacker = dmginfo:GetAttacker()
+		if !IsValid(attacker) then
+			attacker = dmginfo:GetInflictor()
+		end
+		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJ_IsHugeMonster && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+		if IsValid(attacker) && isBigDmg then
+			local attackerLookDir = attacker:GetAimVector()
+			local dotForward = attackerLookDir:Dot(self:GetForward())
+			local dotRight = attackerLookDir:Dot(self:GetRight())
+			if dotForward > 0.5 then -- Hit from the front
+				self:PlayAnimation("predator_claws_guard_block_broken_back",true,false,false)
+			elseif dotForward < -0.5 then -- Hit from the back
+				self:PlayAnimation("predator_claws_guard_block_broken",true,false,false)
+			elseif dotRight > 0.5 then -- Hit from the left
+				self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_bl",true,false,false)
+			elseif dotRight < -0.5 then -- Hit from the right
+				self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_br",true,false,false)
+			end
+			self.SpecialBlockAnimTime = CurTime() +1
+			self.IsBlocking = false
+			self.AI_IsBlocking = false
+		else
+			local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
+			self.BlockAnimTime = CurTime() +animTime
+			dmginfo:SetDamage(0)
+			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				self.AI_IsBlocking = false
+				self.IsBlocking = false
+				self:HeavyAttackCode()
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	if self.DisableChasingEnemy then
 		self:StopMoving()
@@ -1918,7 +2037,8 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self.NextFindStalkPos = CurTime() +math.Rand(15,20)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
-	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	local dmg = dmginfo:GetDamage()
+	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && dmg >= 65) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0

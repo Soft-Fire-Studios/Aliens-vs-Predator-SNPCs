@@ -8,4 +8,4 @@ include('shared.lua')
 ENT.Model = {"models/cpthazama/avp/predators/spartan.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 600
 
-ENT.AttackDamageMultiplier = 1.45
+ENT.AttackDamageMultiplier = 1.1

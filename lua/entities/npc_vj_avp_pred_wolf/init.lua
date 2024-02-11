@@ -8,7 +8,7 @@ include('shared.lua')
 ENT.Model = {"models/cpthazama/avp/predators/wolf.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 1500
 
-ENT.AttackDamageMultiplier = 2.25
+ENT.AttackDamageMultiplier = 1.35
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if GetConVar("vj_avp_bosstheme_p"):GetBool() then
