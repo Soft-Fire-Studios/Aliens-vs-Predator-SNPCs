@@ -15,7 +15,7 @@ end)
 function ENT:CanUseFatality(ent)
 	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown")) then
+	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
 			return false, inFront
 		end
@@ -25,7 +25,7 @@ function ENT:CanUseFatality(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
-	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.InFatality or self.DoingFatality
+	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ResetFatality()
@@ -34,6 +34,7 @@ function ENT:ResetFatality()
 	self.FatalityKiller = nil
 	self.DoingFatality = false
 	self.GodMode = false
+	self:SetInFatality(false)
 	self:SetState()
 	self:SetMaxYawSpeed(self.TurningSpeed)
 	self.NextFatalityTime = CurTime() +3
@@ -82,6 +83,8 @@ function ENT:DoFatality(ent,inFront)
 		self.DoingFatality = true
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		self:SetMaxYawSpeed(0)
+		self:SetInFatality(true)
+		ent:SetInFatality(true)
 		ent.GodMode = true
 		ent.InFatality = true
 		ent.FatalityKiller = self

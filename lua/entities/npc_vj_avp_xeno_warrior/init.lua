@@ -750,18 +750,63 @@ function ENT:OnKeyPressed(ply,key)
 		})
 		local ent = tr.Entity
 		if tr.Hit && IsValid(ent) then
-			if ent:IsNPC() then
-				if self.CanAttack && self.NearestPointToEnemyDistance <= self.AttackDistance && !self:IsBusy() then
+			if !ent:IsNPC() && !ent:IsPlayer() then
+				ent:Fire("Use",nil,0,ply,self)
+				return
+			end
+			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
+				if self.CanAttack && !self:IsBusy() then
 					local canUse, inFront = self:CanUseFatality(ent)
 					if canUse then
 						self:DoFatality(ent,inFront)
+						return
 					end
 				end
-			else
-				ent:Fire("Use",nil,0,ply,self)
+			end
+		end
+	elseif key == KEY_R then
+		self.DistractT = self.DistractT or 0
+		if CurTime() < self.DistractT or self:IsBusy() then return end
+		local tr = util.TraceHull({
+			start = self:EyePos(),
+			endpos = self:EyePos() +ply:GetAimVector() *1200,
+			filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
+			mins = Vector(-10,-10,-10),
+			maxs = Vector(10,10,10)
+		})
+		if tr.Hit && IsValid(tr.Entity) then
+			local ent = tr.Entity
+			if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+				self:DistractionCode(ent)
 			end
 		end
     end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DistractionCode(ent)
+	self:StopAllCommonSpeechSounds()
+	local soundPos = self:GetPos() +VectorRand() *300
+	self.DistractT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg") +5
+	VJ.CreateSound(self,self.DistractionSound or "cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg",65)
+	if ent:IsNPC() then
+		if ent.IsVJBaseSNPC && !ent:IsBusy() && !ent.Alerted then
+			ent:SetLastPosition(soundPos)
+			ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x) x.CanShootWhenMoving = true end)
+			if ent.OnHearDistraction then
+				ent:OnHearDistraction(self,soundPos)
+			else
+				ent:CustomOnInvestigate(v)
+				ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
+			end
+		elseif !ent.IsVJBaseSNPC then
+			ent:SetLastPosition(soundPos)
+			ent:SetSchedule(SCHED_FORCED_GO)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnAttackBlocked(ent)
+	self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local tblA = {

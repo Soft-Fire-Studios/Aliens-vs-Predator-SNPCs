@@ -27,6 +27,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Cloaked")
 	self:NetworkVar("Bool",1,"Sprinting")
 	self:NetworkVar("Bool",2,"Beam")
+	self:NetworkVar("Bool",3,"InFatality")
 	self:NetworkVar("Vector",0,"JumpPosition")
 end
 
@@ -259,10 +260,10 @@ if CLIENT then
 				-- 	ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
 				-- end
 				if ply.VJC_FP_ShrinkBone then
-					self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
-					for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
-						self:ManipulateBoneScale(v, vec0)
-					end
+					-- self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
+					-- for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
+					-- 	self:ManipulateBoneScale(v, vec0)
+					-- end
 				end
 			end
 			-- local vm = ply:GetViewModel()

@@ -526,32 +526,33 @@ function ENT:OnKeyPressed(ply,key)
 		})
 		local ent = tr.Entity
 		if tr.Hit && IsValid(ent) then
-			ent:Fire("Use",nil,0,ply,self)
-		else
-			self.DistractT = self.DistractT or 0
-			if CurTime() < self.DistractT then return end
-			local tr = util.TraceHull({
-				start = self:EyePos(),
-				endpos = self:EyePos() +ply:GetAimVector() *6000,
-				filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
-				mins = Vector(-10,-10,-10),
-				maxs = Vector(10,10,10)
-			})
-			if tr.Hit && IsValid(tr.Entity) then
-				local ent = tr.Entity
-				if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
-					if self.CanAttack && !self:IsBusy() then
-						local canUse, inFront = self:CanUseFatality(ent)
-						if canUse then
-							self:DoFatality(ent,inFront)
-						end
+			if !ent:IsNPC() && !ent:IsPlayer() then
+				ent:Fire("Use",nil,0,ply,self)
+				return
+			end
+			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
+				if self.CanAttack && !self:IsBusy() then
+					local canUse, inFront = self:CanUseFatality(ent)
+					if canUse then
+						self:DoFatality(ent,inFront)
+						return
 					end
-				else
-					if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
-						self:DistractionCode(ent)
-					end
-					ent:Fire("Use",nil,0,ply,self)
 				end
+			end
+		end
+		self.DistractT = self.DistractT or 0
+		if CurTime() < self.DistractT or self:IsBusy() then return end
+		local tr = util.TraceHull({
+			start = self:EyePos(),
+			endpos = self:EyePos() +ply:GetAimVector() *6000,
+			filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
+			mins = Vector(-10,-10,-10),
+			maxs = Vector(10,10,10)
+		})
+		if tr.Hit && IsValid(tr.Entity) then
+			local ent = tr.Entity
+			if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+				self:DistractionCode(ent)
 			end
 		end
     elseif key == KEY_G then
@@ -599,7 +600,7 @@ function ENT:GetFatalityOffset(ent)
 	if ent.VJ_AVP_Xenomorph then
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1
 	elseif ent.VJ_AVP_Predator then
-		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.4
+		offset = 1
 	end
 	return offset
 end
@@ -690,6 +691,7 @@ end
 function ENT:HeavyAttackCode()
 	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
+	self:PlaySound(self.SoundTbl_Attack,78)
 	self:PlayAnimation("predator_claws_attack_heavy_buildup",true,false,true,0,{OnFinish=function(i)
 		if i then return end
 		self:PlayAnimation("predator_claws_attack_heavy_hit_close",true,false,false)
@@ -853,7 +855,6 @@ function ENT:AttackCode()
 		if side == "left" && string_find(miss,"upper_slash") then // Why the Predator doesn't have a left upper slash miss animation is beyond me...
 			miss = hit
 		end
-		self:PlaySound(self.SoundTbl_Attack,78)
 		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
 		self:PlayAnimation(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
@@ -1480,6 +1481,7 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 		return
 	end
+	self:SetArrivalSpeed(9999)
 	local curTime = CurTime()
 	local dist = self.NearestPointToEnemyDistance
 	-- local moveAct = self:SelectMovementActivity(dist)
@@ -1775,10 +1777,6 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:IsBusy()
-	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.IsBlocking
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnPlaySound(sdFile)
 	if VJ.HasValue(self.SoundTbl_Idle,sdFile) then
 		local ply = self.VJ_TheController
@@ -2021,6 +2019,9 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 			local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
 			self.BlockAnimTime = CurTime() +animTime
 			dmginfo:SetDamage(0)
+			if IsValid(attacker) && attacker.OnAttackBlocked then
+				attacker:OnAttackBlocked(self)
+			end
 			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
 				self.AI_IsBlocking = false
 				self.IsBlocking = false
@@ -2028,6 +2029,10 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnAttackBlocked(ent)
+	self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)

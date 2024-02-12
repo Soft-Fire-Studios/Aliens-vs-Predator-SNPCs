@@ -277,6 +277,10 @@ if VJExists == true then
 					local angles = ang2 + (oang - ang)
 
 					angles.p = math.Clamp(angles.p,-40,78)
+					if possessing:GetInFatality() then
+						angles.p = 0
+						angles.y = possessing:GetAngles().y
+					end
 
 					ply.VJ_AVP_ViewModelCalcData = {origin,angles}
 		
