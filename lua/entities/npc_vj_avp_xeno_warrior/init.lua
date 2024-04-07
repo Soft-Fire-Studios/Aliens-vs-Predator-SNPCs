@@ -601,6 +601,9 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
 			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")
 			v:ScreenFade(SCREENFADE.IN,Color(0,0,0),0.35,0.1)
 		end
+		if !timer.Exists(tName) then
+			v.VJ_AVP_XenomorphRunnerDMG = 1
+		end
 		timer.Create(tName,10,10,function()
 			if IsValid(v) && v:Health() > 0 then
 				local pos = v:EyePos() +v:GetForward() *5
@@ -635,7 +638,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
 							end
 							local dmgEnt = IsValid(self) && self or v
 							local dmginfo = DamageInfo()
-							dmginfo:SetDamage(1)
+							dmginfo:SetDamage(v.VJ_AVP_XenomorphRunnerDMG or 1)
 							dmginfo:SetDamageType(i == 1 && bit.bor(DMG_ACID,DMG_DIRECT,DMG_DROWN) or bit.bor(DMG_ACID,DMG_DIRECT))
 							dmginfo:SetAttacker(dmgEnt)
 							dmginfo:SetInflictor(dmgEnt)
@@ -655,6 +658,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
 						end
 					end)
 				end
+				v.VJ_AVP_XenomorphRunnerDMG = (v.VJ_AVP_XenomorphRunnerDMG or 1) +1
 			else
 				timer.Remove(tName)
 			end

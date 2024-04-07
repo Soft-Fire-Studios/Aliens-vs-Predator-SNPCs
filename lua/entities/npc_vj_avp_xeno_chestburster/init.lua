@@ -34,6 +34,20 @@ ENT.VJC_Data = {
 
 ENT.GeneralSoundPitch1 = 100
 ENT.HasExtraMeleeAttackSounds = true
+ENT.FootStepSoundLevel = 38
+ENT.FootStepPitch = VJ.SET(110, 115)
+ENT.FootStepTimeWalk = 0.2
+ENT.FootStepTimeRun = 0.1
+
+ENT.SoundTbl_FootStep = {
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch1.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch2.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch3.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch4.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch5.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch6.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch7.ogg",
+}
 
 ENT.SoundTbl_Idle = {
 	"cpthazama/avp/xeno/chestburster/chestburster_skitter_01.ogg",
@@ -46,12 +60,19 @@ ENT.SoundTbl_Death = {
 	"cpthazama/avp/xeno/chestburster/chestburster_vocal_01.ogg",
 	"cpthazama/avp/xeno/chestburster/chestburster_vocal_02.ogg",
 }
-ENT.SoundTbl_MeleeAttackExtra = {
+ENT.SoundTbl_MeleeAttackMiss = {
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_01.ogg",
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_02.ogg",
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_03.ogg",
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_04.ogg",
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_05.ogg",
+}
+ENT.SoundTbl_MeleeAttackExtra = {
+	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_01.ogg",
+	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_02.ogg",
+	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_03.ogg",
+	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_04.ogg",
+	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_05.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
@@ -79,7 +100,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialize()
 	self:SetCollisionBounds(Vector(4,4,6),Vector(-4,-4,0))
-	VJ.EmitSound(self,"cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",72)
+	sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",self:GetPos(),72)
 	VJ.CreateSound(self,"cpthazama/avp/xeno/chestburster/chestburster_scream_0" .. math.random(1,3) .. ".ogg",80)
 	local pred = self:GetOwner().VJ_AVP_Predator == true
 	-- local pred = true
@@ -114,13 +135,35 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:VJ_TASK_COVER_FROM_ENEMY(moveType, customFunc)
+	if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then self:AA_IdleWander() return end
+	moveType = moveType or "TASK_RUN_PATH"
+	local schedCoverFromEnemy = vj_ai_schedule.New("vj_cover_from_enemy")
+	schedCoverFromEnemy:EngTask("TASK_SET_ROUTE_SEARCH_TIME", 2)
+	schedCoverFromEnemy:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2500)
+	schedCoverFromEnemy:EngTask(moveType or "TASK_RUN_PATH", 0)
+	schedCoverFromEnemy:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
+	schedCoverFromEnemy.RunCode_OnFail = function()
+		//print("Cover from enemy failed!")
+		local schedFailCoverFromEnemy = vj_ai_schedule.New("vj_cover_from_enemy_fail")
+		schedFailCoverFromEnemy:EngTask("TASK_SET_ROUTE_SEARCH_TIME", 2)
+		schedFailCoverFromEnemy:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 1500)
+		schedFailCoverFromEnemy:EngTask(moveType or "TASK_RUN_PATH", 0)
+		schedFailCoverFromEnemy:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
+		if (customFunc) then customFunc(schedFailCoverFromEnemy) end
+		self:StartSchedule(schedFailCoverFromEnemy)
+	end
+	if (customFunc) then customFunc(schedCoverFromEnemy) end
+	self:StartSchedule(schedCoverFromEnemy)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 
 	self:SetHP(self:Health())
 	self:SetGroundAngle()
 
-	if !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "vj_cover_from_enemy") then
+	if !IsValid(self.VJ_TheController) && !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "vj_cover_from_enemy") then
 		self:VJ_TASK_COVER_FROM_ENEMY("TASK_RUN_PATH")
 	end
 
@@ -137,8 +180,18 @@ function ENT:CustomOnThink_AIEnabled()
 		ent:SetModelScale(0.75)
 		ent:SetModelScale(1,1)
 		ent:VJ_ACT_PLAYACTIVITY("climb_stop",true,false,false)
+		local cont = self.VJ_TheController
 		undo.ReplaceEntity(self,ent)
 		self:Remove()
+		timer.Simple(0.12,function()
+			if IsValid(cont) && IsValid(ent) then
+				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				SpawnControllerObject.VJCE_Player = cont
+				SpawnControllerObject:SetControlledNPC(ent)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+			end
+		end)
 		return
 	end
 	if self.VJ_AVP_K_Xenomorph then

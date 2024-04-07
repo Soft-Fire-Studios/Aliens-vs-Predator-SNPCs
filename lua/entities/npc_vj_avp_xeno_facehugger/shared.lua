@@ -13,6 +13,7 @@ ENT.VJ_AVP_Xenomorph = true
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Vision")
 	self:NetworkVar("Int",0,"HP")
+	self:NetworkVar("Vector",0,"QueenMarker")
 end
 
 if CLIENT then
@@ -28,8 +29,12 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.HasResetMaterials = true
+		self.NextDarknessT = 0
+
+		self.QueenMarkerPoints = {}
 	end
 
+	local render_GetLightColor = render.GetLightColor
 	function ENT:Draw()
 		self:DrawModel()
 		local ply = LocalPlayer()
@@ -49,6 +54,17 @@ if CLIENT then
 			if !self.HasResetMaterials then
 				self.HasResetMaterials = true
 				self:SetSubMaterial()
+			end
+		end
+
+		if VJ_AVP_CVAR_XENOSTEALTH then
+			local light = render_GetLightColor(self:GetPos() +self:OBBCenter()):Length()
+			if CurTime() > self.NextDarknessT && light <= 1 then
+				net.Start("VJ_AVP_Xeno_Darkness")
+					net.WriteEntity(self)
+					net.WriteFloat(light,4)
+				net.SendToServer()
+				self.NextDarknessT = CurTime() +math.Rand(1,2)
 			end
 		end
 	end
@@ -98,5 +114,18 @@ if CLIENT then
 			fov = 75
 		end
 		return {origin = pos, angles = ang, fov = fov}
+	end
+
+	function ENT:OnRemove()
+		if IsValid(self.QueenMarkerFX) then
+			self.QueenMarkerFX:StopEmission(false,true)
+			self.QueenMarkerFX = nil
+		end
+		for _,v in pairs(self.QueenMarkerPoints) do
+			if IsValid(v) then
+				v:StopEmission(false,true)
+				v = nil
+			end
+		end
 	end
 end

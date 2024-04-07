@@ -5,17 +5,26 @@ include('shared.lua')
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/facehugger.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
+ENT.Model = {"models/cpthazama/avp/xeno/facehugger.mdl"}
 ENT.StartHealth = 15
 ENT.HullType = HULL_TINY
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
+ENT.BloodColor = "Yellow"
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
-ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
+ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
-ENT.HasMeleeAttack = false
+ENT.MeleeAttackDamage = 5
+ENT.MeleeAttackDistance = 80
+ENT.MeleeAttackDamageDistance = 50
+ENT.MeleeAttackDamageAngleRadius = 50
+ENT.AnimTbl_MeleeAttack = {"facehugger_jump"}
+ENT.TimeUntilMeleeAttackDamage = 0.6
+ENT.MeleeAttackExtraTimers = {0.8, 1, 1.2, 1.4}
+
+ENT.HasDeathAnimation = true
+ENT.AnimTbl_Death = {"facehugger_death"}
 
 ENT.VJC_Data = {
     CameraMode = 2,
@@ -26,6 +35,55 @@ ENT.VJC_Data = {
 }
 
 ENT.GeneralSoundPitch1 = 100
+ENT.FootStepSoundLevel = 40
+ENT.FootStepTimeWalk = 0.2
+ENT.FootStepTimeRun = 0.1
+
+ENT.SoundTbl_FootStep = {
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch1.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch2.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch3.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch4.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch5.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch6.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch7.ogg",
+}
+ENT.SoundTbl_Idle = {
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal1.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal2.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal3.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal4.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal5.ogg",
+}
+ENT.SoundTbl_Alert = {
+	"cpthazama/avp/xeno/facehugger/idle_0.wav",
+	"cpthazama/avp/xeno/facehugger/idle_1.wav",
+	"cpthazama/avp/xeno/facehugger/spot_0.wav",
+	"cpthazama/avp/xeno/facehugger/spot_1.wav",
+}
+ENT.SoundTbl_BeforeMeleeAttack = {
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_attackhiss_tp_1.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_attackhiss_tp_2.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_attackhiss_tp_3.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_attackhiss_tp_4.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_attackhiss_tp_5.ogg",
+}
+ENT.SoundTbl_MeleeAttackGrapple = {
+	"cpthazama/avp/xeno/facehugger/attack/fhg_constrict_tp_1.ogg",
+	"cpthazama/avp/xeno/facehugger/attack/fhg_constrict_tp_2.ogg",
+	"cpthazama/avp/xeno/facehugger/attack/fhg_constrict_tp_3.ogg",
+}
+ENT.SoundTbl_Pain = {
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_grapple_screech_01.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_grapple_screech_02.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/fhg_grapple_screech_03.ogg",
+}
+ENT.SoundTbl_Death = {
+	"cpthazama/avp/xeno/facehugger/death_0.wav",
+	"cpthazama/avp/xeno/facehugger/vocals/facehugger_death_01.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/facehugger_death_02.ogg",
+	"cpthazama/avp/xeno/facehugger/vocals/facehugger_death_03.ogg",
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
@@ -51,7 +109,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialize()
+	self.IsLatched = false
+	self.LatchVictim = nil
 
+	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
@@ -61,6 +122,175 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	if key == "attack" then
 		self:MeleeAttackCode()
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnMeleeAttack_Miss()
+	self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
+	if IsValid(self.LatchVictim) then return true end
+
+	if ent:IsNPC() && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && ent:GetHullType() == HULL_HUMAN && util.IsValidRagdoll(ent:GetModel()) then
+		local eyeAttach = ent:LookupAttachment("eyes")
+		local mouthAttach = ent:LookupAttachment("mouth")
+		local att,useBone = nil,false
+		if eyeAttach >= 1 then
+			att = "eyes"
+		elseif mouthAttach >= 1 then
+			att = "mouth"
+		elseif ent:LookupBone("ValveBiped.Bip01_Head1") != nil then
+			useBone = true
+		end
+
+		if att then
+			local corpse = ents.Create("prop_ragdoll")
+			corpse:SetModel(ent:GetModel())
+			corpse:SetPos(ent:GetPos())
+			corpse:SetAngles(ent:GetAngles())
+			corpse:SetOwner(ent)
+			corpse:Spawn()
+			corpse:Activate()
+			corpse:SetColor(ent:GetColor())
+			corpse:SetMaterial(ent:GetMaterial())
+			corpse:SetSkin(ent:GetSkin())
+			for x = 0,32 do
+				if ent:GetSubMaterial(x) != "" then
+					corpse:SetSubMaterial(x,ent:GetSubMaterial(x))
+				end
+			end
+			corpse.IsVJBaseCorpse = true
+			-- corpse:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+			for i = 0, ent:GetNumBodyGroups() do
+				corpse:SetBodygroup(i, ent:GetBodygroup(i))
+			end
+			local physCount = corpse:GetPhysicsObjectCount()
+			for boneLimit = 0, physCount - 1 do -- 128 = Bone Limit
+				local childPhysObj = corpse:GetPhysicsObjectNum(boneLimit)
+				if IsValid(childPhysObj) then
+					local childPhysObj_BonePos, childPhysObj_BoneAng = ent:GetBonePosition(corpse:TranslatePhysBoneToBone(boneLimit))
+					if (childPhysObj_BonePos) then
+						childPhysObj:SetAngles(childPhysObj_BoneAng)
+						childPhysObj:SetPos(childPhysObj_BonePos)
+					end
+				end
+			end
+			ent:DeleteOnRemove(corpse)
+			-- ent:DeleteOnRemove(self)
+
+			corpse.VJ_AVP_Facehugged = true
+			corpse.VJ_AVP_Facehugger = self
+			corpse.VJ_AVP_Class = self:GetClass()
+			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 100 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
+			corpse.BloodData = {Color = ent.BloodColor, Particle = ent.CustomBlood_Particle, Decal = ent.CustomBlood_Decal}
+
+			VJ.CreateSound(self,self.SoundTbl_MeleeAttackGrapple,70)
+			self.LatchVictim = ent
+			self.LatchCorpse = corpse
+			self.IsLatched = true
+			self.BirthT = CurTime() +30
+			self:SetOwner(ent)
+			self:AddFlags(FL_NOTARGET)
+			self.DisableFindEnemy = true
+			self.DisableSelectSchedule = true
+			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+			self:SetNavType(NAV_NONE)
+			self:SetMoveType(MOVETYPE_NONE)
+			self:SetNoDraw(true)
+			self:DrawShadow(false)
+			local fakeFacehugger = ents.Create("prop_vj_animatable")
+			fakeFacehugger:SetModel(self:GetModel())
+			fakeFacehugger:SetPos(self:GetPos())
+			fakeFacehugger:SetAngles(self:GetAngles())
+			fakeFacehugger:SetOwner(self)
+			fakeFacehugger:Spawn()
+			fakeFacehugger:Activate()
+			fakeFacehugger:SetNotSolid(true)
+			fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+			self:DeleteOnRemove(fakeFacehugger)
+			if useBone then
+				local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
+				self:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
+				-- fakeFacehugger:SetAngles(boneAng)
+				fakeFacehugger:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
+			else
+				self:SetParent(corpse)
+				self:Fire("SetParentAttachment",att,0)
+				fakeFacehugger:SetParent(corpse)
+				fakeFacehugger:Fire("SetParentAttachment",att,0)
+			end
+			fakeFacehugger:ResetSequence("facehugger_harvest_idle")
+			self.LatchFakeFacehugger = fakeFacehugger
+
+			ent.VJ_AVP_IsFacehugged = true
+			ent:SetNoDraw(true)
+			ent:SetNotSolid(true)
+			ent:DrawShadow(false)
+			ent:NextThink(CurTime() +2)
+			for _,v in pairs(ent:GetChildren()) do
+				if IsValid(v) then
+					ent:SetNoDraw(true)
+					ent:DrawShadow(false)
+				end
+			end
+
+			hook.Add("Think",ent,function(ent)
+				if !IsValid(corpse) then
+					ent:SetNoDraw(false)
+					ent:SetNotSolid(false)
+					ent:DrawShadow(true)
+					ent:NextThink(CurTime())
+					ent:RemoveFlags(FL_NOTARGET)
+					for _,v in pairs(ent:GetChildren()) do
+						if IsValid(v) then
+							ent:SetNoDraw(false)
+							ent:DrawShadow(true)
+						end
+					end
+
+					if IsValid(self) then
+						self:SetParent(nil)
+						self:SetHealth(0)
+						self:TakeDamage(1000)
+					end
+					hook.Remove("Think",ent)
+					return
+				end
+
+				ent:SetPos(corpse:GetPos())
+				ent:TaskComplete()
+				ent:StopMoving()
+				ent:ClearSchedule()
+				ent:ClearGoal()
+				ent:ResetIdealActivity(ACT_IDLE)
+				ent:AddFlags(FL_NOTARGET)
+				if ent.IsVJBaseSNPC then
+					ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+					ent:SetEnemy(nil)
+					ent.HasSounds = false
+					ent.DisableFindEnemy = true
+				end
+				local wep = ent:GetActiveWeapon()
+				if IsValid(wep) then
+					if wep.SetNextPrimaryFire then
+						wep:SetNextPrimaryFire(CurTime() +2)
+					end
+					if wep.SetNextSecondaryFire then
+						wep:SetNextSecondaryFire(CurTime() +2)
+					end
+				end
+			end)
+		end
+	else
+		self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateActivity(act)
+	if act == ACT_IDLE && self.IsLatched then
+		return ACT_IDLE_ANGRY
+	end
+	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
@@ -150,5 +380,99 @@ function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 
 	self:SetHP(self:Health())
-	self:SetGroundAngle()
+	if !self.IsLatched then
+		self:SetGroundAngle()
+	end
+
+	if self.IsLatched && self.BirthT && CurTime() > self.BirthT then
+		self.IsLatched = false
+		self:SetParent(nil)
+		self:SetPos(self.LatchCorpse:GetPos() +self.LatchCorpse:GetUp() *10)
+		SafeRemoveEntity(self.LatchFakeFacehugger)
+		local ent,corpseEnt,xenoClass = self.LatchVictim, self.LatchCorpse, self.LatchCorpse.VJ_AVP_XenoClass
+		if !IsValid(self.VJ_TheController) then
+			self:SetHealth(0)
+			self.DisableCorpseCleanUp = true
+			self:TakeDamage(1000)
+			for i = 1,4 do
+				timer.Simple(i,function()
+					if IsValid(corpseEnt) then
+						local phys = corpseEnt:GetPhysicsObject()
+						if IsValid(phys) then
+							phys:ApplyForceCenter(VectorRand() *math.random(600,1200))
+						end
+						local bonePos = corpseEnt:LookupBone("ValveBiped.Bip01_Spine4") != nil && corpseEnt:GetBonePosition(corpseEnt:LookupBone("ValveBiped.Bip01_Spine4")) or corpseEnt:GetPos()
+						local particle = ents.Create("info_particle_system")
+						particle:SetKeyValue("effect_name", corpseEnt.BloodData.Particle or "blood_impact_red_01")
+						particle:SetPos(bonePos)
+						particle:Spawn()
+						particle:Activate()
+						particle:Fire("Start")
+						particle:Fire("Kill", "", 0.1)
+						sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_0" .. math.random(1,3) .. ".ogg",bonePos,75)
+					end
+				end)
+			end
+			timer.Simple(5,function()
+				if IsValid(ent) && IsValid(corpseEnt) then
+					local tr = util.TraceLine({
+						start = corpseEnt:GetPos() +Vector(0,0,128),
+						endpos = corpseEnt:GetPos(),
+						filter = {corpseEnt,ent}
+					})
+					ent:SetPos(tr.HitPos +tr.HitNormal *2)
+					ent:SetAngles(corpseEnt:GetAngles())
+					ent.HasSounds = true
+					hook.Remove("Think",ent)
+					corpseEnt:Remove()
+					ent:SetHealth(0)
+					local chestburster = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_chestburster" or "npc_vj_avp_xeno_chestburster")
+					chestburster:SetPos(ent:GetPos())
+					chestburster:SetAngles(ent:GetAngles())
+					chestburster.XenoClass = xenoClass
+					chestburster:Spawn()
+					chestburster:Activate()
+					undo.ReplaceEntity(ent,chestburster)
+					ent:TakeDamage(1000)
+				end
+			end)
+		else
+			local tr = util.TraceLine({
+				start = corpseEnt:GetPos() +Vector(0,0,128),
+				endpos = corpseEnt:GetPos(),
+				filter = {corpseEnt,ent}
+			})
+			ent:SetPos(tr.HitPos +tr.HitNormal *2)
+			ent:SetAngles(corpseEnt:GetAngles())
+			ent.HasSounds = true
+			hook.Remove("Think",ent)
+			corpseEnt:Remove()
+			ent:SetHealth(0)
+			local cont = self.VJ_TheController
+			self:Remove()
+			local chestburster = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_chestburster" or "npc_vj_avp_xeno_chestburster")
+			chestburster:SetPos(ent:GetPos())
+			chestburster:SetAngles(ent:GetAngles())
+			chestburster.XenoClass = xenoClass
+			chestburster:Spawn()
+			chestburster:Activate()
+			timer.Simple(0.12,function()
+				if IsValid(cont) && IsValid(chestburster) then
+					local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+					SpawnControllerObject.VJCE_Player = cont
+					SpawnControllerObject:SetControlledNPC(chestburster)
+					SpawnControllerObject:Spawn()
+					SpawnControllerObject:StartControlling()
+				end
+			end)
+			undo.ReplaceEntity(ent,chestburster)
+			ent:TakeDamage(1000)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnRemove()
+	if IsValid(self.LatchCorpse) && self.DisableCorpseCleanUp != true then
+		self.LatchCorpse:Remove()
+	end
 end

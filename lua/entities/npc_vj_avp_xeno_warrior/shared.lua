@@ -449,10 +449,12 @@ if CLIENT then
 						ent.QueenMarkerFX:StopEmission(false,true)
 						ent.QueenMarkerFX = nil
 					end
-					for _,v in pairs(ent.QueenMarkerPoints) do
-						if IsValid(v) then
-							v:StopEmission(false,true)
-							v = nil
+					if ent.QueenMarkerPoints then
+						for _,v in pairs(ent.QueenMarkerPoints) do
+							if IsValid(v) then
+								v:StopEmission(false,true)
+								v = nil
+							end
 						end
 					end
 				end
