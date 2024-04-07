@@ -711,7 +711,7 @@ local NPCTbl_Animals = {npc_barnacle=true,npc_crow=true,npc_pigeon=true,npc_seag
 --
 function ENT:CheckRelationship(ent)
 	if ent.ForceEntAsEnemy == self then return D_HT end -- Always enemy to me (Used by the bullseye under certain circumstances)
-	if ent:IsFlagSet(FL_NOTARGET) or ent.VJ_NoTarget or NPCTbl_Animals[ent:GetClass()] then return D_NU end
+	if ent:IsFlagSet(FL_NOTARGET) or NPCTbl_Animals[ent:GetClass()] then return D_NU end
 	if self:GetClass() == ent:GetClass() then return D_LI end
 	if ent:Health() > 0 && self:Disposition(ent) != D_LI then
 		local isPly = ent:IsPlayer()
