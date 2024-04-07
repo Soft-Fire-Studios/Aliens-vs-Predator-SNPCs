@@ -501,9 +501,7 @@ end
 --
 local math_acos = math.acos
 local math_deg = math.deg
-local math_rad = math.rad
 local math_abs = math.abs
-local toSeq = VJ_SequenceToActivity
 --
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoTranslations(act)
@@ -547,12 +545,7 @@ function ENT:CustomOnChangeActivity(act)
 	-- if self.AnimationBehaviors[act] then
 	-- 	self.AnimationBehaviors[act](self)
 	-- end
-	if act == ACT_IDLE then
-		-- local idleAct = self:SelectIdleActivity()
-		-- if idleAct != act then
-		-- 	self:ResetIdealActivity(idleAct)
-		-- end
-	elseif act == ACT_JUMP then
+	if act == ACT_JUMP then
 		VJ_CreateSound(self,self.SoundTbl_Jump,76)
 	elseif act == ACT_SPRINT then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
@@ -754,13 +747,11 @@ function ENT:OnKeyPressed(ply,key)
 				ent:Fire("Use",nil,0,ply,self)
 				return
 			end
-			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
-				if self.CanAttack && !self:IsBusy() then
-					local canUse, inFront = self:CanUseFatality(ent)
-					if canUse then
-						self:DoFatality(ent,inFront)
-						return
-					end
+			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
+				local canUse, inFront = self:CanUseFatality(ent)
+				if canUse then
+					self:DoFatality(ent,inFront)
+					return
 				end
 			end
 		end
@@ -795,7 +786,7 @@ function ENT:DistractionCode(ent)
 			if ent.OnHearDistraction then
 				ent:OnHearDistraction(self,soundPos)
 			else
-				ent:CustomOnInvestigate(v)
+				ent:CustomOnInvestigate(ent)
 				ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
 			end
 		elseif !ent.IsVJBaseSNPC then
@@ -928,14 +919,11 @@ function ENT:LongJumpCode(gotoPos,atk)
 	-- Entity(1):ChatPrint(tostring(hitNormal))
 	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
 
-	local startPos = trSt.HitPos +trSt.HitNormal *4
-	-- VJ.DEBUG_TempEnt(startPos, self:GetAngles(), Color(13,0,255), 5)
+	-- VJ.DEBUG_TempEnt(trSt.HitPos +trSt.HitNormal *4, self:GetAngles(), Color(13,0,255), 5)
 	self.LongJumpPos = trSt.HitPos
 	self.LongJumpAttacking = atk
 	self.JumpT = 0
 	local anim = "jump_fwd"
-	local dist = self:GetPos():Distance(self.LongJumpPos)
-	local height = self:GetPos().z -self.LongJumpPos.z
 	self:FaceCertainPosition(self.LongJumpPos,1)
 	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
 end
@@ -1014,7 +1002,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			fx:SetMagnitude(2)
 			fx:SetNormal(self:GetUp())
 			util.Effect("ElectricSpark",fx)
-			for i = 1,16 do
+			for _ = 1,16 do
 				util.Effect("GlassImpact",fx)
 			end
 		end
@@ -1092,7 +1080,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RunDamageCode(mult)
-	local mult = mult or 1
+	mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
@@ -1141,16 +1129,14 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if visible then
-		if self.CanAttack then
-			if dist <= self.AttackDistance && !self:IsBusy() then
-				local canUse, inFront = self:CanUseFatality(ent)
-				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-					if self:DoFatality(ent,inFront) == false then
-						self:AttackCode(isCrawling)
-					end
-				else
-					self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
+		if self.CanAttack && dist <= self.AttackDistance && !self:IsBusy() then
+			local canUse, inFront = self:CanUseFatality(ent)
+			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+				if self:DoFatality(ent,inFront) == false then
+					self:AttackCode(isCrawling)
 				end
+			else
+				self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
 			end
 		end
 
@@ -1397,7 +1383,7 @@ function ENT:SetGroundAngle(curSet)
 	local ang_y = Angle(0,ang.y,0)
 	local refreshRate = FrameTime() *20
 	if curSet == 1 /*&& self:OnGround()*/ then
-		local mins, maxs = self:GetCollisionBounds()
+		local _, maxs = self:GetCollisionBounds()
 		-- mins = mins *2
 		-- maxs = maxs *2
 		local posForward, posBackward, posRight, posLeft
@@ -1469,7 +1455,6 @@ function ENT:JumpVelocityCode()
 	local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() *0.3 or self:OBBCenter() *0.5)
 	local moveDirection = (targetPos -currentPos):GetNormalized()
 	local moveSpeed = (dist < 250 && 800 or dist *4)
-	local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
 	self:SetLocalVelocity(moveDirection *moveSpeed)
 	if dist >= 70 && self.JumpT <= 1 then
 		self:SetCycle(0.5)
@@ -1479,8 +1464,6 @@ function ENT:JumpVelocityCode()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
-local startCycle = 0.23
-local endCycle = 0.65
 --
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
@@ -1557,11 +1540,9 @@ function ENT:CustomOnThink_AIEnabled()
 
 	local darkness = self.DarknessLevel
 	if VJ_AVP_CVAR_XENOSTEALTH && darkness && darkness <= 0.065 && !self:IsMoving() then
-		local hasEnemy = false
 		for _,v in ents.Iterator() do
 			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
 				if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator && v:GetVisionMode() == 2 then
-					hasEnemy = true
 					continue
 				end
 				if v:GetPos():Distance(self:GetPos()) > (650 *(darkness *10)) then
@@ -1571,8 +1552,6 @@ function ENT:CustomOnThink_AIEnabled()
 					if v.GetEnemy && v:GetEnemy() == self then
 						v:SetEnemy(nil)
 					end
-				else
-					hasEnemy = true
 				end
 			end
 		end
@@ -1655,7 +1634,7 @@ function ENT:CustomOnThink_AIEnabled()
 				-- print("crawling")
 			end
 		end
-		local sprinting = self:GetSprinting()
+		sprinting = self:GetSprinting()
 		-- self.CanAttack = !sprinting
 		if sprinting then
 			if transAct == ACT_SPRINT && self:OnGround() then
@@ -1720,13 +1699,11 @@ function ENT:CustomOnThink_AIEnabled()
 			-- 		self:ResetIdealActivity(idleAct)
 			-- 	end
 			-- end
-			if ply:KeyDown(IN_DUCK) then
-				if curTime > self.ChangeSetT then
-					self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
-					self.ChangeSetT = curTime +0.5
-					self.NextIdleTime = 0
-					self.NextIdleStandTime = 0
-				end
+			if ply:KeyDown(IN_DUCK) && curTime > self.ChangeSetT then
+				self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
+				self.ChangeSetT = curTime +0.5
+				self.NextIdleTime = 0
+				self.NextIdleStandTime = 0
 			end
 		else
 			self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
@@ -1839,7 +1816,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		dmgAng.p = 0
 		dmgAng.r = 0
 		if self:Health() <= self:GetMaxHealth() *0.25 then
-			local decap = self.HitGroups[math.random(4,7)]
+			decap = self.HitGroups[math.random(4,7)]
 			if decap then
 				if decap.Dead then return end
 				decap.Dead = true
@@ -1982,10 +1959,6 @@ function ENT:CustomOnRemove()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_acos = math.acos
-local math_abs = math.abs
-local math_rad = math.rad
-local math_deg = math.deg
 local math_atan2 = math.atan2
 --
 function ENT:GetDamageDirection(dmginfo)
