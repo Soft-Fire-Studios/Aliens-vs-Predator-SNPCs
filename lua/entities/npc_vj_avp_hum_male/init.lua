@@ -1,5 +1,5 @@
 AddCSLuaFile("shared.lua")
-include('shared.lua')
+include("shared.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -461,32 +461,16 @@ function ENT:CustomOnThink_AIEnabled()
 		local sprint = cont:KeyDown(IN_SPEED)
 		if walk && self.Moveset != 1 then
 			self.Moveset = 1
-		-- 	self.AnimTbl_Walk = {ACT_WALK}
-		-- 	self.AnimTbl_Run = {ACT_WALK}
-		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
-		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_WALK_AIM}
 		elseif !walk && self.Moveset != 2 then
 			self.Moveset = 2
-		-- 	self.AnimTbl_Walk = {ACT_RUN}
-		-- 	self.AnimTbl_Run = {ACT_SPRINT}
-		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
-		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 		elseif !walk && self.Moveset != 3 && curTime < self.NextSprintT then
 			self.Moveset = 3
-		-- 	self.AnimTbl_Walk = {ACT_RUN}
-		-- 	self.AnimTbl_Run = {ACT_RUN}
-		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_RUN_AIM}
-		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 			sprint = false
 		end
 		self:SetSprinting(sprint)
 	else
 		-- if self.Moveset != 0 then
 		-- 	self.Moveset = 0
-		-- 	self.AnimTbl_Walk = {ACT_WALK}
-		-- 	self.AnimTbl_Run = {ACT_RUN}
-		-- 	self.AnimTbl_ShootWhileMovingWalk = {ACT_WALK_AIM}
-		-- 	self.AnimTbl_ShootWhileMovingRun = {ACT_RUN_AIM}
 		-- 	self:SetSprinting(false)
 		-- end
 
