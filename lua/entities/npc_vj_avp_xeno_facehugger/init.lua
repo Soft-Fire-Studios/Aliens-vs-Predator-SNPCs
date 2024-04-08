@@ -120,6 +120,10 @@ function ENT:CustomOnInitialize()
 	if self.VJ_AVP_XenomorphFacehuggerRoyal then
 		self:SetSkin(1)
 	end
+
+	if self.VJ_AVP_K_Xenomorph then
+		self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
