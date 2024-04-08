@@ -59,6 +59,7 @@ end
 function ENT:Use(ent)
 	if ent:IsPlayer() && ent:Alive() && !IsValid(ent:GetObserverTarget()) then
 		self.BatteryLife = math.Clamp(self.BatteryLife -10,0,100)
+		ent:SetArmor(math.Clamp(ent:Armor() +10,0,ent:GetMaxArmor() or 100))
 		self.BatteryRestoreDelayT = CurTime() +15
 		ent:ChatPrint("Restored 10% of your suit battery.")
 	end
