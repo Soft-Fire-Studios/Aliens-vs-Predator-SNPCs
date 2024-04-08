@@ -333,6 +333,10 @@ if VJExists == true then
 		"vj_avp_blood_predator",
 		"vj_avp_blood_xeno",
 	})
+	VJ.AddParticle("particles/vj_avp_android.pcf",{
+		"vj_avp_android_death_charge",
+		"vj_avp_android_death",
+	})
 	VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
 		"vj_avp_xeno_blackgoo",
 		"vj_avp_xeno_spit",
@@ -413,11 +417,13 @@ if VJExists == true then
 	local NPC = FindMetaTable("NPC")
 	
 	function NPC:Acid(pos,dist,dmg)
-		VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 65,dmg or 5,DMG_ACID,true,true,{},function(ent)
-			if ent.VJ_AVP_Xenomorph then
-				return false
-			end
-		end)
+		-- VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 65,dmg or 5,DMG_ACID,true,true,{},function(ent)
+		-- 	if ent.VJ_AVP_Xenomorph then
+		-- 		return false
+		-- 	end
+		-- end)
+
+		VJ.ApplyRadiusDamage(self, self, pos or self:GetPos(), dist or 65, dmg or 5, DMG_ACID, true, true)
 	end
 
 	if CLIENT then

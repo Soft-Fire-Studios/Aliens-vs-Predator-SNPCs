@@ -6,6 +6,9 @@ include("shared.lua")
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Gender = 2
+
+ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
+ENT.FriendsWithAllPlayerAllies = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/female_blonde.mdl"

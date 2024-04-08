@@ -16,9 +16,6 @@ ENT.VJC_Data = {
 
 ENT.BloodColor = "Red"
 
-ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
-ENT.FriendsWithAllPlayerAllies = true
-
 ENT.HasMeleeAttack = true
 
 ENT.HasFlashlight = true
@@ -510,6 +507,10 @@ function ENT:CustomOnKilled()
 				particle:Fire("Kill", "", 0.1)
 			end
 		end
+	end
+
+	if self.WhenKilled then
+		self:WhenKilled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

@@ -111,6 +111,9 @@ end
 function ENT:CustomOnInitialize()
 	self.IsLatched = false
 	self.LatchVictim = nil
+	self.Carrier = nil
+	self.CarrierSlot = nil
+	self.NextCarrierT = 0
 
 	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
 end
@@ -191,7 +194,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			corpse.VJ_AVP_Facehugged = true
 			corpse.VJ_AVP_Facehugger = self
 			corpse.VJ_AVP_Class = self:GetClass()
-			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 100 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
+			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 90 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
 			if ent.VJ_AVP_Predator then
 				corpse.VJ_AVP_IsPredburster = true
 				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien")
@@ -221,6 +224,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			fakeFacehugger:SetOwner(self)
 			fakeFacehugger:Spawn()
 			fakeFacehugger:Activate()
+			fakeFacehugger:SetSkin(self:GetSkin())
 			fakeFacehugger:SetNotSolid(true)
 			fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 			self:DeleteOnRemove(fakeFacehugger)
@@ -329,7 +333,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
-	if act == ACT_IDLE && self.IsLatched then
+	if act == ACT_IDLE && (self.IsLatched or IsValid(self.Carrier)) then
 		return ACT_IDLE_ANGRY
 	end
 	return act
@@ -418,12 +422,110 @@ function ENT:SetGroundAngle()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnMaintainRelationships(ent, entFri, entDist)
+	if entFri && ent.VJ_AVP_XenomorphCarrier && !self.Carrier && entDist <= 500 && CurTime() > self.NextCarrierT && ent:GetFacehuggerCount() < 9 then
+		self:SetTarget(ent)
+		self:VJ_TASK_GOTO_TARGET("TASK_RUN_PATH")
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:AttachToCarrier(ent,getOff,target)
+	if getOff == true or !IsValid(ent) then
+		local carrier, slot = self.Carrier, self.CarrierSlot
+		if IsValid(carrier) then
+			carrier.Facehuggers[slot] = nil
+		end
+		self.Carrier = nil
+		self.CarrierSlot = nil
+		self:SetParent(nil)
+		self:SetState()
+		self:SetNoDraw(false)
+		self:DrawShadow(true)
+		self:SetNotSolid(false)
+		self:SetCollisionGroup(COLLISION_GROUP_NPC)
+		self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
+		self:RemoveEffects(EF_PARENT_ANIMATES)
+		self.CanTurnWhileStationary = true
+		self:SetPos(carrier:GetAttachment(carrier:LookupAttachment("facehugger" .. slot)).Pos)
+		self.NextCarrierT = CurTime() +5
+		if IsValid(target) then
+			self:SetVelocity(self:CalculateProjectile("Curve",self:GetPos(),self:GetAimPosition(target, self:GetPos(), 0.5, 1500), 1500))
+			self:SetEnemy(target)
+			VJ.CreateSound(self,"cpthazama/avp/xeno/facehugger/vocals/fhg_grapple_screech_02.ogg",72)
+		else
+			self:SetVelocity(VectorRand() *math.random(150,500))
+		end
+		SafeRemoveEntity(self.FakeFacehugger)
+		return
+	end
+	if IsValid(self.Carrier) then return end
+	local curFacehuggers = ent:GetFacehuggerCount()
+	local slot = curFacehuggers +1
+	self.Carrier = ent
+	self.CarrierSlot = slot
+	ent.Facehuggers[slot] = self
+	self.CanTurnWhileStationary = false
+	self:SetOwner(ent)
+	self:SetParent(ent)
+	self:SetNoDraw(true)
+	self:DrawShadow(false)
+	self:SetLocalPos(Vector(0,0,0))
+	self:DoChangeMovementType(VJ_MOVETYPE_STATIONARY)
+	self:AddEffects(EF_PARENT_ANIMATES)
+	self:SetNotSolid(true)
+	self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+	self:Fire("SetParentAttachment","facehugger" .. slot,0)
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	local fakeFacehugger = ents.Create("prop_vj_animatable")
+	fakeFacehugger:SetModel(self:GetModel())
+	fakeFacehugger:SetPos(self:GetPos())
+	fakeFacehugger:SetAngles(self:GetAngles())
+	fakeFacehugger:SetOwner(self)
+	fakeFacehugger:SetParent(ent)
+	fakeFacehugger:Spawn()
+	fakeFacehugger:Activate()
+	fakeFacehugger:SetSkin(self:GetSkin())
+	fakeFacehugger:SetNotSolid(true)
+	fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+	fakeFacehugger:Fire("SetParentAttachment","facehugger" .. slot,0)
+	fakeFacehugger:ResetSequence("facehugger_harvest_idle")
+	self:DeleteOnRemove(fakeFacehugger)
+	util.SpriteTrail(fakeFacehugger,0,Color(255,183,0),true,25,1,1,1 /(25 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
+	local spriteGlow = ents.Create("env_sprite")
+	spriteGlow:SetKeyValue("rendercolor","255 128 0")
+	spriteGlow:SetKeyValue("GlowProxySize","2.0")
+	spriteGlow:SetKeyValue("HDRColorScale","1.0")
+	spriteGlow:SetKeyValue("renderfx","14")
+	spriteGlow:SetKeyValue("rendermode","3")
+	spriteGlow:SetKeyValue("renderamt","255")
+	spriteGlow:SetKeyValue("disablereceiveshadows","0")
+	spriteGlow:SetKeyValue("mindxlevel","0")
+	spriteGlow:SetKeyValue("maxdxlevel","0")
+	spriteGlow:SetKeyValue("framerate","10.0")
+	spriteGlow:SetKeyValue("model","VJ_Base/sprites/vj_glow1.vmt")
+	spriteGlow:SetKeyValue("spawnflags","0")
+	spriteGlow:SetKeyValue("scale","0.4")
+	spriteGlow:SetPos(fakeFacehugger:GetPos())
+	spriteGlow:Spawn()
+	spriteGlow:SetParent(fakeFacehugger)
+	fakeFacehugger:DeleteOnRemove(spriteGlow)
+	self.FakeFacehugger = fakeFacehugger
+
+	VJ.CreateSound(self,"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_" .. math.random(1,5) .. ".ogg",70)
+	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/special/flesh eat/flesh_eat_03.ogg",70)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 
 	self:SetHP(self:Health())
 	if !self.IsLatched then
 		self:SetGroundAngle()
+
+		if !IsValid(self:GetEnemy()) && IsValid(self:GetTarget()) && self:GetTarget().VJ_AVP_XenomorphCarrier && !self.Carrier && self:GetPos():Distance(self:GetTarget():GetPos()) <= 100 then
+			if self:GetTarget():GetFacehuggerCount() >= 9 then return end
+			self:AttachToCarrier(self:GetTarget())
+		end
 	end
 
 	if self.IsLatched && self.BirthT && CurTime() > self.BirthT then

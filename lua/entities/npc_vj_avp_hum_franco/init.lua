@@ -6,3 +6,6 @@ include("shared.lua")
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Gender = 1
+
+ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
+ENT.FriendsWithAllPlayerAllies = true

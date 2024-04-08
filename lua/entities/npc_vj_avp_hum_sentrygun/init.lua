@@ -211,15 +211,33 @@ end
 local defAng = Angle(0, 0, 0)
 --
 function ENT:CustomOnKilled(dmginfo, hitgroup)
+	VJ.ApplyRadiusDamage(self, self, self:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), true, true)
 	local startPos = self:GetPos() + self:OBBCenter()
 	ParticleEffect("explosion_turret_break_fire", startPos, defAng, NULL)
 	ParticleEffect("explosion_turret_break_flash", startPos, defAng, NULL)
 	ParticleEffect("explosion_turret_break_pre_smoke Version #2", startPos, defAng, NULL)
 	ParticleEffect("explosion_turret_break_sparks", startPos, defAng, NULL)
+	ParticleEffect("vj_avp_android_death",startPos,defAng)
+	sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",startPos,90)
+	
+	local FireLight1 = ents.Create("light_dynamic")
+	FireLight1:SetKeyValue("brightness","4")
+	FireLight1:SetKeyValue("distance","350")
+	FireLight1:SetPos(startPos)
+	FireLight1:SetLocalAngles(self:GetAngles())
+	FireLight1:Fire("Color","220 180 255")
+	FireLight1:SetParent(self)
+	FireLight1:Spawn()
+	FireLight1:Activate()
+	FireLight1:Fire("TurnOn","",0)
+	FireLight1:Fire("Kill","",0.9)
+	self:DeleteOnRemove(FireLight1)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, corpseEnt)
-	ParticleEffectAttach("smoke_exhaust_01a", PATTACH_POINT_FOLLOW, corpseEnt, 2)
+function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+	ParticleEffectAttach("smoke_exhaust_01a", PATTACH_POINT_FOLLOW, ent, 2)
+	ent.VJ_AVP_IsTech = true
+	ent:SetNW2Bool("AVP.IsTech",true)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()

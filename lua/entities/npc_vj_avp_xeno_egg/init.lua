@@ -37,38 +37,48 @@ function ENT:TranslateActivity(act)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Open()
+	self:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false)
+	VJ.EmitSound(self,"cpthazama/avp/xeno/egg/egg_open_0" .. math.random(1,3) .. ".ogg",75)
+	timer.Simple(0.5,function()
+		if IsValid(self) then
+			local facehugger = ents.Create("npc_vj_avp_xeno_facehugger")
+			facehugger:SetPos(self:GetPos())
+			facehugger:SetAngles(self:GetAngles())
+			facehugger:SetOwner(self)
+			facehugger:Spawn()
+			facehugger:Activate()
+			facehugger:SetNoDraw(true)
+			facehugger:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+			timer.Simple(0.3,function()
+				if IsValid(facehugger) then
+					facehugger:SetNoDraw(false)
+				end
+			end)
+			facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump",true,false,false,0,{OnFinish=function(i,anim)
+				if i then return end
+				facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+				facehugger:SetState()
+			end})
+		end
+	end)
+	self.Opened = true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)
 	if !self.Opened then
-		self:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false)
-		VJ.EmitSound(self,"cpthazama/avp/xeno/egg/egg_open_0" .. math.random(1,3) .. ".ogg",75)
-		timer.Simple(0.5,function()
-			if IsValid(self) then
-				local facehugger = ents.Create("npc_vj_avp_xeno_facehugger")
-				facehugger:SetPos(self:GetPos())
-				facehugger:SetAngles(self:GetAngles())
-				facehugger:SetOwner(self)
-				facehugger:Spawn()
-				facehugger:Activate()
-				facehugger:SetNoDraw(true)
-				facehugger:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				timer.Simple(0.3,function()
-					if IsValid(facehugger) then
-						facehugger:SetNoDraw(false)
-					end
-				end)
-				facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump",true,false,false,0,{OnFinish=function(i,anim)
-					if i then return end
-					facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
-					facehugger:SetState()
-				end})
-			end
-		end)
-		self.Opened = true
+		self:Open()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition())
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnMaintainRelationships(ent, entFri, entDist)
+	if entFri && ent.VJ_AVP_XenomorphCarrier && !self.Opened && entDist <= 400 && ent:GetFacehuggerCount() < 9 then
+		self:Open()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()

@@ -1793,7 +1793,8 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
-	self:Acid(dmginfo:GetDamagePosition())
+	-- print("Damaged!")
+	VJ.ApplyRadiusDamage(self, self, dmginfo:GetDamagePosition(), 65, 5, DMG_ACID, true, true)
 	self.HealthRegenerationDelayT = CurTime() +5
 	if self.MoveAroundRandomlyT > CurTime() then
 		self.NextChaseTime = 0
@@ -1852,8 +1853,9 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),150,20)
+function ENT:CustomOnKilled(dmginfo)
+	VJ.ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
+
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
 			if math.random(1,4) <= 3 then continue end
@@ -1868,6 +1870,10 @@ function ENT:CustomOnKilled()
 				particle:Fire("Kill", "", 0.1)
 			end
 		end
+	end
+
+	if self.WhenKilled then
+		self:WhenKilled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

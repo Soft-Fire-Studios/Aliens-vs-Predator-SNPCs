@@ -49,6 +49,9 @@ function ENT:OnInit()
 	self.GeneralSoundPitch1 = 115
 	self.GeneralSoundPitch2 = 125
 
+	self.Facehuggers = {}
+	self.NextFacehuggerAttackT = 0
+
 	self.HitGroups = {
 		[HITGROUP_HEAD] = {
 			HP = 400,
@@ -166,4 +169,34 @@ function ENT:SelectIdleActivity(act)
 		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
 	end
 	return ACT_IDLE
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnCustomAttack(cont,ent,visible,dist)
+	if IsValid(ent) && visible && dist <= 500 then
+		local count = self:GetFacehuggerCount()
+		if count >= 0 && CurTime() > self.NextFacehuggerAttackT && ((ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer()) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC())) then
+			self.NextFacehuggerAttackT = CurTime() +math.Rand(3,6)
+			if self.Facehuggers[count] then
+				self.Facehuggers[count]:AttachToCarrier(self,true,ent)
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:WhenKilled(dmginfo, hitgroup)
+	for _,v in pairs(self.Facehuggers) do
+		if IsValid(v) then
+			v:AttachToCarrier(self,true)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetFacehuggerCount()
+	local count = 0
+	for _,v in pairs(self.Facehuggers) do
+		if IsValid(v) then
+			count = count +1
+		end
+	end
+	return count
 end
