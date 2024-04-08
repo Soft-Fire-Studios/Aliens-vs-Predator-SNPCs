@@ -50,14 +50,14 @@ function ENT:Open()
 			facehugger:Activate()
 			facehugger:SetNoDraw(true)
 			facehugger:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-			timer.Simple(0.3,function()
+			timer.Simple(0.15,function()
 				if IsValid(facehugger) then
 					facehugger:SetNoDraw(false)
 				end
 			end)
-			facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump",true,false,false,0,{OnFinish=function(i,anim)
+			facehugger:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false,0,{OnFinish=function(i,anim)
 				if i then return end
-				facehugger:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+				facehugger:SetPos(facehugger:GetBonePosition(2))
 				facehugger:SetState()
 			end})
 		end

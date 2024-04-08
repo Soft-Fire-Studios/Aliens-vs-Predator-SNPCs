@@ -9,6 +9,7 @@ ENT.Category		= ""
 
 ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Xenomorph = true
+ENT.VJ_AVP_XenomorphFacehugger = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Vision")

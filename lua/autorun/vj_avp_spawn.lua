@@ -40,7 +40,7 @@ if VJExists == true then
 	
 	VJ.AddNPC("Survival","sent_vj_avp_survival",vCat)
 
-	VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
+	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_xeno_facehugger",vCat_A)
 	VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_xeno_facehugger_queen",vCat_A)
 	VJ.AddNPC("Xenomorph Queen","npc_vj_avp_xeno_queen",vCat_A)
@@ -56,7 +56,7 @@ if VJExists == true then
 	VJ.AddNPC("Specimen Six","npc_vj_avp_xeno_six",vCat_A)
 	VJ.AddNPC("The Matriarch","npc_vj_avp_xeno_matriarch",vCat_A)
 	
-	VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
+	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_kxeno_facehugger",vCat_AK)
 	VJ.AddNPC("Xenomorph Royal Facehugger","npc_vj_avp_kxeno_facehugger_queen",vCat_AK)
 	VJ.AddNPC("Xenomorph Queen","npc_vj_avp_kxeno_queen",vCat_AK)

@@ -116,6 +116,10 @@ function ENT:CustomOnInitialize()
 	self.NextCarrierT = 0
 
 	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
+
+	if self.VJ_AVP_XenomorphFacehuggerRoyal then
+		self:SetSkin(1)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAcceptInput(key,activator,caller,data)
@@ -193,9 +197,12 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 
 			corpse.VJ_AVP_Facehugged = true
 			corpse.VJ_AVP_Facehugger = self
+			corpse.VJ_AVP_Faction = self.VJ_NPC_Class
 			corpse.VJ_AVP_Class = self:GetClass()
 			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 90 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
-			if ent.VJ_AVP_Predator then
+			if self.VJ_AVP_XenomorphFacehuggerRoyal then
+				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
+			elseif ent.VJ_AVP_Predator then
 				corpse.VJ_AVP_IsPredburster = true
 				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien")
 			elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
@@ -538,7 +545,7 @@ function ENT:GiveBirth()
 	self:SetParent(nil)
 	self:SetPos(self.LatchCorpse:GetPos() +self.LatchCorpse:GetUp() *10)
 	SafeRemoveEntity(self.LatchFakeFacehugger)
-	local ent,corpseEnt,xenoClass,predBurster = self.LatchVictim, self.LatchCorpse, self.LatchCorpse.VJ_AVP_XenoClass, self.LatchCorpse.VJ_AVP_IsPredburster
+	local ent,corpseEnt,xenoClass,predBurster,faction = self.LatchVictim, self.LatchCorpse, self.LatchCorpse.VJ_AVP_XenoClass, self.LatchCorpse.VJ_AVP_IsPredburster, self.LatchCorpse.VJ_AVP_Faction
 	if !IsValid(self.VJ_TheController) then
 		self:SetHealth(0)
 		self.DisableCorpseCleanUp = true
@@ -582,6 +589,7 @@ function ENT:GiveBirth()
 				chestburster:SetPos(pos)
 				chestburster:SetAngles(Angle(0,corpseEnt:GetAngles().y,0))
 				chestburster.XenoClass = xenoClass
+				chestburster.VJ_NPC_Class = faction
 				chestburster:Spawn()
 				chestburster:Activate()
 				if predBurster then
@@ -614,6 +622,7 @@ function ENT:GiveBirth()
 		chestburster:SetPos(pos)
 		chestburster:SetAngles(Angle(0,corpseEnt:GetAngles().y,0))
 		chestburster.XenoClass = xenoClass
+		chestburster.VJ_NPC_Class = faction
 		chestburster:Spawn()
 		chestburster:Activate()
 		if predBurster then
