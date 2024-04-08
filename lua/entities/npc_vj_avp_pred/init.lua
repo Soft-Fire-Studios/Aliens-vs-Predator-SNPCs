@@ -650,10 +650,10 @@ function ENT:CustomAttack(ent,vis)
 					self:AttackCode()
 				end
 			else
-				if !self.AI_IsBlocking && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) && math.random(1,2) == 1 then
+				if !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 					self.AI_IsBlocking = true
 					return
-				else	
+				else
 					if math.random(1,6) == 1 then
 						self:HeavyAttackCode()
 					else
@@ -1012,6 +1012,12 @@ function ENT:DistractionCode(ent)
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnFacehugged(facehugger,facehuggerProp,corpse)
+	facehuggerProp:SetModelScale(1.5)
+	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+	corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)

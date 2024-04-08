@@ -157,6 +157,14 @@ function ENT:VJ_TASK_COVER_FROM_ENEMY(moveType, customFunc)
 	self:StartSchedule(schedCoverFromEnemy)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local animClass = {
+	["npc_vj_avp_xeno_predalien"] = "predalien_hybrid_getup",
+	["npc_vj_avp_kxeno_predalien"] = "predalien_hybrid_getup",
+	["npc_vj_avp_xeno_praetorian"] = "praetorian_stand_summon",
+	["npc_vj_avp_xeno_carrier"] = "praetorian_stand_summon",
+	["npc_vj_avp_kxeno_carrier"] = "praetorian_stand_summon",
+}
+--
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
 
@@ -179,7 +187,7 @@ function ENT:CustomOnThink_AIEnabled()
 		ent:Activate()
 		ent:SetModelScale(0.75)
 		ent:SetModelScale(1,1)
-		ent:VJ_ACT_PLAYACTIVITY("climb_stop",true,false,false)
+		ent:VJ_ACT_PLAYACTIVITY(animClass[class] or "climb_stop",true,false,false)
 		local cont = self.VJ_TheController
 		undo.ReplaceEntity(self,ent)
 		self:Remove()

@@ -13,7 +13,7 @@ cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, new
 end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CanUseFatality(ent)
-	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality then return false, false end
+	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or !ent.AnimTbl_Fatalities or !ent.AnimTbl_FatalitiesResponse then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
 	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
