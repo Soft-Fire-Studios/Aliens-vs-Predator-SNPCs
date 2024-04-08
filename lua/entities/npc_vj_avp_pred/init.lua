@@ -527,6 +527,16 @@ function ENT:OnKeyPressed(ply,key)
 		local ent = tr.Entity
 		if tr.Hit && IsValid(ent) then
 			if !ent:IsNPC() && !ent:IsPlayer() then
+				if ent:GetClass() == "sent_vj_avp_battery" && self:GetEnergy() < 200 then
+					if !self:IsBusy() then
+						self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+						self.NextChaseTime = 0
+					end
+					VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
+					self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
+					ent:DrainBattery()
+					return
+				end
 				ent:Fire("Use",nil,0,ply,self)
 				return
 			end

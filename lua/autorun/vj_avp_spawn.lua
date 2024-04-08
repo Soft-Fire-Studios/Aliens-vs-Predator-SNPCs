@@ -38,7 +38,8 @@ if VJExists == true then
 	VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp_xeno16.png"})
 	VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 	
-	VJ.AddNPC("Survival","sent_vj_avp_survival",vCat)
+	VJ.AddNPC("Survival Mode","sent_vj_avp_survival",vCat)
+	VJ.AddNPC("RC Battery","sent_vj_avp_battery",vCat)
 
 	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_xeno_facehugger",vCat_A)
@@ -343,6 +344,9 @@ if VJExists == true then
 		"vj_avp_xeno_spit_impact",
 		"vj_avp_xeno_queenmarker",
 		"vj_avp_xeno_queenmarker_pointer",
+	})
+	VJ.AddParticle("particles/vj_avp_rc_battery.pcf",{
+		"vj_avp_rc_battery_sap",
 	})
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{

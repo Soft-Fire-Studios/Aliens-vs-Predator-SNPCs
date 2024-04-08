@@ -102,7 +102,7 @@ function ENT:CustomOnInitialize()
 	self:SetCollisionBounds(Vector(4,4,6),Vector(-4,-4,0))
 	sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",self:GetPos(),72)
 	VJ.CreateSound(self,"cpthazama/avp/xeno/chestburster/chestburster_scream_0" .. math.random(1,3) .. ".ogg",80)
-	local pred = self:GetOwner().VJ_AVP_Predator == true
+	local pred = IsValid(self:GetOwner()) && self:GetOwner().VJ_AVP_Predator == true
 	-- local pred = true
 	for i = 1,5 do
 		ParticleEffect(pred && "vj_avp_blood_predator" or "blood_impact_red_01",self:GetPos() +self:GetForward() *math.Rand(-10,10) +self:GetRight() *math.Rand(-10,10) +self:GetUp() *-(i *10),Angle())

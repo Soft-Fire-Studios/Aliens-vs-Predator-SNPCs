@@ -258,6 +258,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 				ent:SetNoDraw(true)
 				ent:SetNotSolid(true)
 				ent:DrawShadow(false)
+				ent:SetModelScale(0.001)
 				ent:NextThink(CurTime() +2)
 				for _,v in pairs(ent:GetChildren()) do
 					if IsValid(v) then
@@ -277,6 +278,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 						ent:SetNoDraw(false)
 						ent:SetNotSolid(false)
 						ent:DrawShadow(true)
+						ent:SetModelScale(1)
 						ent:NextThink(CurTime())
 						ent:RemoveFlags(FL_NOTARGET)
 						for _,v in pairs(ent:GetChildren()) do
@@ -582,6 +584,7 @@ function ENT:GiveBirth()
 				})
 				local pos = tr.HitPos +tr.HitNormal *2
 				if IsValid(ent) && ent:IsNPC() then
+					ent:SetModelScale(1)
 					ent:SetPos(pos)
 					ent:SetAngles(corpseEnt:GetAngles())
 					ent.HasSounds = true
@@ -593,7 +596,9 @@ function ENT:GiveBirth()
 				chestburster:SetPos(pos)
 				chestburster:SetAngles(Angle(0,corpseEnt:GetAngles().y,0))
 				chestburster.XenoClass = xenoClass
-				chestburster.VJ_NPC_Class = faction
+				if faction then
+					chestburster.VJ_NPC_Class = faction
+				end
 				chestburster:Spawn()
 				chestburster:Activate()
 				if predBurster then
@@ -626,7 +631,9 @@ function ENT:GiveBirth()
 		chestburster:SetPos(pos)
 		chestburster:SetAngles(Angle(0,corpseEnt:GetAngles().y,0))
 		chestburster.XenoClass = xenoClass
-		chestburster.VJ_NPC_Class = faction
+		if faction then
+			chestburster.VJ_NPC_Class = faction
+		end
 		chestburster:Spawn()
 		chestburster:Activate()
 		if predBurster then
