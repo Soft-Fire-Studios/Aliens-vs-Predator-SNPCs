@@ -596,6 +596,17 @@ if CLIENT then
 					surface.SetDrawColor(Color(r,g,b,a *math.Clamp(v:GetPos():Distance(ent:GetPos()) /1000,0,1)))
 					surface.SetMaterial(matHUDEquip_Mine)
 					surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+				elseif IsValid(v) && v:GetClass() == "sent_vj_avp_battery" && v:GetActive() then
+					local entPos = (v:GetPos() +v:OBBCenter()):ToScreen()
+					local size = 75
+					local alpha = math.Clamp(v:GetPos():Distance(ent:GetPos()) /1750,0,1)
+					if alpha == 1 then
+						alpha = 0
+					end
+					size = size +math.sin(CurTime() *10) *10
+					surface.SetDrawColor(Color(r,g,b,a *alpha))
+					surface.SetMaterial(matHUDTarget)
+					surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 				end
 			end
 
