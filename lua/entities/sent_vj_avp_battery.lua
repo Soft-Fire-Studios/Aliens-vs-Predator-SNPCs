@@ -16,6 +16,7 @@ ENT.AutomaticFrameAdvance = true
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Active")
 	self:NetworkVar("Int",0,"RechargeTime")
+	self:NetworkVar("Entity",0,"LinkedObject")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
@@ -53,6 +54,9 @@ function ENT:Initialize()
 	self.BatteryRestoreDelayT = 0
 	self.BatteryFlashT = 0
 
+	self:SetNW2Bool("AVP.IsTech",true)
+	self.VJ_AVP_IsTech = true
+
 	-- timer.Simple(3,function() self:DrainBattery() end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -62,12 +66,20 @@ function ENT:Use(ent)
 		ent:SetArmor(math.Clamp(ent:Armor() +10,0,ent:GetMaxArmor() or 100))
 		self.BatteryRestoreDelayT = CurTime() +15
 		ent:ChatPrint("Restored 10% of your suit battery.")
+		if self.BatteryLife <= 0 then
+			self.BatteryRestoreDelayT = CurTime() +30
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DrainBattery() -- Drain the entire battery
 	self.BatteryLife = 0
 	self.BatteryRestoreDelayT = CurTime() +30
+
+	local linkedObj = self:GetLinkedObject()
+	if IsValid(linkedObj) && linkedObj.OnDeviceEffected then
+		linkedObj:OnDeviceEffected(self,3)
+	end
 
 	VJ.EmitSound(self,"cpthazama/avp/shared/battery_terminal_electricity_01.ogg",80)
 	ParticleEffectAttach("vj_avp_rc_battery_sap",PATTACH_POINT_FOLLOW,self,1)
@@ -86,11 +98,19 @@ function ENT:SetBattery(battery) -- Called when we remove the battery entirely o
 		self.BatteryLife = 100
 		sound.Play("cpthazama/avp/shared/electricity_battery_insert_01.ogg",self:GetPos(),70)
 		VJ.EmitSound(self,"cpthazama/avp/shared/electricity_power_up_01.ogg",70)
+		local linkedObj = self:GetLinkedObject()
+		if IsValid(linkedObj) && linkedObj.OnDeviceEffected then
+			linkedObj:OnDeviceEffected(self,1)
+		end
 		return
 	end
 	self:SetActive(false)
 	self.Light:Fire("TurnOff","",0)
 	self.BatteryLife = 0
+	local linkedObj = self:GetLinkedObject()
+	if IsValid(linkedObj) && linkedObj.OnDeviceEffected then
+		linkedObj:OnDeviceEffected(self,2)
+	end
 	VJ.EmitSound(self,"cpthazama/avp/shared/electricity_power_down_01.ogg",70)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -126,6 +146,10 @@ function ENT:Think()
 			if curTime < self.BatteryRestoreDelayT then return end
 			if self.BatteryLife <= 0 then
 				VJ.EmitSound(self,"cpthazama/avp/shared/electricity_power_up_01.ogg",70)
+				local linkedObj = self:GetLinkedObject()
+				if IsValid(linkedObj) && linkedObj.OnDeviceEffected then
+					linkedObj:OnDeviceEffected(self,1)
+				end
 			end
 			self.BatteryLife = math.Clamp(self.BatteryLife +1,0,100)
 			self.BatteryRestoreT = curTime +0.2

@@ -65,6 +65,7 @@ function ENT:CustomOnInitialize()
         spotlight:Fire("lighton")
 		spotlight:AddEffects(EF_PARENT_ANIMATES)
         self:DeleteOnRemove(spotlight)
+		self.Spotlight = spotlight
 	
 		local envLight = ents.Create("env_projectedtexture")
 		envLight:SetLocalPos(self:GetPos())
@@ -81,6 +82,7 @@ function ENT:CustomOnInitialize()
 		envLight:Fire("setparentattachment","scan")
 		envLight:AddEffects(EF_PARENT_ANIMATES)
 		self:DeleteOnRemove(envLight)
+		self.ProjectedTexture = envLight
 
 		-- local glow1 = ents.Create("env_sprite")
 		-- glow1:SetKeyValue("model","sprites/light_glow02_add.vmt")
@@ -95,9 +97,43 @@ function ENT:CustomOnInitialize()
 		-- glow1:Spawn()
 		-- self:DeleteOnRemove(glow1)
 	end
+
+	local startPos = self:GetPos() +self:GetForward() *-55 +self:GetUp() *-32.2
+	local rc = ents.Create("sent_vj_avp_battery")
+	rc:SetPos(startPos)
+	rc:SetAngles(Angle(0,(startPos -self:GetPos()):Angle().y,0))
+	rc:Spawn()
+	rc:SetLinkedObject(self)
+	self:DeleteOnRemove(rc)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Controller_Initialize(ply, controlEnt)	
+function ENT:OnDeviceEffected(rc,efType)
+	if efType == 1 then -- Turned on
+		if IsValid(self.Spotlight) then
+			self.Spotlight:Fire("lighton")
+		end
+		if IsValid(self.ProjectedTexture) then
+			self.ProjectedTexture:Fire("turnon")
+		end
+		self:RemoveFlags(FL_NOTARGET)
+		self.DisableFindEnemy = false
+		self.DisableMakingSelfEnemyToNPCs = false
+		self.turret_idlesd:Play()
+	elseif efType == 2 or efType == 3 then -- Turned off/drained
+		if IsValid(self.Spotlight) then
+			self.Spotlight:Fire("lightoff")
+		end
+		if IsValid(self.ProjectedTexture) then
+			self.ProjectedTexture:Fire("turnoff")
+		end
+		self:AddFlags(FL_NOTARGET)
+		self.DisableFindEnemy = true
+		self.DisableMakingSelfEnemyToNPCs = true
+		VJ.STOPSOUND(self.turret_idlesd)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Controller_Initialize(ply, controlEnt)
 	self.NextAlertSoundT = CurTime() + 1
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,6 +159,13 @@ function ENT:CustomOnThink_AIEnabled()
 		self.PoseParameterLooking_CanReset = false
 	else
 		self.PoseParameterLooking_CanReset = true
+	end
+
+	if self.DisableFindEnemy then
+		self.HasPoseParameterLooking = true
+		self.PoseParameterLooking_CanReset = true
+		self:SetEnemy(nil)
+		return
 	end
 
 	local pyaw = self:GetPoseParameter("aim_yaw")

@@ -262,6 +262,7 @@ if VJExists == true then
 					local data = possessing.VJ_AVP_ViewModelData
 					local pos2 = data.origin
 					local ang2 = data.angles
+					local seq = vm:GetSequenceName(vm:GetSequence())
 					-- if att > 0 then
 						-- local attPos = vm:GetAttachment(att)
 						-- if attPos then
@@ -281,6 +282,10 @@ if VJExists == true then
 					if possessing:GetInFatality() then
 						angles.p = 0
 						angles.y = possessing:GetAngles().y
+					elseif seq == "Predator_Hud_Battery_Interaction" or seq == "Predator_Hud_Disable_Interaction" then
+						angles.p = 0
+						angles.y = possessing:GetAngles().y
+						origin = origin +angles:Forward() *-15
 					end
 
 					ply.VJ_AVP_ViewModelCalcData = {origin,angles}

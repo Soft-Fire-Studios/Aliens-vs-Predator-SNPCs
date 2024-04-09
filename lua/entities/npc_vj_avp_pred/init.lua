@@ -527,14 +527,23 @@ function ENT:OnKeyPressed(ply,key)
 		local ent = tr.Entity
 		if tr.Hit && IsValid(ent) then
 			if !ent:IsNPC() && !ent:IsPlayer() then
-				if ent:GetClass() == "sent_vj_avp_battery" && self:GetEnergy() < 200 then
-					if !self:IsBusy() then
-						self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-						self.NextChaseTime = 0
+				if ent:GetClass() == "sent_vj_avp_battery" && ent.BatteryLife > 0 && self:GetEnergy() < 200 && !self:IsBusy() then
+					local _,animDur = self:PlayAnimation("Predator_Battery_Interaction",true,false,false,0,{OnFinish=function()
+						self.BatteryEnt = nil
+					end})
+					if self:GetCloaked() then
+						self:Camo(false)
+						self.NextCloakT = CurTime() +animDur
 					end
-					VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
-					self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
-					ent:DrainBattery()
+					self:SetTurnTarget(ent,1,true)
+					self.BatteryEnt = ent
+					-- if !self:IsBusy() then
+					-- 	self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+					-- 	self.NextChaseTime = 0
+					-- end
+					-- VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
+					-- self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
+					-- ent:DrainBattery()
 					return
 				end
 				ent:Fire("Use",nil,0,ply,self)
@@ -1382,6 +1391,20 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "cin_predintro_pred_placement" then
 		-- self:SetPos(self:GetBonePosition(1))
 		-- self:SetAngles(self:GetAngles() +Angle(0,-90,0))
+	elseif key == "console_open" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_open_01.ogg",70)
+	elseif key == "console_beep" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70)
+	elseif key == "console_charge" then
+		local ent = self.BatteryEnt
+		if !IsValid(ent) then return end
+		VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
+		self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
+		ent:DrainBattery()
+	elseif key == "console_slidebeep" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/focus/predator_targetinfo_off_01.ogg",70)
+	elseif key == "console_close" then
+		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_close_01.ogg",70)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

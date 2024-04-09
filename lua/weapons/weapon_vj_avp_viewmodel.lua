@@ -34,6 +34,8 @@ SWEP.Translations = {
 	["predator_battledisc_throw"] = "predator_hud_battledisc_throw_complete",
 	["predator_plasma_caster_extend"] = "predator_hud_plasma_console_open",
 	["predator_spear_2nd_throw"] = "predator_hud_spear_throw",
+	["Predator_Battery_Interaction"] = "predator_hud_Battery_Interaction",
+	["Predator_Disable_Interaction"] = "predator_hud_Disable_Interaction",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Initialize()
