@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/props/rc_screen_sentry_2"
+	"$bumpmap"					"vj_base/flat"
+
+	"$selfillum"				"1"
+	"$selfillumtint"			"[5 5 5]"
+}

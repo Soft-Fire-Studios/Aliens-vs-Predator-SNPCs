@@ -537,13 +537,17 @@ function ENT:OnKeyPressed(ply,key)
 					end
 					self:SetTurnTarget(ent,1,true)
 					self.BatteryEnt = ent
-					-- if !self:IsBusy() then
-					-- 	self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-					-- 	self.NextChaseTime = 0
-					-- end
-					-- VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
-					-- self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
-					-- ent:DrainBattery()
+					return
+				elseif ent:GetClass() == "sent_vj_avp_controller" && !self:IsBusy() then
+					local _,animDur = self:PlayAnimation("Predator_Disable_Interaction",true,false,false,0,{OnFinish=function()
+						self.ConsoleEnt = nil
+					end})
+					if self:GetCloaked() then
+						self:Camo(false)
+						self.NextCloakT = CurTime() +animDur
+					end
+					self:SetTurnTarget(ent,1,true)
+					self.ConsoleEnt = ent
 					return
 				end
 				ent:Fire("Use",nil,0,ply,self)
@@ -1405,6 +1409,10 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		VJ.EmitSound(self,"cpthazama/avp/predator/focus/predator_targetinfo_off_01.ogg",70)
 	elseif key == "console_close" then
 		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_close_01.ogg",70)
+	elseif key == "disable_obj" then
+		local ent = self.ConsoleEnt
+		if !IsValid(ent) then return end
+		ent:DestroyObject()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/props/rc_screen_sentry_3"
+	"$bumpmap"					"vj_base/flat"
+}

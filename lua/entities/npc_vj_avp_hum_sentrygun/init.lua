@@ -98,13 +98,14 @@ function ENT:CustomOnInitialize()
 		-- self:DeleteOnRemove(glow1)
 	end
 
-	local startPos = self:GetPos() +self:GetForward() *-55 +self:GetUp() *-32.2
-	local rc = ents.Create("sent_vj_avp_battery")
+	local startPos = self:GetPos() +self:GetForward() *-55 +self:GetUp() *-31.5
+	local rc = ents.Create("sent_vj_avp_controller")
 	rc:SetPos(startPos)
 	rc:SetAngles(Angle(0,(startPos -self:GetPos()):Angle().y,0))
 	rc:Spawn()
 	rc:SetLinkedObject(self)
-	self:DeleteOnRemove(rc)
+	self.RC = rc
+	-- self:DeleteOnRemove(rc)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnDeviceEffected(rc,efType)
@@ -115,6 +116,7 @@ function ENT:OnDeviceEffected(rc,efType)
 		if IsValid(self.ProjectedTexture) then
 			self.ProjectedTexture:Fire("turnon")
 		end
+		rc:SetSkin(0)
 		self:RemoveFlags(FL_NOTARGET)
 		self.DisableFindEnemy = false
 		self.DisableMakingSelfEnemyToNPCs = false
@@ -126,10 +128,27 @@ function ENT:OnDeviceEffected(rc,efType)
 		if IsValid(self.ProjectedTexture) then
 			self.ProjectedTexture:Fire("turnoff")
 		end
+		rc:SetSkin(1)
 		self:AddFlags(FL_NOTARGET)
 		self.DisableFindEnemy = true
 		self.DisableMakingSelfEnemyToNPCs = true
 		VJ.STOPSOUND(self.turret_idlesd)
+	elseif efType == 4 then -- Destroyed
+		local fx = EffectData()
+		fx:SetOrigin(rc:GetAttachment(1).Pos)
+		fx:SetScale(2)
+		fx:SetMagnitude(2)
+		fx:SetNormal(self:GetUp())
+		util.Effect("ElectricSpark",fx)
+		for i = 1,16 do
+			util.Effect("GlassImpact",fx)
+		end
+		rc:SetSkin(2)
+		rc:SetBodygroup(1,1)
+		self:SetHealth(0)
+		self.GodMode = false
+		self.DisableExplosionOnDeath = true
+		self:TakeDamage(600,self,self)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -254,36 +273,44 @@ end
 local defAng = Angle(0, 0, 0)
 --
 function ENT:CustomOnKilled(dmginfo, hitgroup)
-	VJ.ApplyRadiusDamage(self, self, self:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), true, true)
-	local startPos = self:GetPos() + self:OBBCenter()
-	ParticleEffect("explosion_turret_break_fire", startPos, defAng, NULL)
-	ParticleEffect("explosion_turret_break_flash", startPos, defAng, NULL)
-	ParticleEffect("explosion_turret_break_pre_smoke Version #2", startPos, defAng, NULL)
-	ParticleEffect("explosion_turret_break_sparks", startPos, defAng, NULL)
-	ParticleEffect("vj_avp_android_death",startPos,defAng)
-	sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",startPos,90)
+	if !self.DisableExplosionOnDeath then
+		VJ.ApplyRadiusDamage(self, self, self:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), true, true)
+		local startPos = self:GetPos() + self:OBBCenter()
+		ParticleEffect("explosion_turret_break_fire", startPos, defAng, NULL)
+		ParticleEffect("explosion_turret_break_flash", startPos, defAng, NULL)
+		ParticleEffect("explosion_turret_break_pre_smoke Version #2", startPos, defAng, NULL)
+		ParticleEffect("explosion_turret_break_sparks", startPos, defAng, NULL)
+		ParticleEffect("vj_avp_android_death",startPos,defAng)
+		sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",startPos,90)
 	
-	local FireLight1 = ents.Create("light_dynamic")
-	FireLight1:SetKeyValue("brightness","4")
-	FireLight1:SetKeyValue("distance","350")
-	FireLight1:SetPos(startPos)
-	FireLight1:SetLocalAngles(self:GetAngles())
-	FireLight1:Fire("Color","220 180 255")
-	FireLight1:SetParent(self)
-	FireLight1:Spawn()
-	FireLight1:Activate()
-	FireLight1:Fire("TurnOn","",0)
-	FireLight1:Fire("Kill","",0.9)
-	self:DeleteOnRemove(FireLight1)
+		local FireLight1 = ents.Create("light_dynamic")
+		FireLight1:SetKeyValue("brightness","4")
+		FireLight1:SetKeyValue("distance","350")
+		FireLight1:SetPos(startPos)
+		FireLight1:SetLocalAngles(self:GetAngles())
+		FireLight1:Fire("Color","220 180 255")
+		FireLight1:SetParent(self)
+		FireLight1:Spawn()
+		FireLight1:Activate()
+		FireLight1:Fire("TurnOn","",0)
+		FireLight1:Fire("Kill","",0.9)
+		self:DeleteOnRemove(FireLight1)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ParticleEffectAttach("smoke_exhaust_01a", PATTACH_POINT_FOLLOW, ent, 2)
 	ent.VJ_AVP_IsTech = true
 	ent:SetNW2Bool("AVP.IsTech",true)
+	ent:DeleteOnRemove(self.RC)
+	SafeRemoveEntityDelayed(self.RC,60)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	VJ.STOPSOUND(self.turret_turningsd)
 	VJ.STOPSOUND(self.turret_idlesd)
+
+	if !self.DisableExplosionOnDeath then
+		SafeRemoveEntity(self.RC)
+	end
 end
