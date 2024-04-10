@@ -35,6 +35,7 @@ function ENT:ResetFatality()
 	self.DoingFatality = false
 	self.GodMode = false
 	self:SetInFatality(false)
+	self:SetMoveType(MOVETYPE_STEP)
 	self:SetState()
 	self:SetMaxYawSpeed(self.TurningSpeed)
 	self.NextFatalityTime = CurTime() +3
@@ -104,6 +105,8 @@ function ENT:DoFatality(ent,inFront)
 		ent:SetMaxYawSpeed(0)
 		self:SetLocalVelocity(Vector(0,0,0))
 		ent:SetLocalVelocity(Vector(0,0,0))
+		self:SetMoveType(MOVETYPE_FLY)
+		ent:SetMoveType(MOVETYPE_FLY)
 		if self.OnHit then
 			self:OnHit({ent})
 		end

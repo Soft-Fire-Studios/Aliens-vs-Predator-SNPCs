@@ -142,7 +142,7 @@ end
 function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 	if IsValid(self.LatchVictim) then return true end
 
-	if (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
+	if !ent.VJ_AVP_Xenomorph && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
 		local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 		if ent.VJ_AVP_Predator && counter then
 			self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
