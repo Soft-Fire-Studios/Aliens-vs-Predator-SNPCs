@@ -9,3 +9,4 @@ ENT.Category		= ""
 
 ENT.VJ_AVP_Xenomorph = true
 ENT.VJ_AVP_XenomorphLarge = true
+ENT.VJ_AVP_XenomorphPredalien = true

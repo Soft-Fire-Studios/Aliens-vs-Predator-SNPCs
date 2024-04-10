@@ -878,6 +878,7 @@ function ENT:AttackCode()
 		if side == "left" && string_find(miss,"upper_slash") then // Why the Predator doesn't have a left upper slash miss animation is beyond me...
 			miss = hit
 		end
+		self.AttackDamageType = DMG_SLASH
 		self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,start) +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
 		self:PlayAnimation(start,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then return end
@@ -900,7 +901,7 @@ end
 function ENT:RunDamageCode(mult)
 	local mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
-	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
+	local hitEnts = VJ.ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
 	end)

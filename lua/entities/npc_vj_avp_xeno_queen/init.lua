@@ -28,6 +28,49 @@ ENT.CrawlingBounds = Vector(25,25,160)
 ENT.AnimTranslations = {
 	[ACT_IDLE] = ACT_IDLE
 }
+
+local sdClawFlesh = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_03.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_04.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_05.ogg",
+}
+local sdClawMiss = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_03.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_04.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_05.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_06.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_07.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_08.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_09.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_swipe_10.ogg",
+}
+local sdMM = {
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_01.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_02.ogg",
+	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_mn_03.ogg",
+}
+local sdTail = {
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_01.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_02.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_heavyattack_tailstab_mn_03.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_01.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_02.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_03.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_04.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tail_impact_flesh_05.ogg",
+}
+local sdTailMiss = {
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_1.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_2.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_3.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_4.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_5.ogg",
+	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if VJ_AVP_QueenExists(self) then
@@ -46,16 +89,42 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
 		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
 	}
+	self.SoundTbl_Alert = {
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_02.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_09.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_10.ogg",}
+	self.SoundTbl_Attack = {
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_01.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_03.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_04.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_07.ogg",
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_08.ogg",
+	}
+	self.SoundTbl_CombatIdle = {}
+	self.SoundTbl_BeforeRangeAttack = {}
+	self.SoundTbl_RangeAttack = {}
+	self.SoundTbl_Jump = {}
+	self.SoundTbl_Pain = {
+		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_06.ogg"
+	}
+	self.SoundTbl_Death = {
+		"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg"
+	}
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
 	end
+	
+	self.AnimTbl_Fatalities = nil
+	self.AnimTbl_FatalitiesResponse = nil
 
 	self.InBirth = false
 	self.NextLookForBirthT = CurTime() +5
 	self.NextSpawnEggT = 0
 	self.NextCommandXenosT = 0
 	self.Eggs = {}
+	self.InCharge = false
+	self.ChargeT = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_Count = table.Count
@@ -63,10 +132,66 @@ local table_insert = table.insert
 --
 function ENT:OnThink()
 	local curTime = CurTime()
-	if self.Alerted then
+	local cont = self.VJ_TheController
+	if self.Alerted && !IsValid(cont) then
 		self.NextLookForBirthT = curTime +60
+		if self.InBirth && self.NearestPointToEnemyDistance <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
+			self.InBirth = false
+			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
+			self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
+			self.AnimTranslations[ACT_IDLE] = ACT_IDLE
+			self:SetState()
+			SafeRemoveEntity(self.EggSack)
+		end
 	end
-	if !self.InBirth && curTime > self.NextLookForBirthT then
+	if !self.InBirth && self.InCharge then
+		if self:IsBusy() then return end
+		if curTime > self.ChargeT then
+			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
+			self.InCharge = false
+			return
+		end
+		local tr = util.TraceHull({
+			start = self:GetPos() +self:OBBCenter(),
+			endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *175,
+			filter = self,
+			mins = self:OBBMins() *0.85,
+			maxs = self:OBBMaxs() *0.85,
+		})
+		if tr.Hit then
+			if tr.HitWorld then
+				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide_injured",true,false,false)
+				self:OnCollision(tr.HitEntity,3)
+			else
+				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide",true,false,false)
+				self:OnCollision(tr.HitEntity,2)
+			end
+			-- VJ.DEBUG_TempEnt(tr.HitPos, self:GetAngles(), Color(255,0,0), 5)
+			self.InCharge = false
+			return
+		end
+		for _,v in pairs(ents.FindInSphere(self:GetPos(),200)) do
+			if (v:IsNPC() or v:IsPlayer() or v:IsNextBot()) && self:CheckRelationship(v) == D_HT then
+				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
+				self:OnCollision(v,1)
+				self.InCharge = false
+				return
+			end
+		end
+		local trMove = util.TraceHull({
+			start = self:GetPos() +self:OBBCenter(),
+			endpos = self:GetPos() +self:GetForward() *300,
+			filter = self,
+			mins = self:OBBMins(),
+			maxs = self:OBBMaxs(),
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		-- VJ.DEBUG_TempEnt(trMove.HitPos, self:GetAngles(), Color(0,247,255), 5)
+		self:SetLastPosition(trMove.HitPos +trMove.HitNormal *10)
+		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+		return
+	end
+	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT then
 		if !self:IsBusy() && !self:IsMoving() then
 			local vsched = vj_ai_schedule.New("vj_idle_wander")
 			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)
@@ -98,6 +223,7 @@ function ENT:OnThink()
 			eggsack:SetParent(self)
 			eggsack:Spawn()
 			eggsack:Activate()
+			eggsack:SetModelScale(self.VJ_AVP_Xenomorph_Matriarch && 1.3 or 1)
 			eggsack:SetRenderMode(RENDERMODE_TRANSALPHA)
 			eggsack:SetColor(Color(255,255,255,0))
 			eggsack:SetRenderFX(kRenderFxSolidSlow)
@@ -112,6 +238,16 @@ function ENT:OnThink()
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE_RELAXED
 			self.NextSpawnEggT = curTime +5
 			self.NextCommandXenosT = curTime +math.random(5,10)
+		else
+			if IsValid(cont) && cont:KeyDown(IN_JUMP) then
+				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
+				self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
+				self.InBirth = false
+				self.AnimTranslations[ACT_IDLE] = ACT_IDLE
+				self:SetState()
+				SafeRemoveEntity(self.EggSack)
+				return
+			end
 		end
 		if self:IsMoving() then
 			self:StopMoving()
@@ -316,6 +452,22 @@ function ENT:OnThink()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnCollision(ent,colType)
+	self.AttackDamageDistance = 300
+	self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH,DMG_VEHICLE)
+	self.MeleeAttackDamageAngleRadius = 130
+	self:RunDamageCode(2)
+	self.MeleeAttackDamageAngleRadius = 100
+	util.ScreenShake(self:GetPos(),12,150,2,800)
+	self:PlaySound(self.SoundTbl_Attack,80)
+	if colType == 3 then
+		ParticleEffect("AntlionFX_UnBurrow",self:GetAttachment(self:LookupAttachment("eyes")).Pos,Angle())
+		sound.Play("cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",self:GetPos(),110)
+	else
+		sound.Play(VJ.PICK(sdMM),self:GetPos(),80)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
 		local snd = "cpthazama/avp/xeno/alien queen/queen_breath_2.wav"
@@ -330,12 +482,12 @@ function ENT:SelectMovementActivity()
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
 			act = ACT_WALK
-		elseif self.Charging then
+		elseif self.InCharge then
 			act = ACT_SPRINT
 		end
 		return act
 	end
-	if self.Charging then
+	if self.InCharge then
 		act = ACT_SPRINT
 	else
 		local currentSchedule = self.CurrentSchedule
@@ -354,6 +506,73 @@ function ENT:SelectTurnActivity(inAct)
 	return inAct
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomAttack(ent,visible)
+	if self.InFatality or self.DoingFatality then return end
+	local cont = self.VJ_TheController
+	local dist = self.NearestPointToEnemyDistance
+	-- local dist = self.LastEnemyDistance
+
+	if IsValid(cont) then
+		if self.InBirth then
+			return
+		end
+		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
+			self:AttackCode()
+		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+			self:AttackCode(true)
+		elseif cont:KeyDown(IN_JUMP) && !self.InBirth && !self:IsBusy() then
+			self.InBirth = true
+		end
+		return
+	end
+
+	if visible then
+		if self.CanAttack then
+			if dist <= self.AttackDistance && !self:IsBusy() then
+				local canUse, inFront = self:CanUseFatality(ent)
+				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+					if self:DoFatality(ent,inFront) == false then
+						self:AttackCode()
+					end
+				else
+					self:AttackCode()
+				end
+			elseif dist > self.AttackDistance *5 && dist <= 2500 && !self.InCharge && !self:IsBusy() then
+				self:AttackCode(true)
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:AttackCode(charge)
+	if self.InFatality or self.DoingFatality then return end
+	if !self.CanAttack then return end
+	if !charge then
+		self.AttackType = 2
+		self.AttackSide = self.AttackSide == "right" && "left" or "right"
+		self:PlaySound(self.SoundTbl_Attack,75)
+		self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+			if interrupted or self.InFatality then return end -- Means we hit something
+			self.AttackDamage = 75
+			self.AttackDamageDistance = 140
+			self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+			VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
+			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide .. "_return",true,false,true,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end})
+		self.NextChaseTime = 0
+	else
+		if !self.InCharge then
+			self.InCharge = true
+			local _,dur = self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_build_up",true,false,true)
+			self.ChargeT = CurTime() +dur +5
+		end
+		// Alien_Queen_charge_build_up
+		// Alien_Queen_charge -- ACT_SPRINT
+		// Alien_Queen_charge_into_idle or (Alien_Queen_charge_collide or Alien_Queen_charge_collide_injured)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:WhenRemoved()
 	if !self.Dead then
 		for _, v in ipairs(self.Eggs) do
@@ -362,4 +581,68 @@ function ENT:WhenRemoved()
 			end
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local angY45 = Angle(0, 45, 0)
+local angYN45 = Angle(0, -45, 0)
+local angY90 = Angle(0, 90, 0)
+local angYN90 = Angle(0, -90, 0)
+local angY135 = Angle(0, 135, 0)
+local angYN135 = Angle(0, -135, 0)
+local angY180 = Angle(0, 180, 0)
+local defAng = Angle(0, 0, 0)
+--
+function ENT:Controller_Movement(cont, ply, bullseyePos)
+	if self.MovementType != VJ_MOVETYPE_STATIONARY then
+		local gerta_lef = ply:KeyDown(IN_MOVELEFT)
+		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
+		local gerta_arak = ply:KeyDown(IN_SPEED)
+		local aimVector = ply:GetAimVector()
+		local FT = FrameTime() *(self.TurningSpeed *2.25)
+
+		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
+		
+		if ply:KeyDown(IN_FORWARD) then
+			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
+				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
+			else
+				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			end
+		elseif gerta_lef then
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+		elseif gerta_rig then
+			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+		else
+			if !self.InCharge then
+				self:StopMoving()
+				if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
+					self:AA_StopMoving()
+				end
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnStep(pos,name)
+	util.ScreenShake(pos,5,100,0.35,1000)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnAlert(ent)
+	if math.random(1,2) == 1 && !self:IsBusy() then
+		self:StopAllCommonSpeechSounds()
+		self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
+		self:PlaySound("cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110)
+		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnCallForHelp(ally)
+	if self:IsBusy() then return end
+	self:StopAllCommonSpeechSounds()
+	self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
+	self:PlaySound("cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110)
+	util.ScreenShake(self:EyePos(),16,200,4,1000,true)
 end

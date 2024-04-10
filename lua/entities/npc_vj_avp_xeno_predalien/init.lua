@@ -29,10 +29,10 @@ ENT.AnimTranslations = {
 	-- [ACT_TURN_LEFT] = ACT_ROLL_LEFT,
 	-- [ACT_TURN_RIGHT] = ACT_ROLL_RIGHT,
 }
-ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
+ENT.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
 
-ENT.StandingBounds = Vector(16,16,74)
-ENT.CrawlingBounds = Vector(16,16,74)
+ENT.StandingBounds = Vector(16,16,85)
+ENT.CrawlingBounds = Vector(16,16,85)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2
@@ -87,6 +87,9 @@ function ENT:OnInit()
 		["lfoot"] = {Range=24,OnGround=true},
 		["rfoot"] = {Range=24,OnGround=true}
 	}
+	
+	self.AnimTbl_Fatalities = nil
+	self.AnimTbl_FatalitiesResponse = nil
 
 	self.AttackDistance = 80
 end
@@ -110,6 +113,27 @@ function ENT:CustomOnCallForHelp(ally)
 	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_lava_angry_roar",true,false,false)
 	self:PlaySound("cpthazama/avp/xeno/predalien/scream3.ogg",90)
 	util.ScreenShake(self:EyePos(),16,200,4,1000,true)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnAttackBlocked(ent)
+	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_swipe_" .. (self.AttackSide == "right" && "R" or "L") .. "_countered",true,false,false)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoKnockdownAnimation(dmgDir)
+	if math.random(1,5) == 1 then
+		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_hit_by_mine_to_vulnerable",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_getup",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then return end
+				self:SetState()
+			end})
+		end})
+	else
+		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_hit_by_mine",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+		end})
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectIdleActivity()

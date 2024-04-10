@@ -326,6 +326,8 @@ ENT.CanAttack = true
 ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.AlwaysStand = false
+ENT.CanBeKnockedDown = true
+ENT.DisableFatalities = false
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED,ACT_WALK_RELAXED}
 ENT.HitGroups = {
 	[HITGROUP_HEAD] = {
@@ -1516,7 +1518,7 @@ function ENT:CustomOnThink_AIEnabled()
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting
 	-- print(self:GetActivity(),transAct)
 
-	if !self.WasSprinting && sprinting then
+	if !self.WasSprinting && sprinting && !self.VJ_AVP_XenomorphPredalien then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
 		self.WasSprinting = true
 	elseif self.WasSprinting && !sprinting then
@@ -1816,7 +1818,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if self.CanBeKnockedDown && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
@@ -1836,21 +1838,17 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
-		-- self.Flinching = true
-		self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
-			if interrupted then
-			-- if interrupted && self.NextFlinchT < CurTime() then
-				-- self.Flinching = false
-				return
-			end
-			self:SetState()
-			-- self.Flinching = false
-			-- self.CanFlinch = 1
-		end})
+		self:DoKnockdownAnimation(dmgDir)
 		self.NextCallForBackUpOnDamageT = CurTime() +1
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoKnockdownAnimation(dmgDir)
+	self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+		if interrupted then return end
+		self:SetState()
+	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled(dmginfo)
