@@ -426,13 +426,13 @@ if VJExists == true then
 	local NPC = FindMetaTable("NPC")
 	
 	function NPC:Acid(pos,dist,dmg)
-		-- VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 65,dmg or 5,DMG_ACID,true,true,{},function(ent)
-		-- 	if ent.VJ_AVP_Xenomorph then
-		-- 		return false
-		-- 	end
-		-- end)
+		VJ.AVP_ApplyRadiusDamage(self,self,pos or self:GetPos(),dist or 65,dmg or 5,DMG_ACID,true,true,{},function(ent)
+			if ent.VJ_AVP_Xenomorph then
+				return false
+			end
+		end)
 
-		VJ.ApplyRadiusDamage(self, self, pos or self:GetPos(), dist or 65, dmg or 5, DMG_ACID, true, true)
+		-- VJ.ApplyRadiusDamage(self, self, pos or self:GetPos(), dist or 65, dmg or 5, DMG_ACID, true, true)
 	end
 
 	if CLIENT then

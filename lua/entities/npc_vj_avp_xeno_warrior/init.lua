@@ -1796,7 +1796,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	-- print("Damaged!")
-	VJ.ApplyRadiusDamage(self, self, dmginfo:GetDamagePosition(), 65, 5, DMG_ACID, true, true)
+	self:Acid(dmginfo:GetDamagePosition(),65,5)
+	-- VJ.AVP_ApplyRadiusDamage(self, self, dmginfo:GetDamagePosition(), 65, 5, DMG_ACID, true, true)
 	self.HealthRegenerationDelayT = CurTime() +5
 	if self.MoveAroundRandomlyT > CurTime() then
 		self.NextChaseTime = 0
@@ -1852,7 +1853,8 @@ function ENT:DoKnockdownAnimation(dmgDir)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled(dmginfo)
-	VJ.ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
+	-- VJ.AVP_ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
+	self:Acid(self:GetPos(),150,20)
 
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
