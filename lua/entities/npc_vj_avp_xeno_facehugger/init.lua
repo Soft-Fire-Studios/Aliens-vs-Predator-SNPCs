@@ -170,12 +170,12 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			corpse:SetColor(ent:GetColor())
 			corpse:SetMaterial(ent:GetMaterial())
 			corpse:SetSkin(ent:GetSkin())
+			corpse:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 			for x = 0,32 do
 				if ent:GetSubMaterial(x) != "" then
 					corpse:SetSubMaterial(x,ent:GetSubMaterial(x))
 				end
 			end
-			corpse.IsVJBaseCorpse = true
 			-- corpse:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 			for i = 0, ent:GetNumBodyGroups() do
 				corpse:SetBodygroup(i, ent:GetBodygroup(i))
@@ -228,6 +228,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			self:SetMoveType(MOVETYPE_NONE)
 			self:SetNoDraw(true)
 			self:DrawShadow(false)
+			self.HasDeathAnimation = false
 			local fakeFacehugger = ents.Create("prop_vj_animatable")
 			fakeFacehugger:SetModel(self:GetModel())
 			fakeFacehugger:SetPos(self:GetPos())
@@ -238,6 +239,9 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			fakeFacehugger:SetSkin(self:GetSkin())
 			fakeFacehugger:SetNotSolid(true)
 			fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+			if ent.VJ_AVP_Predator then
+				fakeFacehugger:SetModelScale(1.565)
+			end
 			self:DeleteOnRemove(fakeFacehugger)
 			if useBone then
 				local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
@@ -601,9 +605,15 @@ function ENT:GiveBirth()
 				end
 				chestburster:Spawn()
 				chestburster:Activate()
+				chestburster.GodMode = true
 				if predBurster then
 					chestburster:SetSkin(1)
 				end
+				timer.Simple(0.12,function()
+					if IsValid(chestburster) then
+						chestburster.GodMode = false
+					end
+				end)
 				if IsValid(ent) && ent:IsNPC() then
 					undo.ReplaceEntity(ent,chestburster)
 					ent:TakeDamage(1000)
@@ -636,16 +646,20 @@ function ENT:GiveBirth()
 		end
 		chestburster:Spawn()
 		chestburster:Activate()
+		chestburster.GodMode = true
 		if predBurster then
 			chestburster:SetSkin(1)
 		end
 		timer.Simple(0.12,function()
-			if IsValid(cont) && IsValid(chestburster) then
-				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
-				SpawnControllerObject.VJCE_Player = cont
-				SpawnControllerObject:SetControlledNPC(chestburster)
-				SpawnControllerObject:Spawn()
-				SpawnControllerObject:StartControlling()
+			if IsValid(chestburster) then
+				chestburster.GodMode = false
+				if IsValid(cont) then
+					local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+					SpawnControllerObject.VJCE_Player = cont
+					SpawnControllerObject:SetControlledNPC(chestburster)
+					SpawnControllerObject:Spawn()
+					SpawnControllerObject:StartControlling()
+				end
 			end
 		end)
 		if IsValid(ent) && ent:IsNPC() then

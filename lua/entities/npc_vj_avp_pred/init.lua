@@ -1038,7 +1038,6 @@ function ENT:DistractionCode(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnFacehugged(facehugger,facehuggerProp,corpse)
-	facehuggerProp:SetModelScale(1.5)
 	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
 	corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
 end
@@ -1409,6 +1408,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		VJ.EmitSound(self,"cpthazama/avp/predator/focus/predator_targetinfo_off_01.ogg",70)
 	elseif key == "console_close" then
 		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_close_01.ogg",70)
+	elseif key == "vo_roar" then
+		self:PlaySound(self.SoundTbl_Attack,78)
 	elseif key == "disable_obj" then
 		local ent = self.ConsoleEnt
 		if !IsValid(ent) then return end
