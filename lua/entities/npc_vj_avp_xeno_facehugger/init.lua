@@ -356,6 +356,15 @@ function ENT:TranslateActivity(act)
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
+	local dmgInflictor = dmginfo:GetInflictor()
+	local dmgAttacker = dmginfo:GetAttacker()
+	local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
+	if isFireDmg then
+		dmginfo:ScaleDamage(2)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),125,3)
 end

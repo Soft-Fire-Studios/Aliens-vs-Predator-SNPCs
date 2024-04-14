@@ -1792,6 +1792,13 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 			dmginfo:SetDamage(dmginfo:GetDamage() <= 10 && 1 or math_Clamp(dmginfo:GetDamage() *0.2,1,30))
 		end
 	end
+
+	local dmgInflictor = dmginfo:GetInflictor()
+	local dmgAttacker = dmginfo:GetAttacker()
+	local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
+	if isFireDmg then
+		dmginfo:ScaleDamage(2)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)

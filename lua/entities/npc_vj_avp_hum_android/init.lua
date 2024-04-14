@@ -36,8 +36,13 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 
 	timer.Simple(5,function()
 		if IsValid(ent) then
+			local fakeNPC = ents.Create("npc_vj_avp_hum_android")
+			fakeNPC:SetPos(ent:GetPos())
+			fakeNPC:SetAngles(ent:GetAngles())
+			fakeNPC:Spawn()
+			fakeNPC:Activate()
 			ent:StopParticles()
-			VJ.ApplyRadiusDamage(ent, ent, ent:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), false, true)
+			VJ.ApplyRadiusDamage(fakeNPC, fakeNPC, ent:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), false, true)
 			ParticleEffect("vj_avp_android_death",ent:GetPos(),Angle())
 			sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",ent:GetPos(),90)
 	
@@ -53,6 +58,8 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 			FireLight1:Fire("TurnOn","",0)
 			FireLight1:Fire("Kill","",0.9)
 			ent:DeleteOnRemove(FireLight1)
+
+			SafeRemoveEntity(fakeNPC)
 		end
 	end)
 end

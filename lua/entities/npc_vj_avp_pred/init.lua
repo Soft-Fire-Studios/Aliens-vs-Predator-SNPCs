@@ -1613,12 +1613,12 @@ function ENT:CustomOnThink_AIEnabled()
 	self.CanAttack = !sprinting
 	if sprinting then
 		self.SprintT = self.SprintT +0.1
-		if self.SprintT >= 4 then
-			self.NextSprintT = curTime +3
+		if self.SprintT >= 6 then
+			self.NextSprintT = curTime +1.5
 		end
 	else
 		if self.SprintT > 0 then
-			self.SprintT = self.SprintT -0.2
+			self.SprintT = self.SprintT -0.4
 		end
 	end
 
