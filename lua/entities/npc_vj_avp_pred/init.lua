@@ -424,6 +424,8 @@ function ENT:CustomOnInitialize()
 	self.IsBlocking = false
 	self.BlockAnimTime = 0
 	self.SpecialBlockAnimTime = 0
+	self.PlasmaHoldTime = 0
+	self.PlasmaMaxChargeT = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -722,59 +724,82 @@ function ENT:HeavyAttackCode()
 	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local math_ceiling = math.ceil
+--
+function ENT:FirePlasmaCaster()
+	if self.PlasmaHoldTime <= 1 then
+		self.PlasmaHoldTime = 1
+	end
+	local amount = math_ceiling(self.PlasmaHoldTime *10)
+	self.PlasmaMaxChargeT = 0
+	self.LastSpecialAttackID = 0
+	if self:GetEnergy() >= amount then
+		local ent = self:GetLockOn()
+		if IsValid(ent) then
+			local att = self:GetAttachment(self:LookupAttachment("plasma"))
+			local targetPos = ent:GetPos() +ent:OBBCenter()
+			local targetAng = (targetPos -att.Pos):Angle()
+			local ang = self:GetAngles()
+			targetAng.y = math.Clamp(targetAng.y, ang.y - 70, ang.y + 70)
+			local proj = ents.Create("obj_vj_avp_projectile")
+			proj:SetPos(att.Pos)
+			proj:SetAngles(targetAng)
+			proj:SetOwner(self)
+			proj:SetAttackType(2,amount *3,DMG_BLAST,300,45,true)
+			proj:SetNoDraw(true)
+			proj:Spawn()
+			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
+			proj.DecalTbl_DeathDecals = {"Scorch"}
+			proj.OnDeath = function(projEnt,data, defAng, HitPos)
+				ParticleEffect(amount <= 20 && "vj_avp_predator_plasma_impact_light" or "vj_avp_predator_plasma_impact",HitPos,defAng)
+				sound.Play("cpthazama/avp/weapons/predator/plasma_caster/plasma_bolt_explosion_0" .. math.random(1,5) .. ".ogg",HitPos,90)
+			end
+			proj:AddSound("cpthazama/avp/predator/adrenalin/adrenalin_loop.wav",65)
+			ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
+
+			local phys = proj:GetPhysicsObject()
+			if IsValid(phys) then
+				local maxSpeedPercentage = 1 -(self.PlasmaHoldTime /4)
+				phys:SetVelocity(proj:GetForward() *(2000 +(2000 *maxSpeedPercentage)))
+			end
+
+			if amount <= 20 then
+				VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_x_impact.ogg",80,100)
+				VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_x_fire" .. math.random(1,3) .. ".ogg",110 -(amount /2))
+			else
+				VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_shot_0" .. math.random(1,3) .. ".ogg",85,110 -(amount /4))
+			end
+		end
+		self:SetEnergy(self:GetEnergy() -amount)
+		self.NextRegenEnergyT = CurTime() +5
+	else
+		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_no_energy_01.ogg",70)
+	end
+	self:SetPoseParameter("plasma_pitch",0)
+	self:SetPoseParameter("plasma_yaw",0)
+	self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		self:SetBeam(false)
+	end})
+	self.NextChaseTime = 0
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
 	if self.InFatality or self.DoingFatality or IsValid(self:GetDisc()) then return end
 	local atk = atk or 1
+	self.LastSpecialAttackID = atk
 	if atk == 1 then
 		self:SetBeam(true)
 		self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
 		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
-		self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		local _,dur = self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
-
-			if self:GetEnergy() >= 50 then
-				local ent = self:GetLockOn()
-				if IsValid(ent) then
-					local att = self:GetAttachment(self:LookupAttachment("plasma"))
-					local targetPos = ent:GetPos() +ent:OBBCenter()
-					local targetAng = (targetPos -att.Pos):Angle()
-					local ang = self:GetAngles()
-					targetAng.y = math.Clamp(targetAng.y, ang.y - 70, ang.y + 70)
-					local proj = ents.Create("obj_vj_avp_projectile")
-					proj:SetPos(att.Pos)
-					proj:SetAngles(targetAng)
-					proj:SetOwner(self)
-					proj:SetAttackType(2,150,DMG_BLAST,300,45,true)
-					proj:SetNoDraw(true)
-					proj:Spawn()
-					-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
-					proj.DecalTbl_DeathDecals = {"Scorch"}
-					proj.OnDeath = function(projEnt,data, defAng, HitPos)
-						ParticleEffect("vj_avp_predator_plasma_impact",HitPos,defAng)
-						sound.Play("cpthazama/avp/weapons/predator/plasma_caster/plasma_bolt_explosion_0" .. math.random(1,5) .. ".ogg",HitPos,90)
-					end
-					-- proj:AddSound("cpthazama/resistance2/chimera/titan/cha_titan_projectilefireloop_jcm.wav",80)
-					ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
-
-					local phys = proj:GetPhysicsObject()
-					if IsValid(phys) then
-						phys:SetVelocity(proj:GetForward() *2000)
-					end
-
-					VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_shot_0" .. math.random(1,3) .. ".ogg",80)
-				end
-				self:SetEnergy(self:GetEnergy() -50)
-				self.NextRegenEnergyT = CurTime() +5
+			if !IsValid(self.VJ_TheController) then
+				self:FirePlasmaCaster()
 			end
-			self:SetPoseParameter("plasma_pitch",0)
-			self:SetPoseParameter("plasma_yaw",0)
-			self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
-			self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-				self:SetBeam(false)
-			end})
-			self.NextChaseTime = 0
 		end})
+		self.PlasmaMaxChargeT = CurTime() +dur
 		self.NextChaseTime = 0
 	elseif atk == 2 then
 		local att = self:GetAttachment(self:LookupAttachment("Pred_Mine"))
@@ -1681,6 +1706,16 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 
 	if IsValid(ply) then
+		if ply:KeyDown(IN_DUCK) && self:GetBeam() && self.LastSpecialAttackID == 1 then
+			self.PlasmaHoldTime = self.PlasmaHoldTime +0.25
+			if self.PlasmaHoldTime >= 4 then
+				self:FirePlasmaCaster()
+			end
+		elseif !ply:KeyDown(IN_DUCK) && self.LastSpecialAttackID == 1 then
+			self:FirePlasmaCaster()
+		elseif !self:GetBeam() then
+			self.PlasmaHoldTime = 0
+		end
 		if !IsValid(ply.VJ_AVP_ViewModel) then
 			ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
 			self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)
