@@ -127,6 +127,7 @@ function ENT:OnInit()
 	self.Eggs = {}
 	self.InCharge = false
 	self.ChargeT = 0
+	self.NextSpecialEggCheckT = CurTime() +5
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_Count = table.Count
@@ -274,9 +275,14 @@ function ENT:OnThink()
 						command.Warrior = true
 						-- print("Found warrior",v)
 					elseif v.VJ_AVP_XenomorphID == "praetorian" then
-						table_insert(tbl.Praetorian,v)
-						command.Praetorian = true
-						-- print("Found praetorian",v)
+						if v.VJ_AVP_XenomorphCarrier && v:GetFacehuggerCount() > 6 then
+							table_insert(tbl.Warriors,v)
+							command.Warrior = true
+						else
+							table_insert(tbl.Praetorian,v)
+							command.Praetorian = true
+							-- print("Found praetorian",v)
+						end
 					end
 				end
 			end
@@ -349,22 +355,27 @@ function ENT:OnThink()
 						table_insert(possibleNodes,node.pos)
 					end
 				end
+				local count = table_Count(tbl.Praetorian)
 				for _,v in pairs(tbl.Praetorian) do
-					local node = VJ.PICK(possibleNodes)
-					if node then
-						-- print("Sending ",v," to ",node)
-						v:StopMoving()
-						if v.SetQueenMarker then
-							v:SetQueenMarker(node)
-							if IsValid(v.VJ_TheController) then
-								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+					if !v.VJ_AVP_XenomorphCarrier && math.random(1,10) == 1 && count > 1 && v.DoRoyalTransformation then
+						v:DoRoyalTransformation(true)
+					else
+						local node = VJ.PICK(possibleNodes)
+						if node then
+							-- print("Sending ",v," to ",node)
+							v:StopMoving()
+							if v.SetQueenMarker then
+								v:SetQueenMarker(node)
+								if IsValid(v.VJ_TheController) then
+									v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+								end
 							end
+							v:SetLastPosition(node)
+							v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+								x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
+								x.CanShootWhenMoving = true
+							end)
 						end
-						v:SetLastPosition(node)
-						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
-							x.CanShootWhenMoving = true
-						end)
 					end
 				end
 			end
@@ -425,17 +436,52 @@ function ENT:OnThink()
 					particle:Fire("Start")
 					particle:Fire("Kill", "", 1)
 
+					local isRoyal = math.random(1,40) == 1
+					if CurTime() > self.NextSpecialEggCheckT then
+						local tbl = {}
+						tbl.Drones = {}
+						tbl.Warriors = {}
+						tbl.Praetorian = {}
+			
+						for _,v in ents.Iterator() do
+							if v.VJ_AVP_Xenomorph && v != self && !v.VJ_AVP_Xenomorph_Queen && self:CheckRelationship(v) == D_LI then
+								if v.VJ_AVP_XenomorphID == "drone" then
+									table_insert(tbl.Drones,v)
+								elseif v.VJ_AVP_XenomorphID == "warrior" then
+									table_insert(tbl.Warriors,v)
+								elseif v.VJ_AVP_XenomorphID == "praetorian" then
+									table_insert(tbl.Praetorian,v)
+								end
+							end
+						end
+
+						if table_Count(tbl.Praetorian) == 0 && (table_Count(tbl.Drones) > 0 or table_Count(tbl.Warriors) > 0) then
+							isRoyal = true
+						end
+
+						self.NextSpecialEggCheckT = CurTime() +math.random(20,40)
+					end
+
 					local egg = ents.Create("npc_vj_avp_xeno_egg")
 					egg:SetPos(tr2.HitPos)
 					egg:SetAngles(self:GetAngles())
 					egg:SetOwner(self)
 					egg:Spawn()
 					egg:Activate()
+					egg.VJ_NPC_Class = self.VJ_NPC_Class
+					if isRoyal then
+						egg.VJ_AVP_XenomorphEggRoyal = true
+						egg:SetModelScale(1.25,3)
+					end
 					egg:SetRenderMode(RENDERMODE_TRANSALPHA)
 					egg:SetColor(Color(255,255,255,0))
 					egg:SetRenderFX(kRenderFxSolidSlow)
-					timer.Simple(1,function() if IsValid(egg) then egg:SetRenderFX(kRenderFxNone) egg:SetColor(Color(255,255,255,255)) end end)
-
+					if self.VJ_AVP_K_Xenomorph then
+						egg.VJ_AVP_K_Xenomorph = true
+						timer.Simple(1,function() if IsValid(egg) then egg:SetRenderFX(kRenderFxNone) egg:SetColor(isRoyal && Color(190,109,65) or Color(186,172,81)) end end)
+					else
+						timer.Simple(1,function() if IsValid(egg) then egg:SetRenderFX(kRenderFxNone) egg:SetColor(isRoyal && Color(190,65,65) or Color(255,255,255,255)) end end)
+					end
 					local particle = ents.Create("info_particle_system")
 					particle:SetKeyValue("effect_name", "vj_avp_xeno_spit_impact")
 					particle:SetPos(egg:GetPos())

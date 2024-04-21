@@ -410,6 +410,7 @@ function ENT:CustomOnInitialize()
 	self:SetStimCount(5)
 	self:SetEnergy(200)
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
+	self.LastSVVisionMode = 0
 	self.NextFindStalkPos = 0
 	self.NextCloakT = CurTime() +1.5
 	self.SprintT = 0
@@ -1538,6 +1539,15 @@ function ENT:CustomOnThink_AIEnabled()
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT) or self.AI_IsSprinting
 
+	-- if self.LastSVVisionMode != self:GetVisionMode() then
+		-- self.LastSVVisionMode = self:GetVisionMode()
+		-- for i = 1,2 do
+		-- 	local att = self:GetAttachment(self:LookupAttachment("eyes"))
+		-- 	local pos,ang = att.Pos,att.Ang
+		-- 	ParticleEffect("vj_avp_predator_eyes_glow",pos +ang:Forward() *8.5 +ang:Right() *(i == 1 && 2 or -2),ang,self)
+		-- end
+	-- end
+
 	if self.IsBlocking then
 		-- if !self:IsPlayingGesture(self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))) then
 		if CurTime() > (self.BlockAnimTime or 0) then
@@ -1770,20 +1780,20 @@ function ENT:CustomOnThink_AIEnabled()
 						local vis = self:Visible(enemy)
 						local vsched = vj_ai_schedule.New("vj_goto_lastpos")
 						if vis then
-							vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 1000)
+							vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 3000)
 						else
 							vsched:EngTask("TASK_GET_PATH_TO_ENEMY_LOS", 0)
 						end
 						vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
 						vsched.IsMovingTask = true
-						if vis then
+						if math.random(1,2) == 1 then
 							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
 							vsched.MoveType = 0
+							vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 						else
 							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
 							vsched.MoveType = 1
 						end
-						vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 						self:StartSchedule(vsched)
 						self.NextFindStalkPos = curTime +math.Rand(5,20)
 					end

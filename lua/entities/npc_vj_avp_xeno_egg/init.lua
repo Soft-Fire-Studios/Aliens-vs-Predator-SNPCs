@@ -42,24 +42,48 @@ function ENT:Open()
 	VJ.EmitSound(self,"cpthazama/avp/xeno/egg/egg_open_0" .. math.random(1,3) .. ".ogg",75)
 	timer.Simple(0.5,function()
 		if IsValid(self) then
-			local facehugger = ents.Create("npc_vj_avp_xeno_facehugger")
-			facehugger:SetPos(self:GetPos())
-			facehugger:SetAngles(self:GetAngles())
-			facehugger:SetOwner(self)
-			facehugger:Spawn()
-			facehugger:Activate()
-			facehugger:SetNoDraw(true)
-			facehugger:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-			timer.Simple(0.15,function()
-				if IsValid(facehugger) then
-					facehugger:SetNoDraw(false)
+			local royal = self.VJ_AVP_XenomorphEggRoyal
+			for i = 1,(royal && 3 or 1) do
+				local facehugger
+				if self.VJ_AVP_K_Xenomorph then
+					facehugger = ents.Create(royal && "npc_vj_avp_kxeno_facehugger_queen" or "npc_vj_avp_kxeno_facehugger")
+				else
+					facehugger = ents.Create(royal && "npc_vj_avp_xeno_facehugger_queen" or "npc_vj_avp_xeno_facehugger")
 				end
-			end)
-			facehugger:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false,0,{OnFinish=function(i,anim)
-				if i then return end
-				facehugger:SetPos(facehugger:GetBonePosition(2))
-				facehugger:SetState()
-			end})
+				facehugger:SetPos(self:GetPos() +(royal && (self:GetUp() *self:OBBMaxs().z +VectorRand() *6) or vector_origin))
+				facehugger:SetAngles(self:GetAngles() +Angle(0,math.random(0,360),0))
+				facehugger:SetOwner(self)
+				facehugger:Spawn()
+				facehugger:Activate()
+				facehugger:SetOwner(self)
+				facehugger:VJ_DoSetEnemy(self:GetEnemy(),true)
+				if royal then
+					facehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+					facehugger:SetGroundEntity(NULL)
+					local vec = VectorRand(-150,150)
+					vec.z = math.abs(vec.z)
+					facehugger:SetVelocity(vec)
+					timer.Simple(0.15,function()
+						if IsValid(facehugger) then
+							facehugger:SetCollisionGroup(COLLISION_GROUP_NPC)
+						end
+					end)
+				else
+					facehugger:SetNoDraw(true)
+					facehugger:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+					timer.Simple(0.15,function()
+						if IsValid(facehugger) then
+							facehugger:SetNoDraw(false)
+						end
+					end)
+					facehugger:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false,0,{OnFinish=function(i,anim)
+						if i then return end
+						facehugger:SetPos(facehugger:GetBonePosition(2))
+						facehugger:SetState()
+					end})
+				end
+			end
+			SafeRemoveEntityDelayed(self,30)
 		end
 	end)
 	self.Opened = true

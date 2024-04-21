@@ -292,6 +292,30 @@ function ENT:OnCustomAttack(ply,ent,vis,dist)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoRoyalTransformation(subClass)
+	if subClass then -- Not a Queen, rather a Carrier or Ravager
+		local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_carrier" or "npc_vj_avp_xeno_carrier")
+		xeno:SetPos(self:GetPos())
+		xeno:SetAngles(self:GetAngles())
+		xeno.VJ_NPC_Class = self.VJ_NPC_Class
+		xeno:Spawn()
+		xeno:Activate()
+		xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+		xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then xeno:SetState() return end
+			xeno:StopAllCommonSpeechSounds()
+			VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110,125)
+			xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then xeno:SetState() return end
+				xeno:SetState()
+			end})
+		end})
+		self:Remove()
+		return
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
 		local snd = "cpthazama/avp/xeno/alien queen/alien_queen_breathe_in_0" .. math.random(1,3) .. ".ogg"

@@ -99,6 +99,7 @@ if CLIENT then
 	local laserColor = Color(255,0,0,135)
     function ENT:Initialize()
 		self.Mat_cloakfactor = 0
+		self.CL_PreviousVisionMode = 0
 
 		-- local attStart = self:LookupAttachment("laser")
         -- hook.Add("PreDrawEffects",self,function(self)
@@ -197,6 +198,23 @@ if CLIENT then
 		if checkEnt == self then
 			self:DrawModel()
 		end
+
+		local mode = self:GetVisionMode()
+		if mode != self.CL_PreviousVisionMode then
+			self.CL_PreviousVisionMode = mode
+			if IsValid(ply) && ply.VJCE_NPC == self && ply.VJC_Camera_Mode == 2 then return end
+			self.EyeGlowFX = self.EyeGlowFX or {}
+			for _,v in pairs(self.EyeGlowFX) do
+				if IsValid(v) then
+					v:StopEmission(false,true)
+				end
+			end
+			for i = 1,2 do
+				local att = self:GetAttachment(self:LookupAttachment("eyes"))
+				local pos,ang = att.Pos,att.Ang
+				self.EyeGlowFX[i] = CreateParticleSystemNoEntity("vj_avp_predator_eyes_glow",pos +ang:Forward() *8.5 +ang:Right() *(i == 1 && 2 or -2),ang)
+			end
+		end
 		
 		local attStart = checkEnt:LookupAttachment("laser")
 		if self:GetBeam() then
@@ -238,6 +256,12 @@ if CLIENT then
 		local vm = self.VM
 		if IsValid(vm) then
 			vm:Remove()
+		end
+		self.EyeGlowFX = self.EyeGlowFX or {}
+		for _,v in pairs(self.EyeGlowFX) do
+			if IsValid(v) then
+				v:StopEmission(false,true)
+			end
 		end
 	end
 

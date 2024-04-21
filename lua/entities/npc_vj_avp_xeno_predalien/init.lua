@@ -91,6 +91,8 @@ function ENT:OnInit()
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
 
+	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
+
 	self.AttackDistance = 80
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -226,11 +228,11 @@ function ENT:CustomAttack(ent,visible)
 	local isCrawling = self.CurrentSet == 1
 
 	if IsValid(cont) then
-		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
+		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 			self:AttackCode(isCrawling,5)
-		elseif cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+		elseif cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling,4)
 		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
@@ -254,13 +256,49 @@ function ENT:CustomAttack(ent,visible)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local math_Clamp = math.Clamp
+--
 function ENT:DoLeapAttack()
-	/*
-		Predalien_Hybrid_leap_attack_telegraph
-		Predalien_Hybrid_leap_attack_leap_to_grapple
-		Predalien_Hybrid_leap_attack_miss
-		Predalien_Hybrid_leap_attack_hit_wall
-	*/
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	self:StopAllCommonSpeechSounds()
+	VJ.CreateSound(self,self.SoundTbl_Alert,90)
+
+	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_telegraph",true,false,true,0,{OnFinish=function(interrupted)
+		if interrupted then return end
+		-- self:SetGroundEntity(NULL)
+		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
+		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
+		self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+		self:StopAllCommonSpeechSounds()
+		VJ.CreateSound(self,self.SoundTbl_Jump,90)
+		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_leap_to_grapple",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self.AttackDamage = 180
+			self.AttackDamageDistance = 140
+			self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+			local dmgcode = self:RunDamageCode()
+			VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
+			local tr = util.TraceHull({
+				start = self:GetPos() +self:OBBCenter(),
+				endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *100,
+				filter = self,
+				mins = self:OBBMins() /2,
+				maxs = self:OBBMaxs() /2,
+				mask = MASK_SOLID_BRUSHONLY
+			})
+			if tr.HitWorld then
+				VJ.EmitSound(self,"cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",80)
+				ParticleEffect("AntlionFX_UnBurrow",tr.HitPos,Angle())
+				util.ScreenShake(self:GetPos(),12,200,4,900)
+				self:StopAllCommonSpeechSounds()
+				VJ.CreateSound(self,self.SoundTbl_Pain,90)
+			end
+			self:VJ_ACT_PLAYACTIVITY((#dmgcode <= 0 && tr.HitWorld) && "Predalien_Hybrid_leap_attack_hit_wall" or "Predalien_Hybrid_leap_attack_miss",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then return end
+				self:SetState()
+			end})
+		end})
+	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)

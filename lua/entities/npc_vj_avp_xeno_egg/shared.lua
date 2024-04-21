@@ -9,6 +9,7 @@ ENT.Category		= ""
 
 ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Xenomorph = true
+ENT.VJ_AVP_XenomorphEgg = true
 
 if CLIENT then
 	local string_EndsWith = string.EndsWith

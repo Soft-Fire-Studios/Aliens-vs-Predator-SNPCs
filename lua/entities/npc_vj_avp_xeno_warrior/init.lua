@@ -995,6 +995,16 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self:SetLocalVelocity(Vector(0,0,0))
 		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/land/alien_land_stone_1"  .. math.random(0,2) .. ".ogg",75)
+		if self.VJ_AVP_XenomorphPredalien then
+			self.AttackDamage = 30
+			self.AttackDamageDistance = 140
+			self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+			local dmgcode = self:RunDamageCode()
+			if #dmgcode > 0 then
+				VJ.EmitSound(self,sdClawFlesh,75)
+			end
+			util.ScreenShake(self:GetPos(),8,200,2,500)
+		end
 		local tr = util.TraceLine({
 			start = self:GetPos(),
 			endpos = self:GetPos() +self:GetUp() *-100,
@@ -1515,10 +1525,11 @@ function ENT:CustomOnThink_AIEnabled()
 	-- 	self.AnimTbl_Run = {moveAct}
 	-- end
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
-	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting
+	local moveAct = self:IsMoving() && self:GetSequenceActivity(self:GetIdealSequence()) or 0
+	local sprinting = !self.VJ_AVP_XenomorphPredalien && ((transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting)
 	-- print(self:GetActivity(),transAct)
 
-	if !self.WasSprinting && sprinting && !self.VJ_AVP_XenomorphPredalien then
+	if !self.WasSprinting && sprinting then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
 		self.WasSprinting = true
 	elseif self.WasSprinting && !sprinting then
