@@ -11,3 +11,4 @@ ENT.VJ_AVP_Xenomorph = true
 ENT.VJ_AVP_XenomorphLarge = true
 ENT.VJ_AVP_Xenomorph_Queen = false
 ENT.VJ_AVP_Xenomorph_Matriarch = true
+ENT.VJ_AVP_CanBecomeQueen = false

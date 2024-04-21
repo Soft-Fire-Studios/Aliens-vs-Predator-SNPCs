@@ -121,6 +121,7 @@ function ENT:CustomOnInitialize()
 	end)
 
 	self:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
+	self:SetImpactEnergyScale(0)
 	self.GrowT = CurTime() +60
 	self.DidGrow = false
 	self:SetModelScale(2.5,60)

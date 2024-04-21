@@ -114,8 +114,10 @@ function ENT:CustomOnInitialize()
 	self.Carrier = nil
 	self.CarrierSlot = nil
 	self.NextCarrierT = 0
+	self.StalkingAITime = 0
 
 	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
+	self:SetImpactEnergyScale(0)
 
 	if self.VJ_AVP_XenomorphFacehuggerRoyal then
 		self:SetSkin(1)
@@ -546,15 +548,30 @@ function ENT:CustomOnThink_AIEnabled()
 
 	self:SetHP(self:Health())
 	if !self.IsLatched then
+		local ent = self:GetEnemy()
+		local dist = self.NearestPointToEnemyDistance
 		self:SetGroundAngle()
 
-		if !IsValid(self:GetEnemy()) && IsValid(self:GetTarget()) && self:GetTarget().VJ_AVP_XenomorphCarrier && !self.Carrier && self:GetPos():Distance(self:GetTarget():GetPos()) <= 100 then
+		self.DisableChasingEnemy = CurTime() < self.StalkingAITime && dist <= 900 && IsValid(ent) && !ent:Visible(self)
+		self.ConstantlyFaceEnemy = self.DisableChasingEnemy
+
+		if !IsValid(ent) && IsValid(self:GetTarget()) && self:GetTarget().VJ_AVP_XenomorphCarrier && !self.Carrier && self:GetPos():Distance(self:GetTarget():GetPos()) <= 100 then
 			if self:GetTarget():GetFacehuggerCount() >= 9 then return end
 			self:AttachToCarrier(self:GetTarget())
+		elseif IsValid(ent) then
+			if !ent:Visible(self) && dist < 2500 && dist > 200 then
+				self.StalkingAITime = CurTime() +1.25
+				if dist <= 900 then
+					self:VJ_TASK_FACE_X("TASK_FACE_ENEMY")
+					self:VJ_DoSetEnemy(ent)
+					if self:IsMoving() then
+						self:StopMoving()
+						self:ClearGoal()
+					end
+				end
+			end
 		end
-	end
-
-	if self.IsLatched && self.BirthT && CurTime() > self.BirthT then
+	elseif self.IsLatched && self.BirthT && CurTime() > self.BirthT then
 		self:GiveBirth()
 	end
 end

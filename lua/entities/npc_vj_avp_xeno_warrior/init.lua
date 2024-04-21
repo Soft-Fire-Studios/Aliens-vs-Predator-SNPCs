@@ -461,6 +461,7 @@ function ENT:CustomOnInitialize()
 	self.LastMovementActivity = ACT_RUN
 	self.ChangeSetT = CurTime() +1
 	self.IsUsingFaceAnimation = false
+	self.StalkingAITime = 0
 	self.SprintT = 0
 	self.NextSprintT = 0
 	self.WasSprinting = false
@@ -471,6 +472,7 @@ function ENT:CustomOnInitialize()
 	self.NextGibbedFXTime = 0
 	self.DarknessLevel = false
 	self.LastNetworkT = 0
+	self.RoyalMorphT = CurTime() +600
 
 	if self.OnInit then
 		self:OnInit()
@@ -580,7 +582,7 @@ end
 function ENT:CustomOnAlert(ent)
 	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
-	if math.random(1,4) == 1 && !self:IsBusy() then
+	if math.random(1,4) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
 		self:StopAllCommonSpeechSounds()
 		self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 		self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
@@ -1479,6 +1481,17 @@ function ENT:JumpVelocityCode()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:StalkingAI(ent)
+	local dist = self.NearestPointToEnemyDistance
+	if (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 then
+		self.StalkingAITime = CurTime() +2
+		-- self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+		-- 	x:EngTask("TASK_FACE_ENEMY",0)
+		-- 	x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+		-- end)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
 --
 function ENT:CustomOnThink_AIEnabled()
@@ -1726,7 +1739,17 @@ function ENT:CustomOnThink_AIEnabled()
 			self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
 			if curTime > self.MoveAroundRandomlyT then
 				if IsValid(ent) then
-					if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.MoveAroundRandomlyT && curTime > self.NextSprintT && math.random(1,12) == 1 then
+					self:StalkingAI(ent) // Let the creepy begin...
+					if self.StalkingAITime > curTime then
+						if !self.AlwaysStand then
+							self.CurrentSet = 1
+							self.NextIdleTime = 0
+							self.NextIdleStandTime = 0
+							self.ChangeSetT = curTime +math.Rand(15,35)
+						end
+						return
+					end
+					if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.NextSprintT && math.random(1,12) == 1 then
 						self.AI_IsSprinting = true
 					end
 					local dist = self.LastEnemyDistance
@@ -1767,6 +1790,57 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	if IsValid(ent) then
 		self.LastEnemyDistance = self:VJ_GetNearestPointToEntityDistance(ent)
+	end
+
+	if !IsValid(ent) && !self.Alerted && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		if self.VJ_AVP_XenomorphID == "praetorian" then
+			VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",90,110)
+			self:VJ_ACT_PLAYACTIVITY("knockdown_forward",true,false,false,0,{OnFinish=function(interrupted)
+				if VJ_AVP_QueenExists(self) then return end
+				local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_queen" or "npc_vj_avp_xeno_queen")
+				xeno:SetPos(self:GetPos())
+				xeno:SetAngles(self:GetAngles())
+				xeno.VJ_NPC_Class = self.VJ_NPC_Class
+				xeno:Spawn()
+				xeno:Activate()
+				xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+				xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+				xeno:StopAllCommonSpeechSounds()
+				xeno:SetModelScale(0.65)
+				VJ.CreateSound(xeno,"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110,90)
+				local _,dur = xeno:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false,0,{OnFinish=function(interrupted)
+					if interrupted then return end
+					xeno:SetState()
+				end})
+				xeno.NextLookForBirthT = CurTime() +dur +5
+				xeno.NextSpecialEggCheckT = CurTime() +dur +5
+				xeno:SetModelScale(1,dur -1)
+				undo.ReplaceEntity(self,xeno)
+				self:Remove()
+			end})
+		else
+			self:VJ_ACT_PLAYACTIVITY("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
+				local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
+				xeno:SetPos(self:GetPos())
+				xeno:SetAngles(self:GetAngles())
+				xeno.VJ_NPC_Class = self.VJ_NPC_Class
+				xeno:Spawn()
+				xeno:Activate()
+				xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+				xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+				xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+					xeno:StopAllCommonSpeechSounds()
+					VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
+					xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+						if interrupted then xeno:SetState() return end
+						xeno:SetState()
+					end})
+				end})
+				undo.ReplaceEntity(self,xeno)
+				self:Remove()
+			end})
+		end
 	end
 
 	if self.FootData then
@@ -1915,7 +1989,7 @@ function ENT:SelectMovementActivity(act)
 	end
 	local currentSchedule = self.CurrentSchedule
 	if currentSchedule != nil then
-		if curTime < self.MoveAroundRandomlyT then
+		if curTime < self.StalkingAITime or curTime < self.MoveAroundRandomlyT then
 			return ACT_WALK_RELAXED
 		end
 		if currentSchedule.MoveType == 0 then

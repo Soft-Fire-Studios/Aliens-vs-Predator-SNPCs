@@ -210,9 +210,8 @@ if CLIENT then
 				end
 			end
 			for i = 1,2 do
-				local att = self:GetAttachment(self:LookupAttachment("eyes"))
-				local pos,ang = att.Pos,att.Ang
-				self.EyeGlowFX[i] = CreateParticleSystemNoEntity("vj_avp_predator_eyes_glow",pos +ang:Forward() *8.5 +ang:Right() *(i == 1 && 2 or -2),ang)
+				local attID = self:LookupAttachment(i == 1 && "leye" or "reye")
+				self.EyeGlowFX[i] = CreateParticleSystem(self,"vj_avp_predator_eyes",PATTACH_POINT_FOLLOW,attID)
 			end
 		end
 		
@@ -957,6 +956,18 @@ if CLIENT then
 			end
 
 			if mode > 0 && hasMask then
+				local dLight = DynamicLight(ent:EntIndex())
+				if dLight then
+					dLight.Pos = ent:GetPos() +ent:OBBCenter()
+					dLight.r = 5
+					dLight.g = 5
+					dLight.b = 5
+					dLight.Brightness = 1
+					dLight.Size = 4000
+					dLight.Decay = 0
+					dLight.DieTime = CurTime() +0.2
+					dLight.Style = 0
+				end
 				for _,v in ents.Iterator() do
 					if mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
 						cam.Start3D(EyePos(),EyeAngles())

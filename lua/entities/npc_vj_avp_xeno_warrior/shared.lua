@@ -10,6 +10,7 @@ ENT.Category		= ""
 ENT.VJ_AVP_XenomorphID = "warrior"
 ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Xenomorph = true
+ENT.VJ_AVP_CanBecomeQueen = true
 ENT.VJ_AVP_XenoHUD = 0
 
 function ENT:SetupDataTables()
@@ -392,6 +393,18 @@ if CLIENT then
 			if IsValid(ent) then
 				local vision = ent:GetVision()
 				if vision then
+					local dLight = DynamicLight(ent:EntIndex())
+					if dLight then
+						dLight.Pos = ent:GetPos() +ent:OBBCenter()
+						dLight.r = 5
+						dLight.g = 5
+						dLight.b = 5
+						dLight.Brightness = 2
+						dLight.Size = 4000
+						dLight.Decay = 0
+						dLight.DieTime = CurTime() +0.2
+						dLight.Style = 0
+					end
 					if cont.VisionSound == nil then
 						cont.VisionSound = CreateSound(cont,"cpthazama/avp/weapons/alien/alien_vision_loop.wav")
 						cont.VisionSound:SetSoundLevel(0)

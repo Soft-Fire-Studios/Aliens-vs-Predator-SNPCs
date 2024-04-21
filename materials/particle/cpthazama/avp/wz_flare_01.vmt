@@ -1,0 +1,18 @@
+"Spritecard"
+{
+	"$basetexture" 			"particle/cpthazama/avp/wz_flare_01"
+	"$vertexcolor" 			"1"
+	"$vertexalpha" 			"1"
+	"$additive" 			"1"
+	"$overbrightfactor" 	"2"
+}
+// "UnlitGeneric"
+// {
+// 	"$basetexture" 	"particle/cpthazama/avp/wz_flare_01"
+
+// 	"$additive"	1
+// 	"$vertexcolor"	1
+// 	"$vertexalpha"	1
+
+// 	"$surfaceprop"	"no_decal"
+// }

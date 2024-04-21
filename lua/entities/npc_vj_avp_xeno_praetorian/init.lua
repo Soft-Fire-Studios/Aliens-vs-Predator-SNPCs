@@ -104,7 +104,7 @@ function ENT:OnInit()
 	}
 	self.SoundTbl_Death = {
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_01.ogg",
-		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_02.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",
 	}
 	self.FootData = {
 		["lfoot"] = {Range=15.5,OnGround=true},
@@ -311,6 +311,7 @@ function ENT:DoRoyalTransformation(subClass)
 				xeno:SetState()
 			end})
 		end})
+		undo.ReplaceEntity(self,xeno)
 		self:Remove()
 		return
 	end

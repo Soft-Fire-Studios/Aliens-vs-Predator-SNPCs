@@ -9,3 +9,4 @@ ENT.Category		= ""
 
 ENT.VJ_AVP_XenomorphID = "drone"
 ENT.VJ_AVP_XenomorphRunner = true
+ENT.VJ_AVP_CanBecomeQueen = false
