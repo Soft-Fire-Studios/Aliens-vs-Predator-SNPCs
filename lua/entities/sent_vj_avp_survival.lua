@@ -249,7 +249,7 @@ function ENT:Initialize()
 				Predator.FriendsWithAllPlayerAllies = true
 				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
 				SpawnControllerObject.VJCE_Player = ply
-				SpawnControllerObject:SetControlledNPC(chestburster)
+				SpawnControllerObject:SetControlledNPC(Predator)
 				SpawnControllerObject:Spawn()
 				SpawnControllerObject:StartControlling()
 			end
