@@ -103,11 +103,12 @@ if CLIENT then
 	return
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.MaxNPCs = 24
+ENT.MaxNPCs = 2
 ENT.IncrementAmount = 4
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpawnBot(count,respawn)
 	local plys = player.GetAll()
+	local preds = self.IsPredatorPlayers
 	for i = 1,count do
 		timer.Simple(i *0.1,function()
 			if !IsValid(self) then return end
@@ -119,18 +120,33 @@ function ENT:SpawnBot(count,respawn)
 			else
 				local randOffset = VectorRand() *math.Rand(0,256)
 				randOffset.z = 8
-				local bot = ents.Create("npc_vj_test_humanply")
-				-- bot:SetPos(spawnPoint +randOffset)
-				self:SetProperPos(bot,spawnPoint +randOffset)
-				bot:SetAngles(Angle(0,AngleRand().y,0))
-				bot:Spawn()
-				bot:Activate()
-				-- bot:Give(VJ_PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
-				bot:Give("weapon_vj_avp_pulserifle")
-				bot:SetNW2Int("AVP_Score",500)
-				self:DeleteOnRemove(bot)
-				debugMessage("Bot - ",i,"Successfully spawned!")
-				table.insert(self.Bots,bot)
+				if !preds then
+					local bot = ents.Create("npc_vj_test_humanply")
+					-- bot:SetPos(spawnPoint +randOffset)
+					self:SetProperPos(bot,spawnPoint +randOffset)
+					bot:SetAngles(Angle(0,AngleRand().y,0))
+					bot:Spawn()
+					bot:Activate()
+					-- bot:Give(VJ_PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
+					bot:Give("weapon_vj_avp_pulserifle")
+					bot:SetNW2Int("AVP_Score",0)
+					self:DeleteOnRemove(bot)
+					debugMessage("Bot - ",i,"Successfully spawned!")
+					table.insert(self.Bots,bot)
+				else
+					local bot = ents.Create("npc_vj_avp_pred")
+					self:SetProperPos(bot,spawnPoint +randOffset)
+					bot:SetAngles(Angle(0,AngleRand().y,0))
+					bot:Spawn()
+					bot:Activate()
+					bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
+					bot.PlayerFriendly = true
+					bot.FriendsWithAllPlayerAllies = true
+					bot:SetNW2Int("AVP_Score",0)
+					self:DeleteOnRemove(bot)
+					debugMessage("Bot - ",i,"Successfully spawned!")
+					table.insert(self.Bots,bot)
+				end
 			end
 			
 			if i == count then
@@ -149,6 +165,8 @@ end
 function ENT:Initialize()
 	self:SetSolid(SOLID_NONE)
 	self:DrawShadow(false)
+
+	self.NodegraphExists = VJ_Nodegraph:Exists()
 
 	local plys = player.GetAll()
 
@@ -170,6 +188,9 @@ function ENT:Initialize()
 	self.KillsLeft = 0
 	self.NextSpawnAttemptT = CurTime() +math.Rand(2,6)
 
+	self.XenoType = math.random(1,100) == 1 && "kxeno" or "xeno"
+	self.IsPredatorPlayers = false
+
 	timer.Simple(10,function()
 		if IsValid(self) then
 			self:SetSpecialRound(false)
@@ -185,8 +206,54 @@ function ENT:Initialize()
 	end)
 
 	for _,v in pairs(plys) do
-		v:SetNW2Int("AVP_Score",500)
+		v:SetNW2Int("AVP_Score",0)
 		v:ChatPrint("Survival will begin in 10 seconds...")
+		VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_37.ogg")
+		local cEnt = v.VJ_TheControllerEntity
+		if IsValid(cEnt) && cEnt.VJCE_NPC.VJ_AVP_Predator then
+			self.IsPredatorPlayers = true
+		end
+	end
+
+	if self.IsPredatorPlayers then
+		for _,v in pairs(plys) do
+			if !IsValid(v.VJ_TheControllerEntity) then
+				local Predator = ents.Create("npc_vj_avp_pred")
+				Predator:SetPos(v:GetPos() +Vector(0,0,4))
+				Predator:SetAngles(v:GetAngles())
+				Predator:Spawn()
+				Predator:Activate()
+				Predator:SetOwner(v)
+				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
+				Predator.PlayerFriendly = true
+				Predator.FriendsWithAllPlayerAllies = true
+				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				SpawnControllerObject.VJCE_Player = v
+				SpawnControllerObject:SetControlledNPC(chestburster)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+			end
+		end
+
+		hook.Add("PlayerSpawn",self,function(self,ply)
+			if !IsValid(ply) then return end
+			if !IsValid(ply.VJ_TheControllerEntity) then
+				local Predator = ents.Create("npc_vj_avp_pred")
+				Predator:SetPos(ply:GetPos() +Vector(0,0,4))
+				Predator:SetAngles(ply:GetAngles())
+				Predator:Spawn()
+				Predator:Activate()
+				Predator:SetOwner(ply)
+				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
+				Predator.PlayerFriendly = true
+				Predator.FriendsWithAllPlayerAllies = true
+				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				SpawnControllerObject.VJCE_Player = ply
+				SpawnControllerObject:SetControlledNPC(chestburster)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+			end
+		end)
 	end
 
 	if self.AllowBots then
@@ -241,6 +308,7 @@ function ENT:Initialize()
 							for _,v in pairs(player.GetAll()) do
 								VJ_AVP_CSound(v,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg")
 								VJ_AVP_CSound(v,"cpthazama/avp/music/sting/dead prey sting 02.ogg")
+								VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_38.ogg")
 								v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
 							end
 						else
@@ -251,6 +319,7 @@ function ENT:Initialize()
 							self.KillsLeft = self.IncrementAmount *self:GetWave()
 							for _,v in pairs(player.GetAll()) do
 								VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
+								VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_23.ogg")
 								v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
 							end
 						end
@@ -280,83 +349,73 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_abs = math.abs
 --
-function ENT:FindSpawnPoint(total,data)
-	local data = data or {}
-	local nodeType = data.NodeType or 2
-	local nodeZone = data.NodeZone or 3
-	local flagData = data.NodeFlags
-	local spawnReq = data.SpawnReq
-	local minDist = data.MinSpawnDist or 1000
-	local maxDist = data.MaxSpawnDist or 1500
-	local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
-	local savedPoints = {}
-	local enemyEnts = {}
+function ENT:FindSpawnPoint(total, data)
+    local data = data or {}
+    local nodeType = data.NodeType or 2
+    local nodeZone = data.NodeZone or 3
+    local flagData = data.NodeFlags
+    local spawnReq = data.SpawnReq
+    local minDist = data.MinSpawnDist or 1000
+    local maxDist = data.MaxSpawnDist or 3250
+    local savedPoints = {}
 
-	for _,v in pairs(ents.GetAll()) do
-		if (v:IsNPC() && (v.VJ_NPC_Class != nil && !VJ_HasValue(v.VJ_NPC_Class,"CLASS_XENOMORPH") or v.VJ_NPC_Class == nil)) or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) then
-			table.insert(enemyEnts,v)
-		end
+	local function TestIsVisible(pos,ent)
+		local test = ents.Create("prop_dynamic")
+		test:SetModel("models/Humans/Group01/Male_Cheaple.mdl")
+		test:SetPos(pos)
+		test:Spawn()
+		test:Activate()
+		test:SetRenderMode(RENDERMODE_TRANSALPHA)
+		test:SetColor(Color(255,255,255,1))
+		-- test:SetNoDraw(true)
+		-- test:SetSolid(SOLID_NONE)
+		test:DrawShadow(false)
+		test:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		SafeRemoveEntityDelayed(test,0.01)
+
+		return test:Visible(ent)
 	end
 
-	local function SelectNode()
-		local node = VJ_PICK(nodegraph)
-		if node == nil then return false end
-		if node.type != nodeType then debugMessage("bad node type",node.type) return false end
-		-- if node.zone < nodeZone then debugMessage("bad node zone",node.zone) return false end
-		if flagData then
-			debugMessage("Checking flag data",flagData)
-			if flagData != node.flags then debugMessage("bad node flag",node.flags) return false end
-		end
-		local minDistTemp = minDist
-		for _,v in pairs(enemyEnts) do
-			local heightDif = math_abs(v:GetPos().z -node.pos.z)
-			local dist = v:GetPos():Distance(node.pos)
-			if heightDif <= 500 then
-				minDistTemp = minDist *0.5
-			end
-			local vis = v:VisibleVec(node.pos)
-			-- local vis = false
-			if dist < minDistTemp or vis then debugMessage("too close or vis",dist < minDistTemp, vis) return false end
-			if dist > maxDist or vis then debugMessage("too far or vis",dist > maxDist, vis) return false end
-		end
-		if spawnReq then
-			local minspawnReq = Vector(spawnReq.x *-1,spawnReq.y *-1,0)
-			if util.TraceHull({
-				start = node.pos,
-				endpos = node.pos,
-				mins = minspawnReq,
-				maxs = spawnReq,
-			}).Hit then
-				debugMessage("spawn req trace hit")
-				return false
-			end
-		end
-		debugMessage("found node pos",node.pos)
-		return node.pos
-	end
+    local function IsNodeValid(node)
+        if node.type != nodeType then return false end
+        if flagData && flagData != node.flags then return false end
 
-	local attempts = 0
-	local foundAllPoints = false
-	while foundAllPoints == false do
-		local node = SelectNode()
-		if node != false then
-			for i,v in pairs(nodegraph) do
-				if v.pos == node then
-					table.remove(nodegraph,i)
-					break
-				end
-			end
-			table.insert(savedPoints,node)
-			if #savedPoints >= total then
-				foundAllPoints = true
-			end
-		end
-		attempts = attempts +1
-		if attempts >= 100 then
-			return false
-		end
-	end
-	return savedPoints
+        for _, v in ipairs(ents.GetAll()) do
+            if (v:IsNPC() && (!v.VJ_NPC_Class or !table.HasValue(v.VJ_NPC_Class, "CLASS_XENOMORPH"))) or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) then
+                local heightDif = math_abs(v:GetPos().z - node.pos.z)
+                local dist = v:GetPos():Distance(node.pos)
+                if heightDif <= 500 then
+                    minDist = minDist * 0.5
+                end
+                if dist < minDist or dist > maxDist or TestIsVisible(node.pos,v) then
+                -- if dist < minDist or dist > maxDist or v:VisibleVec(node.pos) then
+                    return false
+                end
+            end
+        end
+        if spawnReq then
+            local minspawnReq = -spawnReq
+            if util.TraceHull({
+                start = node.pos,
+                endpos = node.pos,
+                mins = minspawnReq,
+                maxs = spawnReq,
+            }).Hit then
+                return false
+            end
+        end
+        return true
+    end
+
+    local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
+    for _ = 1, total do
+        local node = table.remove(nodegraph, math.random(#nodegraph))
+        if IsNodeValid(node) then
+            table.insert(savedPoints, node.pos)
+        end
+    end
+
+    return #savedPoints > 0 && savedPoints or false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RespawnNPC(ent) // This is called when a NPC is stuck and needs to respawn at a new node position, this should take away from the kill count
@@ -372,8 +431,7 @@ function ENT:RespawnNPC(ent) // This is called when a NPC is stuck and needs to 
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Think()
-	RunConsoleCommand("ai_clear_bad_links")
-	if VJ_NZ_NodegraphExists == false then
+	if !self.NodegraphExists then
 		for _,v in pairs(player.GetAll()) do
 			v:ChatPrint("Nodegraph does not exist!")
 		end
@@ -383,36 +441,30 @@ function ENT:Think()
 
 	if self.AllowBots && !VJ_CVAR_IGNOREPLAYERS then
 		local bots = self.Bots
-		-- if CurTime() > self.NextBotsWaveRespawnT then
-		-- 	local deadBots = self.BotsToRespawn
-		-- 	if deadBots > 0 then
-		-- 		self:SpawnBot(deadBots,true)
-		-- 		self.BotsToRespawn = 0
-		-- 	end
-		-- 	self.NextBotsWaveRespawnT = CurTime() +120
-		-- end
-		if #bots > 0 then
-			if CurTime() < self.NextBotsRefreshT then return end
+		if #bots > 0 && CurTime() >= self.NextBotsRefreshT then
+			self.NextBotsRefreshT = CurTime() + math.Rand(2, 12)
 			for _,v in pairs(bots) do
 				if IsValid(v) && !v.IsFollowing then
 					local closestPlayer = NULL
 					local closestDist = 999999
 					for _,v2 in pairs(player.GetAll()) do
-						if v2:Alive() && v2:GetPos():Distance(v:GetPos()) < closestDist && v2:Alive() then
-							closestPlayer = v2
-							closestDist = v2:GetPos():Distance(v:GetPos())
+						if v2:Alive() then
+							local dist = v2:GetPos():Distance(v:GetPos())
+							if dist < closestDist then
+								closestPlayer = v2
+								closestDist = dist
+							end
 						end
 					end
 					if IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
-						v:SetLastPosition(closestPlayer:GetPos() +Vector(math.random(-512,512),math.random(-512,512),0))
-						v:VJ_TASK_GOTO_LASTPOS(closestDist <= 400 and "TASK_WALK_PATH" or "TASK_RUN_PATH", function(x)
+						v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512, 512), math.random(-512, 512), 0))
+						v:VJ_TASK_GOTO_LASTPOS(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH", function(x)
 							x.CanShootWhenMoving = true
 							x.ConstantlyFaceEnemy = true
 						end)
 					end
 				end
 			end
-			self.NextBotsRefreshT = CurTime() +math.Rand(2,12)
 		end
 	end
 
@@ -420,39 +472,41 @@ function ENT:Think()
 	local wave = self:GetWave()
 
 	if self.NextSpawnAttemptT < CurTime() then
-		self:SetPos(VJ_PICK(player.GetAll()):GetPos()) -- Client-side code does not run if the entity isn't rendered
-		if self.KillsLeft <= 0 or self:GetCurrentTotalNPCs() >= self.KillsLeft or self:GetCurrentTotalNPCs() >= self.CurrentMaxNPCs or self:GetWaveSwitching() == true then
-			self.NextSpawnAttemptT = CurTime() +math.Rand(1,3)
+		self:SetPos(VJ_PICK(player.GetAll()):GetPos())
+		if self.KillsLeft <= 0 or self:GetCurrentTotalNPCs() >= self.KillsLeft or self:GetCurrentTotalNPCs() >= self.CurrentMaxNPCs or self:GetWaveSwitching() then
+			self.NextSpawnAttemptT = CurTime() + math.Rand(1, 3)
 			return
 		end
 		local totalSpawned = 0
-		local spawnPoint = self:FindSpawnPoint(math_Clamp(self:GetWave(),1,4))
+		local spawnPoint = self:FindSpawnPoint(math.Clamp(self:GetWave(), 1, 4))
 		if spawnPoint == false then
 			return
 		end
+		RunConsoleCommand("ai_clear_bad_links")
+		local xenoType = self.XenoType
 		for _,s in pairs(spawnPoint) do
 			if self:GetTotalAmount() >= self.KillsLeft then continue end
 			local boss = (self:GetSpecialRound() && #self.Bosses < self.MaxBosses)
-			local xeno = "npc_vj_avp_xeno_drone"
+			local xeno = "npc_vj_avp_" .. xenoType .. "_drone"
 			if wave >= 3 && wave < 5 then
-				xeno = VJ.PICK({"npc_vj_avp_xeno_drone","npc_vj_avp_xeno_jungle"})
+				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle"})
 			elseif wave >= 5 && wave < 10 then
-				xeno = VJ.PICK({"npc_vj_avp_xeno_drone","npc_vj_avp_xeno_jungle","npc_vj_avp_xeno_warrior","npc_vj_avp_xeno_warrior","npc_vj_avp_xeno_warrior","npc_vj_avp_xeno_warrior"})
-			elseif wave >= 10 then
-				xeno = VJ.PICK({"npc_vj_avp_xeno_warrior","npc_vj_avp_xeno_warrior","npc_vj_avp_xeno_ridged"})
+				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior"})
+			elseif wave >= 10 && wav < 15 then
+				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged"})
+			elseif wave >= 15 then
+				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_carrier"})
 			end
-			local npc = ents.Create(boss && "npc_vj_avp_xeno_praetorian" or xeno)
+			local npc = ents.Create(boss && ((wave >= 15 && math.random(1,50) == 1) && "npc_vj_avp_" .. xenoType .. "_predalien" or "npc_vj_avp_" .. xenoType .. "_praetorian") or xeno)
 			npc:SetPos(s)
-			npc:SetAngles(Angle(0,math.random(0,360),0))
+			npc:SetAngles(Angle(0, math.random(0, 360), 0))
 			npc.SpawnedUsingMutator = true
 			npc.Mutator = self
-			npc.StartHealth = npc.StartHealth +(self:GetSpecialRound() && 0 or (wave > 5 && wave *4 or 0))
+			npc.StartHealth = npc.StartHealth +(boss && 0 or (wave > 5 && wave *4 or 0))
 			npc:Spawn()
 			npc:Activate()
-			npc:DrawShadow(false) -- Optimizations
-			-- npc:SetSurroundingBoundsType(BOUNDS_COLLISION) -- Optimizations
-			-- npc:SetCustomCollisionCheck(true) -- Optimizations
-			npc.AnimMovementType = wave > 3 && math.random(1,2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
+			npc:DrawShadow(false)
+			npc.AnimMovementType = wave > 3 && math.random(1, 2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
 			if self.AlwaysAlerted then
 				npc.FindEnemy_UseSphere = true
 				npc.FindEnemy_CanSeeThroughWalls = true
@@ -460,15 +514,16 @@ function ENT:Think()
 			end
 			if wave < 4 then
 				npc.CanSpit = false
+				npc.HasRangeAttack = false
 			end
-			table.insert(self.Entities,npc)
+			table.insert(self.Entities, npc)
 			if boss then
-				table.insert(self.Bosses,npc)
+				table.insert(self.Bosses, npc)
 			end
-			totalSpawned = totalSpawned +1
-			if useDebug then Entity(1):ChatPrint("Spawned ".. class .." at ".. tostring(s) .."!") end
+			totalSpawned = totalSpawned + 1
+			if useDebug then Entity(1):ChatPrint("Spawned " .. class .. " at " .. tostring(s) .. "!") end
 		end
-		self.NextSpawnAttemptT = CurTime() +math.Rand(1,3)
+		self.NextSpawnAttemptT = CurTime() + math.Rand(1, 3)
 	end
 
 	self:NextThink(CurTime())
@@ -480,13 +535,6 @@ function ENT:OnRemove()
 		if IsValid(v) then
 			v:Remove()
 		end
-	end
-	for _,x in pairs(ents.FindByClass("sent_vj_nz_obj_spawn_ply")) do
-		x:SetNoDraw(false)
-	end
-	for _,x in pairs(ents.FindByClass("sent_vj_nz_obj_spawn_nz")) do
-		x:SetNoDraw(false)
-		x:SetSolid(SOLID_OBB)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

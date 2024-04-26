@@ -286,7 +286,7 @@ function ENT:OnKey(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCustomAttack(ply,ent,vis,dist)
-	if !IsValid(ply) && CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
+	if !IsValid(ply) && !self.SpawnedUsingMutator && CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
 		self:DoSummon()
 		self.NextSummonT = CurTime() +math.random(60,120)
 	end

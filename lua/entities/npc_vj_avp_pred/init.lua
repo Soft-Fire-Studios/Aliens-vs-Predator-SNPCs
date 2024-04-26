@@ -13,7 +13,7 @@ ENT.HullType = HULL_HUMAN
 ENT.BloodColor = "Green" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodPredator"}
-ENT.VJ_NPC_Class = {"CLASS_PREDATOR"} -- NPCs with the same class with be allied to each other
+ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"} -- NPCs with the same class with be allied to each other
 
 -- Example scenario:
 --      [A]       <- Apex

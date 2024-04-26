@@ -1483,7 +1483,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:StalkingAI(ent)
 	local dist = self.NearestPointToEnemyDistance
-	if (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 then
+	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 then
 		self.StalkingAITime = CurTime() +2
 		-- self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
 		-- 	x:EngTask("TASK_FACE_ENEMY",0)

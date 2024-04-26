@@ -39,7 +39,6 @@ if CLIENT then
 	local distortedColor = Color(170,238,255)
 
 	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
-
 		local distortion = math.abs(math.sin(CurTime() *2) *50)
 		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(a +math.random(-distortion,distortion),0,255)))
 		surface.SetMaterial(mat)
