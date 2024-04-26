@@ -1775,7 +1775,7 @@ function ENT:CustomOnThink_AIEnabled()
 				end
 			end
 		end
-		if (!IsValid(enemy) or IsValid(enemy) && dist > 800) && self:Health() < self:GetMaxHealth() && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,40) == 1 then
+		if (!IsValid(enemy) or IsValid(enemy) && dist > 800) && self:Health() < self:GetMaxHealth() *0.5 && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,40) == 1 then
 			self.LookForHidingSpot = true
 		end
 		if goalPos then
