@@ -36,20 +36,36 @@ if CLIENT then
 		return size
 	end
 
+	local distortedColor = Color(170,238,255)
+
 	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
+
+		local distortion = math.abs(math.sin(CurTime() *2) *50)
+		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(a +math.random(-distortion,distortion),0,255)))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x +math.Rand(-0.1,0.1),y +math.Rand(-0.1,0.1))
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+
 		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
 		surface.SetMaterial(mat)
 		local pos = ScreenPos(x,y)
-		local size = ScreenScale(width,height)
 		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
 	end
 
 	local function DrawIcon_UV(mat,x,y,width,height,uv,r,g,b,a)
 		local uv = uv or {0,0,1,1}
+
+		local distortion = math.abs(math.sin(CurTime() *2) *50)
+		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(a +math.random(-distortion,distortion),0,255)))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x +math.Rand(-0.1,0.1),y +math.Rand(-0.1,0.1))
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
+
 		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
 		surface.SetMaterial(mat)
 		local pos = ScreenPos(x,y)
-		local size = ScreenScale(width,height)
 		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
 	end
 
@@ -57,6 +73,10 @@ if CLIENT then
 		local textSize = surface.GetTextSize(text)
 		local pos = ScreenPos(x,y)
 		local size = ScreenScale(textSize,0)
+		local distortion = math.abs(math.sin(CurTime() *4) *50)
+		local col = Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(distortedColor.a +math.random(-distortion,distortion),0,255))
+	
+		draw.SimpleText(text,font,pos.x +math.Rand(-2,2),pos.y +math.Rand(-2,2),col,alignX or 0,alignY or 0)
 		draw.SimpleText(text,font,pos.x,pos.y,color or color_white,alignX or 0,alignY or 0)
 	end
 
@@ -143,7 +163,7 @@ if CLIENT then
 			DrawIcon(matHUD_Stims,stimPos +stimX,-17,2,2,r,g,b,stimsA[i])
 		end
 
-		flare = Lerp(FT *4,flare,(ent.GetFlare && ent:GetFlare() or false) && a or 50)
+		flare = Lerp(FT *4,flare,((ent:IsPlayer() && ent:FlashlightIsOn() && a) or (ent.GetFlare && ent:GetFlare() or false) && a) or 50)
 		DrawIcon(matHUD_Flare,41.8,15,1.35,3.5,r,g,b,flare)
 		DrawIcon(matHUD_Block,38.3,18.5,8,2.5,r,g,b,a)
 		DrawIcon(matHUD_Block,38.3,21.8,8,2.5,r,g,b,a)
