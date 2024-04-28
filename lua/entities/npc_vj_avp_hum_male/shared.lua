@@ -168,6 +168,31 @@ if CLIENT then
 		DrawIcon(matHUD_Block,38.3,21.8,8,2.5,r,g,b,a)
 		DrawIcon(matHUD_Text,34.3,23.8,16,1,r,g,b,a)
 
+		if ent:IsPlayer() then
+			local survival = ent:GetNW2Entity("AVP_SurvivalEntity")
+			if IsValid(survival) then
+				local svHeight = -19.2
+				local svWave = survival:GetWave() or 0
+				local svWaveSpace = (string.len(svWave) -1) *0.8
+				local svRemain = survival:GetKillsRemaining() or 0
+				local svRemainSpace = (string.len(svRemain) -1) *0.8
+				local svScore = math.Clamp(ent:GetNW2Int("AVP_Score",0),0,99999)
+				local svScoreSpace = (string.len(svScore) -1) *0.8
+
+				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)
+				DrawText("WAVE","VJFont_AVP_MarineSmall",-36,svHeight -0.6)
+				DrawText(svWave,"VJFont_AVP_MarineSmall",-37.6 -svWaveSpace,svHeight -0.6)
+				svHeight = -16.8
+				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)
+				DrawText("ALIENS REMAINING","VJFont_AVP_MarineSmall",-36,svHeight -0.6)
+				DrawText(svRemain,"VJFont_AVP_MarineSmall",-37.6 -svRemainSpace,svHeight -0.6)
+				svHeight = -14.4
+				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)
+				DrawText("SCORE","VJFont_AVP_MarineSmall",-36,svHeight -0.6)
+				DrawText(svScore,"VJFont_AVP_MarineSmall",-37.6 -svScoreSpace,svHeight -0.6)
+			end
+		end
+
 		local curwep = ent:GetActiveWeapon()
 		if IsValid(curwep) then
 			local hasammo = true

@@ -19,12 +19,13 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_bots",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_maxbots",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
-	VJ.AddConVar("vj_avp_survival_music",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_survival_respawn",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_a",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
+	VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Pinging?")
 
 	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
 
@@ -240,10 +241,8 @@ if VJExists == true then
 		end
 
 		hook.Add("Think","VJ_AVP_HUD_Setup",function()
-			for _,ply in ents.Iterator() do
-				if ply:IsPlayer() && ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC then
-					if GetConVar("ai_ignoreplayers"):GetBool() then return end
-					if ply:GetInfoNum("vj_avp_hud_ping",1) == 0 then return end
+			for _,ply in player.Iterator() do
+				if ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC && ply:Alive() && !GetConVar("ai_ignoreplayers"):GetBool() && ply:GetInfoNum("vj_avp_hud_ping",1) == 1 then
 					VJ_AVP_MotionTracker(ply)
 				end
 			end

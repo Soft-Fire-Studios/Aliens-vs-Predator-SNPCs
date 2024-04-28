@@ -323,6 +323,7 @@ ENT.CanSpit = false
 ENT.CanStand = true
 ENT.CanLeap = true
 ENT.CanAttack = true
+ENT.CanSprint = true
 ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.AlwaysStand = false
@@ -607,9 +608,14 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
 		end
 		if !timer.Exists(tName) then
 			v.VJ_AVP_XenomorphRunnerDMG = 1
+			v.VJ_AVP_XenomorphRunnerDMGFrags = v:IsPlayer() && v:Deaths() or 0
 		end
-		timer.Create(tName,10,10,function()
+		timer.Create(tName,10,6,function()
 			if IsValid(v) && v:Health() > 0 then
+				if v:IsPlayer() && v:Deaths() > v.VJ_AVP_XenomorphRunnerDMGFrags then
+					timer.Remove(tName)
+					return
+				end
 				local pos = v:EyePos() +v:GetForward() *5
 				local att = v:LookupAttachment("mouth")
 				if att > 0 then
@@ -727,7 +733,7 @@ function ENT:CheckRelationship(ent)
 		if VJ.HasValue(self.VJ_AddCertainEntityAsFriendly, ent) then return D_LI end
 		if VJ.HasValue(self.VJ_AddCertainEntityAsEnemy, ent) then return D_HT end
 		local entDisp = ent.Disposition and ent:Disposition(self)
-		if !self.AlwaysAlerted && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.2 then
+		if !self.SpawnedUsingMutator && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.2 then
 			return D_NU
 		end
 		if (ent:IsNPC() && ((entDisp == D_HT) or (entDisp == D_NU && ent.VJ_IsBeingControlled))) or (isPly && !self.PlayerFriendly && ent:Alive()) then
@@ -1749,7 +1755,7 @@ function ENT:CustomOnThink_AIEnabled()
 						end
 						return
 					end
-					if self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.NextSprintT && math.random(1,12) == 1 then
+					if self.CanSprint && self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.NextSprintT && math.random(1,12) == 1 then
 						self.AI_IsSprinting = true
 					end
 					local dist = self.LastEnemyDistance
@@ -1947,6 +1953,10 @@ end
 function ENT:CustomOnKilled(dmginfo)
 	-- VJ.AVP_ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
 	self:Acid(self:GetPos(),150,20)
+
+	if IsValid(self.VJ_TheController) then
+		self.VJ_TheController:SetNW2Int("AVP_SurvivalRespawn",CurTime() +10)
+	end
 
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
