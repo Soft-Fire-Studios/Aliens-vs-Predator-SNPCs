@@ -207,6 +207,15 @@ ENT.AttackDamageDistance = 110
 ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
 ---------------------------------------------------------------------------------------------------------------------------------------------
+util.AddNetworkString("VJ.AVP.PredatorLandingPos")
+net.Receive("VJ.AVP.PredatorLandingPos",function(len,pl)
+	local ent = net.ReadEntity()
+	local pos = net.ReadVector()
+	if IsValid(ent) && !ent:IsBusy() then
+		ent.PredatorLandingPos = pos
+	end
+end)
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
 	if act == ACT_IDLE then
 		if self.AttackIdleTime > CurTime() then
@@ -426,6 +435,7 @@ function ENT:CustomOnInitialize()
 	self.SpecialBlockAnimTime = 0
 	self.PlasmaHoldTime = 0
 	self.PlasmaMaxChargeT = 0
+	self.PlasmaFireDelayT = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -461,26 +471,6 @@ function ENT:CustomOnInitialize()
 				maxs = self:OBBMaxs()
 			})
 			if tr.HitSky then
-				-- self:SetNoDraw(true)
-				-- local theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering = ents.Create("npc_vj_avp_cin")
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetPos(self:GetPos())
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetAngles(self:GetAngles())
-				-- self:SetOwner(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:Spawn()
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:SetSolid(SOLID_NONE)
-				-- self:DeleteOnRemove(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
-				-- theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
-				-- 	if IsValid(self) then
-				-- 		self.DisableFindEnemy = false
-				-- 		self:SetState()
-				-- 		self:RemoveFlags(FL_NOTARGET)
-				-- 		self:SetNoDraw(false)
-				-- 	end
-				-- 	SafeRemoveEntity(predmobile)
-				-- 	SafeRemoveEntity(theDumbestFuckingSourceBugIHaveEverCounteredLikePlsEndMySuffering)
-				-- end})
-
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
 				self.DisableFindEnemy = true
@@ -731,6 +721,7 @@ function ENT:FirePlasmaCaster()
 		self.PlasmaHoldTime = 1
 	end
 	local amount = math_ceiling(self.PlasmaHoldTime *10)
+	self:StopParticles()
 	self.PlasmaMaxChargeT = 0
 	self.LastSpecialAttackID = 0
 	if self:GetEnergy() >= amount then
@@ -772,15 +763,23 @@ function ENT:FirePlasmaCaster()
 		end
 		self:SetEnergy(self:GetEnergy() -amount)
 		self.NextRegenEnergyT = CurTime() +5
+		ParticleEffect("vj_avp_predator_plasma_fire",self:GetAttachment(self:LookupAttachment("plasma")).Pos,self:GetAngles())
 	else
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_no_energy_01.ogg",70)
 	end
-	self:SetPoseParameter("plasma_pitch",0)
-	self:SetPoseParameter("plasma_yaw",0)
-	self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
-	self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-		self:SetBeam(false)
-	end})
+	-- self:SetPoseParameter("plasma_pitch",0)
+	-- self:SetPoseParameter("plasma_yaw",0)
+	-- self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	-- self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,false,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		-- self:SetBeam(false)
+	-- end})
+	self.PlasmaHoldTime = 0
+	self.PlasmaFireDelayT = CurTime() +0.51
+	timer.Simple(0.5,function()
+		if IsValid(self) && self.LastSpecialAttackID == 0 then
+			self:SetBeam(false)
+		end
+	end)
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -788,18 +787,28 @@ function ENT:SpecialAttackCode(atk)
 	if self.InFatality or self.DoingFatality or IsValid(self:GetDisc()) then return end
 	local atk = atk or 1
 	self.LastSpecialAttackID = atk
-	if atk == 1 then
+	if atk == 1 && CurTime() > self.PlasmaFireDelayT && !self:GetBeam() then
 		self:SetBeam(true)
-		self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
-		ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
+		-- self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
+		-- ParticleEffectAttach("vj_avp_predator_plasma_charge",PATTACH_POINT_FOLLOW,self,1)
+		ParticleEffectAttach("vj_avp_predator_plasma_charging",PATTACH_POINT_FOLLOW,self,1)
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
-		local _,dur = self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
-			if !IsValid(self.VJ_TheController) then
-				self:FirePlasmaCaster()
-			end
-		end})
-		self.PlasmaMaxChargeT = CurTime() +dur
+		-- local _,dur = self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		-- 	if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
+		-- 	if !IsValid(self.VJ_TheController) then
+		-- 		self:FirePlasmaCaster()
+		-- 	end
+		-- end})
+		self.PlasmaFireDelayT = CurTime() +0.1
+		if !IsValid(self.VJ_TheController) then
+			timer.Simple(1,function()
+				if IsValid(self) && !IsValid(self.VJ_TheController) then
+					self:FirePlasmaCaster()
+				end
+			end)
+			self.PlasmaHoldTime = math.Rand(1,4)
+		end
+		-- self.PlasmaMaxChargeT = CurTime() +dur
 		self.NextChaseTime = 0
 	elseif atk == 2 then
 		local att = self:GetAttachment(self:LookupAttachment("Pred_Mine"))
@@ -815,18 +824,20 @@ function ENT:SpecialAttackCode(atk)
 		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(mine)
 		self.Mine = mine
-		self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		local _,dur = self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			SafeRemoveEntity(self.Mine)
 		end})
+		SafeRemoveEntityDelayed(self.Mine,dur)
 		self.NextChaseTime = 0
 		self:SetBodygroup(self:FindBodygroupByName("equip_mine"),0)
 	elseif atk == 3 then
 		self:SetBeam(true)
 		self:PlayAnimation("vjges_predator_battledisc_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then self:SetBeam(false) SafeRemoveEntity(self.Disc) return end
-			self:PlayAnimation("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			local _,dur = self:PlayAnimation("vjges_predator_battledisc_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				SafeRemoveEntity(self.Disc)
 			end})
+			SafeRemoveEntityDelayed(self.Disc,dur)
 			self.NextChaseTime = 0
 		end})
 		self.NextChaseTime = 0
@@ -848,9 +859,10 @@ function ENT:SpecialAttackCode(atk)
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
 		self:PlayAnimation("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 			if interrupted then SafeRemoveEntity(self.SpearProp) return end
-			self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+			local _,dur = self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				SafeRemoveEntity(self.SpearProp)
 			end})
+			SafeRemoveEntityDelayed(self.SpearProp,dur)
 			self.NextChaseTime = 0
 		end})
 		self:SetBodygroup(self:FindBodygroupByName("equip_spear"),0)
@@ -951,8 +963,7 @@ end
 */
 --
 function ENT:LongJumpCode(gotoPos,atk)
-	if self.InFatality then return true end
-	if self:IsBusy() then return true end
+	if self.InFatality or self:IsBusy() or !self:OnGround() then return true end
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
 	local aimVec = IsValid(ply) && ply:GetAimVector()
@@ -973,34 +984,38 @@ function ENT:LongJumpCode(gotoPos,atk)
 		})
 	end
 	if !canJump then return true end
-	local firstHit = tr1.HitPos
-	-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
-	local upCheck1 = util.TraceLine({
-		start = firstHit,
-		endpos = firstHit +self:GetUp() *600,
-		filter = {self,ply,bullseye}
-	})
-	local trSt
-	if upCheck1 then
-		local pos = upCheck1.HitPos +(upCheck1.HitPos -self:GetPos()):GetNormalized() *64
-		-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,242,0), 5)
-		trSt = util.TraceLine({
-			start = pos,
-			endpos = pos +self:GetUp() *-2000,
-			filter = {self,ply,bullseye}
-		})
-		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(255,0,212), 5)
+	if self.PredatorLandingPos then
+		self.LongJumpPos = self.PredatorLandingPos
 	else
-		trSt = util.TraceLine({
+		local firstHit = tr1.HitPos
+		-- VJ.DEBUG_TempEnt(firstHit, self:GetAngles(), Color(255,0,0), 5)
+		local upCheck1 = util.TraceLine({
 			start = firstHit,
-			endpos = firstHit +self:GetUp() *-2000,
+			endpos = firstHit +self:GetUp() *600,
 			filter = {self,ply,bullseye}
 		})
-		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
+		local trSt
+		if upCheck1 then
+			local pos = upCheck1.HitPos +(upCheck1.HitPos -self:GetPos()):GetNormalized() *64
+			-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,242,0), 5)
+			trSt = util.TraceLine({
+				start = pos,
+				endpos = pos +self:GetUp() *-2000,
+				filter = {self,ply,bullseye}
+			})
+			-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(255,0,212), 5)
+		else
+			trSt = util.TraceLine({
+				start = firstHit,
+				endpos = firstHit +self:GetUp() *-2000,
+				filter = {self,ply,bullseye}
+			})
+			-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
+		end
+		self.LongJumpPos = trSt.HitPos
 	end
-	local startPos = trSt.HitPos +trSt.HitNormal *4
+	-- local startPos = trSt.HitPos +trSt.HitNormal *4
 	-- VJ.DEBUG_TempEnt(startPos, self:GetAngles(), Color(13,0,255), 5)
-	self.LongJumpPos = trSt.HitPos
 	self.LongJumpAttacking = atk
 	local anim
 	local dist = self:GetPos():Distance(self.LongJumpPos)
@@ -1033,6 +1048,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 	end
 	self:FaceCertainPosition(self.LongJumpPos,1)
 	self:PlayAnimation(anim,true,false,false)
+	self.PredatorLandingPos = nil
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
@@ -1584,6 +1600,34 @@ function ENT:CustomOnThink_AIEnabled()
 		if self:IsPlayingGesture(anim) then
 			self:RemoveGesture(anim)
 		end
+
+		if self:GetEquipment() == 1 then
+			if self.PlasmaCasterLayer then
+				local gesture = self:AddGestureSequence(self:LookupSequence("predator_plasma_layer"))
+				self:SetLayerPriority(gesture,1)
+				self:SetLayerPlaybackRate(gesture,0.5)
+			end
+			if !self.SetupPlasmaCaster then
+				self.PoseParameterLooking_Names = {pitch={"aim_pitch","plasma_pitch"}, yaw={"aim_yaw","plasma_yaw"}, roll={}}
+				self.SetupPlasmaCaster = true
+				self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish = function()
+					self.PlasmaCasterLayer = true
+					-- self:PlayAnimation("vjges_predator_plasma_layer",true,false,true,0,{AlwaysUseGesture=true})
+					-- self.NextChaseTime = 0
+				end})
+				self.NextChaseTime = 0
+			end
+		else
+			if self.SetupPlasmaCaster then
+				self:SetPoseParameter("plasma_pitch",0)
+				self:SetPoseParameter("plasma_yaw",0)
+				self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+				self.SetupPlasmaCaster = false
+				self.PlasmaCasterLayer = false
+				self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,true,0,{AlwaysUseGesture=true})
+				self.NextChaseTime = 0
+			end
+		end
 	end
 
 	if !self.WasSprinting && sprinting then
@@ -1706,12 +1750,12 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 
 	if IsValid(ply) then
-		if ply:KeyDown(IN_DUCK) && self:GetBeam() && self.LastSpecialAttackID == 1 then
+		if ply:KeyDown(IN_DUCK) && self:GetBeam() && self.LastSpecialAttackID == 1 && curTime > self.PlasmaFireDelayT then
 			self.PlasmaHoldTime = self.PlasmaHoldTime +0.25
 			if self.PlasmaHoldTime >= 4 then
 				self:FirePlasmaCaster()
 			end
-		elseif !ply:KeyDown(IN_DUCK) && self.LastSpecialAttackID == 1 then
+		elseif !ply:KeyDown(IN_DUCK) && self.LastSpecialAttackID == 1 && curTime > self.PlasmaFireDelayT then
 			self:FirePlasmaCaster()
 		elseif !self:GetBeam() then
 			self.PlasmaHoldTime = 0
@@ -1779,6 +1823,9 @@ function ENT:CustomOnThink_AIEnabled()
 			self.LookForHidingSpot = true
 		end
 		if goalPos then
+			if IsValid(enemy) && goalPos:Distance(enemy:GetPos()) < 300 then
+				return
+			end
 			local heightDif = math.abs(goalPos.z -self:GetPos().z)
 			local tr = util.TraceLine({
 				start = goalPos,

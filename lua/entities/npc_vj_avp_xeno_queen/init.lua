@@ -119,6 +119,7 @@ function ENT:OnInit()
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
+	self.CanFlinch = 0
 
 	self.InBirth = false
 	self.NextLookForBirthT = CurTime() +5

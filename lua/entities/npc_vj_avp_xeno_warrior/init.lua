@@ -61,6 +61,12 @@ ENT.RangeUseAttachmentForPos = true
 ENT.RangeUseAttachmentForPosID = "eyes"
 ENT.DisableDefaultRangeAttackCode = true
 
+ENT.CanFlinch = 1
+ENT.FlinchChance = 15
+ENT.NextFlinchTime = 1.75
+ENT.AnimTbl_FlinchCrouch = {"flinch_fwd_left","flinch_fwd_right","flinch_back_left","flinch_back_right"}
+ENT.AnimTbl_FlinchStand = {"standing_flinch_back_left","standing_flinch_back_right","standing_flinch_fwd_left","standing_flinch_fwd_right"}
+
 ENT.DisableFootStepSoundTimer = true
 ENT.HasExtraMeleeAttackSounds = true
 ENT.GeneralSoundPitch1 = 100
@@ -322,6 +328,7 @@ ENT.AttackDamage = 18
 ENT.CanSpit = false
 ENT.CanStand = true
 ENT.CanLeap = true
+ENT.CanLeapAttack = true
 ENT.CanAttack = true
 ENT.CanSprint = true
 ENT.CanScreamForHelp = true
@@ -457,6 +464,7 @@ local defCrawlingBounds = Vector(13,13,34)
 --
 function ENT:CustomOnInitialize()
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
+	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.LastSet = 0
 	self.LastIdleActivity = ACT_IDLE
 	self.LastMovementActivity = ACT_RUN
@@ -868,6 +876,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 	if self.InFatality or self.DoingFatality then return end
 	if !self.CanLeap then return end
 	self.CurrentSet = 1
+	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.ChangeSetT = CurTime() +0.5
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
@@ -1141,11 +1150,12 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if IsValid(cont) then
-		if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
-		elseif cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
-			if self.CanSpit && self.IsAbleToRangeAttack then return end
+		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 			self:AttackCode(isCrawling,5)
+		elseif cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && !self:IsBusy() && self.CanLeapAttack then
+			self:AttackCode(isCrawling,4)
 		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
 		end
@@ -1162,6 +1172,8 @@ function ENT:CustomAttack(ent,visible)
 			else
 				self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
 			end
+		elseif self.CanAttack && dist <= 450 && dist >= 325 && math.random(1,120) == 1 && !self:IsBusy() then
+			self:AttackCode(isCrawling,4)
 		end
 
 		if math.random(1,10) == 1 && isCrawling && !self:IsBusy() && dist <= 900 && dist > 225 && curTime > self.NextMoveRandomlyT then
@@ -1188,6 +1200,31 @@ function ENT:CustomAttack(ent,visible)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local math_Clamp = math.Clamp
+--
+function ENT:DoLeapAttack()
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	self:StopAllCommonSpeechSounds()
+	VJ.CreateSound(self,self.SoundTbl_Jump,80)
+
+	local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
+	self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+	self:VJ_ACT_PLAYACTIVITY("leap_long",true,false,false,0,{OnFinish=function(interrupted)
+		if interrupted then return end
+		self.AttackDamageDistance = 140
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+		local dmgcode = self:RunDamageCode(1.35)
+		VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
+		self:StopAllCommonSpeechSounds()
+		VJ.CreateSound(self,self.SoundTbl_Attack,80)
+		self:VJ_ACT_PLAYACTIVITY(#dmgcode <= 0 && "leap_attack_miss" or "leap_long_land",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+		end})
+	end})
+	self:SetTurnTarget(targetPos,0.25,true)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
 	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack then return end
@@ -1201,6 +1238,10 @@ function ENT:AttackCode(isCrawling,forceAttack)
 			self.NextChaseTime = 0
 		end})
 		self.NextChaseTime = 0
+		return
+	end
+	if forceAttack == 4 then
+		self:DoLeapAttack()
 		return
 	end
 	if isCrawling then
@@ -1239,6 +1280,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 										self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 											if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 											self.CurrentSet = 1
+											self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 											self.ChangeSetT = CurTime() +0.5
 										end})
 									end})
@@ -1246,6 +1288,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 										self.CurrentSet = 1
+										self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 										self.ChangeSetT = CurTime() +0.5
 									end})
 								end
@@ -1254,6 +1297,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 							self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 								if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 								self.CurrentSet = 1
+								self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 								self.ChangeSetT = CurTime() +0.5
 							end})
 						end
@@ -1301,6 +1345,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 										self.CurrentSet = 1
+										self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 										self.ChangeSetT = CurTime() +0.5
 									end})
 								end})
@@ -1308,6 +1353,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 								self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 									if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 									self.CurrentSet = 1
+									self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 									self.ChangeSetT = CurTime() +0.5
 								end})
 							end
@@ -1316,6 +1362,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 						self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
 							if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
 							self.CurrentSet = 1
+							self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 							self.ChangeSetT = CurTime() +0.5
 						end})
 					end
@@ -1372,6 +1419,11 @@ function ENT:AttackCode(isCrawling,forceAttack)
 								if interrupted or self.InFatality then return end
 								self.CurrentSet = (anim == "light_attack_" .. self.AttackSide .. "_to_run_fwd") && 2 or 1
 								self.ChangeSetT = CurTime() +0.5
+								if self.CurrentSet == 2 then
+									self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+								else
+									self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+								end
 							end})
 						end})
 					end
@@ -1627,6 +1679,7 @@ function ENT:CustomOnThink_AIEnabled()
 			self.CurrentSet = 2
 			self.NextIdleTime = 0
 			self.NextIdleStandTime = 0
+			self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
 			curSet = 2
 		end
 
@@ -1690,6 +1743,7 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 		self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
 		if self.AlwaysStand && self.CanStand && self.CurrentSet == 1 then
+			self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
 			self.CurrentSet = 2
 			self.NextIdleTime = 0
 			self.NextIdleStandTime = 0
@@ -1740,6 +1794,11 @@ function ENT:CustomOnThink_AIEnabled()
 				self.ChangeSetT = curTime +0.5
 				self.NextIdleTime = 0
 				self.NextIdleStandTime = 0
+				if self.CurrentSet == 1 then
+					self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+				else
+					self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+				end
 			end
 		else
 			self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
@@ -1752,6 +1811,7 @@ function ENT:CustomOnThink_AIEnabled()
 							self.NextIdleTime = 0
 							self.NextIdleStandTime = 0
 							self.ChangeSetT = curTime +math.Rand(15,35)
+							self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 						end
 						return
 					end
@@ -1763,6 +1823,7 @@ function ENT:CustomOnThink_AIEnabled()
 						if curSet == 1 then
 							if self.CanStand && (self.AlwaysStand or !self.AlwaysStand && dist < 750 && math.random(1,20) == 1) then
 								self.CurrentSet = 2
+								self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
 								self.NextIdleTime = 0
 								self.NextIdleStandTime = 0
 								self.ChangeSetT = curTime +math.Rand(15,35)
@@ -1773,6 +1834,7 @@ function ENT:CustomOnThink_AIEnabled()
 						else
 							if !self.AlwaysStand && dist >= 750 && math.random(1,10) == 1 then
 								self.CurrentSet = 1
+								self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 								self.NextIdleTime = 0
 								self.NextIdleStandTime = 0
 								self.ChangeSetT = curTime +math.Rand(15,35)
@@ -1785,6 +1847,11 @@ function ENT:CustomOnThink_AIEnabled()
 						self.NextIdleTime = 0
 						self.NextIdleStandTime = 0
 						self.ChangeSetT = curTime +math.Rand(3,8)
+						if self.CurrentSet == 1 then
+							self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+						else
+							self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+						end
 					end
 				end
 			else
@@ -1984,6 +2051,9 @@ function ENT:SelectMovementActivity(act)
 	local ply = self.VJ_TheController
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
+	if self:IsOnFire() then
+		return ACT_WALK_ON_FIRE
+	end
 	local gib = self.Gibbed
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH

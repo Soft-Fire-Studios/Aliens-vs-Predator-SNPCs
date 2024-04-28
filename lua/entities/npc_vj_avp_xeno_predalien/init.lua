@@ -90,6 +90,7 @@ function ENT:OnInit()
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
+	self.CanFlinch = 0
 
 	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
 
@@ -241,17 +242,17 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if visible then
-		if self.CanAttack then
-			if dist <= self.AttackDistance && !self:IsBusy() then
-				local canUse, inFront = self:CanUseFatality(ent)
-				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-					if self:DoFatality(ent,inFront) == false then
-						self:AttackCode(isCrawling)
-					end
-				else
+		if self.CanAttack && dist <= self.AttackDistance && !self:IsBusy() then
+			local canUse, inFront = self:CanUseFatality(ent)
+			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+				if self:DoFatality(ent,inFront) == false then
 					self:AttackCode(isCrawling)
 				end
+			else
+				self:AttackCode(isCrawling)
 			end
+		elseif self.CanAttack && dist <= 450 && dist >= 325 && math.random(1,70) == 1 && !self:IsBusy() then
+			self:AttackCode(isCrawling,4)
 		end
 	end
 end

@@ -694,6 +694,10 @@ if CLIENT then
 				if hasMask && ply:KeyDown(IN_SPEED) then
 					local targetPos = GetLandingPosition(ent,ply)
 					targetPos = landPos != scale0 && landPos +Vector(0,0,3) or targetPos +Vector(0,0,3)
+					net.Start("VJ.AVP.PredatorLandingPos")
+						net.WriteEntity(ent)
+						net.WriteVector(targetPos)
+					net.SendToServer()
 					if !IsValid(ent.LandingParticle) or IsValid(ent.LandingParticle) && mode != ent.LandingParticleMode then
 						if IsValid(ent.LandingParticle) then
 							ent.LandingParticle:StopEmission(false,true)
