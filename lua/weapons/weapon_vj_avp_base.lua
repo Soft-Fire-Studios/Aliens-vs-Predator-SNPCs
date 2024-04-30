@@ -189,6 +189,7 @@ function SWEP:CustomOnThink()
 	if !SERVER then return end
 
 	if owner:KeyDown(IN_SPEED) && owner:GetVelocity():Length() > 5 && owner:OnGround() then
+		if owner:KeyDown(IN_DUCK) then return end
 		if self:GetSprinting() == false then
 			self:SetSprinting(true)
 			self.AnimTbl_Idle = {ACT_VM_MISSCENTER2}
