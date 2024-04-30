@@ -12,6 +12,7 @@ ENT.VJ_AVP_Marine = true
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
+	self:NetworkVar("Entity",0,"Flare")
 end
 
 if CLIENT then
@@ -162,7 +163,9 @@ if CLIENT then
 			DrawIcon(matHUD_Stims,stimPos +stimX,-17,2,2,r,g,b,stimsA[i])
 		end
 
-		flare = Lerp(FT *4,flare,((ent:IsPlayer() && ent:FlashlightIsOn() && a) or (ent.GetFlare && ent:GetFlare() or false) && a) or 50)
+		local flareEnt = ent:IsPlayer() && ent:GetNW2Entity("AVP.Flare") or ent:GetFlare()
+		-- flare = Lerp(FT *4,flare,((ent:IsPlayer() && ent:FlashlightIsOn() && a) or (ent.GetFlare && ent:GetFlare() or false) && a) or 50)
+		flare = Lerp(FT *4,flare,IsValid(flareEnt) && a or 50)
 		DrawIcon(matHUD_Flare,41.8,15,1.35,3.5,r,g,b,flare)
 		DrawIcon(matHUD_Block,38.3,18.5,8,2.5,r,g,b,a)
 		DrawIcon(matHUD_Block,38.3,21.8,8,2.5,r,g,b,a)

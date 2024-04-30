@@ -27,10 +27,15 @@ end
 
 SWEP.PrintName					= "M42C Scoped Rifle"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_scopedrifle.mdl"
-SWEP.WorldModel					= "models/weapons/w_irifle.mdl"
+SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_scopedrifle.mdl"
 SWEP.HoldType 					= "ar2"
 SWEP.Spawnable					= true
 SWEP.AdminSpawnable				= false
+
+SWEP.WorldModel_UseCustomPosition = true
+SWEP.WorldModel_CustomPositionAngle = Vector(-12, 0, 180)
+SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 3.75, 0.3)
+SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
 
@@ -52,7 +57,7 @@ SWEP.Primary.Sound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new
 -- SWEP.Primary.DistantSound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new_01_mn.ogg"}
 
 SWEP.ViewModelAdjust = {
-	Pos = {Right = 0,Forward = 1,Up = 0},
+	Pos = {Right = 0,Forward = 0,Up = 0},
 	Ang = {Right = 0,Up = 0,Forward = 0}
 }
 SWEP.ViewModelZoomAdjust = {
@@ -103,19 +108,23 @@ function SWEP:OnInit()
 			end
 			local highTbl = self.HighlightEnts
 			if self.HighlightT > CurTime() && table_Count(highTbl) > 0 then
-				halo.Add(highTbl,Color(117,244,255),2,2,6,true,true)
+				halo.Add(highTbl,Color(199,250,255),2,2,6,true,true)
 			end
 		end)
 
 		local render_GetLightColor = render.GetLightColor
 		hook.Add("RenderScreenspaceEffects",self,function(self)
 			if self:GetZoomed() then
+				// Lets calculate the contrast based on the lightness of the hitPos
+				local hitPos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
+				local lightLevel = render_GetLightColor(hitPos):Length()
+				local contrast = lightLevel < 0.2 && lightLevel *-3 or lightLevel *0.1
+				self.ContrastLevel = Lerp(FrameTime() *5,self.ContrastLevel or 0,contrast)
 				DrawMotionBlur(0.1,0.8,0.01)
-				DrawBloom(-0.1,0.5,1,1,0,0,2,2,2)
+				DrawBloom(self.ContrastLevel,0.5,1,1,0,0,2,2,2)
 				DrawTexturize(0,matGradientTech)
 
-				local hitPos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
-				if render_GetLightColor(hitPos):Length() < 0.135 then
+				if lightLevel < 0.135 then
 					local dLight = DynamicLight(self:EntIndex())
 					if (dLight) then
 						dLight.pos = hitPos
@@ -180,7 +189,8 @@ function SWEP:OnInit()
 			if self:GetZoomed() then
 				DrawIcon(matScope,0,0,138,138)
 				DrawIcon_D(matCrosshair,0.35,0.125,60,60)
-				DrawIcon(matCrosshairGlint,0.35,0.125,60,60)
+				local lightLevel = render_GetLightColor(self:GetOwner():EyePos()):Length()
+				DrawIcon(matCrosshairGlint,0.35,0.125,60,60,255,255,255,math.Clamp(lightLevel *255,0,255))
 			end
 		end)
 	end
@@ -206,8 +216,8 @@ function SWEP:OnThink(owner)
 	end
 
 	if self.HighlightT > CurTime() then
-		for _,v in pairs(ents.FindInSphere(self:GetPos(),3500)) do
-			if self:GetZoomed() && !VJ.HasValue(self.HighlightEnts,v) && (v:IsNPC() && v:Disposition(owner) != D_LI or v:IsPlayer() && v != owner or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+		for _,v in ents.Iterator() do
+			if self:GetZoomed() && !VJ.HasValue(self.HighlightEnts,v) && (v:IsNPC() or v:IsPlayer() && v != owner or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
 				net.Start("VJ.AVP.SniperHalos")
 					net.WriteEntity(self)
 					net.WriteEntity(v)

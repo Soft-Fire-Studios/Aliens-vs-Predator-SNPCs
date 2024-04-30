@@ -108,6 +108,9 @@ function SWEP:CustomOnInitialize()
 	self.SprintDelayT = 0
 	self.SprintSide = 1
 	self.CoolDownT = 0
+	self.Original_Recoil = self.Primary.Recoil
+	self.Original_Cone = self.Primary.Cone
+
 	if self.Primary.UsesLoopedSound then
 		self.PrimarySound = self.Primary.Sound
 		self.Primary.Sound = nil
@@ -197,7 +200,18 @@ function SWEP:OwnerChanged()
 	if self.Primary.UsesLoopedSound && self.PrimaryLoop then
 		self.PrimaryLoop:Stop()
 	end
+
+	local owner = self:GetOwner()
+	if IsValid(owner) then
+		self:OnNewOwner(owner)
+	else
+		self:OnNoOwner()
+	end
 end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnNewOwner(owner) end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnNoOwner() end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:AdjustMouseSensitivity()
 	return self:GetZoomed() && 0.25 or 1
@@ -308,11 +322,7 @@ function SWEP:CustomOnThink()
 		end
 	end
 
-	if owner:KeyDown(IN_ATTACK) && owner:KeyDown(IN_USE) then
-		self:DoInspection()
-	end
-
-	if owner:KeyDown(IN_ATTACK2) && self.UsesZoom then
+	if owner:KeyDown(IN_ATTACK2) && !owner:KeyDown(IN_USE) && self.UsesZoom then
 		if self:GetZoomed() == false then
 			self:Zoom()
 		end
@@ -365,11 +375,47 @@ function SWEP:CanSpecialSecondaryAttack()
 	return CurTime() > self:GetNextSecondaryFire() && !self.Reloading && self:GetSprinting() == false && CurTime() > self.SprintDelayT
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:ThrowFlare(owner)
+	local anim = VJ.AnimExists(owner:GetViewModel(),ACT_VM_RECOIL1) && ACT_VM_RECOIL1
+	local animTime = 0.6
+	if anim then
+		animTime = VJ.AnimDuration(owner:GetViewModel(),anim)
+		self:SendWeaponAnim(anim)
+		self.NextIdleT = CurTime() +animTime
+		self.NextReloadT = CurTime() +animTime
+	end
+	timer.Simple(0.3,function()
+		if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
+			SafeRemoveEntity(owner.VJ_AVP_Flare)
+			local flare = ents.Create("obj_vj_flareround")
+			flare:SetPos(owner:GetShootPos() +owner:GetUp() *-5)
+			flare:SetAngles(owner:EyeAngles())
+			flare:SetOwner(owner)
+			flare:Spawn()
+			flare:Activate()
+			local phys = flare:GetPhysicsObject()
+			if IsValid(phys) then
+				phys:Wake()
+				phys:SetVelocity(owner:GetAimVector() *850)
+			end
+			owner.VJ_AVP_Flare = flare
+			owner:SetNW2Entity("AVP.Flare",flare)
+		end
+	end)
+	
+	self:SetNextSecondaryFire(CurTime() +(self.Secondary.Delay == false && animTime or self.Secondary.Delay))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:SecondaryAttack()
 	if !self:CanSecondaryAttack() or self.Reloading then return end
 	if self:CustomOnSecondaryAttack() == false then return end
 	
 	local owner = self:GetOwner()
+	if owner:IsPlayer() && owner:KeyDown(IN_USE) && !IsValid(owner.VJ_AVP_Flare) then
+		self:ThrowFlare(owner)
+		return
+	end
+
 	self:TakeSecondaryAmmo(self.Secondary.TakeAmmo)
 	owner:SetAnimation(PLAYER_ATTACK1)
 	local anim = VJ.PICK(self.AnimTbl_SecondaryFire)
@@ -380,8 +426,12 @@ function SWEP:SecondaryAttack()
 		self.NextIdleT = CurTime() + animTime
 		self.NextReloadT = CurTime() + animTime
 	end
+
+	if self.OnSecondaryAttack then
+		self:OnSecondaryAttack(anim,animTime)
+	end
 	
-	self:SetNextSecondaryFire(CurTime() + (self.Secondary.Delay == false and animTime or self.Secondary.Delay))
+	self:SetNextSecondaryFire(CurTime() + (self.Secondary.Delay == false && animTime or self.Secondary.Delay))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CanReload()
@@ -429,8 +479,8 @@ function SWEP:Zoom(override)
 	local zoomed = self:GetZoomed()
 	self:SetZoomed(!zoomed)
 	self:GetOwner():SetFOV(self:GetZoomed() && (self.ZoomLevel or 40) or (GetConVar("fov_desired"):GetInt() or 90), 0.25)
-	-- self.Primary.Cone = (self:GetZoomed() && self.Original_Cone *0.5) or self.Original_Cone
-	-- self.Primary.Recoil = (self:GetZoomed() && self.Original_Recoil *0.25) or self.Original_Recoil
+	self.Primary.Cone = (self:GetZoomed() && self.Original_Cone *0.5) or self.Original_Cone
+	self.Primary.Recoil = (self:GetZoomed() && self.Original_Recoil *0.25) or self.Original_Recoil
 	-- self:EmitSound(self:GetZoomed() && "cpthazama/cs2/weapons/weapon_zoom_out_02.wav" or "cpthazama/cs2/weapons/weapon_zoom_out_03.wav", 50, 115)
 	self.DelayZoom = CurTime() +IRONSIGHT_TIME
 end

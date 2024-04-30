@@ -12,10 +12,15 @@ end
 
 SWEP.PrintName					= "M41A Pulse Rifle"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pulserifle.mdl"
-SWEP.WorldModel					= "models/weapons/w_irifle.mdl"
+SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_pulserifle.mdl"
 SWEP.HoldType 					= "ar2"
 SWEP.Spawnable					= true
 SWEP.AdminSpawnable				= false
+
+SWEP.WorldModel_UseCustomPosition = true
+SWEP.WorldModel_CustomPositionAngle = Vector(-12, 0, 180)
+SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 3.75, 0.3)
+SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
 
@@ -58,7 +63,7 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnSecondaryAttack()
+function SWEP:OnSecondaryAttack(anim,animTime)
 	local owner = self:GetOwner()
 	VJ.EmitSound(self, "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_grenade_fire_04.ogg", 85)
 
@@ -77,5 +82,4 @@ function SWEP:CustomOnSecondaryAttack()
 	end
 
 	owner:ViewPunch(Angle(-self.Primary.Recoil *15, 0, 0))
-	return true
 end
