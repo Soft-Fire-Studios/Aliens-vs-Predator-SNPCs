@@ -322,6 +322,10 @@ function SWEP:CustomOnThink()
 		end
 	end
 
+	if owner:KeyDown(IN_ATTACK) && owner:KeyDown(IN_USE) && self:CanSpecialSecondaryAttack() then
+		self:MeleeAttack(owner)
+	end
+
 	if owner:KeyDown(IN_ATTACK2) && !owner:KeyDown(IN_USE) && self.UsesZoom then
 		if self:GetZoomed() == false then
 			self:Zoom()
@@ -331,6 +335,110 @@ function SWEP:CustomOnThink()
 			self:Zoom()
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:GetNearestPoint(argent,SameZ)
+	if !IsValid(argent) then return end
+	SameZ = SameZ or false -- Should the Z of the pos be the same as the NPC's?
+	local myNearestPoint = self:GetOwner():EyePos()
+	local NearestPositions = {MyPosition=Vector(0,0,0), EnemyPosition=Vector(0,0,0)}
+	local Pos_Enemy, Pos_Self = argent:NearestPoint(myNearestPoint + argent:OBBCenter()), self:NearestPoint(argent:GetPos() + self:OBBCenter())
+	Pos_Enemy.z, Pos_Self.z = argent:GetPos().z, myNearestPoint.z
+	if SameZ == true then
+		Pos_Enemy = Vector(Pos_Enemy.x,Pos_Enemy.y,self:SetNearestPointToEntityPosition().z)
+		Pos_Self = Vector(Pos_Self.x,Pos_Self.y,self:SetNearestPointToEntityPosition().z)
+	end
+	NearestPositions.MyPosition = Pos_Self
+	NearestPositions.EnemyPosition = Pos_Enemy
+	return NearestPositions
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:DealDamage(v)
+	local applyDmg = DamageInfo()
+	applyDmg:SetDamage(self.MeleeAttackDamage or 10)
+	applyDmg:SetDamageType(self.MeleeAttackDamageType or DMG_CLUB)
+	applyDmg:SetDamagePosition(self:GetNearestPoint(v).MyPosition)
+	applyDmg:SetDamageForce(self:GetForward() *((applyDmg:GetDamage() +100) *70))
+	applyDmg:SetInflictor(self)
+	applyDmg:SetAttacker(self:GetOwner())
+	v:TakeDamageInfo(applyDmg,self:GetOwner())
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnMeleeHit(entities,hitType,owner) end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnMeleeHit(entities)
+	local owner = self:GetOwner()
+	local hitType = 0
+	if #entities <= 0 then
+		local tr = util.TraceLine({
+			start = owner:GetShootPos(),
+			endpos = owner:GetShootPos() +owner:GetAimVector() *120,
+			filter = {owner,self}
+		})
+		if tr.Hit then
+			sound.Play("cpthazama/avp/weapons/blocking/block_hit_generic_mono_0" .. math.random(1,3) .. ".ogg", tr.HitPos, 75)
+			hitType = 1
+		else
+			VJ.CreateSound(self,"cpthazama/avp/weapons/human/melee/marine_melee_swing_0" .. math.random(1,2) .. ".ogg",70)
+			hitType = 2
+		end
+	else
+		sound.Play("cpthazama/avp/weapons/impacts/melee/melee_impact_flesh_01.ogg", owner:EyePos(), 75)
+		hitType = 3
+	end
+
+	self:CustomOnMeleeHit(entities,hitType,owner)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+if CLIENT then
+	net.Receive("VJ.AVP.AnimationSync",function(len)
+		local owner = net.ReadEntity()
+		local anim = net.ReadInt(16)
+		if IsValid(owner) then
+			owner:AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD, anim or ACT_GMOD_GESTURE_MELEE_SHOVE_2HAND, true)
+		end
+	end)
+else
+	util.AddNetworkString("VJ.AVP.AnimationSync")
+end
+--
+function SWEP:PlayPlayerAnimation(anim)
+	local owner = self:GetOwner()
+	owner:AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD,anim,true)
+	net.Start("VJ.AVP.AnimationSync")
+		net.WriteEntity(owner)
+		net.WriteInt(anim,16)
+	net.Send(owner)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local IsProp = VJ.IsProp
+--
+function SWEP:MeleeAttack(owner)
+	local anim = VJ.AnimExists(owner:GetViewModel(),ACT_VM_HITCENTER) && ACT_VM_HITCENTER
+	if !anim then return end
+	local animTime = VJ.AnimDuration(owner:GetViewModel(),anim)
+	self:SendWeaponAnim(anim)
+	self:PlayPlayerAnimation(ACT_GMOD_GESTURE_MELEE_SHOVE_2HAND)
+	self.NextIdleT = CurTime() +animTime
+	self.NextReloadT = CurTime() +animTime
+
+	if SERVER then
+		timer.Simple(0.1,function()
+			if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
+				local tbl = {}
+				for _,v in ipairs(ents.FindInSphere(owner:GetShootPos(),120)) do
+					if owner:Visible(v) && v != self && v != owner && (v:IsNPC() or v:IsPlayer() or v:IsNextBot() or IsProp(v)) && (owner:GetAimVector():Angle():Forward():Dot(((v:GetPos() +v:OBBCenter()) - owner:GetShootPos()):GetNormalized()) > math.cos(math.rad(45))) then
+						table.insert(tbl,v)
+						self:DealDamage(v)
+					end
+				end
+				self:OnMeleeHit(tbl)
+			end
+		end)
+	end
+	
+	self:SetNextPrimaryFire(CurTime() +animTime)
+	self:SetNextSecondaryFire(CurTime() +animTime)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnReload()
@@ -357,6 +465,7 @@ end
 function SWEP:CanPrimaryAttack()
 	if self.Reloading then return false end
 	if self:GetSprinting() == true then return false end
+	if self:GetOwner():IsPlayer() && self:GetOwner():KeyDown(IN_USE) then return false end
 	if CurTime() <= self.SprintDelayT then return end
 	if self.Weapon:Clip1() <= 0 then
 		self:EmitSound("Weapon_Pistol.Empty")
@@ -381,6 +490,7 @@ function SWEP:ThrowFlare(owner)
 	if anim then
 		animTime = VJ.AnimDuration(owner:GetViewModel(),anim)
 		self:SendWeaponAnim(anim)
+		self:PlayPlayerAnimation(ACT_GMOD_GESTURE_ITEM_THROW)
 		self.NextIdleT = CurTime() +animTime
 		self.NextReloadT = CurTime() +animTime
 	end
