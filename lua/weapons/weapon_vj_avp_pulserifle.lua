@@ -34,12 +34,13 @@ SWEP.Secondary.Ammo = "SMG1_Grenade"
 
 SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 
-SWEP.Primary.Sounds = {
+SWEP.Primary.Sound = {
 	"cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_01_shot_loopmono_01.wav",
 	"cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_01_shot_loopmono_02.wav",
 	"cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_01_shot_loopmono_03.wav",
 	"cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_01_shot_loopmono_04.wav",
 }
+SWEP.Primary.UsesLoopedSound 	= true
 
 SWEP.ViewModelAdjust = {
 	Pos = {Right = 0,Forward = -1,Up = -0.2},
@@ -55,29 +56,6 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(0.4,Angle(1,-4,1))
 	-- self:DoViewPunch(1.3,Angle(-2,1,1))
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnThink(owner)
-	local curTime = CurTime()
-	if self.LoopSound && curTime > (self.LastFireT or 0) then
-		self.LoopSound:Stop()
-		self.LoopSound = nil
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnShoot()
-	if !self.LoopSound or (CurTime() > self.NextLoopSoundT && math.random(1,2) == 1) then
-		if self.LoopSound then
-			self.LoopSound:Stop()
-			self.LoopSound = nil
-		end
-		local snd = VJ_PICK(self.Primary.Sounds)
-		self.LoopSound = CreateSound(self,snd)
-		self.LoopSound:SetSoundLevel(90)
-		self.LoopSound:Play()
-		self.NextLoopSoundT = CurTime() +SoundDuration(snd)
-	end
-	self.LastFireT = CurTime() +0.1
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnSecondaryAttack()
@@ -100,11 +78,4 @@ function SWEP:CustomOnSecondaryAttack()
 
 	owner:ViewPunch(Angle(-self.Primary.Recoil *15, 0, 0))
 	return true
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnRemove()
-	if self.LoopSound then
-		self.LoopSound:Stop()
-		self.LoopSound = nil
-	end
 end

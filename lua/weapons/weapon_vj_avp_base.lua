@@ -20,7 +20,10 @@ SWEP.Spawnable					= false
 SWEP.AdminSpawnable				= false
 
 SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_wep_rifle_muzzle"}
-SWEP.PrimaryEffects_SpawnShells = true
+-- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main"}
+-- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main","vj_avp_wep_rifle_muzzle"}
+-- SWEP.PrimaryEffects_MuzzleParticlesAsOne = true
+SWEP.PrimaryEffects_SpawnShells = false
 SWEP.PrimaryEffects_ShellType = "ShellEject" -- Pistol = ShellEject | Rifle = RifleShellEject | Shotgun = ShotgunShellEject
 SWEP.Primary.SoundPitch	= VJ_Set(100, 100)
 
@@ -39,6 +42,10 @@ SWEP.ViewModelZoomAdjust = {
 	Pos = {Right = -0.25,Forward = 2,Up = 0},
 	Ang = {Right = 0,Up = 0,Forward = 0}
 }
+
+SWEP.Primary.UsesLoopedSound 	= false
+SWEP.Primary.StartSound 		= {}
+SWEP.Primary.EndSound 			= {}
 --
 local IRONSIGHT_TIME = 0.15
 local SPRINT_TIME = 0.25
@@ -101,6 +108,14 @@ function SWEP:CustomOnInitialize()
 	self.SprintDelayT = 0
 	self.SprintSide = 1
 	self.CoolDownT = 0
+	if self.Primary.UsesLoopedSound then
+		self.PrimarySound = self.Primary.Sound
+		self.Primary.Sound = nil
+		self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound))
+		self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
+	end
+
+	self.PrimaryLoopSoundT = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -156,6 +171,17 @@ function SWEP:CustomOnPrimaryAttack_AfterShoot()
 	if self.OnShoot then
 		self:OnShoot()
 	end
+
+	if self.Primary.UsesLoopedSound then
+		self.PrimaryLoopSoundT = CurTime() +0.1
+		if math.random(1,7) == 1 && self.PrimaryLoop:IsPlaying() && #self.PrimarySound > 1 then
+			self.PrimaryLoop:Stop()
+			self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound))
+			self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
+			self.PrimaryLoop:Play()
+		end
+	end
+
 	if CLIENT then return end
 	if math.random(1,2) == 1 then
 		self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
@@ -165,6 +191,16 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:IsBusy()
 	return self.Reloading
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OwnerChanged()
+	if self.Primary.UsesLoopedSound && self.PrimaryLoop then
+		self.PrimaryLoop:Stop()
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:AdjustMouseSensitivity()
+	return self:GetZoomed() && 0.25 or 1
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local sprintAng = Angle(0,0.5,0.8)
@@ -184,12 +220,35 @@ function SWEP:CustomOnThink()
 		VJ_AVP_MotionTracker(owner)
 	end
 
+	if self.PrimaryLoop then
+		if CurTime() > self.PrimaryLoopSoundT && self.PrimaryLoopSoundT > 0 then
+			self.PrimaryLoop:Stop()
+			self.PrimaryLoopSoundT = 0
+			if IsValid(owner) then
+				local fireSd = VJ.PICK(self.Primary.EndSound)
+				if fireSd != false then
+					sound.Play(fireSd, owner:GetPos(), self.Primary.SoundLevel, math.random(self.Primary.SoundPitch.a, self.Primary.SoundPitch.b), self.Primary.SoundVolume)
+				end
+			end
+		elseif self.PrimaryLoopSoundT > CurTime() && !self.PrimaryLoop:IsPlaying() then
+			self.PrimaryLoop:Play()
+			if IsValid(owner) then
+				local fireSd = VJ.PICK(self.Primary.StartSound)
+				if fireSd != false then
+					sound.Play(fireSd, owner:GetPos(), self.Primary.SoundLevel, math.random(self.Primary.SoundPitch.a, self.Primary.SoundPitch.b), self.Primary.SoundVolume)
+				end
+			end
+		end
+		self:NextThink(CurTime())
+	end
+
 	if !owner:IsPlayer() then return end
 	if self:GetSprinting() then
 		self:SetHoldType((self.HoldType == "crossbow" or self.HoldType == "smg" or self.HoldType == "rpg" or self.HoldType == "shotgun" or self.HoldType == "ar2" or self.HoldType == "physgun") && "passive" or "normal")
 	else
 		self:SetHoldType(self.HoldType)
 	end
+
 	if !SERVER then return end
 
 	if owner:KeyDown(IN_SPEED) && owner:GetVelocity():Length() > 5 && owner:OnGround() then
@@ -374,6 +433,16 @@ function SWEP:Zoom(override)
 	-- self.Primary.Recoil = (self:GetZoomed() && self.Original_Recoil *0.25) or self.Original_Recoil
 	-- self:EmitSound(self:GetZoomed() && "cpthazama/cs2/weapons/weapon_zoom_out_02.wav" or "cpthazama/cs2/weapons/weapon_zoom_out_03.wav", 50, 115)
 	self.DelayZoom = CurTime() +IRONSIGHT_TIME
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnHolster(newWep)
+	VJ.STOPSOUND(self.PrimaryLoop)
+	return true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnRemove()
+	self:StopParticles()
+	VJ.STOPSOUND(self.PrimaryLoop)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:GetViewModelPosition(pos,ang)

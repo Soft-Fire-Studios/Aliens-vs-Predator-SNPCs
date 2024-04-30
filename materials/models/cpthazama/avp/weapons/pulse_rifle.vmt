@@ -9,9 +9,12 @@
     "$alphatest" 				"1"
 	"$allowalphatocoverage" 	"1"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "10"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongalbedotint"          "1"
+	"$phongalbedoboost"         "30"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"
 	"$envmapfresnel"             "1"
@@ -19,7 +22,7 @@
 	"$envmaptint" 				 "[0.1 0.1 0.1]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"1"
+	"$DEM_Multiplier" 			"1.1"
 
 	"$emissiveBlendEnabled"			"1"
 	"$emissiveBlendTexture"			"vgui/white"
