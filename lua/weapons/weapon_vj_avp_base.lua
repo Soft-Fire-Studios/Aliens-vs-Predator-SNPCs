@@ -192,6 +192,7 @@ function SWEP:CustomOnThink()
 		if owner:KeyDown(IN_DUCK) then return end
 		if self:GetSprinting() == false then
 			self:SetSprinting(true)
+			self.AppliedMovementAnimation = false
 			self.AnimTbl_Idle = {ACT_VM_MISSCENTER2}
 			if !self:IsBusy() then
 				self.NextIdleT = 0
@@ -202,16 +203,24 @@ function SWEP:CustomOnThink()
 			end
 		end
 	else
+		local moving = owner:GetVelocity():Length() > 5 && owner:OnGround()
 		if self:GetSprinting() == true then
 			self:SetSprinting(false)
-			self.AnimTbl_Idle = {ACT_VM_IDLE}
+			if moving then
+				if !self.AppliedMovementAnimation then
+					self.AppliedMovementAnimation = true
+					self.AnimTbl_Idle = {ACT_VM_MISSCENTER}
+				end
+			else
+				self.AnimTbl_Idle = {ACT_VM_IDLE}
+			end
 			if !self:IsBusy() then
 				self.NextIdleT = 0
 			end
 			self.SprintDelayT = CurTime() +(SPRINT_TIME *0.7)
 		end
 		local vm = owner:GetViewModel()
-		if owner:GetVelocity():Length() > 5 && owner:OnGround() then
+		if moving then
 			if !self.AppliedMovementAnimation then
 				self.AppliedMovementAnimation = true
 				self.AnimTbl_Idle = {ACT_VM_MISSCENTER}
