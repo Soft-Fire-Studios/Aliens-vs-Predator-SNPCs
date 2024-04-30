@@ -159,6 +159,10 @@ function SWEP:CustomOnPrimaryAttack_AfterShoot()
 	self.CoolDownT = CurTime() +(self:GetOverHeat() *6)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:IsBusy()
+	return self.Reloading
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local sprintAng = Angle(0,0.5,0.8)
 local string_find = string.find
 --
@@ -187,6 +191,10 @@ function SWEP:CustomOnThink()
 	if owner:KeyDown(IN_SPEED) && owner:GetVelocity():Length() > 5 && owner:OnGround() then
 		if self:GetSprinting() == false then
 			self:SetSprinting(true)
+			self.AnimTbl_Idle = {ACT_VM_MISSCENTER2}
+			if !self:IsBusy() then
+				self.NextIdleT = 0
+			end
 			self.SprintDelayT = CurTime() +(SPRINT_TIME *0.7)
 			if self:GetZoomed() == true then
 				self:Zoom(true)
@@ -195,7 +203,35 @@ function SWEP:CustomOnThink()
 	else
 		if self:GetSprinting() == true then
 			self:SetSprinting(false)
+			self.AnimTbl_Idle = {ACT_VM_IDLE}
+			if !self:IsBusy() then
+				self.NextIdleT = 0
+			end
 			self.SprintDelayT = CurTime() +(SPRINT_TIME *0.7)
+		end
+		local vm = owner:GetViewModel()
+		if owner:GetVelocity():Length() > 5 && owner:OnGround() then
+			if !self.AppliedMovementAnimation then
+				self.AppliedMovementAnimation = true
+				self.AnimTbl_Idle = {ACT_VM_MISSCENTER}
+				if !self:IsBusy() then
+					self.NextIdleT = 0
+				end
+			end
+			if vm:GetSequenceActivity(vm:GetSequence()) == ACT_VM_MISSCENTER then
+				vm:SetPlaybackRate(math.Clamp((owner:GetVelocity():Length() /owner:GetWalkSpeed()) *1.5,0.5,1.5))
+			else
+				vm:SetPlaybackRate(1)
+			end
+		else
+			if self.AppliedMovementAnimation then
+				self.AppliedMovementAnimation = false
+				self.AnimTbl_Idle = {ACT_VM_IDLE}
+				if !self:IsBusy() then
+					self.NextIdleT = 0
+				end
+			end
+			vm:SetPlaybackRate(1)
 		end
 	end
 
@@ -390,15 +426,21 @@ function SWEP:CalcViewModelView(vm, OldEyePos, OldEyeAng, EyePos, EyeAng)
 	end
 
     local pitch = EyeAng.p
-    local pitch_modifier = math_Clamp(pitch /90,-1,1)
+    local pitch_modifier = math_Clamp(pitch /90,-1,0.2)
     local forward_movement = pitch_modifier *3
     EyePos = EyePos +EyeAng:Forward() *forward_movement
+
+	if sprinting then
+		EyePos = EyePos +EyeAng:Forward() *1.5
+	end
     
 	local targetSpeed = sprinting && 400 or 200
 	local maxSpeed = sprinting && ply:GetRunSpeed() or ply:GetWalkSpeed()
 	local speedFrac = (maxSpeed /targetSpeed)
-	local vel = ply:GetVelocity():Length2D()
-	local realspeed = ply:GetVelocity():Length2D() /maxSpeed
+	-- local vel = ply:GetVelocity():Length2D()
+	local vel = 0
+	local realspeed = 0
+	-- local realspeed = ply:GetVelocity():Length2D() /maxSpeed
 	local speed = math_Clamp(ply:GetVelocity():Length2DSqr() /maxSpeed,0.25,1) *((sprinting && 2 or 1.2) *speedFrac)
 
 	local bob_x_val = CurTime() *8
@@ -411,13 +453,13 @@ function SWEP:CalcViewModelView(vm, OldEyePos, OldEyeAng, EyePos, EyeAng)
 	EyeAng:RotateAroundAxis(EyeAng:Forward(),5 *bob_x)
 	
 	local speed_mul = zoomed && 0.4 or 2
-	if realspeed > 0.1 then
-		local bobspeed = self:GetOwner():OnGround() && math_Clamp(realspeed *1,0,1.5) or 0.15
-		local bob_x = math_sin(bob_x_val *speed) *0.2 *bobspeed
-		local bob_y = math_cos(bob_y_val *speed) *0.075 *bobspeed
-		EyePos = EyePos +EyeAng:Right() *bob_x *speed_mul *1
-		EyePos = EyePos +EyeAng:Up() *bob_y *speed_mul *2
-	end
+	-- if realspeed > 0.1 then
+	-- 	local bobspeed = self:GetOwner():OnGround() && math_Clamp(realspeed *1,0,1.5) or 0.15
+	-- 	local bob_x = math_sin(bob_x_val *speed) *0.2 *bobspeed
+	-- 	local bob_y = math_cos(bob_y_val *speed) *0.075 *bobspeed
+	-- 	EyePos = EyePos +EyeAng:Right() *bob_x *speed_mul *1
+	-- 	EyePos = EyePos +EyeAng:Up() *bob_y *speed_mul *2
+	-- end
 
 	local moveMult = (sprinting && 0 or zoomed && 0.2) or 1
 	-- if !sprinting && !zoomed then
@@ -455,7 +497,7 @@ function SWEP:CalcViewModelView(vm, OldEyePos, OldEyeAng, EyePos, EyeAng)
 	local eyeAngles = ply:EyeAngles()
 	oldEyeAngles = oldEyeAngles or eyeAngles
 	local refreshRate = zoomed && 1 or 5
-	local deltaScale = 1.1 -math_min((math_abs(lookAng.p) +math_abs(lookAng.y) +math_abs(lookAng.r)) /20,1)
+	local deltaScale = 4 -math_min((math_abs(lookAng.p) +math_abs(lookAng.y) +math_abs(lookAng.r)) /20,1)
 	lookDelta.p = math_AngleDifference(eyeAngles.p,oldEyeAngles.p) /0.01 /120 *deltaScale
 	lookDelta.y = math_AngleDifference(eyeAngles.y,oldEyeAngles.y) /0.01 /120 *deltaScale
 	lookDelta.r = math_AngleDifference(eyeAngles.r,oldEyeAngles.r) /0.01 /120 *deltaScale

@@ -42,8 +42,8 @@ SWEP.Primary.Sounds = {
 }
 
 SWEP.ViewModelAdjust = {
-	Pos = {Right = 1,Forward = 1,Up = -1},
-	Ang = {Right = -10,Up = -20,Forward = 8}
+	Pos = {Right = 0,Forward = -1,Up = -0.2},
+	Ang = {Right = 0,Up = 0,Forward = 4}
 }
 SWEP.ViewModelZoomAdjust = {
 	Pos = {Right = -3.33,Forward = -6,Up = 0.4},
