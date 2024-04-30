@@ -107,23 +107,27 @@ function SWEP:OnInit()
 			end
 		end)
 
+		local render_GetLightColor = render.GetLightColor
 		hook.Add("RenderScreenspaceEffects",self,function(self)
 			if self:GetZoomed() then
 				DrawMotionBlur(0.1,0.8,0.01)
 				DrawBloom(-0.1,0.5,1,1,0,0,2,2,2)
 				DrawTexturize(0,matGradientTech)
 
-				local dLight = DynamicLight(self:EntIndex())
-				if (dLight) then
-					dLight.pos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
-					dLight.r = 15
-					dLight.g = 15
-					dLight.b = 15
-					dLight.Brightness = 1
-					dLight.Size = 4000
-					dLight.Decay = 0
-					dLight.DieTime = CurTime() +0.05
-					dLight.Style = 0
+				local hitPos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
+				if render_GetLightColor(hitPos):Length() < 0.135 then
+					local dLight = DynamicLight(self:EntIndex())
+					if (dLight) then
+						dLight.pos = hitPos
+						dLight.r = 15
+						dLight.g = 15
+						dLight.b = 15
+						dLight.Brightness = 1
+						dLight.Size = 4000
+						dLight.Decay = 0
+						dLight.DieTime = CurTime() +0.05
+						dLight.Style = 0
+					end
 				end
 			end
 		end)
