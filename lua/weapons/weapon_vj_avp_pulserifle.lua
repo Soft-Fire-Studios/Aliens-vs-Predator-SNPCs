@@ -3,14 +3,14 @@ SWEP.Author 					= "Cpt. Hazama"
 SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
 SWEP.Purpose					= "This weapon is made for Players and NPCs"
 SWEP.Instructions				= "Controls are like a regular weapon."
-SWEP.Category					= "Aliens vs Predator"
+SWEP.Category					= "VJ Base - Aliens vs Predator"
 
 if CLIENT then
 	SWEP.Slot						= 2
 	SWEP.SlotPos					= 4
 end
 
-SWEP.PrintName					= "Pulse Rifle"
+SWEP.PrintName					= "M41A Pulse Rifle"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pulserifle.mdl"
 SWEP.WorldModel					= "models/weapons/w_irifle.mdl"
 SWEP.HoldType 					= "ar2"
@@ -24,7 +24,7 @@ SWEP.Primary.ClipSize			= 99
 SWEP.Primary.RPM				= 900
 SWEP.Primary.AccurateRange 		= 28
 SWEP.Primary.Automatic			= true
-SWEP.Primary.Ammo				= "AR2"
+SWEP.Primary.Ammo				= "SMG1"
 SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
 SWEP.Primary.Recoil				= (3 /SWEP.Primary.AccurateRange) *7.5

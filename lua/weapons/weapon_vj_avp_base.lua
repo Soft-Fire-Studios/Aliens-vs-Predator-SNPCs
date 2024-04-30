@@ -3,7 +3,7 @@ SWEP.Author 					= "Cpt. Hazama"
 SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
 SWEP.Purpose					= "This weapon is made for Players and NPCs"
 SWEP.Instructions				= "Controls are like a regular weapon."
-SWEP.Category					= "Aliens vs Predator"
+SWEP.Category					= "VJ Base - Aliens vs Predator"
 
 if CLIENT then
 	SWEP.Slot						= 2
@@ -101,6 +101,10 @@ function SWEP:CustomOnInitialize()
 	self.SprintDelayT = 0
 	self.SprintSide = 1
 	self.CoolDownT = 0
+
+	if self.OnInit then
+		self:OnInit()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:DoViewPunch(viewPunch,viewAng)
@@ -310,10 +314,13 @@ function SWEP:SecondaryAttack()
 	self:TakeSecondaryAmmo(self.Secondary.TakeAmmo)
 	owner:SetAnimation(PLAYER_ATTACK1)
 	local anim = VJ.PICK(self.AnimTbl_SecondaryFire)
-	local animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
-	self:SendWeaponAnim(anim)
-	self.NextIdleT = CurTime() + animTime
-	self.NextReloadT = CurTime() + animTime
+	local animTime = 0.25
+	if anim then
+		animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
+		self:SendWeaponAnim(anim)
+		self.NextIdleT = CurTime() + animTime
+		self.NextReloadT = CurTime() + animTime
+	end
 	
 	self:SetNextSecondaryFire(CurTime() + (self.Secondary.Delay == false and animTime or self.Secondary.Delay))
 end
@@ -362,10 +369,10 @@ function SWEP:Zoom(override)
 	if self.DelayZoom && CurTime() < self.DelayZoom then return end
 	local zoomed = self:GetZoomed()
 	self:SetZoomed(!zoomed)
-	-- self:GetOwner():SetFOV(self:GetZoomed() && (self.ZoomLevel or 40) or (GetConVar("fov_desired"):GetInt() or 90), 0.25)
+	self:GetOwner():SetFOV(self:GetZoomed() && (self.ZoomLevel or 40) or (GetConVar("fov_desired"):GetInt() or 90), 0.25)
 	-- self.Primary.Cone = (self:GetZoomed() && self.Original_Cone *0.5) or self.Original_Cone
 	-- self.Primary.Recoil = (self:GetZoomed() && self.Original_Recoil *0.25) or self.Original_Recoil
-	self:EmitSound(self:GetZoomed() && "cpthazama/cs2/weapons/weapon_zoom_out_02.wav" or "cpthazama/cs2/weapons/weapon_zoom_out_03.wav", 50, 115)
+	-- self:EmitSound(self:GetZoomed() && "cpthazama/cs2/weapons/weapon_zoom_out_02.wav" or "cpthazama/cs2/weapons/weapon_zoom_out_03.wav", 50, 115)
 	self.DelayZoom = CurTime() +IRONSIGHT_TIME
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
