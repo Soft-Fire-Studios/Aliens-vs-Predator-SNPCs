@@ -71,7 +71,6 @@ SWEP.ZoomLevel = 20
 local table_Count = table.Count
 local table_insert = table.insert
 local table_remove = table.remove
-local halo_Add = halo.Add
 
 local matGradientTech = Material("hud/cpthazama/avp/scope_gradient.png")
 local matCrosshair = Material("hud/cpthazama/avp/scope/crosshair.png")
@@ -116,7 +115,7 @@ function SWEP:OnInit()
 			end
 			highTbl = self.HighlightEnts
 			if self.HighlightT > CurTime() && table_Count(highTbl) > 0 then
-				halo_Add(highTbl,Color(199,250,255),1,1,4,true,true)
+				halo.Add(highTbl,Color(199,250,255),1,1,4,true,true)
 			end
 		end)
 
