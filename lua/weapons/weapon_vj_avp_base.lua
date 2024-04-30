@@ -659,8 +659,14 @@ if CLIENT then
 			self:DrawShadow(false)
 		end
 
+		local owner = self:GetOwner()
+		if IsValid(owner) && owner.VJ_AVP_Marine then
+			self.WorldModel_UseCustomPosition = false
+		else
+			self.WorldModel_UseCustomPosition = true
+		end
+
 		if self.WorldModel_UseCustomPosition == true then
-			local owner = self:GetOwner()
 			if IsValid(owner) then
 				if owner:IsPlayer() && owner:InVehicle() then return end
 				local wepPos = self:GetWeaponCustomPosition(owner)
