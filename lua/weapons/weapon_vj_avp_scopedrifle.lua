@@ -70,6 +70,7 @@ SWEP.ZoomLevel = 20
 --
 local table_Count = table.Count
 local table_insert = table.insert
+local table_remove = table.remove
 
 local matGradientTech = Material("hud/cpthazama/avp/scope_gradient.png")
 local matCrosshair = Material("hud/cpthazama/avp/scope/crosshair.png")
@@ -107,15 +108,20 @@ function SWEP:OnInit()
 				self.HighlightT = CurTime() +0.05
 			end
 			local highTbl = self.HighlightEnts
+			for x,v in ipairs(highTbl) do
+				if IsValid(v) && v:GetPos():Distance(self:GetPos()) > 8000 then
+					table_remove(self.HighlightEnts,x)
+				end
+			end
+			highTbl = self.HighlightEnts
 			if self.HighlightT > CurTime() && table_Count(highTbl) > 0 then
-				halo.Add(highTbl,Color(199,250,255),2,2,6,true,true)
+				halo.Add(highTbl,Color(199,250,255),1,1,4,true,true)
 			end
 		end)
 
 		local render_GetLightColor = render.GetLightColor
 		hook.Add("RenderScreenspaceEffects",self,function(self)
 			if self:GetZoomed() then
-				// Lets calculate the contrast based on the lightness of the hitPos
 				local hitPos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
 				local lightLevel = render_GetLightColor(hitPos):Length()
 				local contrast = lightLevel < 0.2 && lightLevel *-3 or lightLevel *0.1
@@ -217,7 +223,7 @@ function SWEP:OnThink(owner)
 
 	if self.HighlightT > CurTime() then
 		for _,v in ents.Iterator() do
-			if self:GetZoomed() && !VJ.HasValue(self.HighlightEnts,v) && (v:IsNPC() or v:IsPlayer() && v != owner or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+			if self:GetZoomed() && !VJ.HasValue(self.HighlightEnts,v) && (v:IsNPC() or v:IsPlayer() && v != owner or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) && v:GetPos():Distance(self:GetPos()) <= 8000 then
 				net.Start("VJ.AVP.SniperHalos")
 					net.WriteEntity(self)
 					net.WriteEntity(v)
