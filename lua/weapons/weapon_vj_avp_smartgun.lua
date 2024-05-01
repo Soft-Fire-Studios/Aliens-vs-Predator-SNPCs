@@ -119,7 +119,7 @@ function SWEP:OnThink(owner)
 		local curDist = 9999999
 		if trPos:Distance(self:GetPos()) < 4000 then
 			for _,v in pairs(ents.FindInSphere(trPos,300)) do
-				if (v:IsNPC() && v:Disposition(owner) != D_LI or v:IsPlayer() && GetConVar("sbox_plpldamage"):GetBool() or v:IsNextBot()) && v != owner && v:GetPos():Distance(self:GetPos()) < curDist then
+				if (v:IsNPC() && v:Disposition(owner) != D_LI or v:IsPlayer() && GetConVar("sbox_playershurtplayers"):GetBool() or v:IsNextBot()) && v != owner && v:GetPos():Distance(self:GetPos()) < curDist then
 					if IsValid(self.LastTarget) && v != self.LastTarget then
 						if v:GetPos():Distance(self:GetPos()) < self.LastTarget:GetPos():Distance(self:GetPos()) then
 							curTarget = v
