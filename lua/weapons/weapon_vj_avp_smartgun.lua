@@ -61,6 +61,8 @@ SWEP.ViewModelAdjust = {
 	Pos = {Right = 0,Forward = 0,Up = -0.25},
 	Ang = {Right = 0,Up = 0,Forward = -2}
 }
+
+SWEP.DisableSprint = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:AddVars()
 	self:NetworkVar("Entity", 0, "LockOn")

@@ -43,6 +43,8 @@ SWEP.ViewModelZoomAdjust = {
 	Ang = {Right = 0,Up = 0,Forward = 0}
 }
 
+SWEP.DisableSprint = false
+
 SWEP.Primary.UsesLoopedSound 	= false
 SWEP.Primary.StartSound 		= {}
 SWEP.Primary.EndSound 			= {}
@@ -269,7 +271,7 @@ function SWEP:CustomOnThink()
 
 	if !SERVER then return end
 
-	if owner:KeyDown(IN_SPEED) && owner:GetVelocity():Length() > 5 && owner:OnGround() then
+	if owner:IsSprinting() && owner:GetVelocity():Length() > 5 && owner:OnGround() then
 		if owner:KeyDown(IN_DUCK) then return end
 		if self:GetSprinting() == false then
 			self:SetSprinting(true)
@@ -614,14 +616,35 @@ function SWEP:Zoom(override)
 	self.DelayZoom = CurTime() +IRONSIGHT_TIME
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnHolster(newWep)
+function SWEP:CustomOnDeploy()
+	local owner = self:GetOwner()
+	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
+		owner:SprintDisable()
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnEquip(owner)
+	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
+		owner:SprintDisable()
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnHolster()
 	VJ.STOPSOUND(self.PrimaryLoop)
+	local owner = self:GetOwner()
+	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
+		owner:SprintEnable()
+	end
 	return true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnRemove()
 	self:StopParticles()
 	VJ.STOPSOUND(self.PrimaryLoop)
+	local owner = self:GetOwner()
+	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
+		owner:SprintEnable()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:GetViewModelPosition(pos,ang)
