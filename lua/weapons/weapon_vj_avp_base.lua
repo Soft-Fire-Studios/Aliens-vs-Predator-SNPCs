@@ -228,6 +228,7 @@ local string_find = string.find
 --
 function SWEP:CustomOnThink()
 	local owner = self:GetOwner()
+	self.LastOwner = owner
 	local curTime = CurTime()
 	if self.OnThink then
 		self:OnThink(owner)
@@ -632,7 +633,7 @@ end
 function SWEP:CustomOnHolster()
 	VJ.STOPSOUND(self.PrimaryLoop)
 	local owner = self:GetOwner()
-	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
+	if SERVER && IsValid(owner) && owner:IsPlayer() then
 		owner:SprintEnable()
 	end
 	return true
@@ -641,9 +642,13 @@ end
 function SWEP:CustomOnRemove()
 	self:StopParticles()
 	VJ.STOPSOUND(self.PrimaryLoop)
-	local owner = self:GetOwner()
-	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
-		owner:SprintEnable()
+	local owner = self.LastOwner
+	if SERVER && IsValid(owner) && owner:IsPlayer() then
+		timer.Simple(0.1,function()
+			if IsValid(owner) then
+				owner:SprintEnable()
+			end
+		end)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

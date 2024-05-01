@@ -1,0 +1,9 @@
+"DecalModulate"
+{
+	"$basetexture" 			"decals/cpthazama/avp/xeno1"
+
+	"$decal" 				"1"
+	"$decalscale" 			"0.12"
+	"$vertexcolor" 			"1"
+	"$vertexalpha" 			"1"
+}

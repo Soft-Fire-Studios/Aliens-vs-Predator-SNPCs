@@ -37,13 +37,15 @@ if CLIENT then
 		return size
 	end
 
+	local math_Clamp = math.Clamp
 	local distortedColor = Color(170,238,255)
 
 	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
+		local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
 		local distortion = math.abs(math.sin(CurTime() *2) *50)
-		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(a +math.random(-distortion,distortion),0,255)))
+		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
 		surface.SetMaterial(mat)
-		local pos = ScreenPos(x +math.Rand(-0.1,0.1),y +math.Rand(-0.1,0.1))
+		local pos = ScreenPos(x +math.Rand(-distortionAmount,distortionAmount),y +math.Rand(-distortionAmount,distortionAmount))
 		local size = ScreenScale(width,height)
 		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
 
@@ -56,10 +58,11 @@ if CLIENT then
 	local function DrawIcon_UV(mat,x,y,width,height,uv,r,g,b,a)
 		local uv = uv or {0,0,1,1}
 
+		local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
 		local distortion = math.abs(math.sin(CurTime() *2) *50)
-		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(a +math.random(-distortion,distortion),0,255)))
+		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
 		surface.SetMaterial(mat)
-		local pos = ScreenPos(x +math.Rand(-0.1,0.1),y +math.Rand(-0.1,0.1))
+		local pos = ScreenPos(x +math.Rand(-distortionAmount,distortionAmount),y +math.Rand(-distortionAmount,distortionAmount))
 		local size = ScreenScale(width,height)
 		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
 
@@ -74,7 +77,7 @@ if CLIENT then
 		local pos = ScreenPos(x,y)
 		local size = ScreenScale(textSize,0)
 		local distortion = math.abs(math.sin(CurTime() *4) *50)
-		local col = Color(distortedColor.r,distortedColor.g,distortedColor.b,math.Clamp(distortedColor.a +math.random(-distortion,distortion),0,255))
+		local col = Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(distortedColor.a +math.random(-distortion,distortion),0,255))
 	
 		draw.SimpleText(text,font,pos.x +math.Rand(-2,2),pos.y +math.Rand(-2,2),col,alignX or 0,alignY or 0)
 		draw.SimpleText(text,font,pos.x,pos.y,color or color_white,alignX or 0,alignY or 0)
@@ -93,7 +96,7 @@ if CLIENT then
 
 		ang = -ang
 
-		local dist = math.Clamp(diffPos:Length() *(1 /maxDist),0,1)
+		local dist = math_Clamp(diffPos:Length() *(1 /maxDist),0,1)
 		return ang, dist
 	end
 
@@ -147,7 +150,7 @@ if CLIENT then
 		local FT = FrameTime()
 		local HP = ent.GetHP && ent:GetHP() or ent:Health()
 		local maxHP = ent:GetMaxHealth()
-		local hpPer = HP /maxHP
+		local hpPer = math_Clamp(HP /maxHP,0,1)
 
 		DrawText((ent:IsPlayer() && ent:Nick() or (list.Get("NPC")[ent:GetClass()].Name)),"VJFont_AVP_MarineSmall",25.5,-21.5)
 		DrawIcon(matHUD_Block,34,-19.2,17,2,r,g,b,a)
@@ -179,7 +182,7 @@ if CLIENT then
 				local svWaveSpace = (string.len(svWave) -1) *0.8
 				local svRemain = survival:GetKillsRemaining() or 0
 				local svRemainSpace = (string.len(svRemain) -1) *0.8
-				local svScore = math.Clamp(ent:GetNW2Int("AVP_Score",0),0,99999)
+				local svScore = math_Clamp(ent:GetNW2Int("AVP_Score",0),0,99999)
 				local svScoreSpace = (string.len(svScore) -1) *0.8
 
 				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)
@@ -273,7 +276,7 @@ if CLIENT then
 		if pingTable and pingT > CurTime() then
 			if ent:IsPlayer() && GetConVar("ai_ignoreplayers"):GetBool() then return end
 			local time = pingT - CurTime()
-			local alpha = math.Clamp(time *255,0,255)
+			local alpha = math_Clamp(time *255,0,255)
 
 			DrawIcon(matHUD_MotionTracker_Friendly,radarCenterX,radarCenterY,blipSize,blipSize,0,210,255,alpha)
 

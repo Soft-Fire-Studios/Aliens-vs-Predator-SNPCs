@@ -19,6 +19,7 @@ ENT.FindEnemy_CanSeeThroughWalls = true
 ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
+ENT.CustomBlood_Pool = {"vj_avp_bloodpool_xeno"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
 
 ENT.HasMeleeAttack = false
@@ -1048,6 +1049,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "spit" then
 		local ent = self:GetEnemy()
 		if IsValid(ent) then
+			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
 			local att = self:GetAttachment(self:LookupAttachment(self.RangeUseAttachmentForPosID or "eyes"))
 			local targetPos = ent:GetPos() +ent:OBBCenter()
@@ -1062,8 +1064,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				proj:SetAttackType(2,50 *mult,DMG_ACID,150,10,true)
 				proj:SetNoDraw(true)
 				proj:Spawn()
-				proj.DecalTbl_DeathDecals = {"BeerSplash"}
+				proj.DecalTbl_DeathDecals = {"VJ_AVP_BloodXenomorph"}
 				proj.OnDeath = function(projEnt,data, defAng, HitPos)
+					VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = HitPos, Class = mClass})
 					ParticleEffect("vj_avp_xeno_spit_impact",HitPos,defAng)
 					sound.Play("cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",HitPos,70)
 				end
@@ -2112,6 +2115,8 @@ end
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_Xenomorph = true
 	ent:SetNW2Bool("AVP.Xenomorph",true)
+
+	VJ_AVP_XenoBloodSpill(self,ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)

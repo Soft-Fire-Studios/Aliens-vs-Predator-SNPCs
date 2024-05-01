@@ -695,6 +695,11 @@ function ENT:GiveBirth()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+	ent.VJ_AVP_Xenomorph = true
+	ent:SetNW2Bool("AVP.Xenomorph",true)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	if IsValid(self.LatchCorpse) && self.DisableCorpseCleanUp != true then
 		self.LatchCorpse:Remove()

@@ -13,6 +13,7 @@ ENT.HullType = HULL_HUMAN
 ENT.BloodColor = "Green" -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodPredator"}
+ENT.CustomBlood_Pool = {"vj_avp_bloodpool_predator"}
 ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"} -- NPCs with the same class with be allied to each other
 
 -- Example scenario:
@@ -858,11 +859,11 @@ function ENT:SpecialAttackCode(atk)
 		self.SpearProp = spear
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
 		self:PlayAnimation("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			if interrupted then SafeRemoveEntity(self.SpearProp) return end
+			if interrupted then SafeRemoveEntity(spear) return end
 			local _,dur = self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-				SafeRemoveEntity(self.SpearProp)
+				SafeRemoveEntity(spear)
 			end})
-			SafeRemoveEntityDelayed(self.SpearProp,dur)
+			SafeRemoveEntityDelayed(spear,dur)
 			self.NextChaseTime = 0
 		end})
 		self:SetBodygroup(self:FindBodygroupByName("equip_spear"),0)
@@ -1461,7 +1462,10 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCatchDisc(ent)
-	local att = self:GetAttachment(self:LookupAttachment("battledisc"))
+	if !IsValid(self) then ent:Remove() return end
+	local findAtt = self:LookupAttachment("battledisc")
+	if findAtt <= 0 then ent:Remove() return end
+	local att = self:GetAttachment(findAtt)
 	local disc = ents.Create("prop_vj_animatable")
 	disc:SetModel("models/cpthazama/avp/predators/equipment/battledisc.mdl")
 	disc:SetPos(att.Pos)

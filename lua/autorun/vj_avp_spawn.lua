@@ -337,6 +337,7 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_blood.pcf",{
 		"vj_avp_blood_predator",
 		"vj_avp_blood_xeno",
+		"vj_avp_blood_xeno_damage",
 	})
 	VJ.AddParticle("particles/vj_avp_android.pcf",{
 		"vj_avp_android_death_charge",
@@ -355,6 +356,14 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
 		"vj_avp_wep_rifle_muzzle",
+	})
+	VJ.AddParticle("particles/vj_avp_bloodpool.pcf",{
+		"vj_avp_bloodpool_predator",
+		"vj_avp_bloodpool_xeno",
+		"vj_avp_bloodpool_xeno_small",
+	})
+	VJ.AddParticle("particles/vj_avp_xenomorph_spill.pcf",{
+		"vj_avp_xenomorph_spill",
 	})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",
@@ -476,6 +485,98 @@ if VJExists == true then
 		end)
 	end
 	if SERVER then
+		local vecZ30 = Vector(0, 0, 100)
+		local vecZ1 = Vector(0, 0, 1)
+		--
+		function VJ_AVP_XenoBloodSpill(self,corpse,force,forceData)
+			if !IsValid(corpse) && !force then return end
+			local faction = forceData && forceData.Class or self.VJ_NPC_Class
+
+			local function CheckFaction(v)
+				local vFaction = v.VJ_NPC_Class
+				if !vFaction then return false end
+
+				for _,myFac in ipairs(faction) do
+					if VJ.HasValue(vFaction,myFac) then
+						return true
+					end
+				end
+				return false
+			end
+
+			if force then
+				local pos = forceData.Pos
+				local tr = util.TraceLine({
+					start = pos,
+					endpos = pos -vecZ30,
+					filter = self,
+					mask = CONTENTS_SOLID
+				})
+				if tr.HitWorld then
+					local dmgPos = tr.HitPos +tr.HitNormal *4
+					if forceData.Pos then
+						sound.Play("cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",forceData.Pos,70)
+					else
+						VJ.EmitSound(self,"cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",70)
+					end
+					ParticleEffect("vj_avp_xenomorph_spill",tr.HitPos +tr.HitNormal *2,Angle())
+					for i = 1,20 do
+						timer.Simple(i *0.25,function()
+							sound.EmitHint(SOUND_DANGER, dmgPos, 200, 0.24)
+
+							for _,v in pairs(ents.FindInSphere(dmgPos,100)) do
+								if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+									local dmg = DamageInfo()
+									dmg:SetDamage(2)
+									dmg:SetDamageType(DMG_ACID)
+									dmg:SetAttacker(v)
+									dmg:SetInflictor(v)
+									dmg:SetDamagePosition(v:NearestPoint(dmgPos))
+									v:TakeDamageInfo(dmg)
+								end
+							end
+						end)
+					end
+				end
+				return
+			end
+			timer.Simple(2.75, function()
+				if IsValid(corpse) then
+					local pos = corpse:GetPos() +corpse:OBBCenter()
+					local tr = util.TraceLine({
+						start = pos,
+						endpos = pos -vecZ30,
+						filter = corpse,
+						mask = CONTENTS_SOLID
+					})
+					if tr.HitWorld then
+						local dmgPos = tr.HitPos +tr.HitNormal *4
+						VJ.EmitSound(corpse,"cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",70)
+						ParticleEffect("vj_avp_xenomorph_spill",tr.HitPos +tr.HitNormal *2,Angle())
+						for i = 1,20 do
+							timer.Simple(i *0.25,function()
+								if !IsValid(corpse) then return end
+
+								sound.EmitHint(SOUND_DANGER, dmgPos, 200, 0.24, corpse)
+
+								for _,v in pairs(ents.FindInSphere(dmgPos,100)) do
+									if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+										local dmg = DamageInfo()
+										dmg:SetDamage(2)
+										dmg:SetDamageType(DMG_ACID)
+										dmg:SetAttacker(v)
+										dmg:SetInflictor(v)
+										dmg:SetDamagePosition(v:NearestPoint(dmgPos))
+										v:TakeDamageInfo(dmg)
+									end
+								end
+							end)
+						end
+					end
+				end
+			end)
+		end
+
 		function VJ_AVP_QueenExists(self)
 			for _,v in ipairs(VJ_AVP_XENOS) do
 				if v.VJ_AVP_Xenomorph_Queen && v != self then
