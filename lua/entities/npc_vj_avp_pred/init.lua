@@ -2173,6 +2173,7 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
+	self.AttackSide = self.AttackSide or "left"
 	self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

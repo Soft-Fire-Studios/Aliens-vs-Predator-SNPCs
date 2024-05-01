@@ -186,7 +186,16 @@ function ENT:SpawnBot(count,respawn)
 					bot:SetAngles(Angle(0,AngleRand().y,0))
 					bot:Spawn()
 					bot:Activate()
-					bot:Give(VJ_PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
+					-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
+					bot:Give(VJ.PICK({
+						"weapon_vj_avp_pulserifle",
+						"weapon_vj_avp_pulserifle",
+						"weapon_vj_avp_pulserifle",
+						"weapon_vj_avp_pulserifle",
+						"weapon_vj_avp_scopedrifle",
+						"weapon_vj_avp_scopedrifle",
+						"weapon_vj_avp_smartgun",
+					}))
 					-- bot:Give("weapon_vj_avp_pulserifle")
 					bot:SetNW2Int("AVP_Score",0)
 					self:DeleteOnRemove(bot)

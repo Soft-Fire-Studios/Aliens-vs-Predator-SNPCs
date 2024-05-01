@@ -358,6 +358,17 @@ function SWEP:GetNearestPoint(argent,SameZ)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:DealDamage(v)
+	local oldFlinch,oldFlinchChance
+	if v.VJ_AVP_NPC && v.IsBlocking && v.OnAttackBlocked then
+		v:OnAttackBlocked(self:GetOwner())
+	else
+		if v.IsVJBaseSNPC && v.CanFlinch then
+			oldFlinch = v.CanFlinch
+			oldFlinchChance = v.FlinchChance
+			v.CanFlinch = 1
+			v.FlinchChance = 1
+		end
+	end
 	local applyDmg = DamageInfo()
 	applyDmg:SetDamage(self.MeleeAttackDamage or 10)
 	applyDmg:SetDamageType(self.MeleeAttackDamageType or DMG_CLUB)
@@ -366,6 +377,10 @@ function SWEP:DealDamage(v)
 	applyDmg:SetInflictor(self)
 	applyDmg:SetAttacker(self:GetOwner())
 	v:TakeDamageInfo(applyDmg,self:GetOwner())
+	if v.IsVJBaseSNPC && oldFlinch then
+		v.CanFlinch = oldFlinch
+		v.FlinchChance = oldFlinchChance
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnMeleeHit(entities,hitType,owner) end

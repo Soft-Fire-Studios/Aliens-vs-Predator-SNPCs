@@ -10,6 +10,21 @@ if CLIENT then
 	SWEP.SlotPos					= 4
 end
 
+sound.Add({
+	name = "AVP.SmartGun.ClipIn",
+	sound = "cpthazama/avp/weapons/human/shotgun/shotgun_clip_in_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+sound.Add({
+	name = "AVP.SmartGun.ClipOut",
+	sound = "cpthazama/avp/weapons/human/shotgun/shotgun_clip_out_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
 SWEP.PrintName					= "M56 Smartgun"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_smartgun.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_smartgun.mdl"
@@ -25,7 +40,7 @@ SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 SWEP.HasMotionTracker			= true
 
 SWEP.Primary.Damage				= 7
-SWEP.Primary.ClipSize			= 200
+SWEP.Primary.ClipSize			= 500
 SWEP.Primary.RPM				= 1100
 SWEP.Primary.AccurateRange 		= 36
 SWEP.Primary.Automatic			= true
@@ -81,7 +96,8 @@ function SWEP:OnInit()
 		self.HighlightEnts = {}
 		hook.Add("PreDrawHalos",self,function(self)
 			if table_Count(self.HighlightEnts) > 0 then
-				if !IsValid(self.HighlightEnts[1]) then table_Empty(self.HighlightEnts) return end
+				local ent = self.HighlightEnts[1]
+				if !IsValid(ent) then table_Empty(self.HighlightEnts) return end
 				halo.Add(self.HighlightEnts,Color(199,250,255),1,1,4,true,true)
 			end
 		end)
@@ -103,7 +119,7 @@ function SWEP:OnThink(owner)
 		local curDist = 9999999
 		if trPos:Distance(self:GetPos()) < 4000 then
 			for _,v in pairs(ents.FindInSphere(trPos,300)) do
-				if (v:IsNPC() && v:Disposition(self) != D_LI or v:IsPlayer() or v:IsNextBot()) && v != owner && v:GetPos():Distance(self:GetPos()) < curDist then
+				if (v:IsNPC() && v:Disposition(owner) != D_LI or v:IsPlayer() && GetConVar("sbox_plpldamage"):GetBool() or v:IsNextBot()) && v != owner && v:GetPos():Distance(self:GetPos()) < curDist then
 					if IsValid(self.LastTarget) && v != self.LastTarget then
 						if v:GetPos():Distance(self:GetPos()) < self.LastTarget:GetPos():Distance(self:GetPos()) then
 							curTarget = v
@@ -129,7 +145,7 @@ function SWEP:OnThink(owner)
 			self.LastTargetT = CurTime() +5
 		end
 		if IsValid(self.LastTarget) then
-			if CurTime() > self.LastTargetT then
+			if CurTime() > self.LastTargetT or self.LastTarget:IsNPC() && self.LastTarget:Disposition(owner) == D_LI then
 				self.LastTargetT = 0
 				self.LastTarget = NULL
 				net.Start("VJ.AVP.SmartGunHalo")

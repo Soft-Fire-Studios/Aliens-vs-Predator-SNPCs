@@ -608,7 +608,7 @@ function ENT:CustomOnCallForHelp(ally)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
-	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph then
+	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph && math.random(1,4) == 1 then
 		local tName = "VJ.AVP.Timer.BlackGoo." .. v:EntIndex()
 		if v:IsPlayer() && !timer.Exists(tName) then
 			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")

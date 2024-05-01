@@ -374,6 +374,7 @@ if VJExists == true then
 	AddWep("VP78 Pistol","weapon_vj_avp_pistol")
 	AddWep("M41A Pulse Rifle","weapon_vj_avp_pulserifle")
 	AddWep("M42C Scoped Rifle","weapon_vj_avp_scopedrifle")
+	AddWep("M56 Smartgun","weapon_vj_avp_smartgun")
 
 	if CLIENT then
 		hook.Add("PopulateToolMenu", "VJ_ADDTOMENU_AVP", function()
