@@ -1,0 +1,152 @@
+SWEP.Base 						= "weapon_vj_avp_base"
+SWEP.Author 					= "Cpt. Hazama"
+SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
+SWEP.Purpose					= "This weapon is made for Players and NPCs"
+SWEP.Instructions				= "Controls are like a regular weapon."
+SWEP.Category					= "VJ Base - Aliens vs Predator"
+
+if CLIENT then
+	SWEP.Slot						= 2
+	SWEP.SlotPos					= 4
+end
+
+SWEP.PrintName					= "M56 Smartgun"
+SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_smartgun.mdl"
+SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_smartgun.mdl"
+SWEP.HoldType 					= "crossbow"
+SWEP.Spawnable					= true
+SWEP.AdminSpawnable				= false
+
+SWEP.WorldModel_UseCustomPosition = true
+SWEP.WorldModel_CustomPositionAngle = Vector(0, 0, 180)
+SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 0, 0.3)
+SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
+
+SWEP.HasMotionTracker			= true
+
+SWEP.Primary.Damage				= 7
+SWEP.Primary.ClipSize			= 200
+SWEP.Primary.RPM				= 1100
+SWEP.Primary.AccurateRange 		= 36
+SWEP.Primary.Automatic			= true
+SWEP.Primary.Ammo				= "AR2"
+SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
+SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
+SWEP.Primary.Recoil				= 0.25
+SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 1.2 or 0.9)
+
+SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
+
+SWEP.Primary.UsesLoopedSound 	= true
+SWEP.Primary.Sound 				= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_loop_01.wav"}
+SWEP.Primary.StartSound 		= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_start_01.ogg"}
+SWEP.Primary.EndSound 			= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_end_01.ogg"}
+
+SWEP.ViewModelAdjust = {
+	Pos = {Right = 0,Forward = 0,Up = -0.25},
+	Ang = {Right = 0,Up = 0,Forward = -2}
+}
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:AddVars()
+	self:NetworkVar("Entity", 0, "LockOn")
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local table_Count = table.Count
+local table_insert = table.insert
+local table_Empty = table.Empty
+
+if SERVER then
+	util.AddNetworkString("VJ.AVP.SmartGunHalo")
+else
+	net.Receive("VJ.AVP.SmartGunHalo",function(len,pl)
+		local self = net.ReadEntity()
+		local ent = net.ReadEntity()
+		local bool = net.ReadBool()
+
+		self.HighlightEnts = self.HighlightEnts or {}
+		if bool && IsValid(ent) then
+			table_Empty(self.HighlightEnts)
+			table_insert(self.HighlightEnts,ent)
+		else
+			table_Empty(self.HighlightEnts)
+		end
+	end)
+end
+--
+function SWEP:OnInit()
+	self.LastTarget = NULL
+	self.LastTargetT = 0
+
+	if CLIENT then
+		self.HighlightEnts = {}
+		hook.Add("PreDrawHalos",self,function(self)
+			if table_Count(self.HighlightEnts) > 0 then
+				if !IsValid(self.HighlightEnts[1]) then table_Empty(self.HighlightEnts) return end
+				halo.Add(self.HighlightEnts,Color(199,250,255),1,1,4,true,true)
+			end
+		end)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnReload()
+	self:DoViewPunch(0,Angle(1,-4,1))
+	-- self:DoViewPunch(0.4,Angle(1,-4,1))
+	-- self:DoViewPunch(1.3,Angle(-2,1,1))
+	-- self:DoViewPunch(1.8,Angle(2,-1,1))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnThink(owner)
+	if !SERVER then return end
+	if owner:IsPlayer() then
+		local trPos = owner:GetEyeTrace().HitPos
+		local curTarget
+		local curDist = 9999999
+		if trPos:Distance(self:GetPos()) < 4000 then
+			for _,v in pairs(ents.FindInSphere(trPos,300)) do
+				if (v:IsNPC() && v:Disposition(self) != D_LI or v:IsPlayer() or v:IsNextBot()) && v != owner && v:GetPos():Distance(self:GetPos()) < curDist then
+					if IsValid(self.LastTarget) && v != self.LastTarget then
+						if v:GetPos():Distance(self:GetPos()) < self.LastTarget:GetPos():Distance(self:GetPos()) then
+							curTarget = v
+							curDist = v:GetPos():Distance(self:GetPos())
+						end
+					else
+						curTarget = v
+						curDist = v:GetPos():Distance(self:GetPos())
+					end
+				end
+			end
+		end
+		if IsValid(curTarget) && curTarget != self.LastTarget then
+			self.LastTarget = curTarget
+			VJ.EmitSound(self, "cpthazama/avp/weapons/human/minigun/minigun_trigger_01.ogg", 75)
+			net.Start("VJ.AVP.SmartGunHalo")
+				net.WriteEntity(self)
+				net.WriteEntity(curTarget)
+				net.WriteBool(true)
+			net.Broadcast()
+			self.LastTargetT = CurTime() +5
+		elseif IsValid(curTarget) && curTarget == self.LastTarget then
+			self.LastTargetT = CurTime() +5
+		end
+		if IsValid(self.LastTarget) then
+			if CurTime() > self.LastTargetT then
+				self.LastTargetT = 0
+				self.LastTarget = NULL
+				net.Start("VJ.AVP.SmartGunHalo")
+					net.WriteEntity(self)
+					net.WriteEntity(nil)
+					net.WriteBool(false)
+				net.Broadcast()
+				VJ.EmitSound(self, "cpthazama/avp/weapons/human/minigun/minigun_trigger_01.ogg", 75, 85)
+				return
+			end
+			if !owner:KeyDown(IN_USE) && owner:KeyDown(IN_ATTACK2) then
+				local target = self.LastTarget
+				local targetPos = target:GetPos() +target:OBBCenter()
+				local targetAng = (targetPos -owner:GetShootPos()):Angle()
+				targetAng.r = 0
+				owner:SetEyeAngles(LerpAngle(0.1,owner:EyeAngles(),targetAng))
+			end
+		end
+	end
+end

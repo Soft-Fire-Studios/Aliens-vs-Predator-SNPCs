@@ -83,6 +83,10 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 1, "Sprinting")
 	self:NetworkVar("Float", 0, "OverHeat")
 
+	if self.AddVars then
+		self:AddVars()
+	end
+
 	if self.Vars then
 		for _,v in pairs(self.Vars) do
 			self:NetworkVar(v.Type, v.Index, v.Name)
@@ -731,7 +735,7 @@ function SWEP:CalcViewModelView(vm, OldEyePos, OldEyeAng, EyePos, EyeAng)
 	-- end
 
 	if ply:Crouching() && !zoomed then
-		self.OffsetPos = LerpVector(FrameTime() *10,self.OffsetPos,EyeAng:Up() *(realspeed > 0.1 && -1.5 or -3))
+		self.OffsetPos = LerpVector(FrameTime() *10,self.OffsetPos,EyeAng:Up() *(realspeed > 0.1 && -1.35 or -1.75))
 	else
 		if realspeed > 0.1 && !sprinting then
 			self.OffsetPos = LerpVector(FrameTime() *10,self.OffsetPos,EyeAng:Up() *-1.5)
