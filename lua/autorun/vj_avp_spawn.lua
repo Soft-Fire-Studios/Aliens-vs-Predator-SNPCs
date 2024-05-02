@@ -365,6 +365,9 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_xenomorph_spill.pcf",{
 		"vj_avp_xenomorph_spill",
 	})
+	VJ.AddParticle("particles/vj_avp_flamethrower.pcf",{
+		"vj_avp_flamethrower",
+	})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",
 		"vj_avp_predator_hud_landing_heat",
@@ -384,6 +387,8 @@ if VJExists == true then
 	AddWep("M41A Pulse Rifle","weapon_vj_avp_pulserifle")
 	AddWep("M42C Scoped Rifle","weapon_vj_avp_scopedrifle")
 	AddWep("M56 Smartgun","weapon_vj_avp_smartgun")
+	AddWep("M260B Flamethrower","weapon_vj_avp_flamethrower")
+	AddWep("ZX-76 Shotgun","weapon_vj_avp_shotgun")
 
 	if CLIENT then
 		hook.Add("PopulateToolMenu", "VJ_ADDTOMENU_AVP", function()

@@ -503,6 +503,10 @@ function ENT:CustomOnInitialize()
 		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
 	end
 
+	local bounds = self.StandingBounds or defStandingBounds
+	local collisionMin, collisionMax = -bounds, bounds
+	self:SetSurroundingBounds(Vector(collisionMin.x * 1.8, collisionMin.y * 1.8, collisionMin.z * 1.2), Vector(collisionMax.x * 1.8, collisionMax.y * 1.8, collisionMax.z * 1.2))
+
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity

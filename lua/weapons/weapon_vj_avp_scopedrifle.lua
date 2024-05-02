@@ -5,21 +5,6 @@ SWEP.Purpose					= "This weapon is made for Players and NPCs"
 SWEP.Instructions				= "Controls are like a regular weapon."
 SWEP.Category					= "VJ Base - Aliens vs Predator"
 
-sound.Add({
-	name = "AVP.Shotgun.ClipIn",
-	sound = "cpthazama/avp/weapons/human/shotgun/shotgun_clip_in_01.ogg",
-	channel = CHAN_STATIC,
-	volume = 1,
-	level = 65,
-})
-sound.Add({
-	name = "AVP.Shotgun.ClipOut",
-	sound = "cpthazama/avp/weapons/human/shotgun/shotgun_clip_out_01.ogg",
-	channel = CHAN_STATIC,
-	volume = 1,
-	level = 65,
-})
-
 if CLIENT then
 	SWEP.Slot						= 2
 	SWEP.SlotPos					= 4
@@ -52,6 +37,8 @@ SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == fals
 
 SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 SWEP.AnimTbl_SecondaryFire 		= false
+
+SWEP.NPC_FiringDistanceScale = 1.75
 
 SWEP.Primary.Sound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new_01_st.ogg"}
 -- SWEP.Primary.DistantSound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new_01_mn.ogg"}

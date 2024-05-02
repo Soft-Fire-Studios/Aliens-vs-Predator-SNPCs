@@ -84,6 +84,7 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Zoomed")
 	self:NetworkVar("Bool", 1, "Sprinting")
 	self:NetworkVar("Float", 0, "OverHeat")
+	self:NetworkVar("Float", 1, "LastFire")
 
 	if self.AddVars then
 		self:AddVars()
@@ -192,6 +193,9 @@ function SWEP:CustomOnPrimaryAttack_AfterShoot()
 	end
 
 	if CLIENT then return end
+
+	self:SetLastFire(CurTime())
+
 	if math.random(1,2) == 1 then
 		self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
 	end
@@ -551,7 +555,7 @@ function SWEP:SecondaryAttack()
 	self:TakeSecondaryAmmo(self.Secondary.TakeAmmo)
 	owner:SetAnimation(PLAYER_ATTACK1)
 	local anim = VJ.PICK(self.AnimTbl_SecondaryFire)
-	local animTime = 0.25
+	local animTime = 0.025
 	if anim then
 		animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 		self:SendWeaponAnim(anim)

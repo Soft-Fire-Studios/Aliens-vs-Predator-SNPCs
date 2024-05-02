@@ -33,7 +33,7 @@ SWEP.Primary.Ammo				= "Pistol"
 SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
 SWEP.Primary.Recoil				= (3 /SWEP.Primary.AccurateRange) *7.5
-SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 1.2 or 0.9)
+SWEP.NPC_NextPrimaryFire 		= 0.3
 
 SWEP.Secondary.Automatic = true
 -- SWEP.Secondary.Automatic = false
