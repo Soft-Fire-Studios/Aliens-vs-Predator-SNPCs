@@ -46,7 +46,7 @@ SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
 
-SWEP.Primary.Damage				= 4
+SWEP.Primary.Damage				= 3
 SWEP.Primary.ClipSize			= 250
 SWEP.Primary.RPM				= 900
 SWEP.Primary.AccurateRange		= 250
@@ -56,6 +56,7 @@ SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= 35
 SWEP.Primary.Recoil				= 0.25
 SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 3.5 or 0.9)
+SWEP.PrimaryEffects_MuzzleFlash = false
 SWEP.Primary.DisableBulletCode 	= true
 
 SWEP.NPC_FiringDistanceScale = 0.1
@@ -77,7 +78,7 @@ local IsProp = VJ.IsProp
 --
 function SWEP:OnShoot()
 	local owner = self:GetOwner()
-	VJ.ApplyRadiusDamage(owner,self,(owner:GetPos() +(self:GetForward() *owner:OBBMaxs().y)),self.Primary.AccurateRange,self.Primary.Damage,DMG_BURN,false,false,{UseCone=true,UseConeDegree=self.Primary.Cone,UseConeDirection=owner:GetAimVector()}, function(ent) if !ent:IsOnFire() && (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() or IsProp(ent)) then ent:Ignite(20) end end)
+	VJ.ApplyRadiusDamage(owner,self,(owner:GetPos() +(self:GetForward() *owner:OBBMaxs().y)),self.Primary.AccurateRange,self.Primary.Damage,DMG_BURN,false,false,{UseCone=true,UseConeDegree=self.Primary.Cone,UseConeDirection=owner:GetAimVector()}, function(ent) if !ent:IsOnFire() && (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() or IsProp(ent)) then ent:Ignite(10) end end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:AddVars()
