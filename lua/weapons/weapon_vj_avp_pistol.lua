@@ -35,8 +35,10 @@ SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
 SWEP.Primary.Recoil				= (3 /SWEP.Primary.AccurateRange) *7.5
 SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 1.2 or 0.9)
 
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "Pistol"
+SWEP.Secondary.Automatic = true
+-- SWEP.Secondary.Automatic = false
+-- SWEP.Secondary.Ammo = "Pistol"
+SWEP.Secondary.Cone = SWEP.Primary.Cone
 
 SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 
@@ -60,20 +62,36 @@ function SWEP:OnReload()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnSecondaryAttack()
-	if CurTime() < self.NextBurstFireT then return end
+	return CurTime() > self.NextBurstFireT
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnSecondaryAttack()
 	local owner = self:GetOwner()
-	for i = 1,3 do
-		timer.Simple(i *0.1,function()
-			if IsValid(self) && IsValid(owner) && owner:GetActiveWeapon() == self then
-				self.Primary.Delay = 0.1
-				self.Primary.Cone = 20
-				self:PrimaryAttack()
-				self.Primary.Delay = 0.175
-				self.Primary.Cone = 5
-			end
-		end)
-	end
+	local oldDelay = self.Primary.Delay
+	local oldCone = self.Primary.Cone
+	self.Primary.Delay = 0.1
+	self.Primary.Cone = 20
+	-- for i = 1,3 do
+	-- 	timer.Simple(i *0.1,function()
+	-- 		if IsValid(self) && IsValid(owner) && owner:GetActiveWeapon() == self then
+	-- 			self:PrimaryAttack()
+	-- 			if i == 3 then
+	-- 				self.NextBurstFireT = CurTime() +0.25
+	-- 				self:SetNextPrimaryFire(CurTime() +0.25)
+	-- 				self.Primary.Delay = oldDelay
+	-- 				self.Primary.Cone = oldCone
+	-- 			end
+	-- 		end
+	-- 	end)
+	-- end
 
-	self.NextBurstFireT = CurTime() +0.5
-	return false
+	-- self.NextBurstFireT = CurTime() +0.5
+	-- self:SetNextPrimaryFire(CurTime() +0.5)
+
+	self:PrimaryAttack()
+	self.Primary.Delay = oldDelay
+	self.Primary.Cone = oldCone
+
+	self.NextBurstFireT = CurTime() +0.1
+	self:SetNextPrimaryFire(CurTime() +0.15)
 end

@@ -558,12 +558,12 @@ function SWEP:SecondaryAttack()
 		self.NextIdleT = CurTime() + animTime
 		self.NextReloadT = CurTime() + animTime
 	end
+	
+	self:SetNextSecondaryFire(CurTime() +(self.Secondary.Delay == false && animTime or self.Secondary.Delay))
 
 	if self.OnSecondaryAttack then
 		self:OnSecondaryAttack(anim,animTime)
 	end
-	
-	self:SetNextSecondaryFire(CurTime() + (self.Secondary.Delay == false && animTime or self.Secondary.Delay))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CanReload()
