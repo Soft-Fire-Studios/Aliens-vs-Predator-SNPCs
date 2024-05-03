@@ -601,7 +601,7 @@ function ENT:Think()
 				for _,v in pairs(bots) do
 					if IsValid(v) && !v.IsFollowing then
 						if !v:IsInWorld() then
-							self:RespawnEntity()
+							self:RespawnEntity(v)
 						end
 						local closestPlayer = NULL
 						local closestDist = 999999
