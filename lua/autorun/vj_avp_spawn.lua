@@ -170,7 +170,7 @@ if VJExists == true then
 				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
 				if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
 				if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
-				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 1 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 1 then continue end
+				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 2 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 2 then continue end
 				local direction = (ent:GetPos() - origin):GetNormalized()
 				local forward = self:GetForward()
 				local dot = direction:Dot(forward)
@@ -399,6 +399,12 @@ if VJExists == true then
 				Panel:AddPanel(vj_icon)
 				Panel:AddControl("Label", {Text = "General Settings"})
 				Panel:AddControl("Checkbox", {Label = "Enable Fatalities", Command = "vj_avp_fatalities"})
+				Panel:AddControl("Checkbox", {Label = "Enable Ambience Music [Survival]", Command = "vj_avp_survival_music"})
+				Panel:AddControl("Checkbox", {Label = "Enable Bots [Survival]", Command = "vj_avp_survival_bots"})
+				Panel:AddControl("Slider", {Label = "Bot Count (0 = Auto) [Survival]", min = 0, max = 8, Command = "vj_avp_survival_maxbots"})
+				-- Panel:AddControl("Checkbox", {Label = "Respawn as Xenomorphs [Survival]", Command = "vj_avp_survival_respawn"})
+				Panel:AddControl("Checkbox", {Label = "Enable Marine HUD", Command = "vj_avp_hud"})
+				Panel:AddControl("Checkbox", {Label = "Enable Marine HUD Pinging", Command = "vj_avp_hud_ping"})
 
 				local vj_icon = vgui.Create("DImage")
 				vj_icon:SetSize(512,130)

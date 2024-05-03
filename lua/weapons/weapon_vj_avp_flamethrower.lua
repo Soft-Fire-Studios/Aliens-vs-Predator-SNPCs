@@ -124,14 +124,25 @@ function SWEP:PostDrawViewModel(vm,weapon,ply)
 			local ang = att.Ang
 			local dLight = DynamicLight(vm:EntIndex())
 			if (dLight) then
-				dLight.pos = pos
-				dLight.r = 0
-				dLight.g = 150
-				dLight.b = 255
-				dLight.brightness = 1
-				dLight.Decay = 1000
-				dLight.Size = 75
-				dLight.DieTime = CurTime() +0.1
+				if self:GetFlame() then
+					dLight.pos = pos
+					dLight.r = 255
+					dLight.g = 150
+					dLight.b = 0
+					dLight.brightness = 4
+					dLight.Decay = 1000
+					dLight.Size = 300
+					dLight.DieTime = CurTime() +0.1
+				else
+					dLight.pos = pos
+					dLight.r = 0
+					dLight.g = 150
+					dLight.b = 255
+					dLight.brightness = 1
+					dLight.Decay = 1000
+					dLight.Size = 75
+					dLight.DieTime = CurTime() +0.1
+				end
 			end
 		end
 	end

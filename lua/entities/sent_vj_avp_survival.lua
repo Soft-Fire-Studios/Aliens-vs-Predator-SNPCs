@@ -184,6 +184,10 @@ function ENT:SpawnBot(count,respawn)
 					-- bot:SetPos(spawnPoint +randOffset)
 					self:SetProperPos(bot,spawnPoint +randOffset)
 					bot:SetAngles(Angle(0,AngleRand().y,0))
+					bot.WeaponInventory_AntiArmor = false
+					bot.WeaponInventory_AntiArmorList = {}
+					bot.WeaponInventory_Melee = true
+					bot.WeaponInventory_MeleeList = {"weapon_vj_avp_pistol"}
 					bot:Spawn()
 					bot:Activate()
 					-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
@@ -192,8 +196,12 @@ function ENT:SpawnBot(count,respawn)
 						"weapon_vj_avp_pulserifle",
 						"weapon_vj_avp_pulserifle",
 						"weapon_vj_avp_pulserifle",
+						"weapon_vj_avp_shotgun",
+						"weapon_vj_avp_shotgun",
+						"weapon_vj_avp_shotgun",
 						"weapon_vj_avp_scopedrifle",
 						"weapon_vj_avp_scopedrifle",
+						"weapon_vj_avp_flamethrower",
 						"weapon_vj_avp_smartgun",
 					}))
 					-- bot:Give("weapon_vj_avp_pulserifle")
