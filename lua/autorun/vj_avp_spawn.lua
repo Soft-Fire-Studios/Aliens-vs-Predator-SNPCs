@@ -152,6 +152,7 @@ if VJExists == true then
 		local math_abs = math.abs
 		local math_cos = math.cos
 		local math_rad = math.rad
+		local VJ_IsProp = VJ.IsProp
 
 		local moveEnts = {func_door=true,func_door_rotating=true,func_train=true,prop_dynamic_override=true,prop_door=true,prop_door_rotating=true}
 
@@ -167,7 +168,7 @@ if VJExists == true then
 
 			for _, ent in pairs(entities) do
 				if ent == self then continue end
-				if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
+				if !(ent:IsNPC() or ent:IsPlayer() or VJ_IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
 				if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
 				if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
 				if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 2 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 2 then continue end

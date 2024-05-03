@@ -257,6 +257,7 @@ function ENT:Initialize()
 
 	self.BotsToRespawn = 0
 	self.NextBotsRefreshT = 0
+	self.NextCheckForStuckAITime = CurTime() +20
 	self.NextBotsWaveRespawnT = CurTime() +120
 
 	self.AllowBots = GetConVar("vj_avp_survival_bots"):GetInt() == 1
@@ -559,7 +560,7 @@ function ENT:FindSpawnPoint(total,data)
     return #savedPoints > 0 && savedPoints or false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:RespawnNPC(ent) // This is called when a NPC is stuck and needs to respawn at a new node position, this should take away from the kill count
+function ENT:RespawnNPC(ent) // WHAT IS THIS USED FOR???????????????
 	if !IsValid(ent) then return end
 	if !VJ_HasValue(self.Entities,ent) then return end
 	local spawnPoint = self:FindSpawnPoint(1)
@@ -569,6 +570,15 @@ function ENT:RespawnNPC(ent) // This is called when a NPC is stuck and needs to 
 	ent:SetPos(spawnPoint[1])
 	ent:SetAngles(Angle(0,math.random(0,360),0))
 	ent:DoSpawnCode()
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:RespawnEntity(ent)
+	local spawnPoint = self:FindSpawnPoint(5)
+	if spawnPoint == false then
+		return
+	end
+	ent:SetPos(VJ.PICK(spawnPoint))
+	ent:SetAngles(Angle(0,math.random(0,360),0))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Think()
@@ -590,6 +600,9 @@ function ENT:Think()
 				self.NextBotsRefreshT = curTime + math.Rand(2,12)
 				for _,v in pairs(bots) do
 					if IsValid(v) && !v.IsFollowing then
+						if !v:IsInWorld() then
+							v:RespawnEntity()
+						end
 						local closestPlayer = NULL
 						local closestDist = 999999
 						for _,v2 in pairs(player.GetAll()) do
@@ -631,6 +644,14 @@ function ENT:Think()
 	local wave = self:GetWave()
 
 	if self.NextSpawnAttemptT < curTime then
+		if curTime > self.NextCheckForStuckAITime then
+			self.NextCheckForStuckAITime = curTime +math.Rand(9,18)
+			for _,v in pairs(self.Entities) do
+				if IsValid(v) && v.VJ_IsBeingControlled != true && (v:IsUnreachable(v:GetEnemy() or self) or !v:IsInWorld()) then
+					self:RespawnEntity(v)
+				end
+			end
+		end
 		self:SetPos(VJ_PICK(player.GetAll()):GetPos())
 		if self.KillsLeft <= 0 or totalNPCs >= self.KillsLeft or totalNPCs >= self.CurrentMaxNPCs or self:GetWaveSwitching() then
 			self.NextSpawnAttemptT = curTime + math.Rand(1,3)
