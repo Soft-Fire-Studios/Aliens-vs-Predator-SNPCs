@@ -443,6 +443,7 @@ if VJExists == true then
 	VJ_AVP_HALOS.Predators = {}
 	VJ_AVP_HALOS.Tech = {}
 	VJ_AVP_HALOS.Other = {}
+	VJ_AVP_HALOS.Survival = {}
 	VJ_AVP_FATALITIES = GetConVar("vj_avp_fatalities"):GetBool()
 
 	VJ_AVP_XENOS = {}

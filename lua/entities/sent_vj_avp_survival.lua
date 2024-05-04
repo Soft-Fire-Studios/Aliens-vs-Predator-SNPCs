@@ -104,10 +104,31 @@ if CLIENT then
 		end)
 	end
 	
+	local col_survivor = Color(177,253,251)
+	local halo_Add = halo.Add
+	local table_insert = table.insert
 	function ENT:Initialize()
 		local ply = LocalPlayer()
 		ply.MutatorTrackT = 0
 		ply.BossTrackT = 0
+
+		hook.Add("PreDrawHalos",self,function(self)
+			local ply = LocalPlayer()
+			if !IsValid(ply) or IsValid(ply) && ply:GetNW2Bool("AVP_DiedInSurvival",false) then return end
+			for _,v in ents.Iterator() do
+				if !IsValid(v) then continue end
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJTag_IsControllingNPC) then
+					if !VJ_HasValue(VJ_AVP_HALOS.Survival,v) then
+						table_insert(VJ_AVP_HALOS.Survival,v)
+					end
+					-- if IsValid(v:GetActiveWeapon()) && !VJ_HasValue(VJ_AVP_HALOS.Survival,v:GetActiveWeapon()) then
+					-- 	table_insert(VJ_AVP_HALOS.Survival,v:GetActiveWeapon())
+					-- end
+				end
+			end
+
+			halo_Add(VJ_AVP_HALOS.Survival,col_survivor,0.25,0.25,1,true,true)
+		end)
 
 		hook.Add("Think",self,function(self)
 			local ply = LocalPlayer()
@@ -672,7 +693,7 @@ function ENT:Think()
 				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle"})
 			elseif wave >= 5 && wave < 10 then
 				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior"})
-			elseif wave >= 10 && wav < 15 then
+			elseif wave >= 10 && wave < 15 then
 				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged"})
 			elseif wave >= 15 then
 				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_carrier"})
@@ -683,6 +704,10 @@ function ENT:Think()
 			npc.SpawnedUsingMutator = true
 			npc.Mutator = self
 			npc.StartHealth = npc.StartHealth +(boss && 0 or (wave > 5 && wave *4 or 0))
+			if npc.VJ_AVP_XenomorphLarge then -- So that the large Xenomorphs can move through close quarters
+				npc.StandingBounds = Vector(15,15,72)
+				npc.CrawlingBounds = Vector(15,15,72)
+			end
 			npc:Spawn()
 			npc:Activate()
 			npc:DrawShadow(false)
