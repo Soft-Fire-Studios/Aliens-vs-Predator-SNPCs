@@ -165,6 +165,7 @@ if VJExists == true then
 			local zPosition = origin.z
 			local entities = ents.FindInSphere(origin, radius)
 			local result = {}
+			local VJ_IsProp = VJ.IsProp
 
 			for _, ent in pairs(entities) do
 				if ent == self then continue end
