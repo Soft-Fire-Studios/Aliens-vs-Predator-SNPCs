@@ -772,7 +772,7 @@ function SWEP:CalcViewModelView(vm, OldEyePos, OldEyeAng, EyePos, EyeAng)
 		vel.x = math_Clamp(vel.x/255,-2,2) *moveMult
 		vel.y = math_Clamp(vel.y/255,-2,2) *moveMult
 		vel.z = math_Clamp(vel.z/255,-1.5,1) *moveMult
-		local velAng = Angle(vel.x *1,vel.y *1.25,vel.y *-2.5)
+		local velAng = Angle(vel.x *1,vel.y *1.25,vel.y *-8)
 		
 		self.SwayPos = LerpVector(FrameTime() *10,self.SwayPos,-vel)
 		self.SwayAng = LerpAngle(FrameTime() *10,self.SwayAng,velAng)

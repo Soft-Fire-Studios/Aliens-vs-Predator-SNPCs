@@ -1873,8 +1873,9 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 
 	if !IsValid(ent) && !self.Alerted && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		if self.VJ_AVP_XenomorphID == "praetorian" then
+			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+			self:StopAllCommonSpeechSounds()
 			VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",90,110)
 			self:VJ_ACT_PLAYACTIVITY("knockdown_forward",true,false,false,0,{OnFinish=function(interrupted)
 				if VJ_AVP_QueenExists(self) then return end
@@ -1900,26 +1901,30 @@ function ENT:CustomOnThink_AIEnabled()
 				self:Remove()
 			end})
 		else
-			self:VJ_ACT_PLAYACTIVITY("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
-				local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
-				xeno:SetPos(self:GetPos())
-				xeno:SetAngles(self:GetAngles())
-				xeno.VJ_NPC_Class = self.VJ_NPC_Class
-				xeno:Spawn()
-				xeno:Activate()
-				xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
-				xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
-					xeno:StopAllCommonSpeechSounds()
-					VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
-					xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
-						if interrupted then xeno:SetState() return end
-						xeno:SetState()
+			if VJ_AVP_GetPraetorianCount() < 2 then
+				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+				self:StopAllCommonSpeechSounds()
+				self:VJ_ACT_PLAYACTIVITY("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
+					local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
+					xeno:SetPos(self:GetPos())
+					xeno:SetAngles(self:GetAngles())
+					xeno.VJ_NPC_Class = self.VJ_NPC_Class
+					xeno:Spawn()
+					xeno:Activate()
+					xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+					xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+					xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+						xeno:StopAllCommonSpeechSounds()
+						VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
+						xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+							if interrupted then xeno:SetState() return end
+							xeno:SetState()
+						end})
 					end})
+					undo.ReplaceEntity(self,xeno)
+					self:Remove()
 				end})
-				undo.ReplaceEntity(self,xeno)
-				self:Remove()
-			end})
+			end
 		end
 	end
 

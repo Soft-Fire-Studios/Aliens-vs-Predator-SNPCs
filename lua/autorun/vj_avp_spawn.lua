@@ -619,6 +619,16 @@ if VJExists == true then
 			return false
 		end
 
+		function VJ_AVP_GetPraetorianCount()
+			local count = 0
+			for _,v in ipairs(VJ_AVP_XENOS) do
+				if v.VJ_AVP_XenomorphPraetorian then
+					count = count +1
+				end
+			end
+			return count
+		end
+
 		local specialDmgEnts = {npc_strider=true, npc_combinedropship=true, npc_combinegunship=true, npc_helicopter=true} -- Entities that need special code to be damaged
 		local math_clamp = math.Clamp
 		local math_round = math.Round
