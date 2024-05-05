@@ -42,20 +42,22 @@ function ENT:OnInit()
 	end
 
 	self.SoundTbl_Idle = {
-		"cpthazama/avp/xeno/predalien/idle1.ogg",
-		"cpthazama/avp/xeno/predalien/idle2.ogg",
+		-- "cpthazama/avp/xeno/predalien/idle1.ogg",
+		-- "cpthazama/avp/xeno/predalien/idle2.ogg",
 		"cpthazama/avp/xeno/predalien/growl1.ogg",
 		"cpthazama/avp/xeno/predalien/growl2.ogg",
 		"cpthazama/avp/xeno/predalien/growl3.ogg",
+		"cpthazama/avp/xeno/predalien/Predalien_Click.ogg",
+		"cpthazama/avp/predator/vocals/prd_clicks_01.ogg",
+		"cpthazama/avp/predator/vocals/prd_clicks_09.ogg",
 	}
 	self.SoundTbl_Alert = {
 		"cpthazama/avp/xeno/predalien/hiss1.ogg",
 		"cpthazama/avp/xeno/predalien/predalien_scream_p01.ogg",
 	}
 	self.SoundTbl_Attack = {
-		"cpthazama/avp/xeno/alien hag queen/alien_hag_queen_scream_short_01.ogg",
-		"cpthazama/avp/xeno/alien hag queen/alien_hag_queen_scream_short_02.ogg",
-		"cpthazama/avp/xeno/alien hag queen/alien_hag_queen_scream_short_03.ogg",
+		"cpthazama/avp/xeno/predalien/Predalien_Hiss1.ogg",
+		"cpthazama/avp/xeno/predalien/Predalien_Hiss2.ogg",
 	}
 	self.SoundTbl_CombatIdle = {
 		"cpthazama/avp/xeno/predalien/growl4.ogg",
@@ -71,6 +73,7 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/predalien/pain2.ogg",
 		"cpthazama/avp/xeno/predalien/pain3.ogg",
 		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_06.ogg",
+		"cpthazama/avp/predator/vocals/prd_hurt_medium_07.ogg",
 	}
 	self.SoundTbl_Death = {
 		"cpthazama/avp/xeno/predalien/predalien_death_scream_01.ogg",
@@ -262,7 +265,8 @@ local math_Clamp = math.Clamp
 function ENT:DoLeapAttack()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	self:StopAllCommonSpeechSounds()
-	VJ.CreateSound(self,self.SoundTbl_Alert,90)
+	VJ.CreateSound(self,"cpthazama/avp/xeno/predalien/Predalien_Leap.ogg",90)
+	-- VJ.CreateSound(self,self.SoundTbl_Alert,90)
 
 	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_telegraph",true,false,true,0,{OnFinish=function(interrupted)
 		if interrupted then return end
@@ -271,7 +275,7 @@ function ENT:DoLeapAttack()
 		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
 		self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
 		self:StopAllCommonSpeechSounds()
-		VJ.CreateSound(self,self.SoundTbl_Jump,90)
+		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)
 		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_leap_to_grapple",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self.AttackDamage = 180

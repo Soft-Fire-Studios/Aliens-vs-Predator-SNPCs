@@ -523,7 +523,7 @@ function SWEP:ThrowFlare(owner)
 	timer.Simple(0.3,function()
 		if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
 			SafeRemoveEntity(owner.VJ_AVP_Flare)
-			local flare = ents.Create("obj_vj_flareround")
+			local flare = ents.Create("obj_vj_avp_flare")
 			flare:SetPos(owner:GetShootPos() +owner:GetUp() *-5)
 			flare:SetAngles(owner:EyeAngles())
 			flare:SetOwner(owner)
