@@ -88,7 +88,7 @@ if CLIENT then
 	end
 
 	local function DrawText(text,font,x,y,color,alignX,alignY)
-		local textSize = surface.GetTextSize(text)
+		local textSize = surface.GetTextSize(text) or string.len(text) -- wtf is this error
 		local pos = ScreenPos(x,y)
 		local size = ScreenScale(textSize,0)
 		local distortion = math.abs(math.sin(CurTime() *4) *50)
