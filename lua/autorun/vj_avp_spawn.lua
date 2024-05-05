@@ -213,9 +213,9 @@ if VJExists == true then
 					local perDist = (closestDist /2250)
 					local sndPitch = 100
 					if closestDist <= 100 then
-						sndPitch = 140
+						sndPitch = 160
 					else
-						sndPitch = 100 +((1 -perDist) *40)
+						sndPitch = 100 +((1 -perDist) *60)
 					end
 					VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_bleep_stevie.ogg",55,sndPitch)
 					if self.IsVJBaseSNPC && self.CanInvestigate && self.NextInvestigationMove < CurTime() then
@@ -329,6 +329,15 @@ if VJExists == true then
 		surface.CreateFont("VJFont_AVP_MarineSmall", {
 			font = "Orbitron Regular",
 			size = 29,
+			weight = 600,
+			blursize = 1,
+			antialias = true,
+			italic = false,
+		})
+
+		surface.CreateFont("VJFont_AVP_MarinePing", {
+			font = "Orbitron Regular",
+			size = 23,
 			weight = 600,
 			blursize = 1,
 			antialias = true,

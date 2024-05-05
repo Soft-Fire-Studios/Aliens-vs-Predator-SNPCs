@@ -72,6 +72,21 @@ if CLIENT then
 		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
 	end
 
+	local function DrawIcon_Rotated(mat,x,y,width,height,r,g,b,a,ang)
+		local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
+		local distortion = math.abs(math.sin(CurTime() *2) *50)
+		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x +math.Rand(-distortionAmount,distortionAmount),y +math.Rand(-distortionAmount,distortionAmount))
+		local size = ScreenScale(width,height)
+		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+
+		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
+		surface.SetMaterial(mat)
+		local pos = ScreenPos(x,y)
+		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+	end
+
 	local function DrawText(text,font,x,y,color,alignX,alignY)
 		local textSize = surface.GetTextSize(text)
 		local pos = ScreenPos(x,y)
@@ -125,6 +140,9 @@ if CLIENT then
 		ent.VJ_AVP_PingTable = tblEnts
 	end)
 
+	local checkedPingPositions = false
+	local closestPing = 0
+	local checkedPings = {}
 	hook.Add("HUDPaint","VJ_AVP_Marine_HUD",function()
 		local ply = LocalPlayer()
 		local ent
@@ -261,8 +279,8 @@ if CLIENT then
 		local radarPosW = 14.75
 		local radarPosH = 8
 		DrawIcon(matHUD_MotionTracker_Base,-33.5,21.6,14.75,2,r,g,b,a)
-		-- DrawIcon(matHUD_MotionTracker_HalfBG,radarPosX,radarPosY,radarPosW,radarPosH,r,g,b,50)
 		DrawIcon(matHUD_MotionTracker_Half,radarPosX,radarPosY,radarPosW,radarPosH,r,g,b,a)
+		-- DrawIcon_Rotated(matHUD_MotionTracker,radarPosX,radarPosY,radarPosW,radarPosH,r,g,b,a,ent:EyeAngles().x)
 
 		local pingT = ent:GetNW2Float("AVP.MotionTracker.Ping",0)
 		local plyPos = ent:GetPos()
@@ -273,26 +291,52 @@ if CLIENT then
 		local radarCenterX = radarPosX
 		local radarCenterY = radarPosY +radarPosH *0.5
 		local blipSize = 3
-		if pingTable and pingT > CurTime() then
+		if pingTable && pingT > CurTime() then
 			if ent:IsPlayer() && GetConVar("ai_ignoreplayers"):GetBool() then return end
 			local time = pingT - CurTime()
 			local alpha = math_Clamp(time *255,0,255)
 
 			DrawIcon(matHUD_MotionTracker_Friendly,radarCenterX,radarCenterY,blipSize,blipSize,0,210,255,alpha)
 
-			for _, v in pairs(pingTable) do
-				if !IsValid(v) then continue end
-				local ang, dist = CalcRelativePosition(ent,v:GetPos(),maxDist)
-				local blipX = radarCenterX +(maxRenderSize *dist *math.cos(math.rad(ang)))
-				local blipY = radarCenterY +(maxRenderSize *dist *math.sin(math.rad(ang)))
-				if blipY > radarCenterY then
-					blipY = radarCenterY
-				end
+			if !checkedPingPositions then
+				checkedPings = {}
+				local lastDist = 999999
+				for _, v in pairs(pingTable) do
+					if !IsValid(v) then continue end
+					local ang, dist = CalcRelativePosition(ent,v:GetPos(),maxDist)
+					local blipX = radarCenterX +(maxRenderSize *dist *math.cos(math.rad(ang)))
+					local blipY = radarCenterY +(maxRenderSize *dist *math.sin(math.rad(ang)))
+					if blipY > radarCenterY then
+						blipY = radarCenterY
+					end
 
-				DrawIcon(matHUD_MotionTracker_Enemy,blipX,blipY,blipSize,blipSize,r,g,b,alpha)
+					local realDist = v:GetPos():Distance(ent:GetPos())
+					if realDist < lastDist then
+						lastDist = realDist
+						closestPing = realDist
+					end
+
+					table.insert(checkedPings,{v,blipX,blipY})
+					-- DrawIcon(matHUD_MotionTracker_Enemy,blipX,blipY,blipSize,blipSize,r,g,b,alpha)
+				end
+				checkedPingPositions = true
+			else
+				for _, v in pairs(checkedPings) do
+					if !IsValid(v[1]) then continue end
+					DrawIcon(matHUD_MotionTracker_Enemy,v[2],v[3],blipSize,blipSize,r,g,b,alpha)
+				end
 			end
 			local scanY = radarCenterY -0.5 *(8 *(1 -time))
 			DrawIcon(matHUD_MotionTracker_Scan,radarCenterX,scanY,14.75 *(1 -time),8 *(1 -time),r,g,b,alpha)
+		else
+			checkedPingPositions = false
+			closestPing = 0
+		end
+
+		if closestPing != 0 then
+			local text = math.Round((closestPing /16) /3.281,1) .. "M"
+			local spacing = string.len(text) *0.24
+			DrawText(text,"VJFont_AVP_MarinePing",radarCenterX -spacing,radarCenterY)
 		end
 	end)
 	
