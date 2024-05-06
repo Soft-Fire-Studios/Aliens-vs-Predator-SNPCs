@@ -13,6 +13,22 @@ ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Creature = true
 ENT.VJ_AVP_Predator = true
 
+sound.Add({
+	name = "AVP.Predator.NuclearExplosion",
+	channel = CHAN_STATIC,
+	volume = 1.0,
+	level = 150,
+	sound = "cpthazama/avp/weapons/explosions/pred_detonated_01.ogg"
+})
+
+sound.Add({
+	name = "AVP.Predator.NuclearExplosionFX",
+	channel = CHAN_STATIC,
+	volume = 1.0,
+	level = 150,
+	sound = "cpthazama/avp/weapons/explosions/explosion_large_distant_fx_02.ogg"
+})
+
 function ENT:SetupDataTables()
 	self:NetworkVar("Entity",0,"LockOn")
 	self:NetworkVar("Entity",1,"VM")

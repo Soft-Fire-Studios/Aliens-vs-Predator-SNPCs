@@ -219,6 +219,9 @@ end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
 	if act == ACT_IDLE then
+		if self.TransIdle then
+			return self.TransIdle
+		end
 		if self.AttackIdleTime > CurTime() then
 			return self.AttackIdle
 		elseif self.Alerted then
@@ -275,7 +278,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if vm then
 		vm:OnChangeActivity(self,anim)
 	end
-	if extraOptions && extraOptions.AlwaysUseGesture then
+	if extraOptions && extraOptions.AlwaysUseGesture && !extraOptions.DisableChaseFix then
 		self.NextChaseTime = 0
 	end
 	return anim,animDur
@@ -412,6 +415,40 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoCountdownAttack()
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+
+	local function Do(t,func)
+		timer.Simple(t,function()
+			if IsValid(self) then
+				func()
+			end
+		end)
+	end
+
+	if self:GetCloaked() then
+		self:Camo(false)
+		self.NextCloakT = CurTime() +50
+	end
+	self:PlayAnimation("predator_destruct_start",true,false,false)
+	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+	self.TransIdle = ACT_HL2MP_IDLE
+	Do(0,function()
+		self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true,DisableChaseFix=true})
+		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_open_01.ogg",70)
+	end)
+	Do(1.25,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
+	Do(1.65,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
+	Do(1.8,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
+	Do(2.1,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
+	Do(2.6,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_close_01.ogg",70) end)
+	Do(3,function()
+		self.CountdownTimer = CurTime() +30
+		ParticleEffectAttach("vj_avp_predator_plasma_charging",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("panel"))
+		sound.EmitHint(SOUND_DANGER, self:GetPos(), 600, 30, self)
+	end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local bounds = Vector(14,14,75)
 --
 function ENT:CustomOnInitialize()
@@ -437,6 +474,7 @@ function ENT:CustomOnInitialize()
 	self.PlasmaHoldTime = 0
 	self.PlasmaMaxChargeT = 0
 	self.PlasmaFireDelayT = 0
+	self.ActivatedSelfDestruct = false
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -501,6 +539,10 @@ function ENT:CustomOnInitialize()
             end
         end
     end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:IsBusy()
+	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.ActivatedSelfDestruct
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
@@ -1554,8 +1596,99 @@ function ENT:SetViewModelWeapon(wep,ply)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local VJ_IsProp = VJ.IsProp
+--
+function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+	if self.CountdownTimer then
+		local class = self.VJ_NPC_Class
+		ent.CountdownTimer = self.CountdownTimer
+
+		ParticleEffectAttach("vj_avp_predator_plasma_charging",PATTACH_POINT_FOLLOW,ent,ent:LookupAttachment("panel"))
+		sound.EmitHint(SOUND_DANGER, ent:GetPos(), 600, ent.CountdownTimer -CurTime(), ent)
+
+		hook.Add("Think",ent,function(ent)
+			if ent.CountdownTimer == nil then return end
+			local remainTime = ent.CountdownTimer -CurTime()
+			local per = (remainTime /30)
+
+			ent.NextCountdownTickT = ent.NextCountdownTickT or CurTime() +1
+			ent.NextCountdownLaughT = ent.NextCountdownLaughT or CurTime() +math.random(1,3)
+	
+			if CurTime() > ent.NextCountdownTickT then
+				ent.NextCountdownTickT = CurTime() +1
+				local pitch = 110 +(20 *(1 -per))
+				sound.Play("cpthazama/avp/predator/Bomb_Tick.ogg",ent:GetPos(),60,pitch)
+			end
+	
+			if remainTime <= 0 then
+				ent.CountdownTimer = nil
+				ent:StopParticles()
+				util.ScreenShake(ent:GetPos(),16,150,10,10000,true)
+				sound.Play("AVP.Predator.NuclearExplosion",ent:GetPos())
+				for _,v in pairs(player.GetAll()) do
+					v:ScreenFade(SCREENFADE.IN,Color(170,228,255),1.25,1)
+				end
+				timer.Simple(0.8,function()
+					if IsValid(ent) then
+						local fakeNPC = ents.Create("npc_vj_avp_pred")
+						fakeNPC:SetPos(ent:GetPos())
+						fakeNPC:SetAngles(ent:GetAngles())
+						fakeNPC.VJ_NPC_Class = class
+						fakeNPC:Spawn()
+						fakeNPC:Activate()
+						ParticleEffect("vj_avp_predator_honor",ent:GetPos(),ent:GetAngles())
+						sound.Play("AVP.Predator.NuclearExplosionFX",ent:GetPos())
+						VJ.ApplyRadiusDamage(fakeNPC,fakeNPC,ent:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
+						SafeRemoveEntity(fakeNPC)
+						hook.Remove("Think",ent)
+					end
+				end)
+			end
+		end)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
+	if self.CountdownTimer then
+		local remainTime = self.CountdownTimer -CurTime()
+		local per = (remainTime /30)
+
+		self.NextCountdownTickT = self.NextCountdownTickT or CurTime() +1
+		self.NextCountdownLaughT = self.NextCountdownLaughT or CurTime() +math.random(1,3)
+
+		if CurTime() > self.NextCountdownTickT then
+			self.NextCountdownTickT = CurTime() +1
+			local pitch = 110 +(20 *(1 -per))
+			sound.Play("cpthazama/avp/predator/Bomb_Tick.ogg",self:GetPos(),60,pitch)
+		end
+
+		if CurTime() > self.NextCountdownLaughT then
+			self.NextCountdownLaughT = CurTime() +math.random(4,5)
+			VJ.CreateSound(self,"cpthazama/avp/predator/vocals/pred_laugh_taunt_bill.ogg",75,math.random(75,108))
+		end
+
+		if remainTime <= 0 then
+			self.CountdownTimer = nil
+			util.ScreenShake(self:GetPos(),16,150,10,10000,true)
+			sound.Play("AVP.Predator.NuclearExplosion",self:GetPos())
+			for _,v in pairs(player.GetAll()) do
+				v:ScreenFade(SCREENFADE.IN,Color(170,228,255),1.25,1)
+			end
+			timer.Simple(0.8,function()
+				if IsValid(self) then
+					ParticleEffect("vj_avp_predator_honor",self:GetPos(),self:GetAngles())
+					sound.Play("AVP.Predator.NuclearExplosionFX",self:GetPos())
+					VJ.ApplyRadiusDamage(self,self,self:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
+					self:SetHealth(0)
+					self.GodMode = false
+					self:TakeDamage(2000,self,self)
+				end
+			end)
+		end
+		return
+	end
+
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
 		local names = self.PoseParameterLooking_Names
@@ -2137,6 +2270,7 @@ end
 local bit_band = bit.band
 --
 function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
+	if self.ActivatedSelfDestruct then return end
 	local dmgType = dmginfo:GetDamageType()
 	if self.IsBlocking && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
 		local attacker = dmginfo:GetAttacker()
@@ -2182,6 +2316,7 @@ function ENT:OnAttackBlocked(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+	if self.ActivatedSelfDestruct then return end
 	if self.DisableChasingEnemy then
 		self:StopMoving()
 		self.DisableChasingEnemy = false
@@ -2198,6 +2333,11 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:ClearSchedule()
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
+		if !self.ActivatedSelfDestruct && self:Health() < self:GetMaxHealth() *0.2 && self:GetStimCount() <= 0 && math.random(1,2) == 1 then
+			self:DoCountdownAttack()
+			self.ActivatedSelfDestruct = true
+			return
+		end
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)

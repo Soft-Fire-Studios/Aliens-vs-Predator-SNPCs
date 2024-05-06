@@ -143,3 +143,73 @@ function ENT:CustomOnRemove()
 		end
 	end
 end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_acos = math.acos
+local math_deg = math.deg
+local math_abs = math.abs
+--
+function ENT:CustomOnThink_AIEnabled()
+	local pos = self:GetPos()
+	local len = self:GetUp() *50
+	local ang = self:GetAngles()
+	local ang_y = Angle(0,ang.y,0)
+	local refreshRate = FrameTime() *20
+	local _, maxs = self:GetCollisionBounds()
+	-- mins = mins *2
+	-- maxs = maxs *2
+	local posForward, posBackward, posRight, posLeft
+	local directionVectors = {
+		forward = ang_y:Forward(),
+		backward = ang_y:Forward() * -1,
+		right = ang_y:Right(),
+		left = ang_y:Right() * -1,
+	}
+	local hits = {}
+	for direction, vector in pairs(directionVectors) do
+		local startPos = pos + vector * ((vector == directionVectors.right or vector == directionVectors.left) and maxs.y or maxs.x)
+		local tr = util.TraceLine({
+			start = startPos,
+			endpos = startPos - len,
+			filter = self
+		})
+		hits[direction] = tr.HitPos
+		if direction == "forward" then
+			posForward = startPos
+		elseif direction == "backward" then
+			posBackward = startPos
+		elseif direction == "right" then
+			posRight = startPos
+		elseif direction == "left" then
+			posLeft = startPos
+		end
+	end
+
+	local hitForward = hits.forward
+	local hitBackward = hits.backward
+	local hitRight = hits.right
+	local hitLeft = hits.left
+	local pitch
+	local roll
+	local pitchDif = math_abs(hitForward.z -hitBackward.z)
+	local rollDif = math_abs(hitLeft.z -hitRight.z)
+	if posForward:Distance(hitForward) > posBackward:Distance(hitBackward) then
+		pitch = 90 -math_deg(math_acos(pitchDif /hitForward:Distance(posBackward)))
+	else
+		pitch = -(90 -math_deg(math_acos(pitchDif /hitBackward:Distance(posForward))))
+	end
+	if posLeft:Distance(hitLeft) > posRight:Distance(hitRight) then
+		roll = -(90 -math_deg(math_acos(rollDif /hitLeft:Distance(posRight))))
+	else
+		roll = 90 -math_deg(math_acos(rollDif /hitRight:Distance(posLeft)))
+	end
+
+	local tr = util.TraceLine({
+		start = pos,
+		endpos = pos -len,
+		filter = self
+	})
+
+	self.Incline = pitch
+	self:ManipulateBonePosition(0,Vector(0,0,Lerp(refreshRate,self:GetManipulateBonePosition(0).z,-(tr.HitPos +tr.HitNormal):Distance(pos))))
+	self:SetAngles(LerpAngle(refreshRate,self:GetAngles(),Angle(pitch,ang.y,roll)))
+end
