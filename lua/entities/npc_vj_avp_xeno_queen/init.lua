@@ -255,7 +255,7 @@ function ENT:OnThink()
 		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
 		return
 	end
-	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT && !self.Alerted then
+	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT && !self.Alerted && !self.SpawnedUsingMutator then
 		if !self:IsBusy() && !self:IsMoving() then
 			local vsched = vj_ai_schedule.New("vj_idle_wander")
 			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)

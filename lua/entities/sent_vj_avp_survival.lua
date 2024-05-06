@@ -53,6 +53,8 @@ if CLIENT then
 		"cpthazama/avp/music/survival/Full Tilt Rampage (Variant).mp3",
 	}
 
+	local queenTrack = "cpthazama/avp/music/survival/Showdown.mp3"
+
 	local function StopTrack(ply,trk)
 		if trk == nil then
 			if IsValid(ply) && ply.MutatorTrack && ply.MutatorTrack:IsValid() then
@@ -164,7 +166,7 @@ if CLIENT then
 				end
 				if specialRound then
 					if !ply.BossTrack or ply.BossTrack && ply.BossTrackT < CurTime() then
-						PlayTrack(ply,VJ_PICK(self.BossTracks),2)
+						PlayTrack(ply,self:GetWave() >= 30 && queenTrack or VJ_PICK(self.BossTracks),2)
 					end
 				else
 					if !ply.MutatorTrack or ply.MutatorTrack && ply.MutatorTrackT < CurTime() then
@@ -183,7 +185,7 @@ if CLIENT then
 	return
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.MaxNPCs = 2
+ENT.MaxNPCs = 15
 ENT.IncrementAmount = 4
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpawnBot(count,respawn)
@@ -303,7 +305,7 @@ function ENT:Initialize()
 		if IsValid(self) then
 			self:SetSpecialRound(false)
 			self:SetWaveSwitching(false)
-			self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
+			self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount,1,self.MaxNPCs)
 			self:SetWave(self:GetWave() +1)
 			self.KillsLeft = self.IncrementAmount *self:GetWave()
 			for _,v in pairs(player.GetAll()) do
@@ -413,6 +415,9 @@ function ENT:Initialize()
 			if attacker:IsPlayer() then
 				attacker:SetNW2Int("AVP_Score",attacker:GetNW2Int("AVP_Score") +(npc:GetMaxHealth() *0.1))
 			end
+			if npc.VJ_AVP_Xenomorph_Queen then
+				self.HasKilledQueen = true
+			end
 			if self.KillsLeft > 0 then
 				for _,v in pairs(player.GetAll()) do
 					v:ChatPrint("Aliens Remaining: ".. self.KillsLeft)
@@ -446,32 +451,7 @@ function ENT:Initialize()
 
 				timer.Simple(10,function()
 					if IsValid(self) then
-						if (self:GetWave() +1) %5 == 0 then
-							self.MaxBosses = self.MaxBosses +1
-							self:SetSpecialRound(true)
-							self:SetWaveSwitching(false)
-							self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
-							self:SetWave(self:GetWave() +1)
-							self.KillsLeft = self.IncrementAmount *self:GetWave()
-							self.BossKillsLeft = math_ceil(self:GetWave() *0.5)
-							for _,v in pairs(player.GetAll()) do
-								VJ_AVP_CSound(v,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg")
-								VJ_AVP_CSound(v,"cpthazama/avp/music/sting/dead prey sting 02.ogg")
-								VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_38.ogg")
-								v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
-							end
-						else
-							self:SetSpecialRound(false)
-							self:SetWaveSwitching(false)
-							self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
-							self:SetWave(self:GetWave() +1)
-							self.KillsLeft = self.IncrementAmount *self:GetWave()
-							for _,v in pairs(player.GetAll()) do
-								VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
-								VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_23.ogg")
-								v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
-							end
-						end
+						self:NextRound()
 					end
 				end)
 			end
@@ -480,6 +460,40 @@ function ENT:Initialize()
 			self.BotsToRespawn = self.BotsToRespawn +1
 		end
 	end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:NextRound()
+	local wave = self:GetWave()
+	local newWave = wave +1
+	self.HasKilledQueen = false
+	self.Queen = nil
+	if newWave %5 == 0 then
+		self.MaxBosses = newWave /5
+		self:SetSpecialRound(true)
+		self:SetWaveSwitching(false)
+		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		-- self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
+		self:SetWave(newWave)
+		self.KillsLeft = self.IncrementAmount *newWave
+		self.BossKillsLeft = math_ceil(newWave *0.5)
+		for _,v in pairs(player.GetAll()) do
+			VJ_AVP_CSound(v,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg")
+			VJ_AVP_CSound(v,"cpthazama/avp/music/sting/dead prey sting 02.ogg")
+			VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_38.ogg")
+			v:ChatPrint("Wave ".. newWave .. " has started...")
+		end
+	else
+		self:SetSpecialRound(false)
+		self:SetWaveSwitching(false)
+		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		self:SetWave(newWave)
+		self.KillsLeft = self.IncrementAmount *newWave
+		for _,v in pairs(player.GetAll()) do
+			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
+			VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_23.ogg")
+			v:ChatPrint("Wave ".. newWave .. " has started...")
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RespawnPlayerAsAI(ply)
@@ -690,15 +704,65 @@ function ENT:Think()
 			local boss = (self:GetSpecialRound() && #self.Bosses < self.MaxBosses && self.BossKillsLeft > 0)
 			local xeno = "npc_vj_avp_" .. xenoType .. "_drone"
 			if wave >= 3 && wave < 5 then
-				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle"})
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_drone",
+					"npc_vj_avp_" .. xenoType .. "_jungle"
+				})
 			elseif wave >= 5 && wave < 10 then
-				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_drone","npc_vj_avp_" .. xenoType .. "_jungle","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior"})
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_drone",
+					"npc_vj_avp_" .. xenoType .. "_jungle",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior"
+				})
 			elseif wave >= 10 && wave < 15 then
-				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged"})
-			elseif wave >= 15 then
-				xeno = VJ.PICK({"npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_warrior","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_ridged","npc_vj_avp_" .. xenoType .. "_carrier"})
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_ridged"
+				})
+			elseif wave >= 15 && wave < 20 then
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_carrier"
+				})
+			elseif wave >= 20 && wave < 30 then
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_carrier",
+					"npc_vj_avp_" .. xenoType .. "_carrier"
+				})
+			elseif wave >= 30 then
+				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_carrier",
+					"npc_vj_avp_" .. xenoType .. "_carrier",
+					"npc_vj_avp_" .. xenoType .. "_praetorian",
+					"npc_vj_avp_" .. xenoType .. "_praetorian",
+					"npc_vj_avp_" .. xenoType .. "_praetorian",
+				})
 			end
-			local npc = ents.Create(boss && ((wave >= 15 && math.random(1,50) == 1) && "npc_vj_avp_" .. xenoType .. "_predalien" or "npc_vj_avp_" .. xenoType .. "_praetorian") or xeno)
+			local isQueen = (wave >= 30 && !self.HasKilledQueen && !IsValid(self.Queen))
+			if isQueen && IsValid(self.Queen) then
+				isQueen = false
+			end
+			local bossType = isQueen && "npc_vj_avp_" .. xenoType .. "_queen" or ((wave >= 15 && math.random(1,wave >= 30 && 1 or 50) == 1) && "npc_vj_avp_" .. xenoType .. "_predalien" or "npc_vj_avp_" .. xenoType .. "_praetorian")
+			local npc = ents.Create(
+				boss && bossType
+				or xeno
+			)
 			npc:SetPos(s)
 			npc:SetAngles(Angle(0,math.random(0,360),0))
 			npc.SpawnedUsingMutator = true
@@ -710,6 +774,14 @@ function ENT:Think()
 			end
 			npc:Spawn()
 			npc:Activate()
+			if npc.VJ_AVP_XenomorphLarge then
+				local bounds = npc.StandingBounds
+				local collisionMin, collisionMax = -bounds, bounds
+				npc:SetSurroundingBounds(Vector(collisionMin.x *2, collisionMin.y *2, collisionMin.z *4), Vector(collisionMax.x *2, collisionMax.y *2, collisionMax.z *4))			
+			end
+			if npc.VJ_AVP_Xenomorph_Queen then
+				self.Queen = npc
+			end
 			npc:DrawShadow(false)
 			npc.AnimMovementType = wave > 3 && math.random(1,2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
 			if self.AlwaysAlerted then
@@ -738,6 +810,39 @@ function ENT:Think()
 
 	self:NextThink(curTime)
 	return true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ForceRound(round) -- Developer function to force a specific round | lua_run for _,v in pairs(ents.FindByClass("sent_vj_avp_survival")) do v:ForceRound(30) end
+	if self:GetWaveSwitching() then return end
+	self.KillsLeft = 0
+	for _,v in pairs(self.Entities) do
+		if IsValid(v) then
+			v:Remove()
+		end
+	end
+
+	self:SetWaveSwitching(true)
+	self:SetWaveSwitchVolTime(CurTime() +20)
+	for _,v in pairs(player.GetAll()) do
+		VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
+		v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
+	end
+
+	if self.AllowBots then
+		local bots = self.Bots
+		local deadBots = self.BotsToRespawn
+		if deadBots > 0 then
+			self:SpawnBot(deadBots,true)
+			self.BotsToRespawn = 0
+		end
+	end
+
+	timer.Simple(10,function()
+		if IsValid(self) then
+			self:SetWave(round -1)
+			self:NextRound()
+		end
+	end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnRemove()
