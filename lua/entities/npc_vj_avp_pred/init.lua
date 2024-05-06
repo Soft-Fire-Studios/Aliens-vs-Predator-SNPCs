@@ -2333,8 +2333,9 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:ClearSchedule()
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
-		if !self.ActivatedSelfDestruct && self:Health() < self:GetMaxHealth() *0.2 && self:GetStimCount() <= 0 && math.random(1,2) == 1 then
+		if !self.ActivatedSelfDestruct && self:Health() < self:GetMaxHealth() *0.2 && (self:GetStimCount() <= 0 or math.random(1,self:Health() < self:GetMaxHealth() *0.1 && 3 or 25) == 1) && math.random(1,2) == 1 then
 			self:DoCountdownAttack()
+			self.HasDeathAnimation = false
 			self.ActivatedSelfDestruct = true
 			return
 		end

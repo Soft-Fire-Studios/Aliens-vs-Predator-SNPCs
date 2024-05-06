@@ -316,14 +316,14 @@ if CLIENT then
 						closestPing = realDist
 					end
 
-					table.insert(checkedPings,{v,blipX,blipY})
+					table.insert(checkedPings,{v,blipX,blipY,v.VJ_AVP_Xenomorph_Queen && 5 or 3})
 					-- DrawIcon(matHUD_MotionTracker_Enemy,blipX,blipY,blipSize,blipSize,r,g,b,alpha)
 				end
 				checkedPingPositions = true
 			else
 				for _, v in pairs(checkedPings) do
 					if !IsValid(v[1]) then continue end
-					DrawIcon(matHUD_MotionTracker_Enemy,v[2],v[3],blipSize,blipSize,r,g,b,alpha)
+					DrawIcon(matHUD_MotionTracker_Enemy,v[2],v[3],v[4],v[4],r,g,b,alpha)
 				end
 			end
 			local scanY = radarCenterY -0.5 *(8 *(1 -time))

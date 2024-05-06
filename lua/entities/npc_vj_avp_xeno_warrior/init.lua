@@ -612,7 +612,10 @@ function ENT:CustomOnCallForHelp(ally)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMeleeAttack_AfterChecks(v, isProp)
+function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
+	if self.OnHitEntity then
+		self:OnHitEntity(v,isProp)
+	end
 	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph && math.random(1,4) == 1 then
 		local tName = "VJ.AVP.Timer.BlackGoo." .. v:EntIndex()
 		if v:IsPlayer() && !timer.Exists(tName) then
@@ -712,17 +715,20 @@ function ENT:FootStep(pos,name)
 	if !self:IsOnGround() then return end
 	if self.CurrentSet == 2 && (name == "lhand" or name == "rhand") then return end
 	local tbl = self.SoundTbl_FootSteps
-	if !tbl then return end
+	if !tbl then
+		return
+	end
 	local tr = util.TraceLine({
 		start = self:GetPos(),
 		endpos = self:GetPos() +Vector(0,0,-150),
 		filter = {self}
 	})
-	if tr.MatType && tbl[tr.MatType] == nil then
-		tr.MatType = MAT_CONCRETE
+	local matType = tr.MatType
+	if matType && tbl[matType] == nil then
+		matType = MAT_CONCRETE
 	end
-	if tr.Hit && tbl[tr.MatType] then
-		local snd = VJ.PICK(tbl[tr.MatType])
+	if tr.Hit && tbl[matType] then
+		local snd = VJ.PICK(tbl[matType])
 		sound.Play(snd,pos,self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 		VJ.EmitSound(self,snd,10)
 	end
@@ -1050,6 +1056,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		end
 	elseif key == "step" then
 		self:FootStepSoundCode()
+	elseif key == "spit_vo" then
+		self:StopAllCommonSpeechSounds()
+		VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_04.ogg",80)
 	elseif key == "spit" then
 		local ent = self:GetEnemy()
 		if IsValid(ent) then
@@ -1125,7 +1134,17 @@ function ENT:RunDamageCode(mult)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		self:CustomOnMeleeAttack_AfterChecks(ent, false)
-		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
+		local isProp = VJ.IsProp(ent)
+		if isProp && self.AttackProps then
+			local phys = ent:GetPhysicsObject()
+			local selfPhys = self:GetPhysicsObject()
+			if IsValid(phys) && IsValid(selfPhys) && (selfPhys:GetSurfaceArea() *self.PropAP_MaxSize) >= phys:GetSurfaceArea() then
+				phys:EnableMotion(true)
+				phys:Wake()
+				phys:ApplyForceCenter(self:GetPos() +self:GetForward() *(phys:GetMass() *700) +self:GetUp() *(phys:GetMass() *200))
+			end
+		end
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or isProp
 	end)
 	return hitEnts
 end
@@ -1939,6 +1958,7 @@ function ENT:CustomOnThink_AIEnabled()
 			checkPos.y = footPos.y
 			local dist = footPos:Distance(checkPos)
 
+			-- print(dist,attName,var.Range)
 			if dist > var.Range then
 				var.OnGround = false
 			else
@@ -2192,7 +2212,7 @@ local angY180 = Angle(0, 180, 0)
 local defAng = Angle(0, 0, 0)
 --
 function ENT:Controller_Movement(cont, ply, bullseyePos)
-	if self.MovementType != VJ_MOVETYPE_STATIONARY then
+	if self.MovementType != VJ_MOVETYPE_STATIONARY && !self.InCharge then
 		local gerta_lef = ply:KeyDown(IN_MOVELEFT)
 		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
 		local gerta_arak = ply:KeyDown(IN_SPEED)

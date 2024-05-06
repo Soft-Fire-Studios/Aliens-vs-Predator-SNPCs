@@ -272,7 +272,7 @@ function ENT:DoLeapAttack()
 		if interrupted then return end
 		-- self:SetGroundEntity(NULL)
 		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
-		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
+		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *2000
 		self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
 		self:StopAllCommonSpeechSounds()
 		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)

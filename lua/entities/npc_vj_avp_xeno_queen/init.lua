@@ -8,25 +8,30 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/queen.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
+ENT.VJ_IsHugeMonster = true
 
 ENT.VJC_Data = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 20),
-    FirstP_Bone = "Bip01 Head",
-    FirstP_Offset = Vector(25, 0, -3),
+    FirstP_Bone = "head",
+    FirstP_Offset = Vector(10, 0, 3),
     FirstP_ShrinkBone = false
 }
 
+ENT.AnimTbl_RangeAttack = {"vjges_Alien_Queen_spit"}
+ENT.RangeAttackAnimationStopMovement = false
+
 ENT.HasBreath = true
 
+ENT.CanSpit = true
 ENT.CanLeap = false
 ENT.CanSetGroundAngle = false
 ENT.AlwaysStand = true
 ENT.CanBeKnockedDown = false
 ENT.DisableFatalities = true
 
-ENT.StandingBounds = Vector(25,25,160)
-ENT.CrawlingBounds = Vector(25,25,160)
+ENT.StandingBounds = Vector(23,23,112)
+ENT.CrawlingBounds = Vector(23,23,112)
 ENT.AnimTranslations = {
 	[ACT_IDLE] = ACT_IDLE
 }
@@ -86,10 +91,20 @@ function ENT:OnInit()
 		end
 		return
 	end
-	self.SoundTbl_FootStep = {
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
+
+	self.AttackProps = true
+	self.PushProps = true
+	self.HasRangeAttack = true
+	self.PropAP_MaxSize = 1.65
+	self.FootStepSoundLevel = 75
+	self.FootStepPitch1 = 60
+	self.FootStepPitch2 = 70
+	self.SoundTbl_FootSteps = {
+		[MAT_CONCRETE] = {
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_01.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_02.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_03.ogg",
+		}
 	}
 	self.SoundTbl_Alert = {
 		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_02.ogg",
@@ -116,19 +131,54 @@ function ENT:OnInit()
 		self.HasSoundTrack = true
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
 	end
+
+	self.FootData = {
+		["lfoot"] = {Range=42,OnGround=true},
+		["rfoot"] = {Range=42,OnGround=true}
+	}
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
 	self.CanFlinch = 0
 
 	self.InBirth = false
-	self.NextLookForBirthT = CurTime() +5
+	-- self.NextLookForBirthT = CurTime() +60
+	self.NextLookForBirthT = CurTime() +10
 	self.NextSpawnEggT = 0
 	self.NextCommandXenosT = 0
 	self.Eggs = {}
 	self.InCharge = false
 	self.ChargeT = 0
 	self.NextSpecialEggCheckT = CurTime() +5
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnRangeAttack_AfterStartTimer(seed)
+	self.NextChaseTime = 0
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:MeleeAttackKnockbackVelocity(hitEnt)
+	return self:GetForward() *math.random(700,850) +self:GetUp() *100
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnHitEntity(ent,isProp)
+	if isProp then
+		local phys = ent:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:ApplyForceCenter(self:GetForward() *2000 +self:GetUp() *250)
+		end
+	else
+		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJ_IsHugeMonster or ent.IsVJBaseSNPC_Tank) then
+			ent:SetGroundEntity(NULL)
+			ent:SetVelocity(self:MeleeAttackKnockbackVelocity(ent))
+		end
+		if ent:IsPlayer() then -- Simulate getting your shit rocked
+			ent:ScreenFade(SCREENFADE.IN,Color(34,0,0),0.2,math.Rand(0.1,0.3))
+			local ang = ent:EyeAngles()
+			ang.p = ang.p +math.random(-75,75)
+			ang.y = ang.y +math.random(-75,75)
+			ent:SetEyeAngles(ang)
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_Count = table.Count
@@ -141,6 +191,13 @@ function ENT:OnThink()
 		self.NextLookForBirthT = curTime +60
 		if self.InBirth && self.NearestPointToEnemyDistance <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
 			self.InBirth = false
+			for _,v in pairs(VJ_AVP_XENOS) do
+				if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
+					v:Follow(self)
+					v:SetLastPosition(self:GetPos() +self:GetForward() *math.random(200,200) +self:GetRight() *math.random(-200,200))
+					v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+				end
+			end
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
 			self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE
@@ -151,10 +208,12 @@ function ENT:OnThink()
 	if !self.InBirth && self.InCharge then
 		if self:IsBusy() then return end
 		if curTime > self.ChargeT then
+			self:SetMaxYawSpeed(self.TurningSpeed)
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
 			self.InCharge = false
 			return
 		end
+		self:SetMaxYawSpeed(0)
 		local tr = util.TraceHull({
 			start = self:GetPos() +self:OBBCenter(),
 			endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *175,
@@ -171,6 +230,7 @@ function ENT:OnThink()
 				self:OnCollision(tr.HitEntity,2)
 			end
 			-- VJ.DEBUG_TempEnt(tr.HitPos, self:GetAngles(), Color(255,0,0), 5)
+			self:SetMaxYawSpeed(self.TurningSpeed)
 			self.InCharge = false
 			return
 		end
@@ -195,7 +255,7 @@ function ENT:OnThink()
 		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
 		return
 	end
-	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT then
+	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT && !self.Alerted then
 		if !self:IsBusy() && !self:IsMoving() then
 			local vsched = vj_ai_schedule.New("vj_idle_wander")
 			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)
@@ -242,6 +302,11 @@ function ENT:OnThink()
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE_RELAXED
 			self.NextSpawnEggT = curTime +5
 			self.NextCommandXenosT = curTime +math.random(5,10)
+			for _,v in pairs(VJ_AVP_XENOS) do
+				if IsValid(v) && v:CheckRelationship(self) == D_LI && v.FollowData && v.FollowData.Ent == self then
+					v:FollowReset()
+				end
+			end
 		else
 			if IsValid(cont) && cont:KeyDown(IN_JUMP) then
 				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
@@ -249,6 +314,13 @@ function ENT:OnThink()
 				self.InBirth = false
 				self.AnimTranslations[ACT_IDLE] = ACT_IDLE
 				self:SetState()
+				for _,v in pairs(VJ_AVP_XENOS) do
+					if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
+						v:Follow(self)
+						v:SetLastPosition(self:GetPos() +self:GetForward() *math.random(200,200) +self:GetRight() *math.random(-200,200))
+						v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+					end
+				end
 				SafeRemoveEntity(self.EggSack)
 				return
 			end
@@ -509,9 +581,30 @@ function ENT:OnCollision(ent,colType)
 	self.MeleeAttackDamageAngleRadius = 100
 	util.ScreenShake(self:GetPos(),12,150,2,800)
 	self:PlaySound(self.SoundTbl_Attack,80)
+	self:SetMaxYawSpeed(self.TurningSpeed)
 	if colType == 3 then
 		ParticleEffect("AntlionFX_UnBurrow",self:GetAttachment(self:LookupAttachment("eyes")).Pos,Angle())
 		sound.Play("cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",self:GetPos(),110)
+		for _,v in pairs(ents.FindInSphere(self:GetPos(),1000)) do
+			local isProp = VJ.IsProp(v)
+			if v:IsNPC() && v != self or v:IsPlayer() or v:IsNextBot() or isProp then -- Let's shake things up
+				local distPercentage = 1 -v:GetPos():Distance(self:GetPos()) /1000
+				if isProp then
+					local hitDir = (v:GetPos() -self:GetPos()):GetNormalized()
+					local phys = v:GetPhysicsObject()
+					if IsValid(phys) then
+						phys:EnableMotion(true)
+						phys:Wake()
+						phys:ApplyForceCenter(hitDir *phys:GetMass() *(300 *distPercentage))
+					end
+				else
+					if v.MovementType != VJ_MOVETYPE_STATIONARY && (!v.VJ_IsHugeMonster or v.IsVJBaseSNPC_Tank) then
+						v:SetGroundEntity(NULL)
+						v:SetVelocity(v:GetUp() *(math.random(100,200) *distPercentage) +v:GetForward() *(math.random(-500,500) *distPercentage) +v:GetRight() *(math.random(-500,500) *distPercentage))
+					end
+				end
+			end
+		end
 	else
 		sound.Play(VJ.PICK(sdMM),self:GetPos(),80)
 	end
@@ -567,7 +660,7 @@ function ENT:CustomAttack(ent,visible)
 		end
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
 			self:AttackCode()
-		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(true)
 		elseif cont:KeyDown(IN_JUMP) && !self.InBirth && !self:IsBusy() then
 			self.InBirth = true
@@ -586,7 +679,7 @@ function ENT:CustomAttack(ent,visible)
 				else
 					self:AttackCode()
 				end
-			elseif dist > self.AttackDistance *5 && dist <= 2500 && !self.InCharge && !self:IsBusy() then
+			elseif dist > self.AttackDistance *5 && dist <= 2500 && !self.InCharge && !self:IsBusy() && math.random(1,100) == 1 then
 				self:AttackCode(true)
 			end
 		end
@@ -600,15 +693,19 @@ function ENT:AttackCode(charge)
 		self.AttackType = 2
 		self.AttackSide = self.AttackSide == "right" && "left" or "right"
 		self:PlaySound(self.SoundTbl_Attack,75)
-		self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+		local _,dur = self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
 			if interrupted or self.InFatality then return end -- Means we hit something
-			self.AttackDamage = 75
-			self.AttackDamageDistance = 140
-			self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
-			VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide .. "_return",true,false,true,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end})
+		timer.Simple(dur *0.6,function()
+			if IsValid(self) && !self.InFatality then
+				self.AttackDamage = 75
+				self.AttackDamageDistance = 140
+				self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+				VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
+			end
+		end)
 		self.NextChaseTime = 0
 	else
 		if !self.InCharge then

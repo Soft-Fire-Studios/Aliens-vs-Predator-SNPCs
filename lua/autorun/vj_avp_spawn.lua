@@ -548,7 +548,7 @@ if VJExists == true then
 							sound.EmitHint(SOUND_DANGER, dmgPos, 200, 0.24)
 
 							for _,v in pairs(ents.FindInSphere(dmgPos,100)) do
-								if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+								if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && !v.VJ_AVP_Xenomorph && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
 									local dmg = DamageInfo()
 									dmg:SetDamage(2)
 									dmg:SetDamageType(DMG_ACID)
@@ -583,7 +583,7 @@ if VJExists == true then
 								sound.EmitHint(SOUND_DANGER, dmgPos, 200, 0.24, corpse)
 
 								for _,v in pairs(ents.FindInSphere(dmgPos,100)) do
-									if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+									if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && !v.VJ_AVP_Xenomorph && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
 										local dmg = DamageInfo()
 										dmg:SetDamage(2)
 										dmg:SetDamageType(DMG_ACID)
