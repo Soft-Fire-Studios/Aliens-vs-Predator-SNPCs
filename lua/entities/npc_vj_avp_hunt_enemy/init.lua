@@ -45,11 +45,9 @@ ENT.AnimTbl_Death = {"vjseq_death_02", "vjseq_death_03", "vjseq_death_04"}
 ENT.DeathAnimationChance = 2
 
 ENT.SoundTbl_FootStep = {"npc/footsteps/hardboot_generic1.wav","npc/footsteps/hardboot_generic2.wav","npc/footsteps/hardboot_generic3.wav","npc/footsteps/hardboot_generic4.wav","npc/footsteps/hardboot_generic5.wav","npc/footsteps/hardboot_generic6.wav","npc/footsteps/hardboot_generic8.wav"}
--- ENT.SoundTbl_IdleDialogue = {"common/wpn_denyselect.wav","common/wpn_select.wav"}
--- ENT.SoundTbl_IdleDialogueAnswer = {"common/wpn_denyselect.wav","common/wpn_select.wav"}
--- ENT.SoundTbl_FollowPlayer = {"common/wpn_select.wav"}
--- ENT.SoundTbl_UnFollowPlayer = {"common/wpn_denyselect.wav"}
--- ENT.SoundTbl_Death = {"player/pl_pain5.wav","player/pl_pain6.wav","player/pl_pain7.wav"}
+ENT.SoundTbl_LostEnemy = {"bot/where_are_you_hiding.wav","bot/where_are_they.wav"}
+ENT.SoundTbl_Pain = {"bot/pain2.wav","bot/pain4.wav"}
+ENT.SoundTbl_Death = {"bot/pain5.wav","bot/pain8.wav","bot/pain9.wav"}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialize()
 	self:SetSurroundingBoundsType(BOUNDS_COLLISION)

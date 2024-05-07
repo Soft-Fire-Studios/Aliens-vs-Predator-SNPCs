@@ -160,7 +160,7 @@ if CLIENT then
 		if !IsValid(ent) && GetConVar("vj_avp_hud"):GetInt() == 1 then
 			ent = ply
 		end
-		if !IsValid(ent) then return end
+		if !IsValid(ent) or IsValid(ent) && !(ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot()) then return end
 		local r = 255
 		local g = 255
 		local b = 255
@@ -172,7 +172,8 @@ if CLIENT then
 		local maxHP = ent:GetMaxHealth()
 		local hpPer = math_Clamp(HP /maxHP,0,1)
 
-		DrawText((ent:IsPlayer() && ent:Nick() or (list.Get("NPC")[ent:GetClass()].Name)),"VJFont_AVP_MarineSmall",25.5,-21.5)
+		local nameData = !ent:IsPlayer() && list.Get("NPC")[ent:GetClass()]
+		DrawText((ent:IsPlayer() && ent:Nick() or (nameData && nameData.Name or "")),"VJFont_AVP_MarineSmall",25.5,-21.5)
 		DrawIcon(matHUD_Block,34,-19.2,17,2,r,g,b,a)
 		DrawIcon_UV(matHUD_BlockFilling,26,-19.75,hpPer *16,1.1,{0,0,hpPer,1},r,g,b,a)
 

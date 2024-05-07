@@ -26,6 +26,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int",1,"FoundPacks")
 	self:NetworkVar("Int",2,"RemainingTime")
 	self:NetworkVar("Bool",0,"EndingSequence")
+	self:NetworkVar("Bool",1,"FullyInitialized")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
@@ -83,6 +84,61 @@ if CLIENT then
 		ply.MutatorTrackT = 0
 		ply.DidIntroTrack = false
 		ply.StartedEndingTrack = false
+		ply.VJ_AVP_PredatorNextNoiseT = CurTime() +6
+		ply.VJ_AVP_PredatorNoiseT = 0
+		ply.VJ_AVP_PredatorNoisePos = nil
+
+		local noise = Material("hud/cpthazama/avp/hunt/noise.png","smooth mips")
+		local arrow = Material("hud/cpthazama/avp/hunt/arrow.png","smooth mips")
+		hook.Add("HUDPaint",self,function(self)
+			local ply = LocalPlayer()
+			if !IsValid(ply) then return end
+			if ply.VJTag_IsControllingNPC then
+				if ply.VJ_AVP_PredatorNextNoiseT < CurTime() then
+					ply.VJ_AVP_PredatorNoiseT = CurTime() +5
+					ply.VJ_AVP_PredatorNextNoiseT = CurTime() +30
+					
+					local closestEnt = NULL
+					local closestDist = 999999
+					for _,v in ents.Iterator() do
+						if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v.VJTag_IsControllingNPC) then
+							local dist = v:GetPos():Distance(ply:GetPos())
+							if dist < closestDist then
+								closestEnt = v
+								closestDist = dist
+							end
+						end
+					end
+					ply.VJ_AVP_PredatorNoisePos = IsValid(closestEnt) && closestEnt:GetPos() +closestEnt:OBBCenter()
+				end
+				if ply.VJ_AVP_PredatorNoisePos && CurTime() < ply.VJ_AVP_PredatorNoiseT then
+					local dist = ply:GetPos():Distance(ply.VJ_AVP_PredatorNoisePos)
+					if dist <= 8000 && dist > 750 then
+						local remainingRenderTime = ply.VJ_AVP_PredatorNoiseT -CurTime()
+						local entPos = ply.VJ_AVP_PredatorNoisePos:ToScreen()
+						local size = 500
+						local a = math.Clamp(dist /8000,0,1)
+						a = a *remainingRenderTime
+						surface.SetDrawColor(Color(255,0,0,a *255))
+						surface.SetMaterial(noise)
+						surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+					end
+				elseif CurTime() >= ply.VJ_AVP_PredatorNoiseT then
+					ply.VJ_AVP_PredatorNoisePos = nil
+				end
+			else
+				for _,v in ents.Iterator() do
+					if v.VJ_AVP_HuntPack then
+						local entPos = (v:GetPos() +v:GetUp() *(v:OBBMaxs().z *2)):ToScreen()
+						local size = 100 +math.sin(CurTime() *10) *10
+						local a = math.Clamp(v:GetPos():Distance(ply:GetPos()) /750,0,1)
+						surface.SetDrawColor(Color(185,244,255,a *255))
+						surface.SetMaterial(arrow)
+						surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
+					end
+				end
+			end
+		end)
 
 		hook.Add("CalcView",self,function(self,ply,pos,ang,fov,nearZ,farZ)
 			if !IsValid(ply) then return end
@@ -129,6 +185,7 @@ if CLIENT then
 		hook.Add("Think",self,function(self)
 			local ply = LocalPlayer()
 			if !IsValid(ply) then return end
+			if !self:GetFullyInitialized() then return end
 
 			ply.MutatorTrackT = ply.MutatorTrackT or 0
 
@@ -170,19 +227,22 @@ function ENT:SpawnBot(count,respawn)
 	for i = 1,count do
 		timer.Simple(i *0.1,function()
 			if !IsValid(self) then return end
-			local pos = VJ_PICK(plys):GetPos()
+			local pos = VJ.PICK(plys):GetPos()
 			local spawnPoint = pos
 			if respawn then
 				pos = pos +VectorRand() *math.Rand(0,1024)
 				spawnPoint = VJ_Nodegraph:GetNearestNode(pos,2).pos
 			else
-				local plySpawn = VJ.PICK(self.PlayerSpawn)
-				spawnPoint = VJ_Nodegraph:GetNearestNode(plySpawn or pos,2).pos
+				spawnPoint = self:FindNodesNearPoint(pos,8,256)
+				if spawnPoint then
+					spawnPoint = VJ.PICK(spawnPoint)
+				end
+				-- spawnPoint = VJ_Nodegraph:GetNearestNode(pos,2).pos
 			end
-			if spawnPoint == nil then
+			if !spawnPoint then
 				debugMessage("Bot - ",i,"spawnPoint is nil, not spawning!")
 			else
-				local randOffset = VectorRand() *math.Rand(0,64)
+				local randOffset = VectorRand() *math.Rand(0,128)
 				randOffset.z = 8
 				local bot = ents.Create("npc_vj_test_humanply")
 				-- bot:SetPos(spawnPoint +randOffset)
@@ -380,16 +440,25 @@ function ENT:Initialize()
 	self:DeleteOnRemove(pred)
 	self.Predator = pred
 	table.insert(self.Entities,pred)
-	if debugPlayAsPredator then
-		local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
-		SpawnControllerObject.VJCE_Player = Entity(1)
-		SpawnControllerObject:SetControlledNPC(pred)
-		SpawnControllerObject:Spawn()
-		SpawnControllerObject:StartControlling()
-	end
+
+	timer.Simple(0.2,function()
+		if !IsValid(self) then return end
+		self:SetFullyInitialized(true)
+	end)
 
 	timer.Simple(0.1,function()
 		if !IsValid(self) then return end
+		if debugPlayAsPredator then
+			local ply = VJ.PICK(plys)
+			local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+			SpawnControllerObject.VJCE_Player = ply
+			SpawnControllerObject:SetControlledNPC(pred)
+			SpawnControllerObject:Spawn()
+			SpawnControllerObject:StartControlling()
+			ply:SetNW2Bool("AVP_DiedInHunt",true)
+			ply.VJ_AVP_SpectateEntity = nil
+		end
+
 		local totalData = self.DataSpawn
 		local totalToSpawn = math_Clamp(#totalData /2,1,4)
 		self:SetTotalPacks(totalToSpawn)
@@ -402,7 +471,7 @@ function ENT:Initialize()
 			else
 				spawnPoint = VJ.PICK(spawnPoint)
 			end
-			local data = ents.Create("prop_vj_animatable")
+			local data = ents.Create("sent_vj_avp_huntpack")
 			data:SetModel("models/props_c17/BriefCase001a.mdl")
 			data:SetPos(spawnPoint +Vector(0,0,8))
 			data:Spawn()
@@ -640,7 +709,7 @@ end
 function ENT:GetHumans()
 	local humans = {}
 	for _,v in pairs(player.GetAll()) do
-		if v:Alive() then
+		if v:Alive() && !v.VJTag_IsControllingNPC then
 			table.insert(humans,v)
 		end
 	end
@@ -729,7 +798,7 @@ function ENT:Think()
 							local closestPlayer = NULL
 							local closestDist = 999999
 							for _,v2 in pairs(player.GetAll()) do
-								if v2:Alive() then
+								if v2:Alive() && !v2.VJTag_IsControllingNPC then
 									local dist = v2:GetPos():Distance(v:GetPos())
 									if dist < closestDist then
 										closestPlayer = v2
@@ -737,13 +806,17 @@ function ENT:Think()
 									end
 								end
 							end
-							if IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
+							local doObjective = math.random(1,2) == 1
+							if !IsValid(closestPlayer) then
+								doObjective = true
+							end
+							if !doObjective && IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
 								v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512,512),math.random(-512,512),0))
 								v:VJ_TASK_GOTO_LASTPOS(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
 									x.CanShootWhenMoving = true
 									x.ConstantlyFaceEnemy = true
 								end)
-							elseif !IsValid(closestPlayer) then
+							elseif doObjective or !IsValid(closestPlayer) then
 								if self.ExtractionPoint then
 									v:SetLastPosition(self.ExtractionPoint)
 									v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
