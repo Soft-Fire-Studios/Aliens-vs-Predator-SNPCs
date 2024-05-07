@@ -153,6 +153,8 @@ if CLIENT then
 			else
 				ent = false
 			end
+		elseif IsValid(ply:GetObserverTarget()) then
+			ent = ply:GetObserverTarget()
 		end
 		if ent == false then return end
 		if !IsValid(ent) && GetConVar("vj_avp_hud"):GetInt() == 1 then
@@ -184,7 +186,7 @@ if CLIENT then
 			DrawIcon(matHUD_Stims,stimPos +stimX,-17,2,2,r,g,b,stimsA[i])
 		end
 
-		local flareEnt = ent:IsPlayer() && ent:GetNW2Entity("AVP.Flare") or ent:GetFlare()
+		local flareEnt = ent:IsPlayer() && ent:GetNW2Entity("AVP.Flare") or (ent.GetFlare && ent:GetFlare() or false)
 		-- flare = Lerp(FT *4,flare,((ent:IsPlayer() && ent:FlashlightIsOn() && a) or (ent.GetFlare && ent:GetFlare() or false) && a) or 50)
 		flare = Lerp(FT *4,flare,IsValid(flareEnt) && a or 50)
 		DrawIcon(matHUD_Flare,41.8,15,1.35,3.5,r,g,b,flare)

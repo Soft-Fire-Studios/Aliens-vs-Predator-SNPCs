@@ -209,6 +209,7 @@ ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
 ---------------------------------------------------------------------------------------------------------------------------------------------
 util.AddNetworkString("VJ.AVP.PredatorLandingPos")
+--
 net.Receive("VJ.AVP.PredatorLandingPos",function(len,pl)
 	local ent = net.ReadEntity()
 	local pos = net.ReadVector()
@@ -490,12 +491,12 @@ function ENT:CustomOnInitialize()
 	end
 
 	timer.Simple(0,function()
-		if IsValid(self) && GetConVar("vj_avp_predmobile"):GetBool() then
+		if IsValid(self) && (self.SpawnedUsingMutator or GetConVar("vj_avp_predmobile"):GetBool()) then
 			local ply = self:GetCreator()
 			if game.SinglePlayer() then
 				ply = Entity(1)
 			end
-			if IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
+			if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
 				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
 				SpawnControllerObject.VJCE_Player = ply
 				SpawnControllerObject:SetControlledNPC(self)

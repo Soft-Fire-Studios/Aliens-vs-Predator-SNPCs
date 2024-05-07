@@ -40,6 +40,7 @@ if VJExists == true then
 	VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 	
 	VJ.AddNPC("Survival Mode","sent_vj_avp_survival",vCat)
+	VJ.AddNPC("Predator Hunt","sent_vj_avp_hunt",vCat)
 	VJ.AddNPC("RC Battery","sent_vj_avp_battery",vCat)
 
 	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
@@ -453,9 +454,35 @@ if VJExists == true then
 	VJ_AVP_HALOS.Tech = {}
 	VJ_AVP_HALOS.Other = {}
 	VJ_AVP_HALOS.Survival = {}
+	VJ_AVP_HALOS.Hunt = {}
 	VJ_AVP_FATALITIES = GetConVar("vj_avp_fatalities"):GetBool()
 
 	VJ_AVP_XENOS = {}
+
+	VJ_AVP_HuntData = {}
+	VJ_AVP_HuntData["rp_lepointe"] = {}
+	VJ_AVP_HuntData["rp_lepointe"].InsurgentPoints = {
+		Vector(-5683.274902,3742.371094,-910.522156),
+		Vector(-2608.353516,1084.985352,-911.968750),
+		Vector(-5116.766602,9245.182617,-911.968750),
+		Vector(-13327.970703,13104.601563,-919.058838),
+	}
+	VJ_AVP_HuntData["rp_lepointe"].PlayerSpawn = {
+		Vector(10494.035156,-9662.649414,-905.983398),
+		Vector(10602.247070,-9027.605469,-918.429871),
+		Vector(11100.815430,-9248.292969,-917.242249),
+		Vector(9656.352539 -9142.073242 -918.925842),
+	}
+	VJ_AVP_HuntData["rp_lepointe"].PredatorSpawn = {
+		{Pos=Vector(12768.645508,3885.821045,-911.361511),Ang=Angle(0,180,0)},
+	}
+	VJ_AVP_HuntData["rp_lepointe"].DataSpawn = {
+		Vector(-8980.079102,-733.879395,-911.968750),
+		Vector(-6135.881348,9411.145508,-911.968750),
+		Vector(-5422.528320,2866.659668,-887.968750),
+		Vector(-14322.620117,11262.540039,-903.968750),
+	}
+	VJ_AVP_HuntData["rp_lepointe"].Extract = Vector(-9588.245117,10821.127930,-903.968750)
 
 	local NPC = FindMetaTable("NPC")
 	
