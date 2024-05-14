@@ -403,6 +403,7 @@ if CLIENT then
 	local matHUDEquipSelect_Mine = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_mine.png","smooth additive")
 	local matHUDEquipSelect_Disc = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_disc.png","smooth additive")
 	local matHUDEquipSelect_Spear = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_spear.png","smooth additive")
+	local matHUDEquipSelect_Speargun = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_speargun.png","smooth additive")
 	local matHUD_HP = Material("hud/cpthazama/avp/pred_hp.png","smooth additive")
 	local matHUD_HP_Warning = Material("hud/cpthazama/avp/pred_hp_warning.png","smooth additive")
 	local matHUD_HP_Base = Material("hud/cpthazama/avp/pred_hp_bar.png","smooth additive")
@@ -463,10 +464,11 @@ if CLIENT then
 
 	local debugEquipT = CurTime() +1.5
 	local equipPoints = {
-		{x=0,y=-10},
-		{x=-10,y=0},
-		{x=0,y=10},
-		{x=10,y=0},
+		{x=0,y=-10}, // Plasma
+		{x=-9,y=-2}, // Mine
+		{x=9,y=-2}, // Disc
+		{x=-6,y=8}, // Spear
+		{x=6,y=8}, // Spear-Gun
 	}
 	
 	local render_GetLightColor = render.GetLightColor
@@ -558,15 +560,16 @@ if CLIENT then
 			DrawIcon(cloaked && matHUDCloak_Outline or matHUDCloak_Solid,0,25.5,4.5,4.5,r,g,b,a)
 
 			local equip = ent:GetEquipment()
-			DrawIcon(equip == 1 && matHUDCrosshair_Plasma or equip == 4 && matHUDCrosshair_Spear or matHUDCrosshair_Other,0,0,2,2,r,g,b,a)
+			DrawIcon(equip == 1 && matHUDCrosshair_Plasma or (equip == 4 or equip == 5) && matHUDCrosshair_Spear or matHUDCrosshair_Other,0,0,2,2,r,g,b,a)
 
 			local equipShowT = ent:GetEquipmentShowTime()
 			if equipShowT > CurTime() then
-				for i = 1,4 do
+				for i = 1,5 do
+					local curEquip = equip == i
 					local x,y = equipPoints[i].x,equipPoints[i].y
-					local alpha = (equip == i && a or 50) *(equipShowT -CurTime())
-					DrawIcon(matHUDEquipSelect_Base,x,y,10,8,r,g,b,alpha)
-					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or matHUDEquipSelect_Spear,x,y,8,6,r,g,b,alpha)
+					local alpha = (curEquip && a or 50) *(equipShowT -CurTime())
+					DrawIcon(matHUDEquipSelect_Base,x,y,curEquip && 12 or 10,curEquip && 8.5 or 8,r,g,b,alpha)
+					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or i == 4 && matHUDEquipSelect_Spear or matHUDEquipSelect_Speargun,x,y,8,6,r,g,b,alpha)
 				end
 			end
 
@@ -747,6 +750,8 @@ if CLIENT then
 						cont.VisionBuzz:Play()
 						cont.VisionBuzz:ChangeVolume(0.3)
 					end
+
+					cont.VisionBuzz:ChangePitch(mode == 1 && 100 or mode == 2 && 110 or mode == 3 && 90)
 
 					-- if cont.VisionIdle == nil then
 					-- 	cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")

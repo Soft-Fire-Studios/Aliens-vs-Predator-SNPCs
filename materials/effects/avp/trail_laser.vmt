@@ -1,0 +1,13 @@
+"UnlitGeneric"
+{
+	"$basetexture" 	"effects/avp/trail_laser"
+
+	"$additive" 	"1"
+	"$vertexalpha" 	"1"
+	"$vertexcolor" 	"1"
+
+	"$HDRCOLORSCALE" "5"
+	"$DEPTHBLEND" "1"
+	"$DEPTHBLENDSCALE" "0.5"
+	"$BRIGHTNESSBIASFACTOR" "1"
+}

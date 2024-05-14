@@ -141,6 +141,7 @@ if VJExists == true then
 		end)
 
 		function VJ_AVP_CSound(ent,snd)
+			if !IsValid(ent) then return end
 			net.Start("VJ_AVP_CSound")
 				net.WriteString(snd)
 				net.WriteEntity(ent)
@@ -379,6 +380,9 @@ if VJExists == true then
 	})
 	VJ.AddParticle("particles/vj_avp_flamethrower.pcf",{
 		"vj_avp_flamethrower",
+	})
+	VJ.AddParticle("particles/vj_avp_speargun.pcf",{
+		"vj_avp_pred_speargun_tracer",
 	})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",

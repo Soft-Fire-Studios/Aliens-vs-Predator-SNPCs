@@ -218,10 +218,15 @@ net.Receive("VJ.AVP.PredatorLandingPos",function(len,pl)
 	end
 end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local toSeq = VJ.SequenceToActivity
+--
 function ENT:TranslateActivity(act)
 	if act == ACT_IDLE then
 		if self.TransIdle then
 			return self.TransIdle
+		end
+		if self:GetEquipment() == 5 then
+			return self.AttackIdleTime > CurTime() && ACT_IDLE_ANGRY_SMG1 or ACT_IDLE_SMG1
 		end
 		if self.AttackIdleTime > CurTime() then
 			return self.AttackIdle
@@ -238,25 +243,25 @@ end
 function ENT:SelectMovementActivity(act)
 	local dist = self.NearestPointToEnemyDistance
 	local ply = self.VJ_TheController
+	local speargun = self:GetEquipment() == 5
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
-			return ACT_WALK
+			return speargun && ACT_HL2MP_WALK_SMG1 or ACT_WALK
 		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < CurTime() then
-			return ACT_SPRINT
+			return speargun && ACT_HL2MP_SWIM_SMG1 or ACT_SPRINT
 		else
-			return ACT_RUN
+			return speargun && ACT_HL2MP_RUN_SMG1 or ACT_RUN
 		end
 	else
 		if act == ACT_RUN then
 			if dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
-				return ACT_SPRINT
+				return speargun && ACT_HL2MP_SWIM_SMG1 or ACT_SPRINT
 			end
 		end
 	end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local toSeq = VJ.SequenceToActivity
 local math_deg = math.deg
 local math_atan2 = math.atan2
 local string_find = string.find
@@ -435,7 +440,7 @@ function ENT:DoCountdownAttack()
 	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
 	self.TransIdle = ACT_HL2MP_IDLE
 	Do(0,function()
-		self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true,DisableChaseFix=true})
+		self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true,DisableChaseFix=true})
 		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_open_01.ogg",70)
 	end)
 	Do(1.25,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
@@ -475,11 +480,13 @@ function ENT:CustomOnInitialize()
 	self.PlasmaHoldTime = 0
 	self.PlasmaMaxChargeT = 0
 	self.PlasmaFireDelayT = 0
+	self.NextSpearGunFireT = 0
 	self.ActivatedSelfDestruct = false
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_spear"),1)
+	self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),1)
 
 	self:SetCollisionBounds(bounds,Vector(-bounds.x,-bounds.y,0))
 	self:SetSurroundingBounds(Vector(-bounds.x *1.8,-bounds.y *1.8,-bounds.z *1.8),Vector(bounds.x *1.8,bounds.y *1.8,bounds.z *1.8))
@@ -544,6 +551,86 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
 	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.ActivatedSelfDestruct
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ChangeEquipment(equip)
+	local ply = self.VJ_TheController
+	if equip == 1 then
+		self:SetEquipment(1)
+		self:SetPoseParameter("speargun_pitch",0)
+		self:SetPoseParameter("speargun_yaw",0)
+		self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),1)
+		SafeRemoveEntity(self.SpearGun)
+		if !self:IsBusy() then
+			self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end
+		self:SetEquipmentShowTime(CurTime() +1.5)
+		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	elseif equip == 2 then
+		self:SetEquipment(2)
+		self:SetPoseParameter("speargun_pitch",0)
+		self:SetPoseParameter("speargun_yaw",0)
+		self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),1)
+		SafeRemoveEntity(self.SpearGun)
+		if !self:IsBusy() then
+			self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end
+		self:SetEquipmentShowTime(CurTime() +1.5)
+		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	elseif equip == 3 then
+		self:SetEquipment(3)
+		self:SetPoseParameter("speargun_pitch",0)
+		self:SetPoseParameter("speargun_yaw",0)
+		self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),1)
+		SafeRemoveEntity(self.SpearGun)
+		if !self:IsBusy() then
+			self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end
+		self:SetEquipmentShowTime(CurTime() +1.5)
+		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	elseif equip == 4 then
+		self:SetEquipment(4)
+		self:SetPoseParameter("speargun_pitch",0)
+		self:SetPoseParameter("speargun_yaw",0)
+		self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),1)
+		SafeRemoveEntity(self.SpearGun)
+		if !self:IsBusy() then
+			self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+		end
+		self:SetEquipmentShowTime(CurTime() +1.5)
+		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+	elseif equip == 5 then
+		self:SetEquipment(5)
+		self:SetBodygroup(self:FindBodygroupByName("equip_speargun"),0)
+		local att = self:GetAttachment(self:LookupAttachment("Speargun"))
+		local speargun = ents.Create("prop_vj_animatable")
+		speargun:SetModel("models/cpthazama/avp/predators/equipment/speargun.mdl")
+		speargun:SetPos(att.Pos)
+		speargun:SetAngles(att.Ang)
+		speargun:SetOwner(self)
+		speargun:Spawn()
+		speargun:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		speargun:SetSolid(SOLID_NONE)
+		speargun:SetParent(self)
+		speargun:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
+		self:DeleteOnRemove(speargun)
+		self.SpearGun = speargun
+		if !self:IsBusy() then
+			local _,dir = self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			self.NextChaseTime = 0
+			self.NextSpearGunFireT = CurTime() +dir +0.2
+		end
+		self:SetEquipmentShowTime(CurTime() +1.5)
+		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
@@ -621,37 +708,15 @@ function ENT:OnKeyPressed(ply,key)
 			self.NextHealT = CurTime() +3
 		end
     elseif key == KEY_1 then
-		self:SetEquipment(1)
-		if !self:IsBusy() then
-			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-			self.NextChaseTime = 0
-		end
-		self:SetEquipmentShowTime(CurTime() +1.5)
-		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self:ChangeEquipment(1)
 	elseif key == KEY_2 then
-		self:SetEquipment(2)
-		if !self:IsBusy() then
-			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-			self.NextChaseTime = 0
-		end
-		self:SetEquipmentShowTime(CurTime() +1.5)
-		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self:ChangeEquipment(2)
 	elseif key == KEY_3 then
-		self:SetEquipment(3)
-		if !self:IsBusy() then
-			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-			self.NextChaseTime = 0
-		end
-		self:SetEquipmentShowTime(CurTime() +1.5)
-		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self:ChangeEquipment(3)
 	elseif key == KEY_4 then
-		self:SetEquipment(4)
-		if !self:IsBusy() then
-			self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
-			self.NextChaseTime = 0
-		end
-		self:SetEquipmentShowTime(CurTime() +1.5)
-		VJ_AVP_CSound(ply,"cpthazama/avp/shared/console_button_beep_01.ogg")
+		self:ChangeEquipment(4)
+	elseif key == KEY_5 then
+		self:ChangeEquipment(5)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -675,12 +740,61 @@ function ENT:OnFatality(ent,inFront,willCounter,fType)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:FireSpearGun()
+	if self.InFatality or self.DoingFatality then return end
+	if !self.CanAttack or CurTime() < self.NextSpearGunFireT or self:GetSprinting() or self:GetEnergy() < 10 then return end
+	self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,"predator_speargun_fire") +5
+	self:PlayAnimation("vjges_predator_speargun_fire",true,false,true,0,{AlwaysUseGesture=true})
+	self.NextSpearGunFireT = CurTime() +1
+	self.NextChaseTime = 0
+
+	local speargun = self.SpearGun
+	if !IsValid(speargun) then return end
+
+	local att = speargun:GetAttachment(1)
+	local bSpread = 30
+	local targetPos = IsValid(self:GetEnemy()) && (self:GetEnemy():GetPos() +self:GetEnemy():OBBCenter()) or self:EyePos() +self:GetForward() *4000
+
+	sound.Play("cpthazama/avp/weapons/predator/crossbow/crossbowfire_0" .. math.random(1,5) .. ".ogg",att.Pos,75,150)
+
+	local bullet = {}
+	bullet.Num = 1
+	bullet.Src = att.Pos
+	bullet.Dir = (targetPos -att.Pos):GetNormalized() *4000
+	bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread))
+	bullet.Tracer = 1
+	bullet.TracerName = "VJ_AVP_Speargun"
+	bullet.Force = 25
+	bullet.Damage = 45
+	bullet.AmmoType = "CombineHeavyCannon"
+	bullet.Callback = function(attacker,tr,dmginfo)
+		util.ScreenShake(tr.HitPos,16,100,0.2,50)
+	end
+	self:FireBullets(bullet)
+	
+	local FireLight1 = ents.Create("light_dynamic")
+	FireLight1:SetKeyValue("brightness","4")
+	FireLight1:SetKeyValue("distance","125")
+	FireLight1:SetPos(att.Pos)
+	FireLight1:SetLocalAngles(self:GetAngles())
+	FireLight1:Fire("Color","255 0 0")
+	FireLight1:SetParent(self)
+	FireLight1:Spawn()
+	FireLight1:Activate()
+	FireLight1:Fire("TurnOn","",0)
+	FireLight1:Fire("Kill","",0.07)
+	self:DeleteOnRemove(FireLight1)
+
+	self:SetEnergy(math.Clamp(self:GetEnergy() -10,0,200))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,vis)
 	if self.InFatality or self.DoingFatality then return end
+	local equipment = self:GetEquipment()
 	local cont = self.VJ_TheController
 	local dist = self.NearestPointToEnemyDistance
 	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
-	if CurTime() < self.SpecialBlockAnimTime then
+	if CurTime() < self.SpecialBlockAnimTime or equipment == 5 or self:IsBusy() then
 		doingBlock = false
 	end
 	if !doingBlock && self.IsBlocking then
@@ -689,6 +803,14 @@ function ENT:CustomAttack(ent,vis)
 		self.IsBlocking = true
 	end
 	if IsValid(cont) then
+		if equipment == 5 then
+			if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+				self:FireSpearGun()
+			elseif !cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_SPEED) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+				self:LongJumpCode()
+			end
+			return
+		end
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy() then
 			if cont:KeyDown(IN_SPEED) then
 				self:LongJumpCode(nil,true)
@@ -703,46 +825,67 @@ function ENT:CustomAttack(ent,vis)
 			self:SpecialAttackCode(self:GetEquipment())
 		end
 	else
-		if dist <= self.AttackDistance && !self:IsBusy() && vis then
-			local canUse, inFront = self:CanUseFatality(ent)
-			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-				if self:DoFatality(ent,inFront) == false then
-					self:AttackCode()
-				end
-			else
-				if !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
-					self.AI_IsBlocking = true
+		if equipment == 5 then
+			if dist <= 2500 && !self:IsBusy() && vis then
+				if dist <= 300 then
+					self:ChangeEquipment(1)
 					return
-				else
-					if math.random(1,6) == 1 then
-						self:HeavyAttackCode()
-					else
+				end
+				self:FireSpearGun()
+			elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
+				self:DistractionCode(ent)
+			elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+				self:ChangeEquipment(1)
+				self:SpecialAttackCode(1)
+			elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+				self:SpecialAttackCode(3)
+				self:SpecialAttackCode(3)
+			elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+				self:SpecialAttackCode(4)
+				self:SpecialAttackCode(4)
+			end
+		else
+			if dist <= self.AttackDistance && !self:IsBusy() && vis then
+				local canUse, inFront = self:CanUseFatality(ent)
+				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
+					if self:DoFatality(ent,inFront) == false then
 						self:AttackCode()
 					end
+				else
+					if !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+						self.AI_IsBlocking = true
+						return
+					else
+						if math.random(1,6) == 1 then
+							self:HeavyAttackCode()
+						else
+							self:AttackCode()
+						end
+					end
 				end
+			elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
+				self:DistractionCode(ent)
+			elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+				self:ChangeEquipment(1)
+				self:SpecialAttackCode(1)
+			elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+				self:SpecialAttackCode(3)
+				self:SpecialAttackCode(3)
+			elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+				self:SpecialAttackCode(4)
+				self:SpecialAttackCode(4)
 			end
-		elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
-			self:DistractionCode(ent)
-		elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
-			self:SetEquipment(1)
-			self:SpecialAttackCode(1)
-		elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
-			self:SpecialAttackCode(3)
-			self:SpecialAttackCode(3)
-		elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
-			self:SpecialAttackCode(4)
-			self:SpecialAttackCode(4)
-		end
-		local pos = ent:GetPos()
-		local heightDif = math.abs(pos.z -self:GetPos().z)
-		if !self:IsBusy() && !self.DisableChasingEnemy && vis then
-			if dist < 250 && dist > 150 && math.random(1,12) == 1 then
-				self:LongJumpCode(pos,true)
-			elseif (dist > 600 or heightDif > 350) && dist <= 1500 then
-				local vecRand = VectorRand() *100
-				vecRand.z = 0
-				self:LongJumpCode(pos +vecRand)
-				-- self:LongJumpCode(pos)
+			local pos = ent:GetPos()
+			local heightDif = math.abs(pos.z -self:GetPos().z)
+			if !self:IsBusy() && !self.DisableChasingEnemy && vis then
+				if dist < 250 && dist > 150 && math.random(1,12) == 1 then
+					self:LongJumpCode(pos,true)
+				elseif (dist > 600 or heightDif > 350) && dist <= 1500 then
+					local vecRand = VectorRand() *100
+					vecRand.z = 0
+					self:LongJumpCode(pos +vecRand)
+					-- self:LongJumpCode(pos)
+				end
 			end
 		end
 	end
@@ -865,7 +1008,7 @@ function ENT:SpecialAttackCode(atk)
 		mine:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		mine:SetSolid(SOLID_NONE)
 		mine:SetParent(self)
-		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(mine)
 		self.Mine = mine
 		local _,dur = self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
@@ -897,7 +1040,7 @@ function ENT:SpecialAttackCode(atk)
 		spear:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		spear:SetSolid(SOLID_NONE)
 		spear:SetParent(self)
-		spear:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		spear:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(spear)
 		self.SpearProp = spear
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
@@ -924,7 +1067,7 @@ end
 function ENT:UseStimpack()
 	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
-	self:PlayAnimation("vjges_predator_claws_healthstab",true,false,false)
+	self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_healthstab",true,false,false)
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1075,19 +1218,20 @@ function ENT:LongJumpCode(gotoPos,atk)
 			atkAnim = testAnim
 		end
 	end
+	local animSetType = (self:GetEquipment() == 5 && "speargun" or "claws")
 	if height < -150 then
-		anim = "predator_claws_jump_gain_height"
+		anim = "predator_" .. animSetType .. "_jump_gain_height"
 	elseif height > 150 then
-		anim = "predator_claws_jump_drop_down"
+		anim = "predator_" .. animSetType .. "_jump_drop_down"
 	else
 		if dist > 1500 then
-			anim = atk && atkAnim or "predator_claws_jump_long"
+			anim = atk && atkAnim or "predator_" .. animSetType .. "_jump_long"
 		elseif dist > 1200 then
-			anim = atk && atkAnim or "predator_claws_jump_medium"
+			anim = atk && atkAnim or "predator_" .. animSetType .. "_jump_medium"
 		elseif dist > 800 then
-			anim = atk && atkAnim or "predator_claws_jump_shallow"
+			anim = atk && atkAnim or "predator_" .. animSetType .. "_jump_shallow"
 		else
-			anim = atk && atkAnim or "predator_claws_jump_short"
+			anim = atk && atkAnim or "predator_" .. animSetType .. "_jump_short"
 		end
 	end
 	self:FaceCertainPosition(self.LongJumpPos,1)
@@ -1165,6 +1309,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self.LongJumping = true
 		VJ.CreateSound(self,self.SoundTbl_Jump,75)
 		VJ.EmitSound(self,"cpthazama/avp/predator/jump/prd_jump_force_3rdp_0" .. math.random(1,5) .. ".ogg",70)
+		if IsValid(self.VJ_TheController) then
+			VJ_AVP_CSound(self.VJ_TheController,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg")
+		end
 	elseif key == "jump_end" then
 		self.LongJumping = false
 		self:SetJumpPosition(Vector(0,0,0))
@@ -1211,7 +1358,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		stim:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		stim:SetSolid(SOLID_NONE)
 		stim:SetParent(self)
-		stim:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		stim:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(stim)
 		self.Stimpack = stim
 	elseif key == "stimpack_unscrew" then
@@ -1346,7 +1493,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		disc:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		disc:SetSolid(SOLID_NONE)
 		disc:SetParent(self)
-		disc:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+		disc:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(disc)
 		self.Disc = disc
 	
@@ -1518,7 +1665,7 @@ function ENT:OnCatchDisc(ent)
 	disc:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 	disc:SetSolid(SOLID_NONE)
 	disc:SetParent(self)
-	disc:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+	disc:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 	self:DeleteOnRemove(disc)
 	self.Disc = disc
 	SafeRemoveEntityDelayed(disc,1)
@@ -1539,7 +1686,7 @@ function ENT:OnGrabSpear(ent)
 	spear:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 	spear:SetSolid(SOLID_NONE)
 	spear:SetParent(self)
-	spear:AddEffects(bit.bor(EF_BONEMERGE,EF_BONEMERGE_FASTCULL,EF_PARENT_ANIMATES))
+	spear:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 	self:DeleteOnRemove(spear)
 	self.SpearProp = spear
 	SafeRemoveEntityDelayed(spear,1)
@@ -1716,7 +1863,7 @@ function ENT:CustomOnThink_AIEnabled()
 	-- local moveAct = self:SelectMovementActivity(dist)
 	local ply = self.VJ_TheController
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
-	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT) or self.AI_IsSprinting
+	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_SWIM_SMG1) or self.AI_IsSprinting
 
 	-- if self.LastSVVisionMode != self:GetVisionMode() then
 		-- self.LastSVVisionMode = self:GetVisionMode()
@@ -1759,7 +1906,11 @@ function ENT:CustomOnThink_AIEnabled()
 			if self.SetupPlasmaCaster then
 				self:SetPoseParameter("plasma_pitch",0)
 				self:SetPoseParameter("plasma_yaw",0)
-				self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+				if self:GetEquipment() == 5 then
+					self.PoseParameterLooking_Names = {pitch={"aim_pitch","speargun_pitch"}, yaw={"aim_yaw","speargun_yaw"}, roll={}}
+				else
+					self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}}
+				end
 				self.SetupPlasmaCaster = false
 				self.PlasmaCasterLayer = false
 				self:PlayAnimation("vjges_predator_plasma_caster_retract",true,false,true,0,{AlwaysUseGesture=true})
@@ -1910,7 +2061,7 @@ function ENT:CustomOnThink_AIEnabled()
 		if ply:KeyDown(IN_RELOAD) && curTime > self.NextCloakT then
 			self:Camo(!self:GetCloaked())
 			if !self:IsBusy() then
-				self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+				self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
 				self.NextChaseTime = 0
 			end
 			self.NextCloakT = curTime +1
@@ -1980,7 +2131,7 @@ function ENT:CustomOnThink_AIEnabled()
 			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 && !enemy.VJ_AVP_Xenomorph then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
-					self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+					self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
 					self.NextChaseTime = 0
 				end
 				self.NextCloakT = curTime +1
@@ -2025,7 +2176,7 @@ function ENT:CustomOnThink_AIEnabled()
 			if !self:GetCloaked() && curTime > self.NextCloakT && math.random(1,100) == 1 then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
-					self:PlayAnimation("vjges_predator_claws_console_use",false,false,false,0,{AlwaysUseGesture=true})
+					self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
 					self.NextChaseTime = 0
 				end
 				self.NextCloakT = curTime +1
