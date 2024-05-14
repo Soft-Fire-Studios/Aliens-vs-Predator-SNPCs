@@ -755,7 +755,7 @@ function ENT:FireSpearGun()
 	local bSpread = 30
 	local targetPos = IsValid(self:GetEnemy()) && (self:GetEnemy():GetPos() +self:GetEnemy():OBBCenter()) or self:EyePos() +self:GetForward() *4000
 
-	sound.Play("cpthazama/avp/weapons/predator/crossbow/crossbowfire_0" .. math.random(1,5) .. ".ogg",att.Pos,75,150)
+	sound.Play("cpthazama/avp/predator/Speargun_Fire0" .. math.random(1,4) .. ".ogg",att.Pos,85)
 
 	local bullet = {}
 	bullet.Num = 1
