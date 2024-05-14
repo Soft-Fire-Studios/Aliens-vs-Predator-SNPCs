@@ -2005,7 +2005,7 @@ function ENT:CustomOnThink_AIEnabled()
 							vsched:EngTask("TASK_GET_PATH_TO_ENEMY_LOS", 0)
 						end
 						vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
-						vsched.IsMovingTask = true
+						vsched.HasMovement = true
 						if math.random(1,2) == 1 then
 							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
 							vsched.MoveType = 0

@@ -260,7 +260,7 @@ function ENT:OnThink()
 			local vsched = vj_ai_schedule.New("vj_idle_wander")
 			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)
 			vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
-			vsched.IsMovingTask = true
+			vsched.HasMovement = true
 			self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
 			vsched.MoveType = 1
 			if (customFunc) then customFunc(vsched) end
