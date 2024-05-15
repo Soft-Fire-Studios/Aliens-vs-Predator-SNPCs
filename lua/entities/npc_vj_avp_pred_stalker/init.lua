@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/predators/stalker.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 500
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+-- function ENT:OnInit()
 	-- self.BaseClass.OnInit(self)
-	self.VJ_NPC_Class = {"CLASS_PREDATOR_CITYHUNTER"}
-end
+	-- self.VJ_NPC_Class = {"CLASS_PREDATOR_CITYHUNTER"}
+-- end

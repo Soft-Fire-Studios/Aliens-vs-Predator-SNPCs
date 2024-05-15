@@ -315,6 +315,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	function controlEnt:CustomOnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
+		if self.VJC_Camera_Mode == 2 then
+			self.VJCE_NPC.AttackIdleTime = CurTime() +1.5
+		end
 	end
 
 	function controlEnt:CustomOnStopControlling()
