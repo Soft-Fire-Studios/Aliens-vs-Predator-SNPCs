@@ -36,6 +36,8 @@ SWEP.Translations = {
 	["predator_spear_2nd_throw"] = "predator_hud_spear_throw",
 	["Predator_Battery_Interaction"] = "predator_hud_Battery_Interaction",
 	["Predator_Disable_Interaction"] = "predator_hud_Disable_Interaction",
+	-- ["predator_speargun_idle"] = "predator_hud_speargun_rest",
+	-- ["predator_speargun_idle_aim"] = "predator_hud_speargun_rest",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Initialize()
@@ -70,6 +72,7 @@ function SWEP:PlayWeaponAnimation(anim,speed,cycle,isIdle)
 	end
 
 	self.NextIdleT = CurTime() +animDur -0.15
+	self.LastIdleType = 0
 	return animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -110,6 +113,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local string_find = string.find
 local string_replace = string.Replace
+local string_EndsWith = string.EndsWith
 --
 function SWEP:OnChangeActivity(npc,act)
 	local curTime = CurTime()
@@ -131,6 +135,7 @@ function SWEP:OnChangeActivity(npc,act)
 	local trans = self.Translations[curSeq]
 	local lastSeq = self.LastSequence
 	-- print("Requested:",curSeq)
+	if string_EndsWith(curSeq,"_rest") then return end
 	if trans then
 		if vmSeq != trans then
 			self.NextIdleT = CurTime() +self:PlayWeaponAnimation(trans)

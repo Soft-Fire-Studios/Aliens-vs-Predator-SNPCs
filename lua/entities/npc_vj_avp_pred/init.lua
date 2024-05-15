@@ -282,7 +282,15 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	local anim,animDur = self:VJ_ACT_PLAYACTIVITY(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	local vm = self:GetViewModel()
 	if vm then
-		vm:OnChangeActivity(self,anim)
+		if extraOptions && extraOptions.VMAnim then
+			timer.Simple(0,function()
+				if IsValid(vm) then
+					vm:PlayWeaponAnimation(extraOptions.VMAnim)
+				end
+			end)
+		else
+			vm:OnChangeActivity(self,anim)
+		end
 	end
 	if extraOptions && extraOptions.AlwaysUseGesture && !extraOptions.DisableChaseFix then
 		self.NextChaseTime = 0
@@ -442,6 +450,11 @@ function ENT:DoCountdownAttack()
 	Do(0,function()
 		self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true,DisableChaseFix=true})
 		VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_open_01.ogg",70)
+		self.SuicideStartFX = VJ.CreateSound(self,"cpthazama/avp/predator/Suicide_Start0" .. math.random(1,2) .. ".ogg",80)
+		if self:GetCloaked() then
+			self:Camo(false)
+			self.NextCloakT = CurTime() +50
+		end
 	end)
 	Do(1.25,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
 	Do(1.65,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
@@ -449,9 +462,20 @@ function ENT:DoCountdownAttack()
 	Do(2.1,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_button_press_01.ogg",70) end)
 	Do(2.6,function() VJ.EmitSound(self,"cpthazama/avp/predator/console/prd_console_close_01.ogg",70) end)
 	Do(3,function()
+		if self:GetCloaked() then
+			self:Camo(false)
+			self.NextCloakT = CurTime() +50
+		end
 		self.CountdownTimer = CurTime() +30
 		ParticleEffectAttach("vj_avp_predator_plasma_charging",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("panel"))
+		self.NuclearLoopFX = CreateSound(self,"cpthazama/avp/predator/Suicide_LoopFX.wav")
+		self.NuclearLoopFX:SetSoundLevel(60)
+		self.NuclearLoopFX:Play()
 		sound.EmitHint(SOUND_DANGER, self:GetPos(), 600, 30, self)
+	end)
+	Do(13,function()
+		VJ_STOPSOUND(self.SuicideStartFX)
+		self.SuicideFX = VJ.CreateSound(self,"cpthazama/avp/predator/Suicide.ogg",90)
 	end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -499,17 +523,17 @@ function ENT:CustomOnInitialize()
 
 	timer.Simple(0,function()
 		if IsValid(self) && (self.SpawnedUsingMutator or GetConVar("vj_avp_predmobile"):GetBool()) then
-			local ply = self:GetCreator()
-			if game.SinglePlayer() then
-				ply = Entity(1)
-			end
-			if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
-				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
-				SpawnControllerObject.VJCE_Player = ply
-				SpawnControllerObject:SetControlledNPC(self)
-				SpawnControllerObject:Spawn()
-				SpawnControllerObject:StartControlling()
-			end
+			-- local ply = self:GetCreator()
+			-- if game.SinglePlayer() then
+			-- 	ply = Entity(1)
+			-- end
+			-- if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
+			-- 	local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+			-- 	SpawnControllerObject.VJCE_Player = ply
+			-- 	SpawnControllerObject:SetControlledNPC(self)
+			-- 	SpawnControllerObject:Spawn()
+			-- 	SpawnControllerObject:StartControlling()
+			-- end
 			local tr = util.TraceHull({
 				start = self:GetPos(),
 				endpos = self:GetPos() +self:GetUp() *32000,
@@ -517,7 +541,7 @@ function ENT:CustomOnInitialize()
 				mins = self:OBBMins(),
 				maxs = self:OBBMaxs()
 			})
-			if tr.HitSky then
+			if self.SpawnedUsingMutator or tr.HitSky then
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
 				self.DisableFindEnemy = true
@@ -624,7 +648,7 @@ function ENT:ChangeEquipment(equip)
 		self:DeleteOnRemove(speargun)
 		self.SpearGun = speargun
 		if !self:IsBusy() then
-			local _,dir = self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
+			local _,dir = self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true,VMAnim = "predator_hud_speargun_extend"})
 			self.NextChaseTime = 0
 			self.NextSpearGunFireT = CurTime() +dir +0.2
 		end
@@ -765,10 +789,11 @@ function ENT:FireSpearGun()
 	bullet.Tracer = 1
 	bullet.TracerName = "VJ_AVP_Speargun"
 	bullet.Force = 25
-	bullet.Damage = 45
-	bullet.AmmoType = "CombineHeavyCannon"
+	bullet.Damage = 65
+	bullet.AmmoType = "AR2"
 	bullet.Callback = function(attacker,tr,dmginfo)
 		util.ScreenShake(tr.HitPos,16,100,0.2,50)
+		dmginfo:SetDamageType(bit.bor(DMG_BULLET,DMG_SNIPER,DMG_SHOCK))
 	end
 	self:FireBullets(bullet)
 	
@@ -786,6 +811,7 @@ function ENT:FireSpearGun()
 	self:DeleteOnRemove(FireLight1)
 
 	self:SetEnergy(math.Clamp(self:GetEnergy() -10,0,200))
+	self:SetCloakDisruptTime(CurTime() +1.5)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomAttack(ent,vis)
@@ -1753,6 +1779,9 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 
 		ParticleEffectAttach("vj_avp_predator_plasma_charging",PATTACH_POINT_FOLLOW,ent,ent:LookupAttachment("panel"))
 		sound.EmitHint(SOUND_DANGER, ent:GetPos(), 600, ent.CountdownTimer -CurTime(), ent)
+		ent.NuclearLoopFX = CreateSound(ent,"cpthazama/avp/predator/Suicide_LoopFX.wav")
+		ent.NuclearLoopFX:SetSoundLevel(70)
+		ent.NuclearLoopFX:Play()
 
 		hook.Add("Think",ent,function(ent)
 			if ent.CountdownTimer == nil then return end
@@ -1788,6 +1817,7 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 						sound.Play("AVP.Predator.NuclearExplosionFX",ent:GetPos())
 						VJ.ApplyRadiusDamage(fakeNPC,fakeNPC,ent:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
 						SafeRemoveEntity(fakeNPC)
+						VJ_STOPSOUND(ent.NuclearLoopFX)
 						hook.Remove("Think",ent)
 					end
 				end)
@@ -1811,10 +1841,10 @@ function ENT:CustomOnThink_AIEnabled()
 			sound.Play("cpthazama/avp/predator/Bomb_Tick.ogg",self:GetPos(),60,pitch)
 		end
 
-		if CurTime() > self.NextCountdownLaughT then
-			self.NextCountdownLaughT = CurTime() +math.random(4,5)
-			VJ.CreateSound(self,"cpthazama/avp/predator/vocals/pred_laugh_taunt_bill.ogg",75,math.random(75,108))
-		end
+		-- if CurTime() > self.NextCountdownLaughT then
+		-- 	self.NextCountdownLaughT = CurTime() +math.random(4,5)
+		-- 	VJ.CreateSound(self,"cpthazama/avp/predator/vocals/pred_laugh_taunt_bill.ogg",75,math.random(75,108))
+		-- end
 
 		if remainTime <= 0 then
 			self.CountdownTimer = nil
@@ -2128,7 +2158,7 @@ function ENT:CustomOnThink_AIEnabled()
 			end
 		end
 		if IsValid(enemy) then
-			if !self:GetCloaked() && curTime > self.NextCloakT && dist > self.AttackDistance *3 && !enemy.VJ_AVP_Xenomorph then
+			if !self:GetCloaked() && self:GetState() == VJ_STATE_NONE && curTime > self.NextCloakT && dist > self.AttackDistance *3 && !enemy.VJ_AVP_Xenomorph then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
 					self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
@@ -2173,7 +2203,7 @@ function ENT:CustomOnThink_AIEnabled()
 				end
 			end
 		else
-			if !self:GetCloaked() && curTime > self.NextCloakT && math.random(1,100) == 1 then
+			if !self:GetCloaked() && self:GetState() == VJ_STATE_NONE && curTime > self.NextCloakT && math.random(1,100) == 1 then
 				self:Camo(!self:GetCloaked())
 				if !self:IsBusy() then
 					self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true})
@@ -2486,6 +2516,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
 		if !self.ActivatedSelfDestruct && self:Health() < self:GetMaxHealth() *0.2 && (self:GetStimCount() <= 0 or math.random(1,self:Health() < self:GetMaxHealth() *0.1 && 3 or 25) == 1) && math.random(1,2) == 1 then
+		-- if !self.ActivatedSelfDestruct then
 			self:DoCountdownAttack()
 			self.HasDeathAnimation = false
 			self.ActivatedSelfDestruct = true
@@ -2559,6 +2590,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	VJ_STOPSOUND(self.CurrentVoiceLine)
+	VJ_STOPSOUND(self.NuclearLoopFX)
+	VJ_STOPSOUND(self.SuicideStartFX)
+	VJ_STOPSOUND(self.SuicideFX)
 	if self.DeleteSounds then
 		for _,v in pairs(self.DeleteSounds) do
 			VJ_STOPSOUND(v)

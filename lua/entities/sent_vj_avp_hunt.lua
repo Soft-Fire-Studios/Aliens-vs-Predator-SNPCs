@@ -169,7 +169,7 @@ if CLIENT then
 
 		hook.Add("PreDrawHalos",self,function(self)
 			local ply = LocalPlayer()
-			if !IsValid(ply) or IsValid(ply) && ply:Alive() then return end
+			if !IsValid(ply) or IsValid(ply) && ply.VJTag_IsControllingNPC then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
 				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJTag_IsControllingNPC) then
@@ -225,7 +225,7 @@ end
 function ENT:SpawnBot(count,respawn)
 	local plys = player.GetAll()
 	for i = 1,count do
-		timer.Simple(i *0.1,function()
+		timer.Simple(i *0.01,function()
 			if !IsValid(self) then return end
 			local pos = VJ.PICK(plys):GetPos()
 			local spawnPoint = pos
@@ -252,6 +252,7 @@ function ENT:SpawnBot(count,respawn)
 				bot.WeaponInventory_AntiArmorList = {}
 				bot.WeaponInventory_Melee = true
 				bot.WeaponInventory_MeleeList = {"weapon_vj_glock17","weapon_vj_357"}
+				bot.EntitiesToNoCollide = {"npc_vj_test_humanply"}
 				bot:Spawn()
 				bot:Activate()
 				bot.VJ_AVP_HuntBot = true
@@ -409,24 +410,28 @@ function ENT:Initialize()
 		end
 	end)
 
-	for _,v in pairs(plys) do
-		v:ChatPrint("[Predator Hunt] Please be patient while the mode initializes everything...")
-		v:SetNW2Bool("AVP_DiedInHunt",false)
-		self:SetProperPos(v,VJ.PICK(self.PlayerSpawn))
-		v:SetHealth(100)
-		v:SetArmor(100)
-	end
 
-	if self.AllowBots then
-		local maxBots = GetConVar("vj_avp_survival_maxbots"):GetInt()
-		local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math.Clamp((game.MaxPlayers() -#plys) /2,1,4))
-		self.MaxBots = botCount
-		self:SpawnBot(botCount)
-	end
+	timer.Simple(0,function()
+		if !IsValid(self) then return end
+		for _,v in pairs(plys) do
+			v:ChatPrint("[Predator Hunt] Please be patient while the mode initializes everything...")
+			v:SetNW2Bool("AVP_DiedInHunt",false)
+			self:SetProperPos(v,VJ.PICK(self.PlayerSpawn))
+			v:SetHealth(100)
+			v:SetArmor(100)
+		end
 
-	local debugPlayAsPredator = false
+		if self.AllowBots then
+			local maxBots = GetConVar("vj_avp_survival_maxbots"):GetInt()
+			local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math.Clamp((game.MaxPlayers() -#plys) /2,1,4))
+			self.MaxBots = botCount
+			self:SpawnBot(botCount)
+		end
+	end)
+
+	local debugPlayAsPredator = true
 	local spawn = VJ.PICK(self.PredatorSpawn)
-	local pred = ents.Create(VJ.PICK({"npc_vj_avp_pred","npc_vj_avp_pred_claw","npc_vj_avp_pred_hunter"}))
+	local pred = ents.Create("npc_vj_avp_pred")
 	pred:SetPos(spawn.Pos)
 	pred:SetAngles(spawn.Ang)
 	pred.SpawnedUsingMutator = true
@@ -446,7 +451,7 @@ function ENT:Initialize()
 		self:SetFullyInitialized(true)
 	end)
 
-	timer.Simple(0.1,function()
+	timer.Simple(0.15,function()
 		if !IsValid(self) then return end
 		if debugPlayAsPredator then
 			local ply = VJ.PICK(plys)
@@ -465,7 +470,7 @@ function ENT:Initialize()
 		self:SetFoundPacks(0)
 		self.DataPacks = {}
 		for i = 1,totalToSpawn do
-			local spawnPoint = self:FindNodesNearPoint(VJ.PICK(totalData),4,512)
+			local spawnPoint = self:FindNodesNearPoint(VJ.PICK(totalData),4,768)
 			if spawnPoint == false then
 				spawnPoint = VJ.PICK(totalData)
 			else
@@ -719,6 +724,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Think()
 	local curTime = CurTime()
+
+	if !self:GetFullyInitialized() then return end
 
 	if self:GetEndingSequence() then
 		local humans = self:GetHumans()

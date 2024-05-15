@@ -40,6 +40,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int",3,"Energy")
 	self:NetworkVar("Int",4,"HP")
 	self:NetworkVar("Float",0,"EquipmentShowTime")
+	self:NetworkVar("Float",1,"CloakDisruptTime")
 	self:NetworkVar("Bool",0,"Cloaked")
 	self:NetworkVar("Bool",1,"Sprinting")
 	self:NetworkVar("Bool",2,"Beam")
@@ -162,9 +163,15 @@ if CLIENT then
 			local finalResult = curValue or 0
 			local parent = ent:GetParent()
 			local checkEnt = IsValid(parent) && parent or ent
+			local disruptTime = ent.VJ_AVP_Predator && checkEnt:GetCloakDisruptTime() or 0
 			if checkEnt.GetCloaked then
 				if checkEnt:GetCloaked() then
-					finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or checkEnt:GetJumpPosition() != scale0) && 0.97 or 0.997
+					if disruptTime > CurTime() then
+						local remaining = disruptTime -CurTime()
+						finalResult = 0.97 +math.sin(CurTime() *2) *0.03
+					else
+						finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or checkEnt:GetJumpPosition() != scale0) && 0.97 or 0.997
+					end
 				else
 					finalResult = 0
 					finalResultRefract = 0
@@ -208,6 +215,20 @@ if CLIENT then
 					vm:SetBodygroup(1,0)
 					-- vm:SetMaterial("")
 				end
+
+				if self:GetEquipment() == 5 then
+					vm:SetBodygroup(2,1)
+				else
+					vm:SetBodygroup(2,0)
+				end
+
+				for _,v in pairs(self:GetChildren()) do
+					v:SetNoDraw(true)
+				end
+			end
+		else
+			for _,v in pairs(self:GetChildren()) do
+				v:SetNoDraw(false)
 			end
 		end
 

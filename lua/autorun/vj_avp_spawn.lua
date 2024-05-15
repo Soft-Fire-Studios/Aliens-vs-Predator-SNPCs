@@ -80,6 +80,7 @@ if VJExists == true then
 	VJ.AddNPC("Spartan","npc_vj_avp_pred_spartan",vCat_P)
 	VJ.AddNPC("Lord","npc_vj_avp_pred_lord",vCat_P)
 	VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
+	VJ.AddNPC("Extinction","npc_vj_avp_pred_extinction",vCat_P)
 	VJ.AddNPC("Ancient","npc_vj_avp_pred_predlord",vCat_P)
 
 	VJ.AddNPC("Sentry Gun","npc_vj_avp_hum_sentrygun",vCat_M)
@@ -487,6 +488,62 @@ if VJExists == true then
 		Vector(-14322.620117,11262.540039,-903.968750),
 	}
 	VJ_AVP_HuntData["rp_lepointe"].Extract = Vector(-9588.245117,10821.127930,-903.968750)
+
+	VJ_AVP_HuntData["rp_junglestorm"] = {}
+	VJ_AVP_HuntData["rp_junglestorm"].InsurgentPoints = {
+		Vector(487.13714599609,2074.6950683594,-2314.837890625),
+		Vector(8884.072265625,-11332.016601563,-2188.2509765625),
+		Vector(10849.030273438,8609.111328125,-1882.3703613281),
+		Vector(-12244.125976563,-7391.2963867188,-2143.96875),
+	}
+	VJ_AVP_HuntData["rp_junglestorm"].PlayerSpawn = {
+		Vector(-9808.32421875,6838.4819335938,-2192.0302734375),
+		Vector(-9446.3408203125,7008.17578125,-2192.0290527344),
+		Vector(-9192.1904296875,7194.3564453125,-2192.2392578125),
+		Vector(-8807.248046875,6954.3217773438,-2193.3195800781),
+		Vector(-9176.6474609375,6614.1264648438,-2192.0163574219),
+		Vector(-9477.8896484375,6568.7114257813,-2192.0378417969),
+	}
+	VJ_AVP_HuntData["rp_junglestorm"].PredatorSpawn = {
+		{Pos=Vector(-639.00665283203,-4364.73828125,-1446.9732666016),Ang=Angle(0,-121.27067565918,0)},
+	}
+	VJ_AVP_HuntData["rp_junglestorm"].DataSpawn = {
+		Vector(135.97930908203,2385.345703125,-2314.150390625),
+		Vector(10942.595703125,8868.599609375,-1887.6782226563),
+		Vector(7407.7729492188,-11982.147460938,-2192),
+		Vector(-12125.806640625,-7562.3076171875,-1967.96875),
+	}
+	VJ_AVP_HuntData["rp_junglestorm"].Extract = Vector(-10872.010742188,-9664.9306640625,-2191.8171386719)
+
+	function VJ_AVP_GrabHuntData(dataType) // 1 = Insurgent Points, 2 = Player Spawn, 3 = Predator Spawn, 4 = Data Spawn, 5 = Extract
+		local map = game.GetMap()
+		local ply = Entity(1)
+		local tr = ply:GetEyeTrace()
+		local dataType = dataType or 0
+
+		if dataType == 1 then
+			print('VJ_AVP_HuntData["' .. map .. '"].InsurgentPoints = {')
+			print("	Vector(" .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. "),")
+			print("}")
+		elseif dataType == 2 then
+			print('VJ_AVP_HuntData["' .. map .. '"].PlayerSpawn = {')
+			print("	Vector(" .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. "),")
+			print("}")
+		elseif dataType == 3 then
+			local ang = ply:GetAngles()
+			print('VJ_AVP_HuntData["' .. map .. '"].PredatorSpawn = {')
+			print("	{Pos=Vector(" .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. "),Ang=Angle(0," .. -ang.y .. ",0)},")
+			print("}")
+		elseif dataType == 4 then
+			print('VJ_AVP_HuntData["' .. map .. '"].DataSpawn = {')
+			print("	Vector(" .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. "),")
+			print("}")
+		elseif dataType == 5 then
+			print('VJ_AVP_HuntData["' .. map .. '"].Extract = Vector(' .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. ")")
+		else
+			print("Vector(" .. tr.HitPos.x .. "," .. tr.HitPos.y .. "," .. tr.HitPos.z .. "),")
+		end
+	end
 
 	local NPC = FindMetaTable("NPC")
 	
