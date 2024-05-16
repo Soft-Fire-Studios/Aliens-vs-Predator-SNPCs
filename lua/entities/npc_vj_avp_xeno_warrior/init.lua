@@ -515,6 +515,8 @@ function ENT:CustomOnInitialize()
             end
         end
     end)
+
+	self:SetStepHeight(22)
 end
 --
 local math_acos = math.acos
@@ -2238,7 +2240,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
 			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
-			self:StopMoving()
+			self:StopMoving(!self.VJ_AVP_XenomorphLarge)
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_StopMoving()
 			end

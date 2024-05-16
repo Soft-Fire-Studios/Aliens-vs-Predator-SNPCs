@@ -22,8 +22,6 @@ ENT.RangeAttackAnimationStopMovement = false
 
 ENT.HasBreath = true
 ENT.FootStepSoundLevel = 82
-ENT.FootStepPitch1 = 75
-ENT.FootStepPitch2 = 85
 
 ENT.CanScreamForHelp = false
 ENT.SummonClasses = {
@@ -112,6 +110,8 @@ function ENT:OnInit()
 		["lhand"] = {Range=8.5,OnGround=true},
 		["rhand"] = {Range=8.5,OnGround=true}
 	}
+	self.FootStepPitch1 = 60
+	self.FootStepPitch2 = 65
 	self.NextSummonT = CurTime() +3
 	-- self.NextSummonT = CurTime() +60
 	-- timer.Simple(0,function()
@@ -211,6 +211,8 @@ function ENT:OnInit()
 			end,
 		},
 	}
+
+	self:SetStepHeight(36)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)

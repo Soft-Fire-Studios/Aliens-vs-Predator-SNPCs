@@ -98,6 +98,8 @@ function ENT:OnInit()
 	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
 
 	self.AttackDistance = 80
+
+	self:SetStepHeight(32)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)

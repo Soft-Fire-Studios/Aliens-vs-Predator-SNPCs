@@ -30,10 +30,20 @@ function ENT:OnInit()
 		end
 		return
 	end
-	self.SoundTbl_FootStep = {
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_01.wav",
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_02.wav",
-		"cpthazama/avp/xeno/queen/alien_queen_footstep_03.wav",
+
+	self.AttackProps = true
+	self.PushProps = true
+	self.HasRangeAttack = true
+	self.PropAP_MaxSize = 1.65
+	self.FootStepSoundLevel = 75
+	self.FootStepPitch1 = 60
+	self.FootStepPitch2 = 70
+	self.SoundTbl_FootSteps = {
+		[MAT_CONCRETE] = {
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_01.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_02.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_03.ogg",
+		}
 	}
 	self.SoundTbl_Alert = {
 		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_02.ogg",
@@ -62,17 +72,27 @@ function ENT:OnInit()
 		self.HasSoundTrack = true
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
 	end
+
+	self.FootData = {
+		["lfoot"] = {Range=70,OnGround=true},
+		["rfoot"] = {Range=70,OnGround=true}
+	}
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
+	self.CanFlinch = 0
 
 	self.InBirth = false
-	self.NextLookForBirthT = CurTime() +5
+	-- self.NextLookForBirthT = CurTime() +60
+	self.NextLookForBirthT = CurTime() +10
 	self.NextSpawnEggT = 0
 	self.NextCommandXenosT = 0
 	self.Eggs = {}
 	self.InCharge = false
 	self.ChargeT = 0
+	self.NextSpecialEggCheckT = CurTime() +5
+
+	self:SetStepHeight(66)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 -- function ENT:SelectMovementActivity()

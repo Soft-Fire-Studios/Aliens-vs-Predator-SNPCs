@@ -150,6 +150,8 @@ function ENT:OnInit()
 	self.InCharge = false
 	self.ChargeT = 0
 	self.NextSpecialEggCheckT = CurTime() +5
+
+	self:SetStepHeight(50)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRangeAttack_AfterStartTimer(seed)
@@ -763,7 +765,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
 			if !self.InCharge then
-				self:StopMoving()
+				self:StopMoving(false)
 				if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 					self:AA_StopMoving()
 				end
