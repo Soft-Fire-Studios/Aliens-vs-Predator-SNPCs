@@ -262,6 +262,22 @@ function ENT:SelectMovementActivity(act)
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CalculateTrajectory(start, goal, pitch)
+	local g = physenv.GetGravity():Length()
+	local vec = Vector(goal.x - start.x, goal.y - start.y, 0)
+	local x = vec:Length()
+	local y = goal.z - start.z
+	if pitch > 90 then pitch = 90 end
+	if pitch < -90 then pitch = -90 end
+	pitch = math.rad(pitch)
+	if y < math.tan(pitch)*x then
+		magnitude = math.sqrt((-g*x^2)/(2*math.pow(math.cos(pitch), 2)*(y - x*math.tan(pitch))))
+		vec.z = math.tan(pitch)*x
+		return vec:GetNormalized()*magnitude
+	end
+	return self:CalculateProjectile("Curve",start,goal,1200)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local math_deg = math.deg
 local math_atan2 = math.atan2
 local string_find = string.find
@@ -1552,8 +1568,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "spear_throw" then
 		SafeRemoveEntity(self.SpearProp)
 		local att = self:GetAttachment(self:LookupAttachment("spear"))
-		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *500
+		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *1000
 		local targetAng = (targetPos -att.Pos):Angle()
+		targetPos = self:GetPos() +targetAng:Forward() *2000
 		local proj = ents.Create("obj_vj_avp_pred_spear")
 		proj:SetPos(att.Pos)
 		proj:SetAngles(targetAng)
@@ -1568,7 +1585,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 
 		local phys = proj:GetPhysicsObject()
 		if IsValid(phys) then
-			phys:SetVelocity(proj:GetForward() *2500)
+			-- phys:SetVelocity(proj:GetForward() *2500)
+			phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),targetPos,2))
 		end
 	elseif key == "spear_retract" then
 		if IsValid(self.SpearProp) then

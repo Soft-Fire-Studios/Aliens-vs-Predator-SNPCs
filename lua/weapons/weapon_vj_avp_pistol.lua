@@ -26,7 +26,7 @@ SWEP.HasMotionTracker			= true
 
 SWEP.Primary.Damage				= 12
 SWEP.Primary.ClipSize			= 15
-SWEP.Primary.RPM				= 700
+SWEP.Primary.RPM				= 400
 SWEP.Primary.AccurateRange 		= 28
 SWEP.Primary.Automatic			= false
 SWEP.Primary.Ammo				= "Pistol"
@@ -52,6 +52,9 @@ SWEP.ViewModelAdjust = {
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnInit()
 	self.NextBurstFireT = 0
+
+	self.BurstFireShots = 0
+	self.ResetBurstFireT = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnReload()
@@ -61,37 +64,40 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnThink()
+	if self.BurstFireShots > 0 && CurTime() > self.ResetBurstFireT then
+		self.BurstFireShots = 0
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnSecondaryAttack()
 	return CurTime() > self.NextBurstFireT
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnSecondaryAttack()
+	if CurTime() < self.NextBurstFireT then return end
 	local owner = self:GetOwner()
 	local oldDelay = self.Primary.Delay
 	local oldCone = self.Primary.Cone
+	local oldDamage = self.Primary.Damage
 	self.Primary.Delay = 0.1
 	self.Primary.Cone = 20
-	-- for i = 1,3 do
-	-- 	timer.Simple(i *0.1,function()
-	-- 		if IsValid(self) && IsValid(owner) && owner:GetActiveWeapon() == self then
-	-- 			self:PrimaryAttack()
-	-- 			if i == 3 then
-	-- 				self.NextBurstFireT = CurTime() +0.25
-	-- 				self:SetNextPrimaryFire(CurTime() +0.25)
-	-- 				self.Primary.Delay = oldDelay
-	-- 				self.Primary.Cone = oldCone
-	-- 			end
-	-- 		end
-	-- 	end)
-	-- end
-
-	-- self.NextBurstFireT = CurTime() +0.5
-	-- self:SetNextPrimaryFire(CurTime() +0.5)
-
+	self.Primary.Damage = 18
 	self:PrimaryAttack()
 	self.Primary.Delay = oldDelay
 	self.Primary.Cone = oldCone
+	self.Primary.Damage = oldDamage
 
-	self.NextBurstFireT = CurTime() +0.1
-	self:SetNextPrimaryFire(CurTime() +0.15)
+	self.BurstFireShots = self.BurstFireShots +1
+	self.ResetBurstFireT = CurTime() +1
+	if self.BurstFireShots >= 3 then
+		self.BurstFireShots = 0
+		self.NextBurstFireT = CurTime() +0.45
+		self:SetNextPrimaryFire(CurTime() +0.45)
+		self:SetNextSecondaryFire(CurTime() +0.45)
+	else
+		self:SetNextPrimaryFire(CurTime() +0.075)
+		self:SetNextSecondaryFire(CurTime() +0.075)
+	end
+	-- self.NextBurstFireT = CurTime() +0.1
 end

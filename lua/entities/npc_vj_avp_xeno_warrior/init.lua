@@ -964,6 +964,22 @@ function ENT:LongJumpCode(gotoPos,atk)
 	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CalculateTrajectory(start, goal, pitch)
+	local g = physenv.GetGravity():Length()
+	local vec = Vector(goal.x - start.x, goal.y - start.y, 0)
+	local x = vec:Length()
+	local y = goal.z - start.z
+	if pitch > 90 then pitch = 90 end
+	if pitch < -90 then pitch = -90 end
+	pitch = math.rad(pitch)
+	if y < math.tan(pitch)*x then
+		magnitude = math.sqrt((-g*x^2)/(2*math.pow(math.cos(pitch), 2)*(y - x*math.tan(pitch))))
+		vec.z = math.tan(pitch)*x
+		return vec:GetNormalized()*magnitude
+	end
+	return self:CalculateProjectile("Curve",start,goal,1200)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local sdClawFlesh = {
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_01.ogg",
 	"cpthazama/avp/weapons/alien/claws/alien_claw_impact_flesh_02.ogg",
@@ -1092,7 +1108,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				local phys = proj:GetPhysicsObject()
 				if IsValid(phys) then
 					phys:EnableGravity(true)
-					phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), i > 1 && targetPos +VectorRand(-135,135) or targetPos, 1500))
+					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), i > 1 && targetPos +VectorRand(-135,135) or targetPos, 1500))
+					phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos,25))
 					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
 				end
 			end

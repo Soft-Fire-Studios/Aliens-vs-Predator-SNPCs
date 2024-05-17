@@ -158,11 +158,11 @@ if CLIENT then
             if (!IsValid(ent)) then return end
 			local ply = LocalPlayer()
 
-			ent.Mat_cloakfactor = ent.Mat_cloakfactor or 0
-			local curValue = ent.Mat_cloakfactor
-			local finalResult = curValue or 0
 			local parent = ent:GetParent()
 			local checkEnt = IsValid(parent) && parent or ent
+			ent.Mat_cloakfactor = ent.Mat_cloakfactor or (IsValid(parent) && parent.Mat_cloakfactor or 0)
+			local curValue = ent.Mat_cloakfactor
+			local finalResult = curValue or 0
 			local disruptTime = ent.VJ_AVP_Predator && checkEnt:GetCloakDisruptTime() or 0
 			if checkEnt.GetCloaked then
 				if checkEnt:GetCloaked() then

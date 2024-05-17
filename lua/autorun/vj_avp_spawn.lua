@@ -382,6 +382,9 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_flamethrower.pcf",{
 		"vj_avp_flamethrower",
 	})
+	VJ.AddParticle("particles/vj_avp_flare.pcf",{
+		"vj_avp_flare",
+	})
 	VJ.AddParticle("particles/vj_avp_speargun.pcf",{
 		"vj_avp_pred_speargun_tracer",
 	})

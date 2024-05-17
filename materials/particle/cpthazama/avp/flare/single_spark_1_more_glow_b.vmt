@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+	"$basetexture" "particle/cpthazama/avp/flare/single_spark_1_more_glow_b"
+	"$additive" "1"
+	"$vertexcolor" "1"
+	"$vertexalpha" "1"
+	
+}

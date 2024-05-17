@@ -24,7 +24,7 @@ if CLIENT then
 	killicon.Add("#obj_vj_avp_flare","HUD/killicons/default",Color(255,80,0,255))
 	
 	function ENT:Draw()
-		//self:DrawModel()
+		self:DrawModel()
 	end
 end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,75 +36,53 @@ local colorRed = Color(255, 0, 0)
 local colorTrailRed = Color(155, 0, 0, 150)
 --
 function ENT:Initialize()
-	self:SetModel("models/items/ar2_grenade.mdl")
+	self:SetModel("models/props_junk/flare.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
-	self:SetColor(colorRed)
 	self:SetUseType(SIMPLE_USE)
-	self:SetModelScale(0.5)
 
-	-- Physics
+	-- self:PhysicsInitSphere(1, "metal")
+
 	local phys = self:GetPhysicsObject()
 	if IsValid(phys) then
 		phys:Wake()
 		phys:EnableGravity(true)
 		phys:SetBuoyancyRatio(0)
+		phys:SetMass(5)
 	end
+		
+	local prop = ents.Create("prop_physics")
+	prop:SetModel("models/props_junk/popcan01a.mdl")
+	prop:Spawn()
+	prop:Activate()
+	prop:SetPos(self:GetAttachment(1).Pos +self:GetUp())
+	prop:SetAngles(self:GetUp():Angle())
+	prop:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+	prop:SetModelScale(0)
+	prop:SetParent(self)
+	self:DeleteOnRemove(prop)
 
-	-- Effects
-	//util.SpriteTrail(self, 0, Color(90,90,90,255), false, 10, 1, 3, 1/(15+1)*0.5, "trails/smoke.vmt")
-	//ParticleEffectAttach("vj_rpg1_smoke", PATTACH_ABSORIGIN_FOLLOW, self, 0)
-	//ParticleEffectAttach("vj_rpg2_smoke2", PATTACH_ABSORIGIN_FOLLOW, self, 0)
-	-- util.SpriteTrail(self, 0, colorTrailRed, false, 1, 100, 5, 5 / ((2 + 10) * 0.5), "trails/smoke.vmt")
+	ParticleEffectAttach("vj_avp_flare", PATTACH_POINT_FOLLOW, prop, 0)
 
-	-- No longer needed, light is created by env_flare
-	/*self.StartLight1 = ents.Create("light_dynamic")
-	self.StartLight1:SetKeyValue("brightness", "0.01")
-	self.StartLight1:SetKeyValue("distance", "1500")
-	self.StartLight1:SetLocalPos(self:GetPos())
-	self.StartLight1:SetLocalAngles( self:GetAngles() )
-	self.StartLight1:Fire("Color", "255 0 0")
-	self.StartLight1:SetParent(self)
-	self.StartLight1:Spawn()
-	self.StartLight1:Activate()
-	self.StartLight1:Fire("TurnOn", "", 0)
-	self:DeleteOnRemove(self.StartLight1)*/
-
-	local envFlare = ents.Create("env_flare")
-	envFlare:SetPos(self:GetPos())
-	envFlare:SetAngles(self:GetAngles())
-	envFlare:SetParent(self)
-	envFlare:SetKeyValue("Scale","5")
-	envFlare:SetKeyValue("spawnflags","4")
-	envFlare:Spawn()
-	envFlare:Fire("Start", tostring(self.FuseTime))
-	envFlare:SetOwner(self)
-	
-	envFlare:SetColor(colorRed)
+	local light = ents.Create("light_dynamic")
+	light:SetKeyValue("brightness", "0.01")
+	light:SetKeyValue("distance", "1500")
+	light:SetLocalPos(self:GetPos())
+	light:SetLocalAngles( self:GetAngles() )
+	light:Fire("Color", "255 0 0")
+	light:SetParent(self)
+	light:Spawn()
+	light:Activate()
+	light:Fire("TurnOn", "", 0)
+	self:DeleteOnRemove(light)
 
 	VJ.EmitSound(self,"cpthazama/avp/weapons/human/flare/flare_01_shot.ogg",60)
 
-	self.CurrentIdleSound = CreateSound(self, "cpthazama/avp/weapons/human/flare/flare_01_loop.wav")
+	self.CurrentIdleSound = CreateSound(self,"cpthazama/avp/weapons/human/flare/flare_01_loop.wav")
 	self.CurrentIdleSound:SetSoundLevel(60)
 	self.CurrentIdleSound:PlayEx(1, 100)
 	
-	-- Make it drop after some time in the air
-	timer.Simple(2, function()
-		if IsValid(self) then
-			phys = self:GetPhysicsObject()
-			if IsValid(phys) && phys:GetVelocity():Length() > 500 then
-				phys:SetMass(0.005)
-				timer.Simple(10, function()
-					if IsValid(self) then
-						phys:SetMass(5)
-					end
-				end)
-			end
-		end
-	end)
-	
-	-- Remove after fuse time
 	timer.Simple(self.FuseTime, function()
 		if IsValid(self) then
 			self:Remove()
@@ -119,25 +97,25 @@ function ENT:Use(activator, caller)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:PhysicsCollide(data, physobj)
-	-- Make players and NPCs take damage
 	local hitEnt = data.HitEntity
-	if IsValid(hitEnt) && (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
-		//hitEnt:Ignite(1)
+	if IsValid(hitEnt) && (hitEnt:IsNPC() or hitEnt:IsPlayer() or hitEnt:IsNextBot()) then
 		local dmg = DamageInfo()
-		dmg:SetDamage(math.random(4, 8))
+		dmg:SetDamage(math.random(4,8))
 		dmg:SetDamageType(DMG_BURN)
 		dmg:SetAttacker(self)
 		dmg:SetInflictor(self)
 		dmg:SetDamagePosition(data.HitPos)
-		hitEnt:TakeDamageInfo(dmg, self)
+		hitEnt:TakeDamageInfo(dmg,self)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnTakeDamage(dmginfo)
-	self:GetPhysicsObject():AddVelocity(dmginfo:GetDamageForce() * 0.1)
+	self:GetPhysicsObject():AddVelocity(dmginfo:GetDamageForce() *0.1)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnRemove()
-	if self.CurrentIdleSound then self.CurrentIdleSound:Stop() end
+	if self.CurrentIdleSound then
+		self.CurrentIdleSound:Stop()
+	end
 	self:StopParticles()
 end
