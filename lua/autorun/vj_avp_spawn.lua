@@ -273,7 +273,7 @@ if VJExists == true then
 			local ply = LocalPlayer()
 			if IsValid(ply) then
 				local possessing = ply.VJCE_NPC
-				if IsValid(possessing) && possessing.VJ_AVP_Predator && possessing.VJ_AVP_ViewModelData then
+				if ply.VJTag_IsControllingNPC && IsValid(possessing) && possessing.VJ_AVP_Predator && possessing.VJ_AVP_ViewModelData then
 					local att = vm:LookupAttachment("pov")
 					local data = possessing.VJ_AVP_ViewModelData
 					local pos2 = data.origin
@@ -313,7 +313,7 @@ if VJExists == true then
 		
 		hook.Add("PreDrawViewModel","VJ_AVP_ViewModel",function(vm,ply)
 			local possessing = ply.VJCE_NPC
-			if IsValid(possessing) && possessing.VJ_AVP_Predator then
+			if ply.VJTag_IsControllingNPC && IsValid(possessing) && possessing.VJ_AVP_Predator then
 				if !IsValid(possessing:GetVM()) or ply.VJC_Camera_Mode != 2 then
 					return true
 				end
