@@ -856,6 +856,9 @@ if VJExists == true then
 					-- elseif VJ_AVP_PMV["Xeno"][ent:GetModel()] then
 						-- ent:SetNW2Bool("AVP.Xenomorph",true)
 						-- ent.VJ_AVP_Xenomorph = true
+					else
+						ent:SetNW2Bool("AVP.IsTech",false)
+						ent.VJ_AVP_IsTech = false
 					end
 				end
 			end)
