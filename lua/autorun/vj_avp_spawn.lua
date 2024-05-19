@@ -829,6 +829,16 @@ if VJExists == true then
 			end
 		end)
 
+		util.AddNetworkString("VJ.AVP.PlayerHUDDamage")
+		hook.Add("EntityTakeDamage","VJ_AVP_MarinePlayer_HUD",function(ent,dmginfo)
+			if (ent:IsPlayer() or (ent:IsNPC() && ent.VJ_AVP_NPC && ent.VJ_IsBeingControlled)) && math.random(1,dmginfo:IsBulletDamage() && 5 or 2) == 1 then
+				local time = CurTime() +math.Rand(3,5)
+				net.Start("VJ.AVP.PlayerHUDDamage")
+					net.WriteFloat(time)
+				net.Send(ent:IsNPC() && ent.VJ_TheController or ent)
+			end
+		end)
+
 		VJ_AVP_PMV = {
 			["Tech"] = {
 				"models/player/combine_soldier.mdl",
@@ -840,12 +850,12 @@ if VJExists == true then
 		hook.Add("PlayerSetModel","VJ_AVP_Classify",function(ent)
 			timer.Simple(0,function()
 				if IsValid(ent) then
-					if VJ_AVP_PMV["Tech"][ent:GetModel()] then
+					if VJ.HasValue(VJ_AVP_PMV["Tech"],ent:GetModel()) then
 						ent:SetNW2Bool("AVP.IsTech",true)
 						ent.VJ_AVP_IsTech = true
-					elseif VJ_AVP_PMV["Xeno"][ent:GetModel()] then
-						ent:SetNW2Bool("AVP.Xenomorph",true)
-						ent.VJ_AVP_Xenomorph = true
+					-- elseif VJ_AVP_PMV["Xeno"][ent:GetModel()] then
+						-- ent:SetNW2Bool("AVP.Xenomorph",true)
+						-- ent.VJ_AVP_Xenomorph = true
 					end
 				end
 			end)

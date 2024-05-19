@@ -80,6 +80,7 @@ if CLIENT then
 
 		["models/cpthazama/avp/xeno/queen/alien_queen_body"] = "models/cpthazama/avp/xeno/queen/alien_queen_body_xv",
 		["models/cpthazama/avp/xeno/queen/alien_queen_head"] = "models/cpthazama/avp/xeno/queen/alien_queen_head_xv",
+		["models/cpthazama/avp/xeno/queen/rc_queen_egg_body"] = "models/cpthazama/avp/xeno/queen/rc_queen_egg_body_xv",
 
 		["models/cpthazama/avp/xeno/runner/jungle_alien_body"] = "models/cpthazama/avp/xeno/runner/jungle_alien_body_xv",
 		["models/cpthazama/avp/xeno/runner/jungle_alien_head"] = "models/cpthazama/avp/xeno/runner/jungle_alien_head_xv",
@@ -97,6 +98,14 @@ if CLIENT then
 		["models/cpthazama/avp/xeno/hag/hag_crown"] = "models/cpthazama/avp/xeno/hag/hag_crown_xv",
 		["models/cpthazama/avp/xeno/hag/hag_face"] = "models/cpthazama/avp/xeno/hag/hag_face_xv",
 		["models/cpthazama/avp/xeno/hag/hag_limb"] = "models/cpthazama/avp/xeno/hag/hag_limb_xv",
+
+		["models/cpthazama/avp/xeno/carrier/praetorian_body"] = "models/cpthazama/avp/xeno/praetorian/praetorian_body_xv",
+		["models/cpthazama/avp/xeno/carrier/praetorian_head"] = "models/cpthazama/avp/xeno/praetorian/praetorian_head_xv",
+		["models/cpthazama/avp/xeno/carrier/alien_carrier_head"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_head_xv",
+		["models/cpthazama/avp/xeno/carrier/alien_carrier_dome"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
+		["models/cpthazama/avp/xeno/carrier/praetorian_chunk_bits"] = "models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_xv",
+		["models/cpthazama/avp/xeno/carrier/alien_carrier_gib"] = "models/cpthazama/avp/xeno/warrior/alien_carrier_gib_xv",
+		
 
 		// K-Series
 		["models/cpthazama/avp/xeno/warrior/alien_warrior_body_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_body_xv",
@@ -121,6 +130,9 @@ if CLIENT then
 
 		["models/cpthazama/avp/xeno/warrior/rigid_alien_head_k"] = "models/cpthazama/avp/xeno/warrior/rigid_alien_head_xv",
 		["models/cpthazama/avp/xeno/drone/alien_warrior_dome_k"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
+
+		["models/cpthazama/avp/xeno/carrier/alien_carrier_head_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_head_xv",
+		["models/cpthazama/avp/xeno/carrier/alien_carrier_dome_k"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
 	}
 
 	function ENT:Initialize()
@@ -260,6 +272,13 @@ if CLIENT then
 	local matOrient_CanJump = Material("hud/cpthazama/avp/avp_a_orient_ret1.png","smooth additive")
 	local matOrient_NoJump = Material("hud/cpthazama/avp/avp_a_reticle_halo1.png","smooth additive")
 
+	local matHUD_Blood = {
+		Material("hud/cpthazama/avp/blood/yellow_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/yellow_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/yellow_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/yellow_4.png","smooth additive")
+	}
+
 	local tab_xeno = {
 		["$pp_colour_addr"] 		= 0.65,
 		["$pp_colour_addg"] 		= 0.03,
@@ -324,6 +343,7 @@ if CLIENT then
 	end
 
 	local orients = {255,255,255}
+	local math_Clamp = math.Clamp
 
 	net.Receive("VJ_AVP_Xeno_Client",function(len,pl)
 		local delete = net.ReadBool()
@@ -334,6 +354,24 @@ if CLIENT then
 		hook.Add("HUDPaint","VJ_AVP_Xenomorph_HUD",function()
 			if !IsValid(ent) then return end
 			local xenoHUD = ent.VJ_AVP_XenoHUD
+
+			local dmgSplatter = ply.VJ_AVP_NPCDamageSplatter or {}
+			if #dmgSplatter > 0 then
+				for id,data in ipairs(dmgSplatter) do
+					if data.Pos == nil then
+						data.Pos = {math.random(-50,50),math.random(-30,30)}
+						data.MatID = math.random(1,4)
+						data.Size = math.random(20,40)
+					end
+					local time = data.Remain -CurTime()
+					local alpha = math_Clamp(time *255,0,255)
+					if alpha <= 0 then
+						table.remove(dmgSplatter,id)
+						continue
+					end
+					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha)
+				end
+			end
 		
 			surface.SetDrawColor(color_white)
 			surface.SetMaterial(xenoHUD == 1 && matSixHud or xenoHUD == 2 && matGridHud or matHud)

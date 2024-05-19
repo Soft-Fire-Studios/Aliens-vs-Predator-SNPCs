@@ -5,6 +5,7 @@
 	"$phongexponenttexture"		"models/cpthazama/avp/predators/newpredarmour_spec"
 
     "$nodecal" 					"1"
+    "$color2" 					"[1 1 1]"
 
 	"$phong"                     "1"
 	"$phongboost"                "10"
@@ -27,6 +28,11 @@
 		"AVP_Cloak"
 		{
 			resultVar	"$cloakfactor"
+		}
+		"AVP_ArmorTint"
+		{
+			resultVar	"$color2"
+			default		"[1 1 1]"
 		}
 		"DynamicEnvMap"
 		{

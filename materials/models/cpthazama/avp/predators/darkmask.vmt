@@ -16,7 +16,7 @@
 	"$envmaptint" 				 "[0.1 0.1 0.1]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"1"
+	"$DEM_Multiplier" 			"0.5"
 
 	"$cloakpassenabled"			"1"
 	"$cloakfactor"				"0"

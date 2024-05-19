@@ -499,12 +499,14 @@ function ENT:DoCountdownAttack()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bounds = Vector(14,14,75)
+local defArmor = Vector(1,1,1)
 --
 function ENT:CustomOnInitialize()
 	self:SetVisionMode(0)
 	self:SetEquipment(1)
 	self:SetStimCount(5)
 	self:SetEnergy(200)
+	self:SetArmorColor(self.ArmorColor or defArmor)
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
 	self.LastSVVisionMode = 0
 	self.NextFindStalkPos = 0
@@ -1794,6 +1796,7 @@ end
 local VJ_IsProp = VJ.IsProp
 --
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+	ent:SetNW2Vector("AVP.ArmorTint",self:GetArmorColor())
 	if self.CountdownTimer then
 		local class = self.VJ_NPC_Class
 		ent.CountdownTimer = self.CountdownTimer

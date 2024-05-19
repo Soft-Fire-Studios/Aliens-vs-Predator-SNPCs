@@ -46,6 +46,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",2,"Beam")
 	self:NetworkVar("Bool",3,"InFatality")
 	self:NetworkVar("Vector",0,"JumpPosition")
+	self:NetworkVar("Vector",1,"ArmorColor")
 end
 
 hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
@@ -148,6 +149,32 @@ if CLIENT then
 	local math_abs = math.abs
 	local blueFX = Vector(0,0.4,6)
 	local whiteFX = Vector(1,1,1)
+    matproxy.Add({
+        name = "AVP_ArmorTint",
+        init = function(self,mat,values)
+            self.Result = values.resultvar
+        end,
+		bind = function(self,mat,ent)
+			-- print(mat,ent)
+			if !IsValid(ent) then return end
+			local vm = false
+			if ent:GetClass() == "viewmodel" then
+				ent = ent:GetOwner().VJCE_NPC
+				vm = true
+			end
+			if !IsValid(ent) then return end
+			local col = ent.GetArmorColor && ent:GetArmorColor() or ent:GetNW2Vector("AVP.ArmorTint",whiteFX)
+			if col == nil then return end
+			if vm then
+				if col.x <= 0.7 or col.y <= 0.7 or col.z <= 0.7 then
+					col = col *1.75
+				else
+					col = col *2.5
+				end
+			end
+			mat:SetVector(self.Result,col)
+		end
+	})
     matproxy.Add({
         name = "AVP_Cloak",
         init = function(self,mat,values)
@@ -439,6 +466,13 @@ if CLIENT then
 	local matGradientTech = Material("hud/cpthazama/avp/thermal_gradient_cold.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
 
+	local matHUD_Blood = {
+		Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_4.png","smooth additive")
+	}
+
 	local acceptableClasses = {viewmodel=true}
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
@@ -565,6 +599,24 @@ if CLIENT then
 			local HP = ent:GetHP()
 			local maxHP = ent:GetMaxHealth()
 			local hpPer = HP /maxHP
+
+			local dmgSplatter = ply.VJ_AVP_NPCDamageSplatter or {}
+			if #dmgSplatter > 0 then
+				for id,data in ipairs(dmgSplatter) do
+					if data.Pos == nil then
+						data.Pos = {math.random(-50,50),math.random(-30,30)}
+						data.MatID = math.random(1,4)
+						data.Size = math.random(20,40)
+					end
+					local time = data.Remain -CurTime()
+					local alpha = math_Clamp(time *255,0,255)
+					if alpha <= 0 then
+						table.remove(dmgSplatter,id)
+						continue
+					end
+					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha)
+				end
+			end
 
 			local cloaked = ent:GetCloaked()
 			cloakA = Lerp(FT,cloakA,cloaked && 50 or 0)

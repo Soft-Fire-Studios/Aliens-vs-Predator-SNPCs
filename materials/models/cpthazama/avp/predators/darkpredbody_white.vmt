@@ -1,11 +1,14 @@
 "VertexLitGeneric"
 {
-	"$basetexture" 				"models/cpthazama/avp/predators/darkpredbody_col"
+	"$basetexture" 				"models/cpthazama/avp/predators/darkpredbody_white_col"
+	// "$basetexture" 				"models/cpthazama/avp/predators/darkpredbody_col"
 	"$bumpmap"					"models/cpthazama/avp/predators/darkpredbody_norms"
 	"$phongexponenttexture"		"models/cpthazama/avp/predators/darkpredbody_spec"
 
     "$nodecal" 					"1"
-    "$color2" 					"[4 4 4]"
+    // "$color2" 					"[3 3 3]"
+    "$color2" 					"[1 1 1]"
+    // "$blendtintbybasealpha" 	"1"
 
 	"$phong"                     "1"
 	"$phongboost"                "10"
@@ -17,7 +20,7 @@
 	"$envmaptint" 				 "[0.1 0.1 0.1]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"2"
+	"$DEM_Multiplier" 			"1.35"
 
 	"$cloakpassenabled"			"1"
 	"$cloakfactor"				"0"
@@ -28,6 +31,11 @@
 		"AVP_Cloak"
 		{
 			resultVar	"$cloakfactor"
+		}
+		"AVP_ArmorTint"
+		{
+			resultVar	"$color2"
+			default		"[1 1 1]"
 		}
 		"DynamicEnvMap"
 		{

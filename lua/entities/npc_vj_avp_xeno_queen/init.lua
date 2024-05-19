@@ -139,7 +139,13 @@ function ENT:OnInit()
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
-	self.CanFlinch = 0
+
+	self.CanFlinch = 1
+	self.FlinchChance = 30
+	self.NextFlinchTime = 8
+	self.AnimTbl_Flinch = {"Alien_Queen_charge_collide_injured"}
+	self.AnimTbl_FlinchCrouch = {"Alien_Queen_charge_collide_injured"}
+	self.AnimTbl_FlinchStand = {"Alien_Queen_charge_collide_injured"}
 
 	self.InBirth = false
 	-- self.NextLookForBirthT = CurTime() +60
@@ -297,6 +303,7 @@ function ENT:OnThink()
 			eggsack:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 			eggsack:AddEffects(EF_PARENT_ANIMATES)
 			eggsack:ResetSequence("idle")
+			-- eggsack:SetNW2Bool("AVP.Xenomorph",true)
 			self:DeleteOnRemove(eggsack)
 			self.EggSack = eggsack
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_enter",true,false,false)

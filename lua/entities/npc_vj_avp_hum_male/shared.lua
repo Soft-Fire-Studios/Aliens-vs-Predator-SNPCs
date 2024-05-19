@@ -41,13 +41,17 @@ if CLIENT then
 	local distortedColor = Color(170,238,255)
 
 	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
-		local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
-		local distortion = math.abs(math.sin(CurTime() *2) *50)
-		surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
-		surface.SetMaterial(mat)
-		local pos = ScreenPos(x +math.Rand(-distortionAmount,distortionAmount),y +math.Rand(-distortionAmount,distortionAmount))
+		local pos
 		local size = ScreenScale(width,height)
-		surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+		if ang != false then
+			local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
+			local distortion = math.abs(math.sin(CurTime() *2) *50)
+			surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
+			surface.SetMaterial(mat)
+			pos = ScreenPos(x +math.Rand(-distortionAmount,distortionAmount),y +math.Rand(-distortionAmount,distortionAmount))
+			size = ScreenScale(width,height)
+			surface.DrawTexturedRectRotated(pos.x,pos.y,size.x,size.y,ang or 0)
+		end
 
 		surface.SetDrawColor(Color(r or 255,g or 255,b or 255,a or 255))
 		surface.SetMaterial(mat)
@@ -130,6 +134,18 @@ if CLIENT then
 	local matHUD_MotionTracker_Enemy = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_dot_enemy.png","smooth additive")
 	local matHUD_MotionTracker_Friendly = Material("hud/cpthazama/avp/avp_m_hud_motiontracker_dot_friendly.png","smooth additive")
 	local matHUD_Text = Material("hud/cpthazama/avp/avp_m_hud_text1.png","smooth additive")
+
+	local matHUD_Blood = {
+		Material("hud/cpthazama/avp/blood/red_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_4.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_4.png","smooth additive"),
+	}
+
 	local stimsA = {255,255,255}
 	local flare = 255
 
@@ -143,6 +159,22 @@ if CLIENT then
 	local checkedPingPositions = false
 	local closestPing = 0
 	local checkedPings = {}
+
+	net.Receive("VJ.AVP.PlayerHUDDamage",function(len,pl)
+		local ply = LocalPlayer()
+		if ply.VJTag_IsControllingNPC or !ply.VJTag_IsControllingNPC && GetConVar("vj_avp_hud"):GetInt() == 1 then
+			local time = CurTime() +math.Rand(3,5)
+			if !ply.VJTag_IsControllingNPC then
+				ply.VJ_AVP_DamageSplatter = ply.VJ_AVP_DamageSplatter or {}
+				ply.VJ_AVP_DamageSplatter[#ply.VJ_AVP_DamageSplatter +1] = {Remain=time,Init=time}
+			else
+				ply.VJ_AVP_NPCDamageSplatter = ply.VJ_AVP_NPCDamageSplatter or {}
+				ply.VJ_AVP_NPCDamageSplatter[#ply.VJ_AVP_NPCDamageSplatter +1] = {Remain=time,Init=time}
+			end
+			-- ply:ChatPrint("You have been hit!")
+		end
+	end)
+
 	hook.Add("HUDPaint","VJ_AVP_Marine_HUD",function()
 		local ply = LocalPlayer()
 		local ent
@@ -171,6 +203,24 @@ if CLIENT then
 		local HP = ent.GetHP && ent:GetHP() or ent:Health()
 		local maxHP = ent:GetMaxHealth()
 		local hpPer = math_Clamp(HP /maxHP,0,1)
+
+		local dmgSplatter = ply.VJ_AVP_DamageSplatter or {}
+		if #dmgSplatter > 0 then
+			for id,data in ipairs(dmgSplatter) do
+				if data.Pos == nil then
+					data.Pos = {math.random(-50,50),math.random(-30,30)}
+					data.MatID = math.random(1,4) +((ent.VJ_AVP_IsTech or ent:GetNW2Bool("AVP.IsTech",false)) && 4 or 0)
+					data.Size = math.random(20,40)
+				end
+				local time = data.Remain -CurTime()
+				local alpha = math_Clamp(time *255,0,255)
+				if alpha <= 0 then
+					table.remove(dmgSplatter,id)
+					continue
+				end
+				DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,false)
+			end
+		end
 
 		local nameData = !ent:IsPlayer() && list.Get("NPC")[ent:GetClass()]
 		DrawText((ent:IsPlayer() && ent:Nick() or (nameData && nameData.Name or "")),"VJFont_AVP_MarineSmall",25.5,-21.5)

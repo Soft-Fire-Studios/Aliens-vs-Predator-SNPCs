@@ -21,8 +21,8 @@
 	"$DEM_Multiplier" 			"1"
 
 	"$emissiveBlendEnabled" 		"1"
-    "$emissiveBlendTexture"    		"dev/null"
-    "$emissiveBlendFlowTexture"     "dev/null"
+    "$emissiveBlendTexture"    		"vgui/white"
+    "$emissiveBlendFlowTexture"     "vgui/white"
     "$emissiveBlendTint" 			"[1 1 1]"
     "$emissiveBlendStrength" 		"1"
     "$emissiveBlendScrollVector" 	"[0 0]"

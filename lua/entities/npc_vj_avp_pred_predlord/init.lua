@@ -8,6 +8,8 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/predators/predlord.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
 ENT.StartHealth = 2000
 
+-- ENT.ArmorColor = Vector(3,3,3)
+
 ENT.AttackDamageMultiplier = 1.2
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
