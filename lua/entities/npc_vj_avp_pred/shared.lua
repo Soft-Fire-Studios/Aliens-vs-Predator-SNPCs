@@ -58,7 +58,7 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 		end
 
 		if button == KEY_F then
-			if npc.VJ_AVP_Predator then
+			if npc.VJ_AVP_Predator && npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1 then
 				local mode = npc:GetVisionMode()
 				if mode == 0 then
 					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
@@ -92,16 +92,24 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 		-- 	end
 		-- end
 		if cent.VJC_Camera_Mode == 2 && npc.VJ_AVP_Predator then
-			if button == KEY_MOUSESCROLL_UP then
-				ply:SetFOV(fov <= 1 && GetConVarNumber("fov_desired") or math.Clamp(fov -20,1,180),0.25)
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom.ogg",65)
-				cent.VJC_Camera_CurZoom = Vector(0,0,0)
-				ply.VJ_AVP_IsUsingZoom = true
-			elseif button == KEY_MOUSESCROLL_DOWN then
-				ply:SetFOV(GetConVarNumber("fov_desired"),0.1)
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom_out.ogg",65)
-				cent.VJC_Camera_CurZoom = Vector(0,0,0)
-				ply.VJ_AVP_IsUsingZoom = false
+			if npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1 then
+				if button == KEY_MOUSESCROLL_UP then
+					ply:SetFOV(fov <= 1 && GetConVarNumber("fov_desired") or math.Clamp(fov -20,1,180),0.25)
+					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom.ogg",65)
+					cent.VJC_Camera_CurZoom = Vector(0,0,0)
+					ply.VJ_AVP_IsUsingZoom = true
+				elseif button == KEY_MOUSESCROLL_DOWN then
+					ply:SetFOV(GetConVarNumber("fov_desired"),0.1)
+					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_zoom_out.ogg",65)
+					cent.VJC_Camera_CurZoom = Vector(0,0,0)
+					ply.VJ_AVP_IsUsingZoom = false
+				end
+			else
+				if ply.VJ_AVP_IsUsingZoom == true then
+					ply:SetFOV(GetConVarNumber("fov_desired"),0.1)
+					cent.VJC_Camera_CurZoom = Vector(0,0,0)
+					ply.VJ_AVP_IsUsingZoom = false
+				end
 			end
 		end
 	end
@@ -588,10 +596,12 @@ if CLIENT then
 				hpColor = Color(0,255,115)
 			end
 			local maskBG = ent:FindBodygroupByName("mask")
+			local hasMask = true
 			if maskBG > -1 then
 				local mask = ent:GetBodygroup(maskBG)
 				if mask == 0 then
 					a = 0
+					hasMask = false
 				end
 			end
 
@@ -641,7 +651,7 @@ if CLIENT then
 				for i = 1,5 do
 					local curEquip = equip == i
 					local x,y = equipPoints[i].x,equipPoints[i].y
-					local alpha = (curEquip && a or 50) *(equipShowT -CurTime())
+					local alpha = !hasMask && 0 or (curEquip && a or 50) *(equipShowT -CurTime())
 					DrawIcon(matHUDEquipSelect_Base,x,y,curEquip && 12 or 10,curEquip && 8.5 or 8,r,g,b,alpha)
 					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or i == 4 && matHUDEquipSelect_Spear or matHUDEquipSelect_Speargun,x,y,8,6,r,g,b,alpha)
 				end
@@ -653,7 +663,7 @@ if CLIENT then
 			local stimX = 0
 			for i = 1,maxStimCount do
 				stimX = stimX +1.1
-				stimsA[i] = Lerp(FT *4,stimsA[i],stimCount < i && 50 or a)
+				stimsA[i] = Lerp(FT *4,stimsA[i],!hasMask && 0 or (stimCount < i && 50 or a))
 				DrawIcon(matHUD_Item_HP,stimPos +stimX,26.5,3.25,3.25,r,g,b,stimsA[i])
 			end
 
@@ -661,19 +671,21 @@ if CLIENT then
 			DrawIcon_UV(matHUD_HP,9,19,hpPer *30,6,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,a)
 			DrawIcon(matHUD_HP_Warning,24,22,30,6,hpColor.r *1.25,hpColor.g *1.25,hpColor.b *1.25,hpPer <= 0.4 && math.abs(math.sin(CurTime() *4) *a) or a)
 
-			local energy = ent:GetEnergy()
-			local maxEnergy = 200
-			local energyPer = energy /maxEnergy
-			local energyPosX = -35
-			local energyPosY = 22.4
-			local energySize = 5
-			local maxEnergyTiles = 20
-			for i = 1,maxEnergyTiles do
-				energysA[i] = Lerp(FT *4,energysA[i],energyPer < i /maxEnergyTiles && 25 or a)
-				DrawIcon(matHUD_EP,energyPosX,energyPosY,energySize,energySize,energyColor.r,energyColor.g,energyColor.b,energysA[i])
-				energyPosX = energyPosX +1.25
-				energyPosY = energyPosY -0.09
-				energySize = energySize -0.1
+			if hasMask then
+				local energy = ent:GetEnergy()
+				local maxEnergy = 200
+				local energyPer = energy /maxEnergy
+				local energyPosX = -35
+				local energyPosY = 22.4
+				local energySize = 5
+				local maxEnergyTiles = 20
+				for i = 1,maxEnergyTiles do
+					energysA[i] = Lerp(FT *4,energysA[i],energyPer < i /maxEnergyTiles && 25 or a)
+					DrawIcon(matHUD_EP,energyPosX,energyPosY,energySize,energySize,energyColor.r,energyColor.g,energyColor.b,energysA[i])
+					energyPosX = energyPosX +1.25
+					energyPosY = energyPosY -0.09
+					energySize = energySize -0.1
+				end
 			end
 			
 			local fov = ply:GetFOV()
@@ -809,6 +821,12 @@ if CLIENT then
 						ent.LandingParticle:StopEmission(false,true)
 						ent.LandingParticle = nil
 					end
+				end
+				if !hasMask then
+					if mode > 0 then
+						ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
+					end
+					mode = 0
 				end
 				if mode > 0 then
 					if cont.VisionHeart == nil then
