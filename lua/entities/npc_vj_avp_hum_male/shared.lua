@@ -40,10 +40,10 @@ if CLIENT then
 	local math_Clamp = math.Clamp
 	local distortedColor = Color(170,238,255)
 
-	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang)
+	local function DrawIcon(mat,x,y,width,height,r,g,b,a,ang,noDist)
 		local pos
 		local size = ScreenScale(width,height)
-		if ang != false then
+		if noDist != true then
 			local distortionAmount = math.random(1,600) == 1 && 1 or 0.1
 			local distortion = math.abs(math.sin(CurTime() *2) *50)
 			surface.SetDrawColor(Color(distortedColor.r,distortedColor.g,distortedColor.b,math_Clamp(a +math.random(-distortion,distortion),0,255)))
@@ -211,6 +211,7 @@ if CLIENT then
 					data.Pos = {math.random(-50,50),math.random(-30,30)}
 					data.MatID = math.random(1,4) +((ent.VJ_AVP_IsTech or ent:GetNW2Bool("AVP.IsTech",false)) && 4 or 0)
 					data.Size = math.random(20,40)
+					data.Ang = math.random(0,360)
 				end
 				local time = data.Remain -CurTime()
 				local alpha = math_Clamp(time *255,0,255)
@@ -218,7 +219,7 @@ if CLIENT then
 					table.remove(dmgSplatter,id)
 					continue
 				end
-				DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,false)
+				DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang,true)
 			end
 		end
 

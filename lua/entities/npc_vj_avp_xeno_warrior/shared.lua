@@ -362,6 +362,7 @@ if CLIENT then
 						data.Pos = {math.random(-50,50),math.random(-30,30)}
 						data.MatID = math.random(1,4)
 						data.Size = math.random(20,40)
+						data.Ang = math.random(0,360)
 					end
 					local time = data.Remain -CurTime()
 					local alpha = math_Clamp(time *255,0,255)
@@ -369,7 +370,7 @@ if CLIENT then
 						table.remove(dmgSplatter,id)
 						continue
 					end
-					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha)
+					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
 				end
 			end
 		
