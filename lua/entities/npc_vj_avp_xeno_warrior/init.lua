@@ -483,6 +483,13 @@ function ENT:CustomOnInitialize()
 	self.DarknessLevel = false
 	self.LastNetworkT = 0
 	self.RoyalMorphT = CurTime() +600
+	self.CurrentVoiceLineTime = 0
+
+	if !self.VJ_AVP_XenomorphLarge then
+		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
+		self.BreathLoop:SetSoundLevel(50)
+		self.BreathLoop:Play()
+	end
 
 	if self.OnInit then
 		self:OnInit()
@@ -1656,12 +1663,12 @@ function ENT:CustomOnThink_AIEnabled()
 
 	if self.HasBreath then
 		self:Breathe()
+	else
+		if curTime > self.CurrentVoiceLineTime && self.BreathLoop then
+			self.BreathLoop:ChangeVolume(1)
+		end
 	end
 	self:SetGroundAngle(curSet)
-
-	-- if self.Flinching && self:OnGround() then
-	-- 	self:SetVelocity(self:GetMoveVelocity())
-	-- end
 
 	if self.LongJumping && self.LongJumpPos then
 		self:JumpVelocityCode()
@@ -1771,7 +1778,7 @@ function ENT:CustomOnThink_AIEnabled()
 		sprinting = self:GetSprinting()
 		-- self.CanAttack = !sprinting
 		if sprinting then
-			if transAct == ACT_SPRINT && self:OnGround() then
+			if self.VJ_AVP_XenomorphRunner && transAct == ACT_SPRINT && self:OnGround() then
 				self:SetVelocity(self:GetMoveVelocity() *1.25)
 			end
 			self.SprintT = self.SprintT +0.05
@@ -2167,16 +2174,27 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	VJ_AVP_XenoBloodSpill(self,ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnPlayCreateSound(sdData, sdFile)
+	if self.BreathLoop then
+		self.BreathLoop:ChangeVolume(0.1)
+		self.CurrentVoiceLineTime = CurTime() +SoundDuration(sdFile) *1.5
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 	if sndTbl == nil or istable(sndTbl) && #sndTbl <= 0 then return 0 end
 	if setCurSnd then
 		self:StopAllCommonSpeechSounds()
 	end
 	local sndName = VJ_PICK(sndTbl)
+	if self.BreathLoop then
+		self.BreathLoop:ChangeVolume(0.1)
+	end
 	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
 	end
+	self.CurrentVoiceLineTime = CurTime() +SoundDuration(sndName) *1.5
 	self.DeleteSounds = self.DeleteSounds or {}
 	table.insert(self.DeleteSounds,snd)
 	return SoundDuration(sndName)
@@ -2184,6 +2202,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	VJ_STOPSOUND(self.CurrentVoiceLine)
+	VJ_STOPSOUND(self.BreathLoop)
 	if self.DeleteSounds then
 		for _,v in pairs(self.DeleteSounds) do
 			VJ_STOPSOUND(v)

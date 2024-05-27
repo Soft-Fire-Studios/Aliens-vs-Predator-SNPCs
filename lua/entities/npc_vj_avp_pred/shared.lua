@@ -866,7 +866,7 @@ if CLIENT then
 						cont.VisionBuzz:ChangeVolume(0.3)
 					end
 
-					cont.VisionBuzz:ChangePitch(mode == 1 && 100 or mode == 2 && 110 or mode == 3 && 90)
+					cont.VisionBuzz:ChangePitch(mode == 1 && 100 or mode == 2 && 120 or mode == 3 && 80)
 
 					-- if cont.VisionIdle == nil then
 					-- 	cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")
@@ -999,7 +999,7 @@ if CLIENT then
 			ent.AVP_LastDark = ent.AVP_LastDark or isDark
 			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
 			if mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,math.random(95,110))
+				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,mode == 1 && math.random(95,110) or mode == 2 && math.random(115,125) or mode == 3 && math.random(75,90))
 				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(64,117,126) or Color(124,0,0),0.3,0)
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5
