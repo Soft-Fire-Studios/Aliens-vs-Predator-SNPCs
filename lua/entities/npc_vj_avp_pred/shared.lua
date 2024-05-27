@@ -338,6 +338,7 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
+	local debugT = 0
 	function ENT:Controller_CalcView(ply, origin, angles, myFOV, camera, cameraMode)
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
@@ -360,16 +361,38 @@ if CLIENT then
 					-- 	self:ManipulateBoneScale(v, vec0)
 					-- end
 				end
+				-- local addAng = boneAng.r
+				-- if addAng > 180 then
+				-- 	addAng = addAng -360
+				-- end
+				-- addAng = addAng *0.1
+				-- ang.r = Lerp(FrameTime() *2,ang.r,ang.r +addAng)
+				-- if CurTime() > debugT then
+				-- 	ply:ChatPrint(math.Round(ang.r,2))
+				-- 	debugT = CurTime() +1
+				-- end
 			end
-			-- local vm = ply:GetViewModel()
-			-- local att = vm:LookupAttachment("pov")
+			local vm = ply:GetViewModel()
+			local att = vm:LookupAttachment("pov")
 			pos = setPos +(self:GetForward() *offset.x +self:GetRight() *offset.y +self:GetUp() *offset.z)
+			-- if string_find(self:GetSequenceName(self:GetSequence()),"_jump_") then -- Simulate view punch by lerp the ang
+			-- 	ang = LerpAngle(FrameTime() *5,ang,ang +Angle(-40,0,0))
+			-- 	ply:ChatPrint("AA")
+			-- end
+
 			-- if att > 0 then
-			-- 	local attPos = vm:GetAttachment(att)
-			-- 	if attPos then
-			-- 		local diff = attPos.Pos -pos
-			-- 		pos = pos +diff
-			-- 	end
+				-- local attDat = vm:GetAttachment(att)
+				-- if attDat then
+					-- local attAng = attDat.Ang
+					-- if CurTime() > debugT then
+					-- 	ply:ChatPrint("Yaw = "..math.Round(attAng.y,2).." Pitch = "..math.Round(attAng.p,2).." Roll = "..math.Round(attAng.r,2))
+					-- 	debugT = CurTime() +1
+					-- end
+					-- ang.p = ang.p +attAng.p
+					-- ang.r = ang.r +attAng.r
+				-- 	local diff = attDat.Pos -pos
+				-- 	pos = pos +diff
+				-- end
 			-- end
 			newFOV = 90
 			refreshRate = 0
