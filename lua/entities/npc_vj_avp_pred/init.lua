@@ -2776,6 +2776,12 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomDeathAnimationCode(dmginfo, hitgroup)
+	if self:GetCloaked() then
+		self:Camo(false)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
 	self.AttackSide = self.AttackSide or "left"
 	self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)

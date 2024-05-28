@@ -24,7 +24,7 @@ SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
 
-SWEP.Primary.Damage				= 12
+SWEP.Primary.Damage				= 15
 SWEP.Primary.ClipSize			= 15
 SWEP.Primary.RPM				= 400
 SWEP.Primary.AccurateRange 		= 28

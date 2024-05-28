@@ -172,7 +172,7 @@ function ENT:OnHitEntity(ent,isProp)
 	if isProp then
 		local phys = ent:GetPhysicsObject()
 		if IsValid(phys) then
-			phys:ApplyForceCenter(self:GetForward() *2000 +self:GetUp() *250)
+			phys:ApplyForceCenter(self:GetForward() *(self.VJ_AVP_Xenomorph_Matriarch && 3500 or 2000) +self:GetUp() *250)
 		end
 	else
 		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJ_IsHugeMonster or ent.IsVJBaseSNPC_Tank) then
@@ -180,10 +180,11 @@ function ENT:OnHitEntity(ent,isProp)
 			ent:SetVelocity(self:MeleeAttackKnockbackVelocity(ent))
 		end
 		if ent:IsPlayer() then -- Simulate getting your shit rocked
-			ent:ScreenFade(SCREENFADE.IN,Color(34,0,0),0.2,math.Rand(0.1,0.3))
+			ent:ScreenFade(SCREENFADE.IN,Color(34,0,0),self.VJ_AVP_Xenomorph_Matriarch && 1.2 or 0.2,self.VJ_AVP_Xenomorph_Matriarch && 0.6 or math.Rand(0.1,0.3))
+			local impact = self.VJ_AVP_Xenomorph_Matriarch && 140 or 75
 			local ang = ent:EyeAngles()
-			ang.p = ang.p +math.random(-75,75)
-			ang.y = ang.y +math.random(-75,75)
+			ang.p = ang.p +math.random(-impact,impact)
+			ang.y = ang.y +math.random(-impact,impact)
 			ent:SetEyeAngles(ang)
 		end
 	end
@@ -219,9 +220,12 @@ function ENT:OnThink()
 			self:SetMaxYawSpeed(self.TurningSpeed)
 			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
 			self.InCharge = false
+			self.HasRangeAttack = true
 			return
 		end
-		self:SetMaxYawSpeed(0)
+		self.HasRangeAttack = false
+		self:SetMaxYawSpeed(2)
+		self:FaceCertainEntity(ent,true)
 		local tr = util.TraceHull({
 			start = self:GetPos() +self:OBBCenter(),
 			endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *175,
@@ -229,6 +233,8 @@ function ENT:OnThink()
 			mins = self:OBBMins() *0.85,
 			maxs = self:OBBMaxs() *0.85,
 		})
+		self:SetLastPosition(tr.HitPos +tr.HitNormal *300)
+		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.NPC_FACE_ENEMY} end)
 		if tr.Hit then
 			if tr.HitWorld then
 				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide_injured",true,false,false)
@@ -250,17 +256,17 @@ function ENT:OnThink()
 				return
 			end
 		end
-		local trMove = util.TraceHull({
-			start = self:GetPos() +self:OBBCenter(),
-			endpos = self:GetPos() +self:GetForward() *300,
-			filter = self,
-			mins = self:OBBMins(),
-			maxs = self:OBBMaxs(),
-			mask = MASK_SOLID_BRUSHONLY
-		})
+		-- local trMove = util.TraceHull({
+		-- 	start = self:GetPos() +self:OBBCenter(),
+		-- 	endpos = self:GetPos() +self:GetForward() *300,
+		-- 	filter = self,
+		-- 	mins = self:OBBMins(),
+		-- 	maxs = self:OBBMaxs(),
+		-- 	mask = MASK_SOLID_BRUSHONLY
+		-- })
 		-- VJ.DEBUG_TempEnt(trMove.HitPos, self:GetAngles(), Color(0,247,255), 5)
-		self:SetLastPosition(trMove.HitPos +trMove.HitNormal *10)
-		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+		-- self:SetLastPosition(trMove.HitPos +trMove.HitNormal *10)
+		-- self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
 		return
 	end
 	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT && !self.Alerted && !self.SpawnedUsingMutator then
@@ -586,8 +592,9 @@ function ENT:OnCollision(ent,colType)
 	self.AttackDamageDistance = 300
 	self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH,DMG_VEHICLE)
 	self.MeleeAttackDamageAngleRadius = 130
-	self:RunDamageCode(2)
+	self:RunDamageCode(self.VJ_AVP_Xenomorph_Matriarch && 6 or 2)
 	self.MeleeAttackDamageAngleRadius = 100
+	self.HasRangeAttack = true
 	util.ScreenShake(self:GetPos(),12,150,2,800)
 	self:PlaySound(self.SoundTbl_Attack,80)
 	self:SetMaxYawSpeed(self.TurningSpeed)
@@ -679,7 +686,7 @@ function ENT:CustomAttack(ent,visible)
 
 	if visible then
 		if self.CanAttack then
-			if dist <= self.AttackDistance && !self:IsBusy() then
+			if dist <= self.AttackDistance *(self.VJ_AVP_Xenomorph_Matriarch && 2 or 1) && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)
 				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
 					if self:DoFatality(ent,inFront) == false then
@@ -709,8 +716,8 @@ function ENT:AttackCode(charge)
 		end})
 		timer.Simple(dur *0.6,function()
 			if IsValid(self) && !self.InFatality then
-				self.AttackDamage = 75
-				self.AttackDamageDistance = 140
+				self.AttackDamage = self.VJ_AVP_Xenomorph_Matriarch && 200 or 75
+				self.AttackDamageDistance = self.VJ_AVP_Xenomorph_Matriarch && 230 or 140
 				self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
 				VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
 			end

@@ -164,12 +164,22 @@ if CLIENT then
 		local ply = LocalPlayer()
 		if ply.VJTag_IsControllingNPC or !ply.VJTag_IsControllingNPC && GetConVar("vj_avp_hud"):GetInt() == 1 then
 			local time = CurTime() +math.Rand(3,5)
+			local dmg = net.ReadInt(16)
+			local count = math.random(1,3) // 1
+			-- if dmg <= 0 then return end
+			-- if dmg > 75 then
+			-- 	count = 3
+			-- end
 			if !ply.VJTag_IsControllingNPC then
 				ply.VJ_AVP_DamageSplatter = ply.VJ_AVP_DamageSplatter or {}
-				ply.VJ_AVP_DamageSplatter[#ply.VJ_AVP_DamageSplatter +1] = {Remain=time,Init=time}
+				for i = 1,count do
+					ply.VJ_AVP_DamageSplatter[#ply.VJ_AVP_DamageSplatter +1] = {Remain=time,Init=time}
+				end
 			else
 				ply.VJ_AVP_NPCDamageSplatter = ply.VJ_AVP_NPCDamageSplatter or {}
-				ply.VJ_AVP_NPCDamageSplatter[#ply.VJ_AVP_NPCDamageSplatter +1] = {Remain=time,Init=time}
+				for i = 1,count do
+					ply.VJ_AVP_NPCDamageSplatter[#ply.VJ_AVP_NPCDamageSplatter +1] = {Remain=time,Init=time}
+				end
 			end
 			-- ply:ChatPrint("You have been hit!")
 		end
@@ -370,7 +380,7 @@ if CLIENT then
 						closestPing = realDist
 					end
 
-					table.insert(checkedPings,{v,blipX,blipY,v.VJ_AVP_Xenomorph_Queen && 5 or 3})
+					table.insert(checkedPings,{v,blipX,blipY,(v.VJ_AVP_Xenomorph_Matriarch && 8 or v.VJ_AVP_Xenomorph_Queen && 5) or 3})
 					-- DrawIcon(matHUD_MotionTracker_Enemy,blipX,blipY,blipSize,blipSize,r,g,b,alpha)
 				end
 				checkedPingPositions = true

@@ -1099,7 +1099,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				proj:SetPos(att.Pos)
 				proj:SetAngles(targetAng)
 				proj:SetOwner(self)
-				proj:SetAttackType(2,50 *mult,DMG_ACID,150,10,true)
+				proj:SetAttackType(2,20 *mult,DMG_ACID,150,10,true)
 				proj:SetNoDraw(true)
 				proj:Spawn()
 				proj.DecalTbl_DeathDecals = {"VJ_AVP_BloodXenomorph"}

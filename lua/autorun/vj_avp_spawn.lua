@@ -833,9 +833,9 @@ if VJExists == true then
 		util.AddNetworkString("VJ.AVP.PlayerHUDDamage")
 		hook.Add("EntityTakeDamage","VJ_AVP_MarinePlayer_HUD",function(ent,dmginfo)
 			if (ent:IsPlayer() or (ent:IsNPC() && ent.VJ_AVP_NPC && ent.VJ_IsBeingControlled)) && math.random(1,dmginfo:IsBulletDamage() && 5 or 2) == 1 then
-				local time = CurTime() +math.Rand(3,5)
+				local dmg = tonumber(dmginfo:GetDamage())
 				net.Start("VJ.AVP.PlayerHUDDamage")
-					net.WriteFloat(time)
+					net.WriteInt(dmg,16)
 				net.Send(ent:IsNPC() && ent.VJ_TheController or ent)
 			end
 		end)
