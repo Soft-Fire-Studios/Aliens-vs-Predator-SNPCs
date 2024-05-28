@@ -418,11 +418,11 @@ function ENT:Initialize()
 			if npc.VJ_AVP_Xenomorph_Queen then
 				self.HasKilledQueen = true
 			end
-			if self.KillsLeft > 0 then
-				for _,v in pairs(player.GetAll()) do
-					v:ChatPrint("Aliens Remaining: ".. self.KillsLeft)
-				end
-			end
+			-- if self.KillsLeft > 0 then
+				-- for _,v in pairs(player.GetAll()) do
+					-- v:ChatPrint("Aliens Remaining: ".. self.KillsLeft)
+				-- end
+			-- end
 			if self.KillsLeft <= 0 then
 				self:SetWaveSwitching(true)
 				self:SetWaveSwitchVolTime(CurTime() +20)
@@ -789,7 +789,7 @@ function ENT:Think()
 				npc.FindEnemy_CanSeeThroughWalls = true
 				npc.SightAngle = 180
 			end
-			if wave < 4 then
+			if wave <= 5 then
 				npc.CanSpit = false
 				npc.HasRangeAttack = false
 			end

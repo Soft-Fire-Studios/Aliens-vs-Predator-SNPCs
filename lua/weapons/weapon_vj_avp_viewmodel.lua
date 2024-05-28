@@ -36,14 +36,95 @@ SWEP.Translations = {
 	["predator_spear_2nd_throw"] = "predator_hud_spear_throw",
 	["Predator_Battery_Interaction"] = "predator_hud_Battery_Interaction",
 	["Predator_Disable_Interaction"] = "predator_hud_Disable_Interaction",
-	-- ["predator_speargun_idle"] = "predator_hud_speargun_rest",
-	-- ["predator_speargun_idle_aim"] = "predator_hud_speargun_rest",
+	["predator_mine_fire_into"] = "predator_hud_predmine_into_fire_test",
+	["predator_mine_fire_loop"] = "predator_hud_predmine_loop_fire_test",
+	["predator_mine_fire_out"] = "predator_hud_predmine_out_fire_test",
+	["predator_battledisc_throw"] = "predator_hud_battledisc_throw_complete",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Initialize()
 	self.SequenceTime = 0
 	self.LastIdleType = 0
 	self.NextFidgetT = CurTime() +math.Rand(1,3)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+/*
+	Bodygroup (2)
+		0 = None
+		1 = Stim
+		2 = Mine
+		3 = Disc
+		4 = Spear
+		5 = SpearGun
+*/
+--
+function SWEP:OnPlayAnimation(anim,vm,animDur)
+	-- local owner = self:GetOwner()
+	-- local npc = IsValid(owner) && owner.VJ_AVP_ViewModelNPC
+	-- if npc:GetEquipment() != 5 then
+	-- 	vm:SetBodygroup(2,0)
+	-- end
+	if anim == "predator_hud_claws_healthstab" then
+		timer.Simple(animDur *0.15,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,1)
+			end
+		end)
+		timer.Simple(animDur *0.9,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_speargun_healthstab" then
+		timer.Simple(animDur *0.15,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,1)
+			end
+		end)
+		timer.Simple(animDur *0.9,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_predmine_into_fire_test" then
+		vm:SetBodygroup(2,2)
+	elseif anim == "predator_hud_predmine_out_fire_test" then
+		timer.Simple(1,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_battledisc_extend" then
+		vm:SetBodygroup(2,3)
+	elseif anim == "predator_hud_battledisc_throw_complete" then
+		timer.Simple(0.5,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_battledisc_catch" then
+		vm:SetBodygroup(2,3)
+		timer.Simple(0.6,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_spear_extend" then
+		vm:SetBodygroup(2,4)
+	elseif anim == "predator_hud_spear_throw" then
+		timer.Simple(0.4,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	elseif anim == "predator_hud_spear_retract" then
+		vm:SetBodygroup(2,4)
+		timer.Simple(1,function()
+			if IsValid(vm) then
+				vm:SetBodygroup(2,0)
+			end
+		end)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:PlayWeaponAnimation(anim,speed,cycle,isIdle)
@@ -73,6 +154,9 @@ function SWEP:PlayWeaponAnimation(anim,speed,cycle,isIdle)
 
 	self.NextIdleT = CurTime() +animDur -0.15
 	self.LastIdleType = 0
+
+	self:OnPlayAnimation(isnumber(anim) && VJ.SequenceToActivity(vm,anim) or anim,vm,animDur)
+
 	return animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

@@ -252,9 +252,13 @@ if CLIENT then
 				end
 
 				if self:GetEquipment() == 5 then
-					vm:SetBodygroup(2,1)
+					if vm:GetBodygroup(2) != 1 then
+						vm:SetBodygroup(2,5)
+					end
 				else
-					vm:SetBodygroup(2,0)
+					if vm:GetBodygroup(2) == 5 then
+						vm:SetBodygroup(2,0)
+					end
 				end
 
 				for _,v in pairs(self:GetChildren()) do

@@ -297,6 +297,7 @@ end
 local string_find = string.find
 --
 function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
+	animation = VJ.PICK(animation)
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
@@ -1301,10 +1302,18 @@ function ENT:SpecialAttackCode(atk)
 		mine:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
 		self:DeleteOnRemove(mine)
 		self.Mine = mine
-		local _,dur = self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
-			SafeRemoveEntity(self.Mine)
+		-- local _,dur = self:PlayAnimation("vjges_predator_mine_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
+		-- 	SafeRemoveEntity(self.Mine)
+		-- end})
+		local mineDur = VJ.AnimDuration(self,"predator_mine_fire_into") +VJ.AnimDuration(self,"predator_mine_fire_loop") +VJ.AnimDuration(self,"predator_mine_fire_out")
+		self:PlayAnimation("predator_mine_fire_into",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+			if self.LastActivity != anim then return end
+			self:PlayAnimation("predator_mine_fire_loop",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+				if self.LastActivity != anim then return end
+				self:PlayAnimation("predator_mine_fire_out",true,false,true,0,{AlwaysUseGesture=true})
+			end})
 		end})
-		SafeRemoveEntityDelayed(self.Mine,dur)
+		SafeRemoveEntityDelayed(self.Mine,mineDur)
 		self.NextChaseTime = 0
 		self:SetBodygroup(self:FindBodygroupByName("equip_mine"),0)
 	elseif atk == 3 then
