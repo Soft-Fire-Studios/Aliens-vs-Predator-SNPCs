@@ -49,7 +49,8 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Queen","npc_vj_avp_xeno_queen",vCat_A)
 	VJ.AddNPC("Xenomorph Warrior","npc_vj_avp_xeno_warrior",vCat_A)
 	VJ.AddNPC("Xenomorph Drone","npc_vj_avp_xeno_drone",vCat_A)
-	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_xeno_jungle",vCat_A)
+	VJ.AddNPC("Xenomorph Jungle Drone","npc_vj_avp_xeno_jungle",vCat_A)
+	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_xeno_runner",vCat_A)
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_xeno_ridged",vCat_A)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_xeno_praetorian",vCat_A)
 	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_xeno_carrier",vCat_A)
@@ -65,7 +66,7 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Queen","npc_vj_avp_kxeno_queen",vCat_AK)
 	VJ.AddNPC("Xenomorph Warrior","npc_vj_avp_kxeno_warrior",vCat_AK)
 	VJ.AddNPC("Xenomorph Drone","npc_vj_avp_kxeno_drone",vCat_AK)
-	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_jungle",vCat_AK)
+	VJ.AddNPC("Xenomorph Runner","npc_vj_avp_kxeno_runner",vCat_AK)
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
 	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_kxeno_carrier",vCat_AK)
@@ -121,6 +122,15 @@ if VJExists == true then
 	cvars.AddChangeCallback("vj_avp_xenostealth", function(convar_name, oldValue, newValue)
 		VJ_AVP_CVAR_XENOSTEALTH = tonumber(newValue) == 1
 	end)
+
+	local function AddPM(name, mdl, hands, skin)
+		player_manager.AddValidModel(name, mdl)
+		if hands then
+			player_manager.AddValidHands(name, hands, 0, skin or "00000000")
+		end
+	end
+
+	AddPM("Alex", "models/cpthazama/avp/marines/alex.mdl", "models/weapons/c_arms_cstrike.mdl")
 
 	if SERVER then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
@@ -387,6 +397,9 @@ if VJExists == true then
 	})
 	VJ.AddParticle("particles/vj_avp_speargun.pcf",{
 		"vj_avp_pred_speargun_tracer",
+	})
+	VJ.AddParticle("particles/vj_avp_tracer.pcf",{
+		"vj_avp_tracer",
 	})
 	VJ.AddParticle("particles/vj_avp_predator_hud.pcf",{
 		"vj_avp_predator_hud_landing",

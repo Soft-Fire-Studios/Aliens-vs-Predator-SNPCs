@@ -241,6 +241,7 @@ function ENT:CustomRangeAttackCode()
 				bullet.Dir = ((ent:GetPos() +ent:OBBCenter()) -startpos):GetNormalized() *4000
 				bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread))
 				bullet.Tracer = 1
+				bullet.TracerName = "VJ_AVP_Trace"
 				bullet.Force = 5
 				bullet.Damage = 5
 				bullet.AmmoType = "AirboatGun"

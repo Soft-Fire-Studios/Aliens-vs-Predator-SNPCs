@@ -712,6 +712,7 @@ function ENT:Think()
 				xeno = VJ.PICK({
 					"npc_vj_avp_" .. xenoType .. "_drone",
 					"npc_vj_avp_" .. xenoType .. "_jungle",
+					"npc_vj_avp_" .. xenoType .. "_runner",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
@@ -721,10 +722,16 @@ function ENT:Think()
 				xeno = VJ.PICK({
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
-					"npc_vj_avp_" .. xenoType .. "_ridged"
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_runner"
 				})
 			elseif wave >= 15 && wave < 20 then
 				xeno = VJ.PICK({
+					"npc_vj_avp_" .. xenoType .. "_warrior",
+					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_warrior",

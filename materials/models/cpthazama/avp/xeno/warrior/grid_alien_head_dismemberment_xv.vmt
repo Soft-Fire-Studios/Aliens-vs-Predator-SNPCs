@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/grid_alien_head_dismemberment_specular"
 
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"

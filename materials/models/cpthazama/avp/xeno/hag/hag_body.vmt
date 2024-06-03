@@ -2,13 +2,15 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/hag/hag_body_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/hag/hag_body_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/hag/hag_body_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/hag/hag_body_specular"
 
     "$nodecal" 					"1"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"
 	"$envmapfresnel"             "1"

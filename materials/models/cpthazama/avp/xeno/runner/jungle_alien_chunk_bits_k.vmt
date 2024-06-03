@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_chunk_bits_specular"
 
     "$color2" 					"[5 5 5]"
 	"$nodecal"					"1"

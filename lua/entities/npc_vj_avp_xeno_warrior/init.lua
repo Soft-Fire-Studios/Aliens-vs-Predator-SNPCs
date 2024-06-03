@@ -605,7 +605,7 @@ end
 function ENT:CustomOnAlert(ent)
 	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
-	if math.random(1,4) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
+	if math.random(1,10) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
 		self:StopAllCommonSpeechSounds()
 		self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 		self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
@@ -615,6 +615,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnCallForHelp(ally)
 	if self.VJ_AVP_XenomorphLarge or !self.CanScreamForHelp or self:IsBusy() then return end
+	if math.random(1,10) != 1 then return end
 	self:StopAllCommonSpeechSounds()
 	self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 	self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
@@ -626,6 +627,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
 		self:OnHitEntity(v,isProp)
 	end
 	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph && !v.VJ_AVP_IsTech && math.random(1,4) == 1 then
+		if v:IsPlayer() && v:HasGodMode() then return end
 		local tName = "VJ.AVP.Timer.BlackGoo." .. v:EntIndex()
 		if v:IsPlayer() && !timer.Exists(tName) then
 			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")
@@ -1090,7 +1092,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
 			local att = self:GetAttachment(self:LookupAttachment(self.RangeUseAttachmentForPosID or "eyes"))
-			local targetPos = ent:GetPos() +ent:OBBCenter()
+			local targetPos = (self.EnemyData && !self:Visible(ent) && self.EnemyData.LastVisiblePos) or ent:GetPos() +ent:OBBCenter()
 			local targetAng = (targetPos -att.Pos):Angle()
 			local ang = self:GetAngles()
 			targetAng.y = math.Clamp(targetAng.y, ang.y - 80, ang.y + 80)
@@ -1103,6 +1105,20 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				proj:SetNoDraw(true)
 				proj:Spawn()
 				proj.DecalTbl_DeathDecals = {"VJ_AVP_BloodXenomorph"}
+				proj.OnThink = function(projEnt)
+					projEnt.LastHeight = projEnt.LastHeight or projEnt:GetPos().z
+					if projEnt.LastHeight < projEnt:GetPos().z then
+						projEnt.LastHeight = projEnt:GetPos().z
+					end
+					if projEnt.LastHeight > projEnt:GetPos().z && !projEnt.DidSlow then
+						local phys = projEnt:GetPhysicsObject()
+						if IsValid(phys) then
+							phys:SetMass(0.005)
+							phys:SetVelocity(phys:GetVelocity() *0.75)
+						end
+						projEnt.DidSlow = true
+					end
+				end
 				proj.OnDeath = function(projEnt,data, defAng, HitPos)
 					VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = HitPos, Class = mClass})
 					ParticleEffect("vj_avp_xeno_spit_impact",HitPos,defAng)
@@ -1116,7 +1132,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				if IsValid(phys) then
 					phys:EnableGravity(true)
 					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), i > 1 && targetPos +VectorRand(-135,135) or targetPos, 1500))
-					phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos,25))
+					phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos +VectorRand(-25,25),25))
 					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
 				end
 			end
@@ -1593,7 +1609,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:StalkingAI(ent)
 	local dist = self.NearestPointToEnemyDistance
-	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 then
+	local eneData = self.EnemyData
+	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 && eneData && (CurTime() -eneData.LastVisibleTime) > 8 then
 		self.StalkingAITime = CurTime() +2
 		-- self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
 		-- 	x:EngTask("TASK_FACE_ENEMY",0)
@@ -2066,6 +2083,10 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		self:DoKnockdownAnimation(dmgDir)
 		self.NextCallForBackUpOnDamageT = CurTime() +1
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnFlinch_AfterFlinch(dmginfo, hitgroup)
+	self:SetState()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoKnockdownAnimation(dmgDir)

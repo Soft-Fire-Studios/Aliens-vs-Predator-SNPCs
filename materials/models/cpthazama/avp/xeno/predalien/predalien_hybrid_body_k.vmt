@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_spec"
 
     "$color2" 					"[2 2 2]"
     "$nodecal" 					"1"

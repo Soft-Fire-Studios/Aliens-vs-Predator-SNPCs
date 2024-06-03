@@ -6,6 +6,7 @@ function EFFECT:Init( data )
 	self.EndPos = data:GetOrigin()
 	util.ParticleTracerEx("vj_avp_pred_speargun_tracer",self.StartPos,self.EndPos,1,0,-1)
 end
+
 function EFFECT:Render()
 	return false
 end

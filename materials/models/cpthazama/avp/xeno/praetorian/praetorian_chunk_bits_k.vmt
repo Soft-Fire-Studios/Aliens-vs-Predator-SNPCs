@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_k_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_norms"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_spec"
 
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"

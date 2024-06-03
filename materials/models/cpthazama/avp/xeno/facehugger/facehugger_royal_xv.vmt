@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/facehugger/facehugger_royal_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/facehugger/facehugger_norms"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/facehugger/facehugger_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/facehugger/facehugger_spec"
 
     "$nodecal" 					"1"
 

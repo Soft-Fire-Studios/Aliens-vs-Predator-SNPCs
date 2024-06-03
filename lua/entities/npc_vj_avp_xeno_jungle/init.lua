@@ -5,11 +5,10 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/runner.mdl"}
+ENT.Model = {"models/cpthazama/avp/xeno/jungle.mdl"}
 ENT.StartHealth = 60
 
 ENT.CanSpit = true
-ENT.CanStand = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	self.SoundTbl_Alert = {

@@ -1094,6 +1094,7 @@ function ENT:CustomAttack(ent,vis)
 		self.IsBlocking = true
 	end
 	if IsValid(cont) then
+		self.LookForHidingSpot = false
 		if equipment == 5 then
 			if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 				self:FireSpearGun()
@@ -1116,6 +1117,7 @@ function ENT:CustomAttack(ent,vis)
 			self:SpecialAttackCode(self:GetEquipment())
 		end
 	else
+		if self.LookForHidingSpot then return end
 		if equipment == 5 then
 			if dist <= 2500 && !self:IsBusy() && vis then
 				if dist <= 300 then
@@ -2422,7 +2424,7 @@ function ENT:CustomOnThink_AIEnabled()
 				end
 			end
 		end
-		if (!IsValid(enemy) or IsValid(enemy) && dist > 800) && self:Health() < self:GetMaxHealth() *0.5 && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,40) == 1 then
+		if self:Health() < self:GetMaxHealth() *0.4 && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,40) == 1 then
 			self.LookForHidingSpot = true
 		end
 		if goalPos then
@@ -2828,6 +2830,10 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		end})
 		self.NextCallForBackUpOnDamageT = CurTime() +1
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnFlinch_AfterFlinch(dmginfo, hitgroup)
+	self:SetState()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnInitialKilled()

@@ -2,11 +2,13 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_specular"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"
 	"$envmapfresnel"             "1"

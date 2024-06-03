@@ -1,0 +1,32 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/jungle/jungle_alien_dome_colour"
+	"$bumpmap"					"models/cpthazama/avp/xeno/jungle/jungle_alien_dome_normal"
+
+    "$nodecal" 					"1"
+    "$nocull" 					"1"
+    "$translucent" 				"1"
+    "$allowalphatocoverage" 	"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+
+	"$envmapfresnel"            "1"
+	"$envmap"                   "env_cubemap"
+	"$envmaptint" 				"[0.1 0.1 0.1]"
+	"$normalmapalphaenvmapmask" "1"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.45"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

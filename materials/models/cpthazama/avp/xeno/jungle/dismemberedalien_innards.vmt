@@ -1,0 +1,28 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour"
+	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_normal_new"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour_specular"
+
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.1 0.1 0.1]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.45"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/carrier/alien_carrier_dome_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/drone/alien_warrior_dome_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_dome_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_dome_spec"
 
     "$color2" 					"[1.3 1.26 0.89]"
     "$nodecal" 					"1"

@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_normal_new"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/dismemberedalien_innards_colour_specular"
 
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"

@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/hag/hag_face_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/hag/hag_face_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/hag/hag_face_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/hag/hag_face_specular"
 
     "$nodecal" 					"1"
 

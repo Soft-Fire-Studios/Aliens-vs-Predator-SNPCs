@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/praetorian/praetorian_head_k_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/praetorian/praetorian_head_norms"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/praetorian/praetorian_head_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/praetorian/praetorian_head_spec"
 
 	"$color2" 					"[1 0.95 0.95]"
 

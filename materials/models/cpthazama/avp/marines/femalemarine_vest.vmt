@@ -6,9 +6,11 @@
 
     "$nodecal" 					"1"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "5"
+	"$phongexponent"            "15"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
-	"$normalmapalphaenvmapmask"  "1"
+	"$normalmapalphaenvmapmask" "1"
 }

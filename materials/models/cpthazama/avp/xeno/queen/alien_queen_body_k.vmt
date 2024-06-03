@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/queen/alien_queen_body_k_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/queen/alien_queen_body_norms"
-	"$phongexponenttexture"		"vj_base/exponent"
+	// "$phongexponenttexture"		"vj_base/exponent"
 
     "$color2" 					"[1.5 1.5 1.5]"
     "$nodecal" 					"1"

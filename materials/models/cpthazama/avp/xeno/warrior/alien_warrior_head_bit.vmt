@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/alien_warrior_head_bit_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_warrior_head_bit_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_head_bit_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_head_bit_specular"
 
 	// "$selfillum"				"1"
 	// "$selfillummask"			"models/cpthazama/avp/xeno/warrior/alien_warrior_head_bit_illumination"
@@ -19,9 +19,11 @@
     "$alphatest" 				"1"
 	"$allowalphatocoverage"		"1"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"
 	"$envmapfresnel"             "1"

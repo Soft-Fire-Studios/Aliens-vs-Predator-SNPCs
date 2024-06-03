@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_normal"
-	"$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_specular"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_chunk_bits_specular"
 
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"
