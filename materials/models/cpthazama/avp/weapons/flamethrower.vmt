@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/weapons/flamethrower_col"
 	"$bumpmap"					"models/cpthazama/avp/weapons/flamethrower_norm"
-	"$phongexponenttexture"		"models/cpthazama/avp/weapons/flamethrower_spec"
+	// "$phongexponenttexture"		"models/cpthazama/avp/weapons/flamethrower_spec"
 
     "$nocull" 					"1"
     "$nodecal" 					"1"
@@ -10,10 +10,9 @@
 	"$allowalphatocoverage" 	"1"
 
 	"$phong"                    "1"
-	"$phongboost"               "5"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
-	"$phongalbedotint"          "1"
-	"$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"

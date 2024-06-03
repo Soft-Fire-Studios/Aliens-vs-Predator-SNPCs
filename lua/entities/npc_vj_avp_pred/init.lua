@@ -765,6 +765,7 @@ function ENT:CustomOnInitialize()
 	self.AI_IsBlocking = false
 	self.IsBlocking = false
 	self.BlockAnimTime = 0
+	self.AI_BlockTime = 0
 	self.SpecialBlockAnimTime = 0
 	self.PlasmaHoldTime = 0
 	self.PlasmaMaxChargeT = 0
@@ -1095,6 +1096,7 @@ function ENT:CustomAttack(ent,vis)
 	end
 	if IsValid(cont) then
 		self.LookForHidingSpot = false
+		if doingBlock then return end
 		if equipment == 5 then
 			if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 				self:FireSpearGun()
@@ -1125,20 +1127,25 @@ function ENT:CustomAttack(ent,vis)
 					return
 				end
 				self:FireSpearGun()
-			elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
+			elseif !doingBlock && vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 				self:DistractionCode(ent)
-			elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+			elseif !doingBlock && vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
 				self:ChangeEquipment(1)
 				self:SpecialAttackCode(1)
-			elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+			elseif !doingBlock && vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+				self:ChangeEquipment(3)
 				self:SpecialAttackCode(3)
-				self:SpecialAttackCode(3)
-			elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
-				self:SpecialAttackCode(4)
+			elseif !doingBlock && vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+				self:ChangeEquipment(4)
 				self:SpecialAttackCode(4)
 			end
 		else
-			if dist <= self.AttackDistance && !self:IsBusy() && vis then
+			if self.AI_IsBlocking && CurTime() > self.AI_BlockTime then
+				self.AI_IsBlocking = false
+				self.IsBlocking = false
+				return
+			end
+			if dist <= self.AttackDistance && !self:IsBusy() && !doingBlock && vis then
 				local canUse, inFront = self:CanUseFatality(ent)
 				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
 					if self:DoFatality(ent,inFront) == false then
@@ -1147,6 +1154,7 @@ function ENT:CustomAttack(ent,vis)
 				else
 					if !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 						self.AI_IsBlocking = true
+						self.AI_BlockTime = CurTime() +math.Rand(2,4)
 						return
 					else
 						if math.random(1,6) == 1 then
@@ -1156,16 +1164,16 @@ function ENT:CustomAttack(ent,vis)
 						end
 					end
 				end
-			elseif vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
+			elseif !doingBlock && vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 				self:DistractionCode(ent)
-			elseif vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
+			elseif !doingBlock && vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
 				self:ChangeEquipment(1)
 				self:SpecialAttackCode(1)
-			elseif vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+			elseif !doingBlock && vis && dist > 200 && dist <= 1250 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 600 or 40) == 1 then
+				self:ChangeEquipment(3)
 				self:SpecialAttackCode(3)
-				self:SpecialAttackCode(3)
-			elseif vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
-				self:SpecialAttackCode(4)
+			elseif !doingBlock && vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
+				self:ChangeEquipment(4)
 				self:SpecialAttackCode(4)
 			end
 			local pos = ent:GetPos()
@@ -1413,7 +1421,6 @@ function ENT:AttackCode()
 			if #hitEnts > 0 then
 				self:PlayAnimation(hit,true,false,true,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
 				self.NextChaseTime = 0
-				self:OnHit(hitEnts)
 				VJ.EmitSound(self,sdClawFlesh,75)
 			else
 				self:PlayAnimation(miss,true,0.15,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
@@ -1432,6 +1439,10 @@ function ENT:RunDamageCode(mult)
 	function(ent)
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
 	end)
+
+	if #hitEnts > 0 then
+		self:OnHit(hitEnts)
+	end
 	return hitEnts
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2740,7 +2751,7 @@ local bit_band = bit.band
 function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 	if self.ActivatedSelfDestruct then return end
 	local dmgType = dmginfo:GetDamageType()
-	if self.IsBlocking && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+	if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
 		local attacker = dmginfo:GetAttacker()
 		if !IsValid(attacker) then
 			attacker = dmginfo:GetInflictor()
@@ -2763,8 +2774,6 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 			self.IsBlocking = false
 			self.AI_IsBlocking = false
 		else
-			local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
-			self.BlockAnimTime = CurTime() +animTime
 			dmginfo:SetDamage(0)
 			if IsValid(attacker) && attacker.OnAttackBlocked then
 				attacker:OnAttackBlocked(self)
@@ -2773,8 +2782,24 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 				self.AI_IsBlocking = false
 				self.IsBlocking = false
 				self:HeavyAttackCode()
+			else
+				local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
+				self.BlockAnimTime = CurTime() +animTime
+				if IsValid(attacker) && attacker:IsPlayer() then
+					attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+					local impact = math.random(5,10)
+					local ang = attacker:EyeAngles()
+					ang.p = ang.p +math.random(-impact,impact)
+					ang.y = ang.y +math.random(-impact,impact)
+					attacker:SetEyeAngles(ang)
+				end
 			end
 		end
+	elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
+		self.IsBlocking = false
+		self.BlockAnimTime = 0
+		self.AI_IsBlocking = false
+		self.AI_BlockTime = 0
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

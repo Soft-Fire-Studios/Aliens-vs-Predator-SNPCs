@@ -33,6 +33,7 @@ ENT.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT
 
 ENT.StandingBounds = Vector(16,16,85)
 ENT.CrawlingBounds = Vector(16,16,85)
+ENT.CanBlock = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2

@@ -29,6 +29,7 @@ ENT.CanSetGroundAngle = false
 ENT.AlwaysStand = true
 ENT.CanBeKnockedDown = false
 ENT.DisableFatalities = true
+ENT.CanBlock = false
 
 ENT.StandingBounds = Vector(23,23,112)
 ENT.CrawlingBounds = Vector(23,23,112)

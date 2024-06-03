@@ -334,6 +334,7 @@ ENT.CanAttack = true
 ENT.CanSprint = true
 ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
+ENT.CanBlock = true
 ENT.AlwaysStand = false
 ENT.CanBeKnockedDown = true
 ENT.DisableFatalities = false
@@ -484,6 +485,11 @@ function ENT:CustomOnInitialize()
 	self.LastNetworkT = 0
 	self.RoyalMorphT = CurTime() +600
 	self.CurrentVoiceLineTime = 0
+	self.AI_IsBlocking = false
+	self.IsBlocking = false
+	self.BlockAnimTime = 0
+	self.AI_BlockTime = 0
+	self.SpecialBlockAnimTime = 0
 
 	if !self.VJ_AVP_XenomorphLarge then
 		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
@@ -493,6 +499,10 @@ function ENT:CustomOnInitialize()
 
 	if self.OnInit then
 		self:OnInit()
+	end
+
+	if self.CanBlock && !VJ.AnimExists(self,ACT_IDLE_STEALTH) then
+		self.CanBlock = false
 	end
 
 	self:SetJumpAbility(self.CanLeap)
@@ -532,24 +542,24 @@ local math_abs = math.abs
 --
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoTranslations(act)
-	local anim = false
-	-- print(anim,act)
 	if act == ACT_IDLE then
-		anim = self:SelectIdleActivity(act)
+		if self.IsBlocking or self.AI_IsBlocking then
+			return ACT_IDLE_STEALTH
+		end
+		return self:SelectIdleActivity(act)
 	elseif act == ACT_WALK or act == ACT_RUN then
-		anim = self:SelectMovementActivity(act)
+		return self:SelectMovementActivity(act)
 	end
-	-- print(anim,act)
-	return anim
+	return false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
 	local avp = self:DoTranslations(act)
-	-- print(avp)
 	if avp then
 		-- print(act,avp,self.AnimTranslations[avp])
-		if self.AnimTranslations && self.AnimTranslations[avp] then
-			return self.AnimTranslations[avp]
+		local trans = self.AnimTranslations && self.AnimTranslations[avp]
+		if trans then
+			return trans
 		end
 		return avp
 	end
@@ -565,7 +575,7 @@ function ENT:TranslateActivity(act)
 			return translation
 		end
 	end
-	return act
+	return avp or act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnChangeActivity(act)
@@ -797,6 +807,18 @@ function ENT:OnKeyPressed(ply,key)
 					self:DoFatality(ent,inFront)
 					return
 				end
+			end
+		end
+	elseif key == KEY_LCONTROL then
+		if CurTime() > self.ChangeSetT then
+			self.CurrentSet = (self.CurrentSet == 1 && self.CanStand) && 2 or 1
+			self.ChangeSetT = CurTime() +0.5
+			self.NextIdleTime = 0
+			self.NextIdleStandTime = 0
+			if self.CurrentSet == 1 then
+				self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+			else
+				self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
 			end
 		end
 	elseif key == KEY_R then
@@ -1201,6 +1223,8 @@ function ENT:GetFatalityOffset(ent)
 	return offset
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local string_find = string.find
+--
 function ENT:CustomAttack(ent,visible)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
@@ -1212,12 +1236,38 @@ function ENT:CustomAttack(ent,visible)
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		return
 	end
+	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
+	if !self.CanBlock then
+		doingBlock = false
+	end
+	-- if self:IsBusy() then
+	-- 	doingBlock = false
+	-- 	print("busy")
+	-- end
+	if !doingBlock && self.IsBlocking then
+		self.IsBlocking = false
+		-- print("disable block")
+	elseif doingBlock && !self.IsBlocking then
+		self.IsBlocking = true
+		if isCrawling then
+			self.CurrentSet = (self.CurrentSet == 1 && self.CanStand) && 2 or 1
+			self.ChangeSetT = CurTime() +0.5
+			if self.CurrentSet == 1 then
+				self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+			else
+				self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+			end
+			self:VJ_ACT_PLAYACTIVITY("crawl_to_block",true,false,true)
+		end
+		-- print("enable block")
+	end
 
 	if self.OnCustomAttack then
 		self:OnCustomAttack(cont,ent,visible,dist)
 	end
 
 	if IsValid(cont) then
+		if doingBlock then return end
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
@@ -1231,6 +1281,11 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if visible then
+		if self.AI_IsBlocking && CurTime() > self.AI_BlockTime then
+			self.AI_IsBlocking = false
+			self.IsBlocking = false
+			return
+		end
 		if self.CanAttack && dist <= self.AttackDistance && !self:IsBusy() then
 			local canUse, inFront = self:CanUseFatality(ent)
 			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
@@ -1238,7 +1293,13 @@ function ENT:CustomAttack(ent,visible)
 					self:AttackCode(isCrawling)
 				end
 			else
-				self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
+				if self.CanBlock && !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+					self.AI_IsBlocking = true
+					self.AI_BlockTime = CurTime() +math.Rand(2,4)
+					return
+				else
+					self:AttackCode(isCrawling,(isCrawling && self:IsMoving() && math.random(1,2) == 1) && 5 or nil)
+				end
 			end
 		elseif self.CanAttack && dist <= 450 && dist >= 325 && math.random(1,120) == 1 && !self:IsBusy() then
 			self:AttackCode(isCrawling,4)
@@ -1675,6 +1736,13 @@ function ENT:CustomOnThink_AIEnabled()
 	elseif self.WasSprinting && !sprinting then
 		self.WasSprinting = false
 	end
+
+	if (self.IsBlocking or self.AI_IsBlocking) then
+		if self:IsMoving() then
+			self:StopMoving()
+		end
+		self:SetState(VJ_STATE_ONLY_ANIMATION,0.25)
+	end
 	
 	self:SetHP(self:Health())
 
@@ -1686,6 +1754,11 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 	end
 	self:SetGroundAngle(curSet)
+
+	-- if self.IsBlocking or self.AI_IsBlocking then
+	-- 	self:VJ_ACT_PLAYACTIVITY(ACT_IDLE_STEALTH,true,false,false)
+	-- 	return
+	-- end
 
 	if self.LongJumping && self.LongJumpPos then
 		self:JumpVelocityCode()
@@ -1858,17 +1931,17 @@ function ENT:CustomOnThink_AIEnabled()
 			-- 		self:ResetIdealActivity(idleAct)
 			-- 	end
 			-- end
-			if ply:KeyDown(IN_DUCK) && curTime > self.ChangeSetT then
-				self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
-				self.ChangeSetT = curTime +0.5
-				self.NextIdleTime = 0
-				self.NextIdleStandTime = 0
-				if self.CurrentSet == 1 then
-					self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-				else
-					self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
-				end
-			end
+			-- if ply:KeyDown(IN_DUCK) && curTime > self.ChangeSetT then
+			-- 	self.CurrentSet = (curSet == 1 && self.CanStand) && 2 or 1
+			-- 	self.ChangeSetT = curTime +0.5
+			-- 	self.NextIdleTime = 0
+			-- 	self.NextIdleStandTime = 0
+			-- 	if self.CurrentSet == 1 then
+			-- 		self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+			-- 	else
+			-- 		self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+			-- 	end
+			-- end
 		else
 			self.ConstantlyFaceEnemy = self.IsUsingFaceAnimation
 			if curTime > self.MoveAroundRandomlyT then
@@ -2018,7 +2091,53 @@ local bit_band = bit.band
 local math_Clamp = math.Clamp
 --
 function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
-	if dmginfo:IsBulletDamage() then
+	local dmgType = dmginfo:GetDamageType()
+	if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+		local attacker = dmginfo:GetAttacker()
+		if !IsValid(attacker) then
+			attacker = dmginfo:GetInflictor()
+		end
+		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJ_IsHugeMonster && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+		if IsValid(attacker) && isBigDmg then
+			local attackerLookDir = attacker:GetAimVector()
+			local dotForward = attackerLookDir:Dot(self:GetForward())
+			if dotForward > 0.5 then -- Hit from the front
+				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken_back",true,false,false)
+			elseif dotForward < -0.5 then -- Hit from the back
+				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
+			else
+				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
+			end
+			self.SpecialBlockAnimTime = CurTime() +1
+			self.IsBlocking = false
+			self.AI_IsBlocking = false
+		else
+			dmginfo:SetDamage(0)
+			if IsValid(attacker) && attacker.OnAttackBlocked then
+				attacker:OnAttackBlocked(self)
+			end
+			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				self.AI_IsBlocking = false
+				self.IsBlocking = false
+				self:AttackCode(false,5)
+			else
+				local _,animTime = self:VJ_ACT_PLAYACTIVITY({"standing_guard_block_left","standing_guard_block_right"},true,false,false)
+				self.BlockAnimTime = CurTime() +animTime
+				if IsValid(attacker) && attacker:IsPlayer() then
+					attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+					local impact = math.random(5,10)
+					local ang = attacker:EyeAngles()
+					ang.p = ang.p +math.random(-impact,impact)
+					ang.y = ang.y +math.random(-impact,impact)
+					attacker:SetEyeAngles(ang)
+				end
+			end
+		end
+	elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
+		self.IsBlocking = false
+		self.BlockAnimTime = 0
+		self.AI_IsBlocking = false
+		self.AI_BlockTime = 0
 		local ammoType = dmginfo:GetAmmoType()
 		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
 		if dmginfo:GetDamage() <= 30 then
