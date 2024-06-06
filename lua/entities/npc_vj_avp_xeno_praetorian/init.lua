@@ -50,6 +50,14 @@ ENT.CrawlingBounds = Vector(16,16,100)
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:MultipleRangeAttacks()
+	if self:IsMoving() then
+		self.AnimTbl_RangeAttack = {"vjges_Praetorian_Spit_layer"}
+	else
+		self.AnimTbl_RangeAttack = {"Praetorian_Spit"}
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
@@ -57,7 +65,7 @@ function ENT:OnInit()
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Full Tilt Rampage.mp3"}
 	end
 	self.Summons = {}
-	self.AnimTbl_RangeAttack = {"vjges_Praetorian_Spit"}
+	self.AnimTbl_RangeAttack = {"Praetorian_Spit"}
 	self.SoundTbl_Alert = {
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_01.ogg",
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_02.ogg",

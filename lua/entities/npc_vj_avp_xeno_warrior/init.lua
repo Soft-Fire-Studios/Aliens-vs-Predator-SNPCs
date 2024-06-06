@@ -543,6 +543,9 @@ local math_abs = math.abs
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoTranslations(act)
 	if act == ACT_IDLE then
+		if self.IsOnSurface && self.Surface_IsMoving then
+			return ACT_RUN
+		end
 		if self.IsBlocking or self.AI_IsBlocking then
 			return ACT_IDLE_STEALTH
 		end
@@ -1062,6 +1065,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self:OnInput(key)
 	end
 	if key == "jump_start" then
+		self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
+		self:SetLocalVelocity(Vector(0,0,0))
+		self.IsOnSurface = false
 		self:SetJumpPosition(self.LongJumpPos)
 		self.LongJumping = true
 		self.JumpStart = self:GetPos()
@@ -1102,6 +1108,22 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		if self.LongJumpType && self.LongJumpType > 0 && self:GetPos():Distance(self.LongJumpPos) <= 60 then
 			self:SetMoveType(MOVETYPE_NONE)
 			self:CapabilitiesRemove(CAP_MOVE_GROUND)
+			-- local forwardTr = util.TraceHull({
+			-- 	start = self:GetPos(),
+			-- 	endpos = self:GetPos() + self:GetForward() * 50,
+			-- 	filter = self,
+			-- 	mins = self:OBBMins(),
+			-- 	maxs = self:OBBMaxs()
+			-- }) -- Use this to see if we bump into something
+
+			-- if forwardTr.Hit && !self.IsOnSurface then
+			-- 	self:DoChangeMovementType(VJ_MOVETYPE_AERIAL)
+			-- 	self:SetGroundEntity(NULL)
+			-- 	self:SetLocalVelocity(Vector(0,0,0))
+			-- 	self.IsOnSurface = true
+			-- 	self.CurrentSurfaceNormal = forwardTr.HitNormal
+			-- 	print("Set to surface movement")
+			-- end
 		end
 	elseif key == "step" then
 		self:FootStepSoundCode()
@@ -1681,6 +1703,7 @@ function ENT:StalkingAI(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
+local debugUseSurfaceClimbing = false
 --
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
@@ -1763,6 +1786,70 @@ function ENT:CustomOnThink_AIEnabled()
 	if self.LongJumping && self.LongJumpPos then
 		self:JumpVelocityCode()
 	end
+
+	if debugUseSurfaceClimbing then -- Experimental AI, allows Xenomorphs to climb on any surface
+		local ply = self.VJ_TheController
+		if IsValid(ply) then
+			self.Aerial_FlyingSpeed_Calm = 400
+			self.Aerial_FlyingSpeed_Alerted = 700
+			if ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then
+				self.Surface_IsMoving = true
+				local moveF = ply:KeyDown(IN_FORWARD) && 1 or ply:KeyDown(IN_BACK) && -1 or 0
+				local moveR = ply:KeyDown(IN_MOVERIGHT) && 1 or ply:KeyDown(IN_MOVELEFT) && -1 or 0
+				local moveDir = self:GetRight() *moveR +self:GetForward() *moveF
+				-- local moveDir = Vector(moveR,moveF,0):GetNormalized()
+				local forwardTr = util.TraceHull({
+					start = self:GetPos(),
+					endpos = self:GetPos() +moveDir *50,
+					filter = self,
+					mins = self:OBBMins(),
+					maxs = self:OBBMaxs(),
+					mask = MASK_SOLID_BRUSHONLY
+				})
+
+				local hitNormal = forwardTr.HitNormal
+				if forwardTr.Hit && !self.IsOnSurface && math_abs(hitNormal.x) >= 0.9 or math_abs(hitNormal.y) >= 0.9 then
+					self:DoChangeMovementType(VJ_MOVETYPE_AERIAL)
+					self:SetGroundEntity(NULL)
+					self:SetLocalVelocity(Vector(0,0,0))
+					self.IsOnSurface = true
+					self.CurrentSurfaceNormal = forwardTr.HitNormal
+					print("Set to surface movement")
+				elseif !forwardTr.Hit && self.IsOnSurface then
+					-- Apply velocity based on the surface we're on
+					local tr = util.TraceHull({
+						start = self:GetPos(),
+						endpos = self:GetPos() +moveDir *50 +self.CurrentSurfaceNormal *-10,
+						filter = self,
+						mins = self:OBBMins(),
+						maxs = self:OBBMaxs()
+					})
+					
+					if tr.Hit then
+						-- self:SetPos(tr.HitPos +tr.HitNormal *(self:OBBMaxs().y *1.4))
+						self.CurrentSurfaceNormal = tr.HitNormal
+						local right = self:GetRight()
+						local forward = right:Cross(self.CurrentSurfaceNormal)
+						self:SetAngles(forward:Angle())
+						self:SetLocalVelocity(forward *700) -- Adjust speed as needed
+						-- self:SetLocalVelocity(moveDir *700) -- Adjust speed as needed
+						print("Surface movement")
+					else
+						-- Falling off the surface
+						self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
+						self:SetLocalVelocity(Vector(0,0,0))
+						self.IsOnSurface = false
+						print("Set to ground movement")
+					end
+				end
+			else
+				self.Surface_IsMoving = false
+				if self.IsOnSurface then
+					self:SetLocalVelocity(Vector(0,0,0))
+				end
+			end
+		end
+	end	
 
 	if self.OnThink then
 		self:OnThink()
