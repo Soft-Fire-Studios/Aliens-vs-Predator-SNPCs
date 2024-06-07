@@ -2021,14 +2021,14 @@ end
 function ENT:OnFoundHidingSpot()
 	if self:Health() < self:GetMaxHealth() && self:GetStimCount() > 0 && CurTime() > self.NextHealT then
 		self:UseStimpack()
-		self.NextHealT = CurTime() +math.Rand(45,60)
+		self.NextHealT = CurTime() +math.Rand(7,14)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnFailedHidingSpot()
 	if self:Health() < self:GetMaxHealth() && self:GetStimCount() > 0 && CurTime() > self.NextHealT then
 		self:UseStimpack()
-		self.NextHealT = CurTime() +math.Rand(45,60)
+		self.NextHealT = CurTime() +math.Rand(7,14)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2435,7 +2435,7 @@ function ENT:CustomOnThink_AIEnabled()
 				end
 			end
 		end
-		if self:Health() < self:GetMaxHealth() *0.4 && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,40) == 1 then
+		if self:Health() < self:GetMaxHealth() *0.4 && self:GetStimCount() > 0 && curTime > self.NextHealT && math.random(1,10) == 1 then
 			self.LookForHidingSpot = true
 		end
 		if goalPos then

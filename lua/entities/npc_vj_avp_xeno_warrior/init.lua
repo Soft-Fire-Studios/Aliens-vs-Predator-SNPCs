@@ -348,6 +348,10 @@ ENT.HitGroups = {
 			self:SetBodygroup(self:FindBodygroupByName("m_mouth"),1)
 			self:SetBodygroup(self:FindBodygroupByName("m_mouth_mini"),1)
 			self:SetBodygroup(self:FindBodygroupByName("m_face"),2)
+			self:SetBodygroup(self:FindBodygroupByName("head"),1)
+			self:SetBodygroup(self:FindBodygroupByName("mouth"),1)
+			self:SetBodygroup(self:FindBodygroupByName("mouth_mini"),1)
+			self:SetBodygroup(self:FindBodygroupByName("face"),2)
 			self:SetHealth(0)
 			self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
 		end,
@@ -357,6 +361,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_larm"),1)
+			self:SetBodygroup(self:FindBodygroupByName("larm"),1)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.LeftArm = true
 			if self.Gibbed.RightArm then
@@ -374,6 +379,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_rarm"),1)
+			self:SetBodygroup(self:FindBodygroupByName("rarm"),1)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.RightArm = true
 			if self.Gibbed.LeftArm then
@@ -391,6 +397,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_lleg"),1)
+			self:SetBodygroup(self:FindBodygroupByName("lleg"),1)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.LeftLeg = true
 			self:StopAttacks(true)
@@ -404,6 +411,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_rleg"),1)
+			self:SetBodygroup(self:FindBodygroupByName("rleg"),1)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.RightLeg = true
 			self:StopAttacks(true)
@@ -417,6 +425,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_tail_end"),1)
+			self:SetBodygroup(self:FindBodygroupByName("tail_end"),1)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.Tail = true
 		end,
@@ -426,7 +435,9 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_tail_main"),1)
+			self:SetBodygroup(self:FindBodygroupByName("tail_main"),1)
 			self:SetBodygroup(self:FindBodygroupByName("m_tail_end"),2)
+			self:SetBodygroup(self:FindBodygroupByName("tail_end"),2)
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.Tail = true
 		end,
@@ -436,6 +447,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_ltubes"),1)
+			self:SetBodygroup(self:FindBodygroupByName("ltubes"),1)
 		end,
 	},
 	[102] = {
@@ -443,6 +455,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_ltubes"),1)
+			self:SetBodygroup(self:FindBodygroupByName("ltubes"),1)
 		end,
 	},
 	[101] = {
@@ -450,6 +463,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_rtubes"),1)
+			self:SetBodygroup(self:FindBodygroupByName("rtubes"),1)
 		end,
 	},
 	[103] = {
@@ -457,6 +471,7 @@ ENT.HitGroups = {
 		Dead = false,
 		OnDecap = function(self,dmginfo,hitgroup)
 			self:SetBodygroup(self:FindBodygroupByName("m_rtubes"),1)
+			self:SetBodygroup(self:FindBodygroupByName("rtubes"),1)
 		end,
 	},
 }
