@@ -1857,7 +1857,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		local phys = proj:GetPhysicsObject()
 		if IsValid(phys) then
 			-- phys:SetVelocity(proj:GetForward() *2500)
-			phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),targetPos,2))
+			-- phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),targetPos,2))
+			phys:SetVelocity(VJ.CalculateTrajectory(self,nil,"Curve",proj:GetPos(),targetPos,2))
 		end
 	elseif key == "spear_retract" then
 		if IsValid(self.SpearProp) then

@@ -1190,9 +1190,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 				local phys = proj:GetPhysicsObject()
 				if IsValid(phys) then
 					phys:EnableGravity(true)
-					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), i > 1 && targetPos +VectorRand(-135,135) or targetPos, 1500))
-					phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos +VectorRand(-25,25),25))
-					-- phys:SetVelocity(self:CalculateProjectile("Curve", proj:GetPos(), proj:GetPos() +proj:GetForward() *proj:GetPos():Distance(targetPos), 1500))
+					-- phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos +VectorRand(-25,25),25))
+					
+					phys:SetVelocity(VJ.CalculateTrajectory(self,nil,"Curve",proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos +VectorRand(-25,25),30))
 				end
 			end
 		end

@@ -213,6 +213,7 @@ function ENT:SpawnBot(count,respawn)
 					bot.WeaponInventory_MeleeList = {"weapon_vj_avp_pistol"}
 					bot:Spawn()
 					bot:Activate()
+					bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
 					-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
 					bot:Give(VJ.PICK({
 						"weapon_vj_avp_pulserifle",
@@ -781,6 +782,7 @@ function ENT:Think()
 			end
 			npc:Spawn()
 			npc:Activate()
+			npc:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
 			if npc.VJ_AVP_XenomorphLarge then
 				local bounds = npc.StandingBounds
 				local collisionMin, collisionMax = -bounds, bounds
