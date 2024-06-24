@@ -1829,7 +1829,7 @@ function ENT:StalkingAI(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
-local debugUseSurfaceClimbing = true
+local debugUseSurfaceClimbing = false
 --
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
