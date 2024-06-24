@@ -635,8 +635,8 @@ function ENT:Breathe()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectMovementActivity()
-	local act = ACT_RUN
+function ENT:SelectMovementActivity(act)
+	-- local act = ACT_RUN
 	local ply = self.VJ_TheController
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
@@ -648,11 +648,11 @@ function ENT:SelectMovementActivity()
 	end
 	if self.InCharge then
 		act = ACT_SPRINT
-	else
-		local currentSchedule = self.CurrentSchedule
-		if currentSchedule != nil then
-			act = currentSchedule.MoveType == 0 && ACT_WALK or ACT_RUN
-		end
+	-- else
+	-- 	local currentSchedule = self.CurrentSchedule
+	-- 	if currentSchedule != nil then
+	-- 		act = currentSchedule.MoveType == 0 && ACT_WALK or ACT_RUN
+	-- 	end
 	end
 	return act
 end

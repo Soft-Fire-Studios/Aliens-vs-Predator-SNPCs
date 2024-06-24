@@ -18,9 +18,11 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",1,"Vision")
 	self:NetworkVar("Bool",2,"JumpAbility")
 	self:NetworkVar("Bool",3,"InFatality")
+	self:NetworkVar("Bool",4,"Standing")
 	self:NetworkVar("Vector",0,"JumpPosition")
 	self:NetworkVar("Vector",1,"QueenMarker")
 	self:NetworkVar("Int",0,"HP")
+	self:NetworkVar("Entity",0,"VM")
 end
 
 if CLIENT then
@@ -212,6 +214,7 @@ if CLIENT then
 			newFOV = nil
 		end
 		self.LastFOV = newFOV
+		self.VJ_AVP_ViewModelData = {origin = pos, angles = ang, fov = newFOV}
 		return {origin = pos, angles = ang, fov = newFOV}
 	end
 

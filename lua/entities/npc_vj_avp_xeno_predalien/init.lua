@@ -149,8 +149,8 @@ function ENT:SelectIdleActivity()
 	return ACT_IDLE
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SelectMovementActivity()
-	local act = ACT_RUN
+function ENT:SelectMovementActivity(act)
+	-- local act = ACT_RUN
 	local ply = self.VJ_TheController
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
@@ -159,12 +159,12 @@ function ENT:SelectMovementActivity()
 		end
 		return act
 	end
-	local currentSchedule = self.CurrentSchedule
-	if currentSchedule != nil then
-		if currentSchedule.MoveType == 0 then
-			act = ACT_WALK
-		end
-	end
+	-- local currentSchedule = self.CurrentSchedule
+	-- if currentSchedule != nil then
+	-- 	if currentSchedule.MoveType == 0 then
+	-- 		act = ACT_WALK
+	-- 	end
+	-- end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

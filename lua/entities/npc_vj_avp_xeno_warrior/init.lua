@@ -63,7 +63,7 @@ ENT.RangeUseAttachmentForPosID = "eyes"
 ENT.DisableDefaultRangeAttackCode = true
 
 ENT.CanFlinch = 1
-ENT.FlinchChance = 15
+ENT.FlinchChance = 12
 ENT.NextFlinchTime = 1.75
 ENT.AnimTbl_FlinchCrouch = {"flinch_fwd_left","flinch_fwd_right","flinch_back_left","flinch_back_right"}
 ENT.AnimTbl_FlinchStand = {"standing_flinch_back_left","standing_flinch_back_right","standing_flinch_fwd_left","standing_flinch_fwd_right"}
@@ -607,6 +607,8 @@ function ENT:CustomOnChangeActivity(act)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local vecZ20 = Vector(0, 0, 20)
+--
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
 		net.WriteBool(false)
@@ -627,6 +629,108 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(self)
 			net.WriteEntity(ply)
 		net.Send(ply)
+	end
+
+	function controlEnt:Think()
+		local ply = self.VJCE_Player
+		local npc = self.VJCE_NPC
+		local camera = self.VJCE_Camera
+		if (!camera:IsValid()) then self:StopControlling() return end
+		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJTag_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
+		if ply.VJTag_IsControllingNPC != true then return end
+		local curTime = CurTime()
+		if ply.VJTag_IsControllingNPC && IsValid(npc) then
+			local npcWeapon = npc:GetActiveWeapon()
+			self.VJC_NPC_LastPos = npc:GetPos()
+			ply:SetPos(self.VJC_NPC_LastPos + vecZ20) -- Set the player's location
+			self:SendDataToClient()
+			
+			-- HUD
+			if self.VJC_Player_DrawHUD then
+				net.Start("vj_controller_hud")
+					net.WriteBool(ply:GetInfoNum("vj_npc_cont_hud", 1) == 1)
+					net.WriteFloat(npc:GetMaxHealth())
+					net.WriteFloat(npc:Health())
+					net.WriteString(npc:GetName())
+					net.WriteInt(npc.HasMeleeAttack == true && (((npc.IsAbleToMeleeAttack != true or npc.AttackType == VJ.ATTACK_TYPE_MELEE) and 2) or 1) or 0, 3)
+					net.WriteInt(npc.HasRangeAttack == true && (((npc.IsAbleToRangeAttack != true or npc.AttackType == VJ.ATTACK_TYPE_RANGE) and 2) or 1) or 0, 3)
+					net.WriteInt(npc.HasLeapAttack == true && (((npc.IsAbleToLeapAttack != true or npc.AttackType == VJ.ATTACK_TYPE_LEAP) and 2) or 1) or 0, 3)
+					net.WriteBool(IsValid(npcWeapon))
+					net.WriteInt(IsValid(npcWeapon) && npcWeapon:Clip1() or 0, 32)
+					net.WriteInt(npc.HasGrenadeAttack == true && ((curTime <= npc.NextThrowGrenadeT and 2) or 1) or 0, 3)
+				net.Send(ply)
+			end
+			
+			local wepList = ply:GetWeapons()
+			if #wepList > 0 then
+				for _, v in ipairs(wepList) do
+					if !v.VJBase_IsControllerWeapon then
+						ply:StripWeapon(v:GetClass())
+					end
+				end
+			end
+	
+			local bullseyePos = self.VJCE_Bullseye:GetPos()
+			if ply:GetInfoNum("vj_npc_cont_devents", 0) == 1 then
+				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
+				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
+				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
+			end
+			
+			self:CustomOnThink()
+	
+			local canTurn = true
+			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
+	
+			-- Weapon attack
+			if npc.IsVJBaseSNPC_Human == true then
+				if IsValid(npcWeapon) && !npc:IsMoving() && npcWeapon.IsVJBaseWeapon == true && ply:KeyDown(IN_ATTACK2) && npc.AttackType == VJ.ATTACK_TYPE_NONE && npc.vACT_StopAttacks == false && npc:GetWeaponState() == VJ.NPC_WEP_STATE_READY then
+					//npc:SetAngles(Angle(0,math.ApproachAngle(npc:GetAngles().y,ply:GetAimVector():Angle().y,100),0))
+					npc:SetTurnTarget(bullseyePos, 0.2)
+					canTurn = false
+					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
+						npc:CustomOnWeaponAttack()
+						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
+						npc:VJ_ACT_PLAYACTIVITY(npc.CurrentWeaponAnimation, false, 2, false)
+						npc.DoingWeaponAttack = true
+						npc.DoingWeaponAttack_Standing = true
+					end
+				end
+				if !ply:KeyDown(IN_ATTACK2) then
+					npc.DoingWeaponAttack = false
+					npc.DoingWeaponAttack_Standing = false
+				end
+			end
+			
+			if npc.CurrentAttackAnimationTime < CurTime() && curTime > npc.NextChaseTime && npc.IsVJBaseSNPC_Tank != true then
+				-- Turning
+				if !npc:IsMoving() && canTurn && npc.MovementType != VJ_MOVETYPE_PHYSICS && ((npc.IsVJBaseSNPC_Human && npc:GetWeaponState() != VJ.NPC_WEP_STATE_RELOADING) or (!npc.IsVJBaseSNPC_Human)) then
+					npc:VJ_TASK_IDLE_STAND()
+					if self.VJC_NPC_CanTurn == true then
+						local turnData = npc.TurnData
+						if turnData.Target != self.VJCE_Bullseye then
+							npc:SetTurnTarget(self.VJCE_Bullseye, 1)
+						elseif npc:GetActivity() == ACT_IDLE && npc:GetIdealActivity() == ACT_IDLE then -- Check both current act AND ideal act because certain activities only change the current act (Ex: UpdateTurnActivity function)
+							npc:UpdateTurnActivity()
+							if npc:GetIdealActivity() != ACT_IDLE then -- If ideal act is no longer idle, then we have selected a turn activity!
+								npc.NextIdleTime = CurTime() + npc:DecideAnimationLength(npc:GetIdealActivity())
+							end
+						end
+					end
+					//self.TestLerp = npc:GetAngles().y
+					//npc:SetAngles(Angle(0,Lerp(100*FrameTime(),self.TestLerp,ply:GetAimVector():Angle().y),0))
+				end
+				
+				-- Movement
+				npc:Controller_Movement(self, ply, bullseyePos)
+				
+				//if (ply:KeyDown(IN_USE)) then
+					//npc:StopMoving()
+					//self:StopControlling()
+				//end
+			end
+		end
+		self:NextThink(curTime)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1308,6 +1412,7 @@ function ENT:CustomAttack(ent,visible)
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+			if self.HasRangeAttack && self.IsAbleToRangeAttack then return end
 			self:AttackCode(isCrawling,5)
 		elseif cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && !self:IsBusy() && self.CanLeapAttack then
 			self:AttackCode(isCrawling,4)
@@ -1363,6 +1468,12 @@ function ENT:CustomAttack(ent,visible)
 			self:StopMoving()
 			self.NextMoveRandomlyT = curTime +math.random(3,8)
 		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnRangeAttack_AfterStartTimer()
+	if self.LastAnimationType == VJ.ANIM_TYPE_GESTURE then
+		self.NextChaseTime = 0
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1718,7 +1829,7 @@ function ENT:StalkingAI(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_HasValue = VJ.HasValue
-local debugUseSurfaceClimbing = false
+local debugUseSurfaceClimbing = true
 --
 function ENT:CustomOnThink_AIEnabled()
 	if self.Dead then return end
@@ -1751,18 +1862,6 @@ function ENT:CustomOnThink_AIEnabled()
 		self.HasIdleSounds = true
 		self.HasAlertSounds = true
 	end
-	-- local idleAct = self:SelectIdleActivity()
-	-- local moveAct = self:SelectMovementActivity()
-	-- if self.LastIdleActivity != idleAct then
-	-- 	self.LastIdleActivity = idleAct
-	-- 	self:SetIdleAnimation({idleAct})
-	-- 	self:SetArrivalActivity(idleAct)
-	-- end
-	-- if self.LastMovementActivity != moveAct then
-	-- 	self.LastMovementActivity = moveAct
-	-- 	self.AnimTbl_Walk = {moveAct}
-	-- 	self.AnimTbl_Run = {moveAct}
-	-- end
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local moveAct = self:IsMoving() && self:GetSequenceActivity(self:GetIdealSequence()) or 0
 	local sprinting = !self.VJ_AVP_XenomorphPredalien && ((transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_RUN_SMG1) or self.AI_IsSprinting)
@@ -1783,6 +1882,7 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 	
 	self:SetHP(self:Health())
+	self:SetStanding(self.CurrentSet == 1)
 
 	if self.HasBreath then
 		self:Breathe()
@@ -1946,8 +2046,8 @@ function ENT:CustomOnThink_AIEnabled()
 				self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
 				if !self.VJ_AVP_XenomorphLarge then
 					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
-					self.RangeAttackAnimationStopMovement = false
 				end
+				self.RangeAttackAnimationStopMovement = false
 				self.VJC_Data.ThirdP_Offset = Vector(0, 0, -35)
 				-- print("standing")
 			else -- We're changing from standing to crawling
@@ -1961,8 +2061,8 @@ function ENT:CustomOnThink_AIEnabled()
 				self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
 				if !self.VJ_AVP_XenomorphLarge then
 					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
-					self.RangeAttackAnimationStopMovement = true
 				end
+				self.RangeAttackAnimationStopMovement = true
 				self.VJC_Data.ThirdP_Offset = Vector(0, 0, 0)
 				-- print("crawling")
 			end
@@ -1993,6 +2093,16 @@ function ENT:CustomOnThink_AIEnabled()
 			self.NextIdleStandTime = 0
 		end
 		if IsValid(ply) then
+			-- if !IsValid(ply.VJ_AVP_ViewModel) then
+			-- 	ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
+			-- 	self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)
+			-- else
+			-- 	local wep = ply.VJ_AVP_ViewModel
+			-- 	ply.VJ_AVP_ViewModelNPC = self
+			-- 	self:SetViewModelWeapon(wep,ply)
+			-- 	wep:Think(self)
+			-- end
+
 			-- if ply:KeyDown(IN_WALK) then -- Wall walking
 			-- 	if ply:KeyDown(IN_FORWARD) then
 			-- 		local tr = util.TraceLine({
@@ -2189,6 +2299,36 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local model = "models/cpthazama/avp/xeno/hud.mdl"
+--
+function ENT:SetViewModelWeapon(wep,ply)
+	local vm = ply:GetViewModel()
+	if IsValid(vm) then
+		local isScripted = wep:IsScripted()
+
+		local fov = -1
+
+		if isScripted and wep.ViewModelFOV then
+			fov = wep.ViewModelFOV
+		end
+
+		if (self:GetVM() != wep or vm:GetModel() != model) then
+			vm:SetModel(model)
+			vm:SetNoDraw(false)
+
+			if isScripted then
+				timer.Simple(0, function()
+					if wep:IsValid() then
+						wep:Deploy()
+					end
+				end)
+			end
+
+			self:SetVM(wep)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
 local math_Clamp = math.Clamp
 --
@@ -2367,19 +2507,16 @@ function ENT:SelectMovementActivity(act)
 			return standing && ACT_RUN or ACT_RUN_RELAXED
 		end
 	end
-	local currentSchedule = self.CurrentSchedule
-	if currentSchedule != nil then
-		if curTime < self.StalkingAITime or curTime < self.MoveAroundRandomlyT then
-			return ACT_WALK_RELAXED
-		end
-		if currentSchedule.MoveType == 0 then
-			return standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+	if curTime < self.StalkingAITime or curTime < self.MoveAroundRandomlyT then
+		return ACT_WALK_RELAXED
+	end
+	if act == ACT_WALK then
+		return standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+	elseif act == ACT_RUN then
+		if self.NextSprintT < curTime && self.AI_IsSprinting then
+			return standing && ACT_MP_SPRINT or ACT_SPRINT
 		else
-			if self.NextSprintT < curTime && self.AI_IsSprinting then
-				return standing && ACT_MP_SPRINT or ACT_SPRINT
-			else
-				return standing && ACT_RUN or ACT_RUN_RELAXED
-			end
+			return standing && ACT_RUN or ACT_RUN_RELAXED
 		end
 	end
 	return act

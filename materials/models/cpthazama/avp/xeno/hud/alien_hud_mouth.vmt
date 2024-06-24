@@ -1,10 +1,11 @@
 "VertexLitGeneric"
 {
-	"$basetexture" 				"models/cpthazama/avp/xeno/warrior/alien_hud_mouth_colour"
-	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_hud_mouth_normal"
-	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_hud_mouth_spec"
+	"$basetexture" 				"models/cpthazama/avp/xeno/hud/alien_hud_mouth_colour"
+	"$bumpmap"					"models/cpthazama/avp/xeno/hud/alien_hud_mouth_normal"
+	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/hud/alien_hud_mouth_spec"
 
     "$nodecal" 					"1"
+    "$color2" 					"[0.5 0.5 0.5]"
 
 	"$phong"                    "1"
 	"$phongboost"               "2"

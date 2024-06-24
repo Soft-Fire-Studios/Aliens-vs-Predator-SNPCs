@@ -162,7 +162,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Deploy()
 	local owner = self:GetOwner()
+	local npc = IsValid(owner) && owner.VJ_AVP_ViewModelNPC
 	if owner:IsPlayer() then
+		if IsValid(npc) && npc.VJ_AVP_Xenomorph then return end
 		self:EmitSound(VJ.PICK(self.DeploySound), 50, math.random(90, 100))
 		self:PlayWeaponAnimation("predator_hud_claws_extend")
 	end
@@ -175,6 +177,7 @@ function SWEP:OnPlaySound(sdFile)
 		local owner = self:GetOwner()
 		local npc = IsValid(owner) && owner.VJ_AVP_ViewModelNPC
 		if IsValid(npc) && npc:GetEquipment() == 5 then return end
+		if npc.VJ_AVP_Xenomorph then return end
 		local animTime = self:PlayWeaponAnimation({"predator_hud_claws_fidget_inspect_claw","predator_hud_claws_fidget_stretch","predator_hud_claws_fidget_wipe_wrist_pc"})
 		self.NextFidgetT = curTime +animTime
 	end
@@ -212,8 +215,9 @@ function SWEP:OnChangeActivity(npc,act)
 		end
 	end
 
+	local check = npc.VJ_AVP_Xenomorph && "alien" or "predator"
 	local curSeq = act or npc:GetSequenceName(npc:GetSequence())
-	local curSeqEdit = string_replace(curSeq,"predator_","predator_hud_")
+	local curSeqEdit = string_replace(curSeq,check .. "_",check .. "_hud_")
 	local vmSeq = vm:GetSequenceName(vm:GetSequence())
 	local vmSeqEdit = string_replace(vmSeq,"_hud_","_")
 	local trans = self.Translations[curSeq]
@@ -233,6 +237,14 @@ function SWEP:OnChangeActivity(npc,act)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+-- function SWEP:ShouldDrawViewModel()
+-- 	local npc = owner.VJ_AVP_ViewModelNPC
+-- 	if IsValid(npc) && npc.VJ_AVP_Xenomorph && !npc:GetStanding() then
+-- 		return false
+-- 	end
+-- 	return true
+-- end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Think()
 	if CLIENT then return end
 	local curTime = CurTime()
@@ -243,22 +255,42 @@ function SWEP:Think()
 	if IsValid(npc) then
 		if IsValid(vm) then
 			if !self:IsBusy() && curTime > (self.SequenceTime or 0) then
-				local animSet = npc:GetEquipment() == 5 && "speargun" or "claws"
-				if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
-					self.NextIdleT = 0
-					self.LastIdleType = 2
-					self.IdleSpeed = 1
-					self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_run"}
-				elseif npc:OnGround() && npc:GetSprinting() && self.LastIdleType != 3 then
-					self.NextIdleT = 0
-					self.LastIdleType = 3
-					self.IdleSpeed = 1.5
-					self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_sprint"}
-				elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
-					self.NextIdleT = 0
-					self.LastIdleType = 1
-					self.IdleSpeed = 1
-					self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_rest"}
+				if npc.VJ_AVP_Xenomorph then
+					local standing = npc:GetStanding()
+					if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
+						self.NextIdleT = 0
+						self.LastIdleType = 2
+						self.IdleSpeed = 1
+						self.AnimTbl_Idle = {"Alien_hud_standing_walk"}
+					elseif npc:OnGround() && npc:GetSprinting() && self.LastIdleType != 3 then
+						self.NextIdleT = 0
+						self.LastIdleType = 3
+						self.IdleSpeed = 1.5
+						self.AnimTbl_Idle = {"Alien_hud_standing_run"}
+					elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
+						self.NextIdleT = 0
+						self.LastIdleType = 1
+						self.IdleSpeed = 1
+						self.AnimTbl_Idle = {"Alien_hud_standing_idle"}
+					end
+				else
+					local animSet = npc:GetEquipment() == 5 && "speargun" or "claws"
+					if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
+						self.NextIdleT = 0
+						self.LastIdleType = 2
+						self.IdleSpeed = 1
+						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_run"}
+					elseif npc:OnGround() && npc:GetSprinting() && self.LastIdleType != 3 then
+						self.NextIdleT = 0
+						self.LastIdleType = 3
+						self.IdleSpeed = 1.5
+						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_sprint"}
+					elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
+						self.NextIdleT = 0
+						self.LastIdleType = 1
+						self.IdleSpeed = 1
+						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_rest"}
+					end
 				end
 			end
 		end
