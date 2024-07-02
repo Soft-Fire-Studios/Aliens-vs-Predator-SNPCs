@@ -12,7 +12,7 @@ local AutorunFile = "autorun/vj_avp_spawn.lua"
 -------------------------------------------------------
 local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
 if VJExists == true then
-	include('autorun/vj_controls.lua')
+	include("autorun/vj_controls.lua")
 
 	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
