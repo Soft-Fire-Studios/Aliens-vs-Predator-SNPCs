@@ -777,18 +777,18 @@ if VJExists == true then
 							dmgInfo:SetInflictor(inflictor)
 							dmgInfo:SetDamageType(dmgType or DMG_BLAST)
 							dmgInfo:SetDamagePosition(nearestPos)
-							if baseForce != false then
-								local force = baseForce
-								local forceUp = extraOptions.UpForce or false
-								if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
-									local phys = v:GetPhysicsObject()
-									if IsValid(phys) then
-										if forceUp == false then forceUp = force / 9.4 end
-										//v:SetVelocity(v:GetUp()*100000)
-										if v:GetClass() == "prop_ragdoll" then force = force * 1.5 end
-										phys:ApplyForceCenter(((v:GetPos() + v:OBBCenter() + v:GetUp() * forceUp) - startPos) * force) //+attacker:GetForward()*vForcePropPhysics
-									end
-								else
+							local force = baseForce or math_clamp(dmgFinal *3, 1, 500)
+							local forceUp = extraOptions.UpForce or false
+							if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
+								local phys = v:GetPhysicsObject()
+								if IsValid(phys) then
+									if forceUp == false then forceUp = force / 9.4 end
+									//v:SetVelocity(v:GetUp()*100000)
+									if v:GetClass() == "prop_ragdoll" then force = force * 1.5 end
+									phys:ApplyForceCenter(((v:GetPos() + v:OBBCenter() + v:GetUp() * forceUp) - startPos) * force) //+attacker:GetForward()*vForcePropPhysics
+								end
+							else
+								if baseForce != false then
 									force = force * 1.2
 									if forceUp == false then forceUp = force end
 									dmgInfo:SetDamageForce(((v:GetPos() + v:OBBCenter() + v:GetUp() * forceUp) - startPos) * force)
@@ -848,6 +848,7 @@ if VJExists == true then
 		end)
 
 		util.AddNetworkString("VJ.AVP.PlayerHUDDamage")
+		util.AddNetworkString("VJ.AVP.XenoEat")
 		hook.Add("EntityTakeDamage","VJ_AVP_MarinePlayer_HUD",function(ent,dmginfo)
 			if (ent:IsPlayer() or (ent:IsNPC() && ent.VJ_AVP_NPC && ent.VJ_IsBeingControlled)) && math.random(1,dmginfo:IsBulletDamage() && 5 or 2) == 1 then
 				local dmg = tonumber(dmginfo:GetDamage())

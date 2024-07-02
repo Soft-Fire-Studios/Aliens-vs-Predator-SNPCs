@@ -895,7 +895,7 @@ function ENT:CheckRelationship(ent)
 		if VJ.HasValue(self.VJ_AddCertainEntityAsFriendly, ent) then return D_LI end
 		if VJ.HasValue(self.VJ_AddCertainEntityAsEnemy, ent) then return D_HT end
 		local entDisp = ent.Disposition and ent:Disposition(self)
-		if !self.SpawnedUsingMutator && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.2 then
+		if !self.SpawnedUsingMutator && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.075 then
 			return D_NU
 		end
 		if (ent:IsNPC() && ((entDisp == D_HT) or (entDisp == D_NU && ent.VJ_IsBeingControlled))) or (isPly && !self.PlayerFriendly && ent:Alive()) then
@@ -907,6 +907,17 @@ function ENT:CheckRelationship(ent)
 	return D_LI
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local colFade = {
+	["Red"] = Color(128,0,0),
+	["Yellow"] = Color(208,208,28),
+	["Green"] = Color(13,212,13),
+	["Orange"] = Color(244,135,33),
+	["Blue"] = Color(0,68,128),
+	["Purple"] = Color(128,0,128),
+	["White"] = Color(220,220,220),
+	["Oil"] = Color(52,52,52),
+}
+--
 function ENT:OnKeyPressed(ply,key)
 	if self.OnKey then
 		self:OnKey(ply,key)
@@ -914,14 +925,67 @@ function ENT:OnKeyPressed(ply,key)
     if key == KEY_E then
 		local tr = util.TraceLine({
 			start = self:EyePos(),
-			endpos = self:EyePos() +ply:GetAimVector() *125,
+			endpos = self:EyePos() +ply:GetAimVector() *128,
 			filter = {self,ply}
 		})
 		local ent = tr.Entity
+		if ent == Entity(0) then
+			for _,v in pairs(ents.FindInSphere(tr.HitPos,128)) do
+				if v:GetClass() == "prop_ragdoll" && v:GetCollisionGroup() == COLLISION_GROUP_DEBRIS then
+					ent = v
+					break
+				end
+			end
+		end
 		if tr.Hit && IsValid(ent) then
-			if !ent:IsNPC() && !ent:IsPlayer() then
+			if !ent:IsNPC() && !ent:IsPlayer() && ent:GetClass() != "prop_ragdoll" then
 				ent:Fire("Use",nil,0,ply,self)
 				return
+			end
+			-- print(ent,ent.IsVJBaseCorpse,!ent.VJ_AVP_Xenomorph,!ent.VJ_AVP_CorpseHasBeenEaten,!self:IsBusy())
+			-- print(ent,"Has been eaten?",ent.VJ_AVP_CorpseHasBeenEaten)
+			if ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten && !self:IsBusy() then
+				VJ.CreateSound(self,"cpthazama/avp/xeno/alien/special/alien_brainbite_out_direct.ogg",75)
+				self:VJ_ACT_PLAYACTIVITY("headbite_2ndry",true,false,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
+				ent.VJ_AVP_CorpseHasBeenEaten = true
+				if !ent.VJ_AVP_IsTech then
+				-- if ent.BloodData.Color != "White" then
+					self:SetHealth(self:Health() +math.Clamp(self:GetMaxHealth() *0.5,0,250))
+				end
+				if ent.OnHeadAte then
+					ent:OnHeadAte(self)
+				end
+				local att1 = ent:LookupAttachment("eyes")
+				local att2 = ent:LookupAttachment("forward")
+				local att = (att1 > 0 && att1 or att2 > 0 && att2) or false
+				net.Start("VJ.AVP.XenoEat")
+					net.WriteEntity(ent)
+					net.WriteTable(ent.BloodData)
+				net.Send(ply)
+				ply:ScreenFade(SCREENFADE.IN,colFade[ent.BloodData.Color] or Color(128,0,0),2,0.5)
+				if att then
+					local pos = ent:GetAttachment(att).Pos
+					local effect = VJ.PICK(ent.BloodData.Particle)
+					ParticleEffect(effect,pos,Angle())
+					for i = 1,math.random(6,12) do
+						timer.Simple(i *0.15,function()
+							if IsValid(ent) then
+								ParticleEffect(effect,ent:GetAttachment(att).Pos,Angle())
+							end
+						end)
+					end
+					sound.Play("cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_0" .. math.random(1,5) .. ".ogg",pos,72)
+					local force = 500
+					local tr = util.TraceLine({start = pos,endpos = pos +Vector(0,0,-256),filter = ent})
+					local trNormalP = tr.HitPos +tr.HitNormal
+					local trNormalN = tr.HitPos -tr.HitNormal
+					util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
+					for _ = 1, 2 do
+						if math.random(1, 2) == 1 then
+							util.Decal(VJ.PICK(ent.BloodData.Decal), trNormalP +Vector(math.random(-70,70),math.random(-70,70),0),trNormalN,ent)
+						end
+					end
+				end
 			end
 			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)
@@ -983,6 +1047,58 @@ function ENT:DistractionCode(ent)
 		end
 	end
 end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local vecZ50 = Vector(0, 0, -50)
+--
+-- function ENT:CustomOnEat(status, statusInfo)
+-- 	if status == "CheckFood" then
+-- 		if statusInfo.owner.VJ_AVP_Xenomorph or statusInfo.owner.VJ_AVP_IsTech then
+-- 			return false
+-- 		end
+-- 		return true
+-- 	elseif status == "BeginEating" then
+-- 		self.Cur_Idle = VJ_SequenceToActivity(self, "ai_eat_corpse")
+-- 		return select(2, self:VJ_ACT_PLAYACTIVITY("ai_eat_corpse_start", true, false))
+-- 	elseif status == "Eat" then
+-- 		VJ_EmitSound(self, "cpthazama/avp/xeno/alien/special/flesh eat/flesh_eat_0"..math.random(1, 7)..".ogg", 65)
+-- 		-- Health changes
+-- 		local food = self.EatingData.Ent
+-- 		local damage = 1 -- How much damage food will receive
+-- 		local foodHP = food:Health() -- Food's health
+-- 		local myHP = self:Health() -- NPC's current health
+-- 		self:SetHealth(math.Clamp(myHP + ((damage > foodHP and foodHP) or damage), myHP, self:GetMaxHealth() < myHP and myHP or self:GetMaxHealth())) -- Give health to the NPC
+-- 		food:SetHealth(foodHP - damage) -- Decrease corpse health
+-- 		local bloodData = food.BloodData
+-- 		if bloodData then
+-- 			local bloodPos = food:GetPos() + food:OBBCenter()
+-- 			local bloodParticle = VJ_PICK(bloodData.Particle)
+-- 			if bloodParticle then
+-- 				ParticleEffect(bloodParticle, bloodPos, self:GetAngles())
+-- 			end
+-- 			local bloodDecal = VJ_PICK(bloodData.Decal)
+-- 			if bloodDecal then
+-- 				local tr = util.TraceLine({start = bloodPos, endpos = bloodPos + vecZ50, filter = {food, self}})
+-- 				util.Decal(bloodDecal, tr.HitPos + tr.HitNormal + Vector(math.random(-45, 45), math.random(-45, 45), 0), tr.HitPos - tr.HitNormal, food)
+-- 			end
+-- 		end
+-- 		local phys = food:GetPhysicsObject()
+-- 		if IsValid(phys) then
+-- 			for i = 0, food:GetPhysicsObjectCount() - 1 do
+-- 				local bone = food:GetPhysicsObjectNum(i)
+-- 				if IsValid(bone) then
+-- 					bone:ApplyForceCenter(VectorRand() *bone:GetMass() *(self.IsQueen && 128 or 64))
+-- 				end
+-- 			end
+-- 		end
+-- 		return 1
+-- 	elseif status == "StopEating" then
+-- 		self.Cur_Idle = nil
+-- 		if statusInfo != "Dead" && self.EatingData.AnimStatus != "None" then
+-- 			return 0.2
+-- 		end
+-- 	end
+-- 	return 0
+-- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
 	self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
@@ -1349,7 +1465,7 @@ function ENT:RunDamageCode(mult)
 				phys:ApplyForceCenter(self:GetPos() +self:GetForward() *(phys:GetMass() *700) +self:GetUp() *(phys:GetMass() *200))
 			end
 		end
-		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or isProp
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or isProp or ent:GetClass() == "prop_ragdoll"
 	end)
 	return hitEnts
 end
@@ -1535,7 +1651,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:VJ_ACT_PLAYACTIVITY("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
 				end})
 			else
-				if IsValid(self.VJ_TheController) or math.random(1,3) == 1 then
+				if IsValid(self.VJ_TheController) && self:IsMoving() or !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
 					// Stand up attack
 					self.AttackType = 1
 					self.AttackSide = self.AttackSide == "right" && "left" or "right"
@@ -1600,7 +1716,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:VJ_ACT_PLAYACTIVITY({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
 				end})
-			elseif IsValid(self.VJ_TheController) or math.random(1,3) == 1 then
+			elseif IsValid(self.VJ_TheController) && self:IsMoving() or !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
 				// Stand up attack
 				self.AttackType = 1
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"

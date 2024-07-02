@@ -61,6 +61,39 @@ if CLIENT then
     --     end
     -- })
 
+	local matList = {
+		Material("hud/cpthazama/avp/blood/red_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/red_4.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/white_4.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_2.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_3.png","smooth additive"),
+		Material("hud/cpthazama/avp/blood/green_4.png","smooth additive")
+	}
+	net.Receive("VJ.AVP.XenoEat",function(len,pl)
+		local ply = LocalPlayer()
+		local corpse = net.ReadEntity()
+		local bloodData = net.ReadTable()
+		local col = bloodData.Color
+		local mat = math.random(1,4)
+		if col == "White" then
+			mat = mat +4
+		elseif col == "Green" then
+			mat = mat +8
+		end
+	
+		ply.VJ_AVP_NPCDamageSplatter = ply.VJ_AVP_NPCDamageSplatter or {}
+		for i = 1,math.random(70,90) do
+			local time = CurTime() +math.Rand(3,5)
+			ply.VJ_AVP_NPCDamageSplatter[#ply.VJ_AVP_NPCDamageSplatter +1] = {Remain=time,Init=time,MatID=mat,MatTable=matList}
+		end
+	end)
+
 	local string_EndsWith = string.EndsWith
 	local string_Replace = string.Replace
 	local file_Exists = file.Exists
@@ -363,9 +396,12 @@ if CLIENT then
 				for id,data in ipairs(dmgSplatter) do
 					if data.Pos == nil then
 						data.Pos = {math.random(-50,50),math.random(-30,30)}
-						data.MatID = math.random(1,4)
+						data.MatID = data.MatID or math.random(1,4)
 						data.Size = math.random(20,40)
 						data.Ang = math.random(0,360)
+					end
+					if data.Remain == nil then
+						data.Remain = CurTime()
 					end
 					local time = data.Remain -CurTime()
 					local alpha = math_Clamp(time *255,0,255)
@@ -373,7 +409,8 @@ if CLIENT then
 						table.remove(dmgSplatter,id)
 						continue
 					end
-					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
+					local tbl = data.MatTable or matHUD_Blood
+					DrawIcon(tbl[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
 				end
 			end
 		

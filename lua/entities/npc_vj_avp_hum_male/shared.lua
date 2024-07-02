@@ -219,9 +219,12 @@ if CLIENT then
 			for id,data in ipairs(dmgSplatter) do
 				if data.Pos == nil then
 					data.Pos = {math.random(-50,50),math.random(-30,30)}
-					data.MatID = math.random(1,4) +((ent.VJ_AVP_IsTech or ent:GetNW2Bool("AVP.IsTech",false)) && 4 or 0)
+					data.MatID = data.MatID or math.random(1,4) +((ent.VJ_AVP_IsTech or ent:GetNW2Bool("AVP.IsTech",false)) && 4 or 0)
 					data.Size = math.random(20,40)
 					data.Ang = math.random(0,360)
+				end
+				if data.Remain == nil then
+					data.Remain = CurTime()
 				end
 				local time = data.Remain -CurTime()
 				local alpha = math_Clamp(time *255,0,255)

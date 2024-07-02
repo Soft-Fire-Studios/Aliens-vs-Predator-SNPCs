@@ -26,6 +26,9 @@ end
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_IsTech = true
 	ent:SetNW2Bool("AVP.IsTech",true)
+	ent.OnHeadAte = function(corpse,xeno)
+		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
+	end
 
 	timer.Simple(1.25,function()
 		if IsValid(ent) then

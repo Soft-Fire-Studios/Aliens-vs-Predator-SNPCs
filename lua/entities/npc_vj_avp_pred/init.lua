@@ -1437,7 +1437,7 @@ function ENT:RunDamageCode(mult)
 	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
-		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent)
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent) or ent:GetClass() == "prop_ragdoll"
 	end)
 
 	if #hitEnts > 0 then
@@ -1594,16 +1594,15 @@ function ENT:CustomBeforeApplyRelationship(v)
 		if self:GetBeam() then
 			return
 		end
-		local sprinting = self:GetSprinting()
-		local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+		local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(self:GetSprinting() && 3 or 1))
 		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
 			return
 		end
-		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
+		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
 			self:AddEntityRelationship(v, D_NU, 10)
 			return false
 		end
-		if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
+		if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
 			if v:HasEnemyMemory(self) then
 				v:ClearEnemyMemory(self)
 				-- v:MarkEnemyAsEluded(self)
@@ -2067,6 +2066,10 @@ local VJ_IsProp = VJ.IsProp
 --
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent:SetNW2Vector("AVP.ArmorTint",self:GetArmorColor())
+	ent.OnHeadAte = function(corpse,xeno)
+		corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
+		corpse:SetBodygroup(corpse:FindBodygroupByName("face"),1)
+	end
 	if self.CountdownTimer then
 		local class = self.VJ_NPC_Class
 		ent.CountdownTimer = self.CountdownTimer
@@ -2344,14 +2347,14 @@ function ENT:CustomOnThink_AIEnabled()
 		if !self:GetBeam() then
 			for _,v in ents.Iterator() do
 				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
-					local calcMult = ((self:IsMoving() && 1 or 0.15) *(sprinting && 3 or 1))
+					local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(sprinting && 3 or 1))
 					if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
 						continue
 					end
-					if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (400 *calcMult) then
+					if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
 						continue
 					end
-					if v:GetPos():Distance(self:GetPos()) > (600 *calcMult) then
+					if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
 						if v.HasEnemyMemory && v:HasEnemyMemory(self) then
 							v:ClearEnemyMemory(self)
 							-- v:MarkEnemyAsEluded(self)

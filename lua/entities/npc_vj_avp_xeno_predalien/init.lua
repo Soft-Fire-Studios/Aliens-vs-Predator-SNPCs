@@ -157,7 +157,7 @@ function ENT:SelectMovementActivity(act)
 		if ply:KeyDown(IN_WALK) then
 			act = ACT_WALK
 		end
-		return act
+		return ACT_RUN
 	end
 	-- local currentSchedule = self.CurrentSchedule
 	-- if currentSchedule != nil then

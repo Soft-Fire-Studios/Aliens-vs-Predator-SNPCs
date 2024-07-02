@@ -514,6 +514,12 @@ function ENT:CustomOnKilled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+	ent.OnHeadAte = function(corpse,xeno)
+		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
 	if self.WhenRemoved then
 		self:WhenRemoved()
@@ -527,12 +533,7 @@ function ENT:CustomOnRemove()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnChangeActivity(newAct)
-	//print(newAct)
 	local funcCustom = self.CustomOnChangeActivity; if funcCustom then funcCustom(self, newAct) end
-	if newAct == ACT_TURN_LEFT or newAct == ACT_TURN_RIGHT then
-		self.NextIdleStandTime = CurTime() + VJ.AnimDuration(self, self:GetSequenceName(self:GetSequence()))
-		//self.NextIdleStandTime = CurTime() + 1.2
-	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local angY45 = Angle(0, 45, 0)
