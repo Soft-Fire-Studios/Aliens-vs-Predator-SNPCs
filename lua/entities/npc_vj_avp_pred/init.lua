@@ -772,6 +772,7 @@ function ENT:CustomOnInitialize()
 	self.PlasmaFireDelayT = 0
 	self.NextSpearGunFireT = 0
 	self.ActivatedSelfDestruct = false
+	self.TotalBasicAttacks = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -1157,7 +1158,7 @@ function ENT:CustomAttack(ent,vis)
 						self.AI_BlockTime = CurTime() +math.Rand(2,4)
 						return
 					else
-						if math.random(1,6) == 1 then
+						if math.random(1,6) == 1 && self.TotalBasicAttacks > 2 then
 							self:HeavyAttackCode()
 						else
 							self:AttackCode()
@@ -1196,6 +1197,7 @@ function ENT:HeavyAttackCode()
 	if self.InFatality or self.DoingFatality then return end
 	if self:IsBusy() then return end
 	self:PlaySound(self.SoundTbl_Attack,78)
+	self.TotalBasicAttacks = 0
 	self:PlayAnimation("predator_claws_attack_heavy_buildup",true,false,true,0,{OnFinish=function(i)
 		if i then return end
 		self:PlayAnimation("predator_claws_attack_heavy_hit_close",true,false,false)
@@ -1412,6 +1414,7 @@ function ENT:AttackCode()
 		if side == "left" && string_find(miss,"upper_slash") then // Why the Predator doesn't have a left upper slash miss animation is beyond me...
 			miss = hit
 		end
+		self.TotalBasicAttacks = self.TotalBasicAttacks +1
 		local attackTime = CurTime() +VJ_GetSequenceDuration(self,start)
 		self.AttackDamageType = DMG_SLASH
 		self.AttackIdleTime = CurTime() +attackTime +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
@@ -2179,7 +2182,7 @@ function ENT:CustomOnThink_AIEnabled()
 		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
 			self:SetHealth(0)
-			self:TakeDamage(8000,self,self)
+			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
 			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
@@ -2827,7 +2830,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
 	local dmg = dmginfo:GetDamage()
-	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && dmg >= 65) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
+	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0

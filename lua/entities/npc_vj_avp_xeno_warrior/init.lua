@@ -917,6 +917,11 @@ local colFade = {
 	["White"] = Color(220,220,220),
 	["Oil"] = Color(52,52,52),
 }
+
+local vecZ30 = Vector(0,0,30)
+local vecZ1 = Vector(0,0,1)
+local vec256 = Vector(0,0,-256)
+local math_Clamp = math.Clamp
 --
 function ENT:OnKeyPressed(ply,key)
 	if self.OnKey then
@@ -950,7 +955,7 @@ function ENT:OnKeyPressed(ply,key)
 				ent.VJ_AVP_CorpseHasBeenEaten = true
 				if !ent.VJ_AVP_IsTech then
 				-- if ent.BloodData.Color != "White" then
-					self:SetHealth(self:Health() +math.Clamp(self:GetMaxHealth() *0.5,0,250))
+					self:SetHealth(self:Health() +math_Clamp(self:GetMaxHealth() *0.5,0,250))
 				end
 				if ent.OnHeadAte then
 					ent:OnHeadAte(self)
@@ -967,16 +972,10 @@ function ENT:OnKeyPressed(ply,key)
 					local pos = ent:GetAttachment(att).Pos
 					local effect = VJ.PICK(ent.BloodData.Particle)
 					ParticleEffect(effect,pos,Angle())
-					for i = 1,math.random(6,12) do
-						timer.Simple(i *0.15,function()
-							if IsValid(ent) then
-								ParticleEffect(effect,ent:GetAttachment(att).Pos,Angle())
-							end
-						end)
-					end
-					sound.Play("cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_0" .. math.random(1,5) .. ".ogg",pos,72)
 					local force = 500
-					local tr = util.TraceLine({start = pos,endpos = pos +Vector(0,0,-256),filter = ent})
+					local randVec = VectorRand() *48
+					randVec.z = 0
+					local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
 					local trNormalP = tr.HitPos +tr.HitNormal
 					local trNormalN = tr.HitPos -tr.HitNormal
 					util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
@@ -985,6 +984,31 @@ function ENT:OnKeyPressed(ply,key)
 							util.Decal(VJ.PICK(ent.BloodData.Decal), trNormalP +Vector(math.random(-70,70),math.random(-70,70),0),trNormalN,ent)
 						end
 					end
+					-- local tr = util.TraceLine({
+					-- 	start = pos,
+					-- 	endpos = pos -vecZ30,
+					-- 	filter = ent,
+					-- 	mask = CONTENTS_SOLID
+					-- })
+					-- if tr.HitWorld && (tr.HitNormal == vecZ1) then
+					-- 	ParticleEffect(getBloodPool,tr.HitPos,Angle())
+					-- end
+					for i = 1,math.random(6,12) do
+						timer.Simple(i *0.25,function()
+							if IsValid(ent) then
+								pos = ent:GetAttachment(att).Pos
+								ParticleEffect(effect,pos,Angle())
+								local force = 500
+								local randVec = VectorRand() *48
+								randVec.z = 0
+								local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
+								local trNormalP = tr.HitPos +tr.HitNormal
+								local trNormalN = tr.HitPos -tr.HitNormal
+								util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
+							end
+						end)
+					end
+					sound.Play("cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_0" .. math.random(1,5) .. ".ogg",pos,72)
 				end
 			end
 			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
@@ -1427,12 +1451,15 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "attack_mouth" then
 		self.AttackDamageDistance = 120
 		self.AttackDamageType = DMG_SLASH
-		self:RunDamageCode(1.25)
+		local hitEnts = self:RunDamageCode(1.25)
+		if #hitEnts > 0 then
+			self:SetHealth(math_Clamp(self:Health() +(#hitEnts *5),0,self:GetMaxHealth()))
+		end
 		VJ.EmitSound(self,sdMM,75)
 	elseif key == "attack_tail" then
 		self.AttackDamageDistance = 200
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
-		VJ.EmitSound(self,#self:RunDamageCode(2) > 0 && sdTail or sdTailMiss,75)
+		VJ.EmitSound(self,#self:RunDamageCode(2.25) > 0 && sdTail or sdTailMiss,75)
 	elseif string_StartWith(key,"snd") then
 		key = string_Replace(key,"snd ","")
 		local snd,vol,sndEnt = false,70,self
@@ -1605,8 +1632,8 @@ function ENT:DoLeapAttack()
 	self:VJ_ACT_PLAYACTIVITY("leap_long",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		self.AttackDamageDistance = 140
-		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
-		local dmgcode = self:RunDamageCode(1.35)
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH,DMG_VEHICLE)
+		local dmgcode = self:RunDamageCode(2)
 		VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
 		self:StopAllCommonSpeechSounds()
 		VJ.CreateSound(self,self.SoundTbl_Attack,80)
@@ -1964,7 +1991,7 @@ function ENT:CustomOnThink_AIEnabled()
 		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
 			self:SetHealth(0)
-			self:TakeDamage(8000,self,self)
+			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
 			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return

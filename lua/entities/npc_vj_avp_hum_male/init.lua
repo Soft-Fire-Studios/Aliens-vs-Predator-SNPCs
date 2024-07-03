@@ -16,7 +16,12 @@ ENT.VJC_Data = {
 
 ENT.BloodColor = "Red"
 
+ENT.UsePlayerModelMovement = true
 ENT.HasMeleeAttack = true
+ENT.CanCrouchOnWeaponAttack = false
+
+local moveslikejaggerfuckingkms = 21378944
+ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
 
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
@@ -39,8 +44,8 @@ function ENT:CustomOnPreInitialize()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:MarineInitialize(gender)
-	local VO = self.VO or 1
-	if gender == 1 then
+	local VO = self.VO or math.random(1,2)
+	if gender == 1 then -- Male
 		if VO == 1 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Male_Marine_01/AGGRESSIVE_TO_ALERT_MAR01_01.ogg",
@@ -61,10 +66,6 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_01/ATTACKING_MAR01_06.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/ATTACKING_MAR01_08.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/ATTACKING_MAR01_09.ogg",
-			}
-			self.SoundTbl_Death = {
-				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_01.ogg",
-				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_02.ogg",
 			}
 			self.SoundTbl_SeeBody = {
 				"cpthazama/avp/humans/vocals/Male_Marine_01/DISCOVER_BODY_MAR01_01.ogg",
@@ -218,24 +219,498 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_01/death_mm01_03.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/death_mm01_04.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/death_mm01_05.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_02.ogg",
+			}
+		else
+			self.SoundTbl_LostEnemy = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/AGGRESSIVE_TO_ALERT_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/AGGRESSIVE_TO_ALERT_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/AGGRESSIVE_TO_ALERT_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ALERT_TO_PASSIVE_MAR02_04.ogg",
+			}
+			self.SoundTbl_Alert = {}
+			self.SoundTbl_SeeBody = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/DISCOVER_BODY_MAR02_04.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/DISCOVER_BODY_MAR02_06.ogg",
+			}
+			self.SoundTbl_DistractionSuccess = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/DISTRACTION_SUCCESS_MAR02_04.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/DISTRACTION_SUCCESS_MAR02_05.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/DISTRACTION_SUCCESS_MAR02_06.ogg",
+			}
+			self.SoundTbl_Suppressing = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_04.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_05.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/ATTACKING_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_10.ogg",
+			}
+			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_DamageByPlayer = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_04.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_05.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_10.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_12.ogg",
+			}
+			self.SoundTbl_InvestigateComplete = {}
+			self.SoundTbl_OnKilledEnemy = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_10.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_11.ogg",
+			}
+			self.SoundTbl_MotionTracker_Far = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_FAR_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_FAR_MAR02_04.ogg",
+			}
+			self.SoundTbl_MotionTracker_Mid = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_MID_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_MID_MAR02_04.ogg",
+			}
+			self.SoundTbl_MotionTracker_Close = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_NEAR_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/MOTION_TRACK_NEAR_MAR02_04.ogg",
+			}
+			self.SoundTbl_Pain = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PAIN_MAR02_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PAIN_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PAIN_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PAIN_MAR02_04.ogg",
+			}
+			self.SoundTbl_Investigate = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PASSIVE_TO_ALERT_MAR02_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PASSIVE_TO_ALERT_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/PASSIVE_TO_ALERT_MAR02_03.ogg",
+			}
+			self.SoundTbl_WeaponReload = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/RELOADING_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/RELOADING_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/RELOADING_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/RELOADING_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/RELOADING_MAR02_10.ogg",
+			}
+			self.SoundTbl_Spot_XenoLarge = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_LARGE_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_LARGE_MAR02_04.ogg",
+			}
+			self.SoundTbl_Spot_Xeno = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_10.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_11.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_12.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_13.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_14.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ALIEN_MAR02_16.ogg",
+			}
+			self.SoundTbl_Spot_Android = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ANDROID_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_ANDROID_MAR02_03.ogg",
+			}
+			self.SoundTbl_Spot_PredatorCloaked = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_CLOAKED_PREDATOR_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_CLOAKED_PREDATOR_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_CLOAKED_PREDATOR_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_CLOAKED_PREDATOR_MAR02_10.ogg",
+			}
+			self.SoundTbl_Spot_Predator = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_PREDATOR_MAR02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_PREDATOR_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_PREDATOR_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SPOTTED_PREDATOR_MAR02_08.ogg",
+			}
+			self.SoundTbl_AllyDeath_Xeno = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_ALIEN_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_ALIEN_MAR02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath_Android = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_ANDROID_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_ANDROID_MAR02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath_Predator = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_PREDATOR_MAR02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_BY_PREDATOR_MAR02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_MAR02_06.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SQUAD_DEATH_MAR02_10.ogg",
+			}
+			self.SoundTbl_Surprised = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_07.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_08.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_09.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_10.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_11.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/SURPRISE_MAR02_12.ogg",
+			}
+			self.SoundTbl_Alert_Horde = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/TARGETS_MANY_MAR02_04.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/TARGETS_MANY_MAR02_05.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/TARGETS_MANY_MAR02_06.ogg",
+			}
+			self.SoundTbl_Death = {
+				"cpthazama/avp/humans/vocals/Male_Marine_02/death_mar02_01.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/death_mar02_02.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/death_mar02_03.ogg",
+				"cpthazama/avp/humans/vocals/Male_Marine_02/death_mar02_04.ogg",
 			}
 		end
-	else
-
+	else -- Female
+		if vo == 1 then
+			self.SoundTbl_LostEnemy = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ALERT_TO_PASSIVE_FEM01_04.ogg",
+			}
+			self.SoundTbl_Alert = {}
+			self.SoundTbl_SeeBody = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISCOVER_BODY_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISCOVER_BODY_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISCOVER_BODY_FEM01_03.ogg",
+			}
+			self.SoundTbl_DistractionSuccess = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISTRACTION_SUCCESS_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISTRACTION_SUCCESS_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/DISTRACTION_SUCCESS_FEM01_03.ogg",
+			}
+			self.SoundTbl_Suppressing = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/ATTACKING_FEM01_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/BLIND_FIRE_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/BLIND_FIRE_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/BLIND_FIRE_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_05.ogg",
+			}
+			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_DamageByPlayer = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_06.ogg",
+			}
+			self.SoundTbl_InvestigateComplete = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_ARRIVAL_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_ARRIVAL_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_04.ogg",
+			}
+			self.SoundTbl_OnKilledEnemy = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_06.ogg",
+			}
+			self.SoundTbl_MotionTracker_Far = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_FAR_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_FAR_FEM01_02.ogg",
+			}
+			self.SoundTbl_MotionTracker_Mid = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_MID_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_MID_FEM01_02.ogg",
+			}
+			self.SoundTbl_MotionTracker_Close = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_NEAR_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/MOTION_TRACK_NEAR_FEM01_02.ogg",
+			}
+			self.SoundTbl_Pain = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/pain_fem01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/pain_fem01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/pain_fem01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/pain_fem01_04.ogg",
+			}
+			self.SoundTbl_Investigate = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/PASSIVE_TO_ALERT_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/PASSIVE_TO_ALERT_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/PASSIVE_TO_ALERT_FEM01_03.ogg",
+			}
+			self.SoundTbl_WeaponReload = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/RELOADING_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/RELOADING_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/RELOADING_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/RELOADING_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/RELOADING_FEM01_05.ogg",
+			}
+			self.SoundTbl_Spot_XenoLarge = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_LARGE_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_LARGE_FEM01_02.ogg",
+			}
+			self.SoundTbl_Spot_Xeno = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ALIEN_FEM01_08.ogg",
+			}
+			self.SoundTbl_Spot_Android = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ANDROID_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_ANDROID_FEM01_02.ogg",
+			}
+			self.SoundTbl_Spot_PredatorCloaked = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_CLOAKED_PREDATOR_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_CLOAKED_PREDATOR_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_CLOAKED_PREDATOR_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_CLOAKED_PREDATOR_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_CLOAKED_PREDATOR_FEM01_05.ogg",
+			}
+			self.SoundTbl_Spot_Predator = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_PREDATOR_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_PREDATOR_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_PREDATOR_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SPOTTED_PREDATOR_FEM01_04.ogg",
+			}
+			self.SoundTbl_AllyDeath_Xeno = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_ALIEN_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_ALIEN_FEM01_02.ogg",
+			}
+			self.SoundTbl_AllyDeath_Android = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_ANDROID_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_ANDROID_FEM01_02.ogg",
+			}
+			self.SoundTbl_AllyDeath_Predator = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_PREDATOR_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_BY_PREDATOR_FEM01_02.ogg",
+			}
+			self.SoundTbl_AllyDeath = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SQUAD_DEATH_FEM01_05.ogg",
+			}
+			self.SoundTbl_Surprised = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SURPRISE_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SURPRISE_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SURPRISE_FEM01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SURPRISE_FEM01_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/SURPRISE_FEM01_05.ogg",
+			}
+			self.SoundTbl_Alert_Horde = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/TARGETS_MANY_FEM01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/TARGETS_MANY_FEM01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/TARGETS_MANY_FEM01_03.ogg",
+			}
+			self.SoundTbl_Death = {
+				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_04.ogg",
+			}
+		else
+			self.SoundTbl_LostEnemy = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ALERT_TO_PASSIVE_FEM02_04.ogg",
+			}
+			self.SoundTbl_Alert = {}
+			self.SoundTbl_SeeBody = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISCOVER_BODY_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISCOVER_BODY_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISCOVER_BODY_FEM02_05.ogg",
+			}
+			self.SoundTbl_DistractionSuccess = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISTRACTION_SUCCESS_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISTRACTION_SUCCESS_FEM02_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/DISTRACTION_SUCCESS_FEM02_06.ogg",
+			}
+			self.SoundTbl_Suppressing = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/ATTACKING_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/BLIND_FIRE_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_10.ogg",
+			}
+			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_DamageByPlayer = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_11.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_12.ogg",
+			}
+			self.SoundTbl_InvestigateComplete = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_ARRIVAL_FEM02_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_ARRIVAL_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_07.ogg",
+			}
+			self.SoundTbl_OnKilledEnemy = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_11.ogg",
+			}
+			self.SoundTbl_MotionTracker_Far = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/MOTION_TRACK_FAR_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/MOTION_TRACK_FAR_FEM02_04.ogg",
+			}
+			self.SoundTbl_MotionTracker_Mid = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/MOTION_TRACK_NEAR_FEM02_04.ogg",
+			}
+			self.SoundTbl_MotionTracker_Close = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/MOTION_TRACK_NEAR_FEM02_03.ogg",
+			}
+			self.SoundTbl_Pain = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/PAIN_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/pain_fem02_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/pain_fem02_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/pain_fem02_04.ogg",
+			}
+			self.SoundTbl_Investigate = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/PASSIVE_TO_ALERT_FEM02_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/PASSIVE_TO_ALERT_FEM02_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/PASSIVE_TO_ALERT_FEM02_03.ogg",
+			}
+			self.SoundTbl_WeaponReload = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/RELOADING_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/RELOADING_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/RELOADING_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/RELOADING_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/RELOADING_FEM02_10.ogg",
+			}
+			self.SoundTbl_Spot_XenoLarge = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_LARGE_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_LARGE_FEM02_04.ogg",
+			}
+			self.SoundTbl_Spot_Xeno = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_11.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_12.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_13.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_14.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ALIEN_FEM02_16.ogg",
+			}
+			self.SoundTbl_Spot_Android = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ANDROID_FEM02_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_ANDROID_FEM02_02.ogg",
+			}
+			self.SoundTbl_Spot_PredatorCloaked = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/LOST_CLOAKED_PREDATOR_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_CLOAKED_PREDATOR_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_CLOAKED_PREDATOR_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_CLOAKED_PREDATOR_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_CLOAKED_PREDATOR_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_CLOAKED_PREDATOR_FEM02_10.ogg",
+			}
+			self.SoundTbl_Spot_Predator = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_PREDATOR_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_PREDATOR_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_PREDATOR_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SPOTTED_PREDATOR_FEM02_08.ogg",
+			}
+			self.SoundTbl_AllyDeath_Xeno = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_ALIEN_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_ALIEN_FEM02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath_Android = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_ANDROID_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_ANDROID_FEM02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath_Predator = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_PREDATOR_FEM02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_BY_PREDATOR_FEM02_04.ogg",
+			}
+			self.SoundTbl_AllyDeath = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_FEM02_06.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SQUAD_DEATH_FEM02_10.ogg",
+			}
+			self.SoundTbl_Surprised = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_07.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_08.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_09.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_10.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_11.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/SURPRISE_FEM02_12.ogg",
+			}
+			self.SoundTbl_Alert_Horde = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/TARGETS_MANY_FEM02_04.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/TARGETS_MANY_FEM02_05.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/TARGETS_MANY_FEM02_06.ogg",
+			}
+			self.SoundTbl_Death = {
+				"cpthazama/avp/humans/vocals/Female_Marine_02/death_fem02_01.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/death_fem02_02.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/death_fem02_03.ogg",
+				"cpthazama/avp/humans/vocals/Female_Marine_02/death_fem02_04.ogg",
+			}
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)
-	self:VJ_ACT_PLAYACTIVITY("ohwn_oh_shit",true,false,true)
+	if #self.SoundTbl_Surprised > 0 && self:VJ_GetNearestPointToEntityDistance(ent,true) <= 250 then
+		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
+		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
+		return
+	end
 	if ent:IsNPC() then
-		if ent.VJ_AVP_Xenomorph then
+		if ent.VJ_AVP_Xenomorph && #self.SoundTbl_Spot_Xeno > 0 then
 			self:PlaySoundSystem("Alert", ent.VJ_AVP_XenomorphLarge && self.SoundTbl_Spot_XenoLarge or self.SoundTbl_Spot_Xeno)
 			return
-		elseif ent.VJ_AVP_IsTech then
+		elseif ent.VJ_AVP_IsTech && #self.SoundTbl_Spot_Android > 0 then
 			self:PlaySoundSystem("Alert", self.SoundTbl_Spot_Android)
 			return
-		elseif ent.VJ_AVP_Predator then
+		elseif ent.VJ_AVP_Predator && #self.SoundTbl_Spot_Predator > 0 then
 			self:PlaySoundSystem("Alert", ent:GetCloaked() && self.SoundTbl_Spot_PredatorCloaked or self.SoundTbl_Spot_Predator)
+			return
+		elseif ent.VJ_AVP_Marine && self.SoundTbl_Spot_Marine then
+			self:PlaySoundSystem("Alert", self.SoundTbl_Spot_Marine)
 			return
 		end
 	end
@@ -256,6 +731,17 @@ function ENT:CustomOnInitialize()
 	self.NextHealT = CurTime() +1
 
 	self.AnimTbl_ScaredBehaviorMovement = {toAct(self,"nwn_Panic_run_fwd_look_fwd")}
+
+	hook.Add("PlayerButtonDown", self, function(self, ply, button)
+		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+			local cent = ply.VJ_TheControllerEntity
+            if cent.VJCE_NPC == self then
+                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            end
+        end
+    end)
+
+	if self:FindBodygroupByName("vest") > -1 && self:GetBodygroup(self:FindBodygroupByName("vest")) > 0 then return end
 
 	local att = self:LookupAttachment("flashlight")
 	if att > 0 && self.HasFlashlight then
@@ -318,15 +804,6 @@ function ENT:CustomOnInitialize()
 		-- self.LightGlow = glow1
 		-- self.LightGlowDynamic = glowLight
 	end
-
-	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
-            end
-        end
-    end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
@@ -358,13 +835,28 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
-	if self.InFatality or self.DoingFatality then return end
-	if self:IsBusy() then return end
-	self:VJ_ACT_PLAYACTIVITY("vjges_ohwa_pistol_stim",true,false,false,0,{OnFinish=function(i)
-		if i then return end
+	if self.InFatality or self.DoingFatality or self.VJ_AVP_IsTech or self:IsBusy() then return end
+	self:PlayAnimation("vjges_ohwa_pistol_stim",true,false,false,0,{OnFinish=function(interrupted,anim)
+		if self.LastActivity != anim then return end
 		self:SetHealth(self:GetMaxHealth())
 	end})
 	self.NextChaseTime = 0
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local string_find = string.find
+--
+function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
+	animation = VJ.PICK(animation)
+	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
+		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
+	end
+	local anim,animDur = self:VJ_ACT_PLAYACTIVITY(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	if extraOptions && extraOptions.AlwaysUseGesture && !extraOptions.DisableChaseFix then
+		self.NextChaseTime = 0
+	end
+	self.LastActivity = anim
+	self.LastSequence = self:GetSequenceName(self:LookupSequence(animation))
+	return anim,animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
@@ -395,7 +887,7 @@ function ENT:TranslateActivity(act)
 		return ACT_RUN_PROTECTED
 	elseif (act == ACT_RUN or act == ACT_WALK) && self.HasShootWhileMoving == true && IsValid(self:GetEnemy()) then
 		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:IsAbleToShootWeapon(true, false) == true then
-			local anim = self:TranslateToWeaponAnim(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
+			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then
 				self.DoingWeaponAttack = true
 				self.DoingWeaponAttack_Standing = false
@@ -403,35 +895,56 @@ function ENT:TranslateActivity(act)
 			end
 		end
 	end
-
+	
+	local translation = self.AnimationTranslations[act]
+	if translation then
+		if istable(translation) then
+			if act == ACT_IDLE then
+				return self:ResolveAnimation(translation)
+			end
+			return translation[math.random(1, #translation)] or act -- "or act" = To make sure it doesn't return nil when the table is empty!
+		else
+			return translation
+		end
+	end
 	return act
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAnimationTranslations(hType)
-	//toAct(self, "walkaimall1_ar2")
 	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
 	if hType == "pistol" then
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "ohwa_pistol_idle")
 		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_ohwa_pistol_shoot"
-		self.AnimationTranslations[ACT_RANGE_ATTACK1_LOW] 				= toAct(self, "OHWA_crouch_idle")
-		self.AnimationTranslations[ACT_RELOAD] 							= "vjges_ohwa_pistol_reload"
-		self.AnimationTranslations[ACT_RELOAD_LOW] 						= "vjges_ohwa_pistol_reload"
-		self.AnimationTranslations[ACT_COVER_LOW] 						= toAct(self, "OHWA_crouch_idle")
+		self.AnimTbl_WeaponReload 										= "vjges_ohwa_pistol_reload"
 		
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= {toAct(self, "ohwa_alert_idle_1"),toAct(self, "ohwa_alert_panic"),toAct(self, "ohwa_alert_watchfulA")}
-		-- self.AnimationTranslations[ACT_JUMP] 							= ACT_HL2MP_JUMP_PISTOL
-		-- self.AnimationTranslations[ACT_GLIDE] 							= ACT_HL2MP_JUMP_PISTOL
-		-- self.AnimationTranslations[ACT_LAND] 							= ACT_HL2MP_IDLE_PISTOL
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "ohwa_pistol_idle")
+		-- self.AnimationTranslations[ACT_IDLE_ANGRY] 						= {toAct(self, "ohwa_alert_idle_1"),toAct(self, "ohwa_alert_panic"),toAct(self, "ohwa_alert_watchfulA")}
 		
 		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "ohwn_Walk")
 		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "OHWA_Walk")
 		
 		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "ohwn_Run")
 		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "ohwa_Run_fwd_Look_fwd")
-		self.AnimationTranslations[ACT_SPRINT] 							= toAct(self, "ohwn_sprint")
+	else
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= ACT_HL2MP_IDLE_AR2
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
+		self.AnimTbl_WeaponReload 										= "vjges_THWA_Stand_reload"
+		
+		self.AnimationTranslations[ACT_IDLE] 							= ACT_HL2MP_SWIM_IDLE_AR2
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= ACT_HL2MP_IDLE_AR2
+		
+		self.AnimationTranslations[ACT_WALK] 							= ACT_HL2MP_WALK_AR2
+		self.AnimationTranslations[ACT_WALK_AIM] 						= ACT_HL2MP_RUN_AR2
+		
+		self.AnimationTranslations[ACT_RUN] 							= ACT_HL2MP_WALK_CROUCH_AR2
+		self.AnimationTranslations[ACT_RUN_AIM] 						= ACT_HL2MP_RUN_AR2
 	end
 	return true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnWeaponReload()
+	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_insert = table.insert
@@ -446,7 +959,7 @@ function ENT:CustomOnThink_AIEnabled()
 		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
 			self:SetHealth(0)
-			self:TakeDamage(8000,self,self)
+			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
 			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
@@ -471,7 +984,7 @@ function ENT:CustomOnThink_AIEnabled()
 		-- 	self:SetSprinting(false)
 		-- end
 
-		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
+		if !self.VJ_AVP_IsTech && self:Health() < self:GetMaxHealth() *0.5 && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
 			self:UseStimpack()
 			self.NextHealT = CurTime() +math.Rand(45,60)
 		end

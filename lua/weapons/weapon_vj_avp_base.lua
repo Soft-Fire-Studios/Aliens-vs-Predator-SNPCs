@@ -19,7 +19,7 @@ SWEP.HoldType 					= "ar2"
 SWEP.Spawnable					= false
 SWEP.AdminSpawnable				= false
 
-SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_wep_rifle_muzzle"}
+SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main","vj_avp_wep_rifle_muzzle"}
 -- SWEP.PrimaryEffects_MuzzleParticlesAsOne = true

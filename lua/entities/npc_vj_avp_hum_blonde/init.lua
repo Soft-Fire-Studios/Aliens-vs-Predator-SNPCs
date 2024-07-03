@@ -6,10 +6,21 @@ include("shared.lua")
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Gender = 2
+ENT.VO = 2
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.FriendsWithAllPlayerAllies = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/female_blonde.mdl"
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnInit()
+	local vest = math.random(1,4) == 1 && 1 or 0
+	self:SetBodygroup(self:FindBodygroupByName("vest"),vest)
+	if vest == 0 then
+		self:SetBodygroup(self:FindBodygroupByName("decal_vest"),math.random(1,4) == 1 && 1 or 0)
+	end
+	self:SetBodygroup(self:FindBodygroupByName("decal_lleg"),math.random(1,4) == 1 && 1 or 0)
+	self:SetBodygroup(self:FindBodygroupByName("decal_rleg"),math.random(1,4) == 1 && 1 or 0)
 end

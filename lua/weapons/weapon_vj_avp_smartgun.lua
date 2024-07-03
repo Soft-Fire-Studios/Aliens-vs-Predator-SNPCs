@@ -38,6 +38,7 @@ SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 0, 0.3)
 SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
+SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_lmg_main"}
 
 SWEP.Primary.Damage				= 15
 SWEP.Primary.ClipSize			= 500

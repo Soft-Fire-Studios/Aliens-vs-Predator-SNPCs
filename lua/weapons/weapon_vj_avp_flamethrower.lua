@@ -45,6 +45,7 @@ SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 3.75, 0.3)
 SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 
 SWEP.HasMotionTracker			= true
+SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_ft"}
 
 SWEP.Primary.Damage				= 3
 SWEP.Primary.ClipSize			= 250
@@ -56,7 +57,7 @@ SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= 35
 SWEP.Primary.Recoil				= 0.25
 SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 3.5 or 0.9)
-SWEP.PrimaryEffects_MuzzleFlash = false
+-- SWEP.PrimaryEffects_MuzzleFlash = false
 SWEP.Primary.DisableBulletCode 	= true
 
 SWEP.NPC_FiringDistanceScale = 0.1

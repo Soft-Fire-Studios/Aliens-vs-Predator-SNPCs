@@ -84,28 +84,45 @@ if VJExists == true then
 	VJ.AddNPC("Extinction","npc_vj_avp_pred_extinction",vCat_P)
 	VJ.AddNPC("Ancient","npc_vj_avp_pred_predlord",vCat_P)
 
+	/*
+		weapon_vj_avp_pistol
+		weapon_vj_avp_pulserifle
+		weapon_vj_avp_scopedrifle
+		weapon_vj_avp_smartgun
+		weapon_vj_avp_flamethrower
+		weapon_vj_avp_shotgun
+	*/
+
+	local wepMarines = {
+		"weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle",
+		"weapon_vj_avp_shotgun","weapon_vj_avp_shotgun","weapon_vj_avp_shotgun",
+		"weapon_vj_avp_scopedrifle",
+		"weapon_vj_avp_flamethrower",
+		-- "weapon_vj_avp_smartgun",
+		-- "weapon_vj_avp_pistol",
+	}
+
 	VJ.AddNPC("Sentry Gun","npc_vj_avp_hum_sentrygun",vCat_M)
-	-- VJ.AddNPC_HUMAN("Marine Base","npc_vj_avp_hum_male",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Van Zandt","npc_vj_avp_hum_van",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Connor","npc_vj_avp_hum_connor",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Franco","npc_vj_avp_hum_franco",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Gibson","npc_vj_avp_hum_gibson",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Johnson","npc_vj_avp_hum_johnson",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Rookie","npc_vj_avp_hum_rookie",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Van Zandt","npc_vj_avp_hum_van",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Connor","npc_vj_avp_hum_connor",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Franco","npc_vj_avp_hum_franco",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Gibson","npc_vj_avp_hum_gibson",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Johnson","npc_vj_avp_hum_johnson",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Rookie","npc_vj_avp_hum_rookie",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",wepMarines,vCat_M)
 	VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_scopedrifle"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_scopedrifle"},vCat_M)
 	VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_pistol"},vCat_M)
 
-	VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",wepMarines,vCat_M)
 	// For some reason only the generic males got official names, so we're just gonna make the names up using an online name generator for the generic females LOL
-	VJ.AddNPC_HUMAN("Butch","npc_vj_avp_hum_butch",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Elaine","npc_vj_avp_hum_blonde",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Charity","npc_vj_avp_hum_black",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Monica","npc_vj_avp_hum_black2",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Butch","npc_vj_avp_hum_butch",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Elaine","npc_vj_avp_hum_blonde",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Charity","npc_vj_avp_hum_black",wepMarines,vCat_M)
+	VJ.AddNPC_HUMAN("Monica","npc_vj_avp_hum_black2",wepMarines,vCat_M)
 
 	/*
 		Colonist/Marine - HP = 100
@@ -118,6 +135,48 @@ if VJExists == true then
 		Xenomorph Jungle - HP = 60
 		Xenomorph Praetorian - HP = 1000
 	*/
+
+	AVP = AVP or {}
+
+	local math_round = math.Round
+	function AVP.Dist(dist) -- AVP source code uses the metric system, im lazy as shit so we'll do this on the go
+		return math_round((dist *16) *3.281)
+	end
+
+    AVP_ALLEGIANCE_ENEMY = 1
+    AVP_ALLEGIANCE_FRIEND = 3
+    AVP_ALLEGIANCE_NEUTRAL = 4
+
+	AVP_ENTITYCLASS_ALIEN = 0
+	AVP_ENTITYCLASS_ALIENCHESTBURSTER = 1
+	AVP_ENTITYCLASS_ALIENFACEHUGGER = 2
+	AVP_ENTITYCLASS_ALIENQUEEN = 4
+	AVP_ENTITYCLASS_HUMAN = 8
+	AVP_ENTITYCLASS_PREDATOR = 16
+	AVP_ENTITYCLASS_PREDALIEN = 32
+	AVP_ENTITYCLASS_DROPSHIP = 64
+	AVP_ENTITYCLASS_ANDROID = 128
+	AVP_ENTITYCLASS_CIVILIAN = 256
+	AVP_ENTITYCLASS_MARINE = 512
+	AVP_ENTITYCLASS_SENTRYGUN = 1024
+
+	AVP.fDefaultDamageRadius = AVP.Dist(2.0)
+	AVP.fDefaultDamageAIBackAttackFactor = 0.5
+	AVP.fDefaultAttackDetectionRadius = AVP.Dist(4.0)
+	AVP.fDefaultTargetDetectionRadius = AVP.Dist(12.0)
+	AVP.fDefaultTargetDetectionCosAngle = 0.866
+	AVP.fDefaultTargetDetectionOriginBackwardsOffset = 0.5
+	AVP.fDefaultBlockDetectionCosAngle = 0.707
+	AVP.fDefaultBlockDamageProportion = 0.5
+	
+	AVP.fDefaultMinorMeleeDamageAmount = 30.0
+	AVP.fDefaultModerateMeleeDamageAmount = 60.0
+	AVP.fDefaultMajorMeleeDamageAmount = 120.0
+	
+	AVP.fDefaultMaxSuckDistance = AVP.Dist(4.0)
+	
+	AVP.fMeleeDamageImpulseStrength = 10.0
+	AVP.fFatalDamageAmount = 1000000.0
 	
 	cvars.AddChangeCallback("vj_avp_xenostealth", function(convar_name, oldValue, newValue)
 		VJ_AVP_CVAR_XENOSTEALTH = tonumber(newValue) == 1
@@ -382,8 +441,15 @@ if VJExists == true then
 		"vj_avp_rc_battery_sap",
 	})
 	VJ.AddParticle("particles/vj_avp_predator.pcf",{})
-	VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
-		"vj_avp_wep_rifle_muzzle",
+	-- VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
+	-- 	"vj_avp_wep_rifle_muzzle",
+	-- })
+	VJ.AddParticle("particles/vj_avp_muzzle.pcf",{
+		"vj_avp_muzzle_main",
+		"vj_avp_muzzle_big_main",
+		"vj_avp_muzzle_sg_main",
+		"vj_avp_muzzle_lmg_main",
+		"vj_avp_muzzle_ft",
 	})
 	VJ.AddParticle("particles/vj_avp_bloodpool.pcf",{
 		"vj_avp_bloodpool_predator",
@@ -777,7 +843,7 @@ if VJExists == true then
 							dmgInfo:SetInflictor(inflictor)
 							dmgInfo:SetDamageType(dmgType or DMG_BLAST)
 							dmgInfo:SetDamagePosition(nearestPos)
-							local force = baseForce or math_clamp(dmgFinal *3, 1, 500)
+							local force = baseForce or math_clamp(dmgFinal, 5, 35)
 							local forceUp = extraOptions.UpForce or false
 							if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
 								local phys = v:GetPhysicsObject()

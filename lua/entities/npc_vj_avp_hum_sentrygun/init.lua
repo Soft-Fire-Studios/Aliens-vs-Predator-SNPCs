@@ -255,7 +255,7 @@ function ENT:CustomRangeAttackCode()
 	
 	VJ.EmitSound(self,sdFiring,90,self:VJ_DecideSoundPitch(98,105))
 
-	ParticleEffectAttach("vj_rifle_full",PATTACH_POINT_FOLLOW,self,1)
+	ParticleEffectAttach("vj_avp_muzzle_lmg_main",PATTACH_POINT_FOLLOW,self,1)
 	
 	local FireLight1 = ents.Create("light_dynamic")
 	FireLight1:SetKeyValue("brightness","4")
