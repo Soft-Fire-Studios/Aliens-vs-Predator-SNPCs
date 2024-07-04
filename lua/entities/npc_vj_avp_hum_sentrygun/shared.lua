@@ -9,6 +9,7 @@ ENT.Category		= ""
 
 ENT.VJTag_ID_Turret = true
 ENT.VJ_AVP_IsTech = true
+ENT.EntityClass = AVP_ENTITYCLASS_SENTRYGUN
 
 if CLIENT then
 	local matLaser = Material("sprites/avp/turret_laser_fade")

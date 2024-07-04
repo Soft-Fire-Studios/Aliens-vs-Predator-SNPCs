@@ -188,6 +188,19 @@ end
 ENT.MaxNPCs = 15
 ENT.IncrementAmount = 4
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local marineList = {
+	"npc_vj_avp_hum_franco",
+	"npc_vj_avp_hum_blonde",
+}
+local marineWepList = {
+	"weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle",
+	"weapon_vj_avp_shotgun","weapon_vj_avp_shotgun","weapon_vj_avp_shotgun",
+	"weapon_vj_avp_scopedrifle",
+	"weapon_vj_avp_flamethrower",
+	-- "weapon_vj_avp_smartgun",
+	-- "weapon_vj_avp_pistol",
+}
+--
 function ENT:SpawnBot(count,respawn)
 	local plys = player.GetAll()
 	local preds = self.IsPredatorPlayers
@@ -203,34 +216,47 @@ function ENT:SpawnBot(count,respawn)
 				local randOffset = VectorRand() *math.Rand(0,256)
 				randOffset.z = 8
 				if !preds then
-					local bot = ents.Create("npc_vj_test_humanply")
-					-- bot:SetPos(spawnPoint +randOffset)
-					self:SetProperPos(bot,spawnPoint +randOffset)
-					bot:SetAngles(Angle(0,AngleRand().y,0))
-					bot.WeaponInventory_AntiArmorList = {}
-					bot.WeaponInventory_MeleeList = {"weapon_vj_avp_pistol"}
-					bot:Spawn()
-					bot:Activate()
-					bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
-					-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
-					bot:Give(VJ.PICK({
-						"weapon_vj_avp_pulserifle",
-						"weapon_vj_avp_pulserifle",
-						"weapon_vj_avp_pulserifle",
-						"weapon_vj_avp_pulserifle",
-						"weapon_vj_avp_shotgun",
-						"weapon_vj_avp_shotgun",
-						"weapon_vj_avp_shotgun",
-						"weapon_vj_avp_scopedrifle",
-						"weapon_vj_avp_scopedrifle",
-						"weapon_vj_avp_flamethrower",
-						"weapon_vj_avp_smartgun",
-					}))
-					-- bot:Give("weapon_vj_avp_pulserifle")
-					bot:SetNW2Int("AVP_Score",0)
-					self:DeleteOnRemove(bot)
-					debugMessage("Bot - ",i,"Successfully spawned!")
-					table.insert(self.Bots,bot)
+					if self.VJ_PlayerBots then
+						local bot = ents.Create("npc_vj_test_humanply")
+						self:SetProperPos(bot,spawnPoint +randOffset)
+						bot:SetAngles(Angle(0,AngleRand().y,0))
+						bot.WeaponInventory_AntiArmorList = {}
+						bot.WeaponInventory_MeleeList = {"weapon_vj_avp_pistol"}
+						bot:Spawn()
+						bot:Activate()
+						bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
+						-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
+						bot:Give(VJ.PICK({
+							"weapon_vj_avp_pulserifle",
+							"weapon_vj_avp_pulserifle",
+							"weapon_vj_avp_pulserifle",
+							"weapon_vj_avp_pulserifle",
+							"weapon_vj_avp_shotgun",
+							"weapon_vj_avp_shotgun",
+							"weapon_vj_avp_shotgun",
+							"weapon_vj_avp_scopedrifle",
+							"weapon_vj_avp_scopedrifle",
+							"weapon_vj_avp_flamethrower",
+							"weapon_vj_avp_smartgun",
+						}))
+						-- bot:Give("weapon_vj_avp_pulserifle")
+						bot:SetNW2Int("AVP_Score",0)
+						self:DeleteOnRemove(bot)
+						debugMessage("Bot - ",i,"Successfully spawned!")
+						table.insert(self.Bots,bot)
+					else
+						local bot = ents.Create(VJ.PICK(marineList))
+						self:SetProperPos(bot,spawnPoint +randOffset)
+						bot:SetAngles(Angle(0,AngleRand().y,0))
+						bot:Spawn()
+						bot:Activate()
+						bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
+						bot:Give(VJ.PICK(marineWepList))
+						bot:SetNW2Int("AVP_Score",0)
+						self:DeleteOnRemove(bot)
+						debugMessage("Bot - ",i,"Successfully spawned!")
+						table.insert(self.Bots,bot)
+					end
 				else
 					local bot = ents.Create("npc_vj_avp_pred")
 					self:SetProperPos(bot,spawnPoint +randOffset)
@@ -283,6 +309,7 @@ function ENT:Initialize()
 	self.NextBotsWaveRespawnT = CurTime() +120
 
 	self.AllowBots = GetConVar("vj_avp_survival_bots"):GetInt() == 1
+	self.VJ_PlayerBots = GetConVar("vj_avp_survival_plybots"):GetBool()
 	self.AlwaysAlerted = true
 	self.MaxBosses = 0
 	self.Bosses = {}

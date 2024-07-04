@@ -924,6 +924,34 @@ function ENT:ChangeEquipment(equip)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SapBattery(ent)
+	local _,animDur = self:PlayAnimation("Predator_Battery_Interaction",true,false,false,0,{OnFinish=function()
+		self.BatteryEnt = nil
+	end})
+	if self:GetCloaked() then
+		self:Camo(false)
+		self.NextCloakT = CurTime() +animDur
+	end
+	self:SetTurnTarget(ent,1,true)
+	self.BatteryEnt = ent
+	self:SetPos(ent:GetPos() +ent:GetForward() *50 +ent:GetUp() *6)
+	self:SetAngles(Angle(0,(ent:GetPos() -self:GetPos()):Angle().y,0))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DestroyConsole(ent)
+	local _,animDur = self:PlayAnimation("Predator_Disable_Interaction",true,false,false,0,{OnFinish=function()
+		self.ConsoleEnt = nil
+	end})
+	if self:GetCloaked() then
+		self:Camo(false)
+		self.NextCloakT = CurTime() +animDur
+	end
+	self:SetTurnTarget(ent,1,true)
+	self.ConsoleEnt = ent
+	self:SetPos(ent:GetPos() +ent:GetForward() *50 +ent:GetUp() *6)
+	self:SetAngles(Angle(0,(ent:GetPos() -self:GetPos()):Angle().y,0))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	-- print("----------------------------------")
 	-- print(key)
@@ -943,26 +971,10 @@ function ENT:OnKeyPressed(ply,key)
 		if tr.Hit && IsValid(ent) then
 			if !ent:IsNPC() && !ent:IsPlayer() then
 				if ent:GetClass() == "sent_vj_avp_battery" && ent.BatteryLife > 0 && self:GetEnergy() < 200 && !self:IsBusy() then
-					local _,animDur = self:PlayAnimation("Predator_Battery_Interaction",true,false,false,0,{OnFinish=function()
-						self.BatteryEnt = nil
-					end})
-					if self:GetCloaked() then
-						self:Camo(false)
-						self.NextCloakT = CurTime() +animDur
-					end
-					self:SetTurnTarget(ent,1,true)
-					self.BatteryEnt = ent
+					self:SapBattery(ent)
 					return
 				elseif ent:GetClass() == "sent_vj_avp_controller" && !self:IsBusy() then
-					local _,animDur = self:PlayAnimation("Predator_Disable_Interaction",true,false,false,0,{OnFinish=function()
-						self.ConsoleEnt = nil
-					end})
-					if self:GetCloaked() then
-						self:Camo(false)
-						self.NextCloakT = CurTime() +animDur
-					end
-					self:SetTurnTarget(ent,1,true)
-					self.ConsoleEnt = ent
+					self:DestroyConsole(ent)
 					return
 				end
 				ent:Fire("Use",nil,0,ply,self)
@@ -1144,6 +1156,25 @@ function ENT:CustomAttack(ent,vis)
 			if self.AI_IsBlocking && CurTime() > self.AI_BlockTime then
 				self.AI_IsBlocking = false
 				self.IsBlocking = false
+				return
+			end
+			if ent.EntityClass == AVP_ENTITYCLASS_SENTRYGUN then
+				local RC = ent.RC
+				local RCDist = self:GetPos():Distance(RC:GetPos())
+				if IsValid(RC) then
+					self.NextRCMoveT = self.NextRCMoveT or 0
+					self:SetLastPosition(RC:GetPos() +RC:GetForward() *50)
+					if CurTime() > self.NextRCMoveT then
+						self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+							x.CanShootWhenMoving = true
+							x.ConstantlyFaceEnemyVisible = true
+						end)
+						self.NextRCMoveT = CurTime() +6
+					end
+					if RCDist <= 80 && RCDist < ent:GetPos():Distance(self:GetPos()) && !self:IsBusy() then
+						self:DestroyConsole(RC)
+					end
+				end
 				return
 			end
 			if dist <= self.AttackDistance && !self:IsBusy() && !doingBlock && vis then
