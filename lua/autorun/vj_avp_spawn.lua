@@ -323,6 +323,235 @@ if VJExists == true then
 			end
 		end)
 	else
+		/*
+			▒█▀▀█ █▀▀█ █▀▀ █▀▀▄ █▀▀█ ▀▀█▀▀ █▀▀█ █▀▀█ 　 ▒█░▒█ █░░█ █▀▀▄ 　 ▀▀█▀▀ █▀▀ █▀▀ ▀▀█▀▀ ░▀░ █▀▀▄ █▀▀▀ 
+			▒█▄▄█ █▄▄▀ █▀▀ █░░█ █▄▄█ ░░█░░ █░░█ █▄▄▀ 　 ▒█▀▀█ █░░█ █░░█ 　 ░▒█░░ █▀▀ ▀▀█ ░░█░░ ▀█▀ █░░█ █░▀█ 
+			▒█░░░ ▀░▀▀ ▀▀▀ ▀▀▀░ ▀░░▀ ░░▀░░ ▀▀▀▀ ▀░▀▀ 　 ▒█░▒█ ░▀▀▀ ▀▀▀░ 　 ░▒█░░ ▀▀▀ ▀▀▀ ░░▀░░ ▀▀▀ ▀░░▀ ▀▀▀▀
+		*/
+		/*
+		local matTT_Thermal = Material("hud/cpthazama/avp/tt_thermal")
+		local matTT_Thermal_Overlay = Material("hud/cpthazama/avp/tt_thermal_overlay")
+		local matXenoOverlay = Material("models/cpthazama/avp/xenovision")
+		local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
+		local matNil = Material(" ")
+		local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
+		local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
+		local matGradientTech = Material("hud/cpthazama/avp/thermal_gradient_cold.png")
+		local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
+		local render_GetLightColor = render.GetLightColor
+		local math_Clamp = math.Clamp
+
+		local gDefault = {
+			["$pp_colour_addr"] = 0,
+			["$pp_colour_addg"] = 0,
+			["$pp_colour_addb"] = 0,
+			["$pp_colour_brightness"] = 0,
+			["$pp_colour_contrast"] = 1,
+			["$pp_colour_colour"] = 1,
+			["$pp_colour_mulr"] = 0,
+			["$pp_colour_mulg"] = 0,
+			["$pp_colour_mulb"] = 0,
+			["$pp_colour_inv"] = 0,
+		}
+		local tab_nomask = {
+			["$pp_colour_addr"] 		= -0.5,
+			["$pp_colour_addg"] 		= -0.5,
+			["$pp_colour_addb"] 		= -0.5,
+			["$pp_colour_brightness"] 	= .25,
+			["$pp_colour_contrast"] 	= 0.2,
+			["$pp_colour_colour"] 		= 2,
+			["$pp_colour_mulr"] 		= 1,
+			["$pp_colour_mulg"] 		= 1,
+			["$pp_colour_mulb"] 		= 2,
+			["$pp_colour_inv"] = 0,
+		}
+		local tab_thermal = {
+			["$pp_colour_addr"] 		= -.5,
+			["$pp_colour_addg"] 		= -.5,
+			["$pp_colour_addb"] 		= -.8,
+			["$pp_colour_brightness"] 	= 0.6,
+			["$pp_colour_contrast"] 	= 0.12,
+			["$pp_colour_colour"] 		= 1,
+			["$pp_colour_mulr"] 		= 10,
+			["$pp_colour_mulg"] 		= 0,
+			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
+		}
+		local tab_xeno = {
+			["$pp_colour_addr"] 		= .5,
+			["$pp_colour_addg"] 		= .5,
+			["$pp_colour_addb"] 		= .5,
+			["$pp_colour_brightness"] 	= -0.9,
+			["$pp_colour_contrast"] 	= -0.25,
+			["$pp_colour_colour"] 		= 1,
+			["$pp_colour_mulr"] 		= 0,
+			["$pp_colour_mulg"] 		= 10,
+			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
+		}
+		local tab_tech = {
+			["$pp_colour_addr"] 		= -.5,
+			["$pp_colour_addg"] 		= -.5,
+			["$pp_colour_addb"] 		= -.5,
+			["$pp_colour_brightness"] 	= 0.6,
+			["$pp_colour_contrast"] 	= 0.12,
+			["$pp_colour_colour"] 		= 1,
+			["$pp_colour_mulr"] 		= 10,
+			["$pp_colour_mulg"] 		= 0,
+			["$pp_colour_mulb"] 		= 0,
+			["$pp_colour_inv"] = 0,
+		}
+
+		local visionMode = 0
+		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_Vision",function()
+			local mode = visionMode
+			local ent = Entity(1)
+			local ply = ent
+			local cont = ent
+
+			if mode != ent.PreviousVisionMode then
+				DrawColorModify(gDefault)
+				DrawBloom(0.65,1,4,4,4,2,255,255,255)
+				DrawTexturize(0,matNil)
+				ent.PreviousVisionMode = mode
+				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(255,255,0,128) or mode == 2 && Color(0,52,53) or mode == 3 && Color(8,86,41) or Color(124,0,0),0.3,0)
+			end
+
+			local lightLevel = math_Clamp(render_GetLightColor(ent:GetPos() +ent:OBBCenter()):Length(),0,1)
+			local isDark = lightLevel <= 0.1
+			ent.AVP_LastDark = ent.AVP_LastDark or isDark
+			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
+			if mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
+				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,mode == 1 && math.random(95,110) or mode == 2 && math.random(115,125) or mode == 3 && math.random(75,90))
+				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(64,117,126) or Color(124,0,0),0.3,0)
+				ent.AVP_LastDark = isDark
+				ent.AVP_LastDarkT = CurTime() +1.5
+			end
+
+			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],(1 -lightLevel) *0.72)
+			tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
+
+			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],math_Clamp(lightLevel *-1.3,-1.2,-0.8))
+			tab_xeno["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *-0.2,-0.35,-0.2))
+
+			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
+			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.25,0.1,0.2))
+
+			tab_nomask["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_nomask["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
+
+			if mode > 0 then
+				local dLight = DynamicLight(ent:EntIndex())
+				if dLight then
+					dLight.Pos = ent:GetPos() +ent:OBBCenter()
+					dLight.r = 5
+					dLight.g = 5
+					dLight.b = 5
+					dLight.Brightness = 1
+					dLight.Size = 4000
+					dLight.Decay = 0
+					dLight.DieTime = CurTime() +0.2
+					dLight.Style = 0
+				end
+				DrawMotionBlur(0.4,0.8,0.015)
+				if mode == 2 then
+					DrawColorModify(tab_xeno)
+					DrawBloom(0,0.5,1,1,0,0,10,10,10)
+					DrawTexturize(0,matGradientXeno)
+				elseif mode == 3 then
+					DrawColorModify(tab_tech)
+					DrawBloom(0,0.5,1,1,0,0,10,10,10)
+					DrawTexturize(0,matGradientTech)
+				end
+				for _,v in ents.Iterator() do
+					if mode == 1 then
+						if v:IsNPC() or v:IsPlayer() or v:IsNextBot() then
+							if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
+							cam.Start3D(EyePos(),EyeAngles())
+								if util.IsValidModel(v:GetModel()) then
+									render.OverrideDepthEnable(true,false)
+									render.SetLightingMode(2)
+									render.SetColorModulation(2,0,0)
+									if v.VJ_AVP_Predator && v:GetCloaked() then
+										render.MaterialOverride(matTT_Thermal)
+									end
+									-- render.MaterialOverride((v.VJ_AVP_Predator && v:GetCloaked()) && matTT_Thermal or matTT_Thermal_Overlay)
+									v:DrawModel()
+									render.SetColorModulation(1,1,1)
+									render.MaterialOverride(0)
+									render.SetLightingMode(0)
+									render.OverrideDepthEnable(false,false)
+									for _,x in pairs(v:GetChildren()) do
+										if IsValid(x) then
+											local mdl = x:GetModel()
+											if mdl && util.IsValidModel(mdl) then
+												render.OverrideDepthEnable(true,false)
+												render.SetLightingMode(2)
+												render.SetColorModulation(2,0,0)
+												if v.VJ_AVP_Predator && v:GetCloaked() then
+													render.MaterialOverride(matTT_Thermal)
+												end
+												x:DrawModel()
+												render.SetColorModulation(1,1,1)
+												render.MaterialOverride(0)
+												render.SetLightingMode(0)
+												render.OverrideDepthEnable(false,false)
+											end
+										end
+									end
+								end
+							cam.End3D()
+						end
+
+					elseif mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
+						cam.Start3D(EyePos(),EyeAngles())
+							if util.IsValidModel(v:GetModel()) then
+								render.OverrideDepthEnable(true,false)
+								render.SetLightingMode(2)
+								-- render.MaterialOverride(matXenoOverlay)
+								v:DrawModel()
+								-- render.MaterialOverride(0)
+								render.SetLightingMode(0)
+								render.OverrideDepthEnable(false,false)
+							end
+						cam.End3D()
+					elseif mode == 3 && (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) then
+						cam.Start3D(EyePos(),EyeAngles())
+							if util.IsValidModel(v:GetModel()) then
+								render.OverrideDepthEnable(true,false)
+								render.SetLightingMode(2)
+								render.SetBlend(1)
+								render.MaterialOverride(matColdOverlay)
+								v:DrawModel()
+								render.OverrideDepthEnable(false,false)
+								render.SetLightingMode(0)
+								render.MaterialOverride(0)
+								render.SetBlend(1)
+							end
+						cam.End3D()
+					end
+				end
+				if IsValid(cont) then
+					cont:SetDSP(31)
+				end
+			end
+			if mode == 1 then
+				DrawColorModify(tab_thermal)
+				-- DrawBloom(0,0.5,1,1,0,0,10,10,10)
+				DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
+				DrawTexturize(0,matGradientThermal)
+			elseif mode == 0 then
+				if IsValid(cont) then
+					cont:SetDSP(1)
+				end
+			end
+		end)*/
+
+		/*
+			▒█▀▀▀ █▀▀▄ █▀▀▄ 
+			▒█▀▀▀ █░░█ █░░█ 
+			▒█▄▄▄ ▀░░▀ ▀▀▀░
+		*/
+
 		net.Receive("VJ_AVP_CSound",function(len,pl)
 			local sound = net.ReadString()
 			local ent = net.ReadEntity()

@@ -114,10 +114,6 @@ function SWEP:OnThink(owner)
 	self:SetFlame(lastFire > 0 && CurTime() < lastFire +0.25)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnNoOwner()
-	self:SetFlame(false)
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:PostDrawViewModel(vm,weapon,ply)
 	if IsValid(vm) then
 		local att = vm:GetAttachment(vm:LookupAttachment("muzzle"))
@@ -195,4 +191,28 @@ function SWEP:CustomOnDrawWorldModel()
 		end
 	end
 	return true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:WhenDropped()
+	self:SetFlame(false)
+	if IsValid(self.Flame) then
+		self.Flame:StopEmission()
+		self.Flame = nil
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnNewOwner(owner)
+	self:SetFlame(false)
+	if IsValid(self.Flame) then
+		self.Flame:StopEmission()
+		self.Flame = nil
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnNoOwner()
+	self:SetFlame(false)
+	if IsValid(self.Flame) then
+		self.Flame:StopEmission()
+		self.Flame = nil
+	end
 end

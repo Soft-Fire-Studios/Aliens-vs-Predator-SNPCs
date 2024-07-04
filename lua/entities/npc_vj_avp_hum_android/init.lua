@@ -95,11 +95,16 @@ function ENT:SynthInitialize()
 	}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnInit()
+	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_IsTech = true
 	ent:SetNW2Bool("AVP.IsTech",true)
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
+		corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
 	end
 
 	timer.Simple(1.25,function()

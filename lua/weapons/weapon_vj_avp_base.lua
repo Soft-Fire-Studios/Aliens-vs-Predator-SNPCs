@@ -207,10 +207,22 @@ function SWEP:IsBusy()
 	return self.Reloading
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnDrop()
+	if self.Primary.UsesLoopedSound && self.PrimaryLoop then
+		self.PrimaryLoop:Stop()
+	end
+	self:StopParticles()
+	self:WhenDropped()
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:WhenDropped() end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OwnerChanged()
 	if self.Primary.UsesLoopedSound && self.PrimaryLoop then
 		self.PrimaryLoop:Stop()
 	end
+
+	self:StopParticles()
 
 	local owner = self:GetOwner()
 	if IsValid(owner) then
