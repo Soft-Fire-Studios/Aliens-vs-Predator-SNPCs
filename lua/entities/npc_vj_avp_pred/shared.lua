@@ -58,7 +58,7 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 		end
 
 		if button == KEY_F then
-			if npc.VJ_AVP_Predator && npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1 then
+			if npc.VJ_AVP_Predator && (npc.PredLord && 1 or npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1) then
 				local mode = npc:GetVisionMode()
 				if mode == 0 then
 					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
@@ -156,6 +156,7 @@ if CLIENT then
 
 	local math_abs = math.abs
 	local blueFX = Vector(0,0.4,6)
+	local androidFX = Vector(2,2,2)
 	local whiteFX = Vector(1,1,1)
     matproxy.Add({
         name = "AVP_ArmorTint",
@@ -205,7 +206,7 @@ if CLIENT then
 						local remaining = disruptTime -CurTime()
 						finalResult = 0.97 +math.sin(CurTime() *2) *0.03
 					else
-						finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or checkEnt:GetJumpPosition() != scale0) && 0.97 or 0.997
+						finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or (checkEnt.GetJumpPosition && checkEnt:GetJumpPosition() != scale0)) && 0.97 or 0.997
 					end
 				else
 					finalResult = 0
@@ -220,6 +221,8 @@ if CLIENT then
 			end
 			mat:SetVector("$cloakcolortint",self.CloakColorTint)
 			mat:SetFloat(self.Result,ent.Mat_cloakfactor)
+
+			-- print(ent,ent.Mat_cloakfactor,self.CloakColorTint)
         end
     })
 
@@ -471,6 +474,7 @@ if CLIENT then
 	local matTT_Thermal_Overlay = Material("hud/cpthazama/avp/tt_thermal_overlay")
 	local matXenoOverlay = Material("models/cpthazama/avp/xenovision")
 	local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
+	local matColdOverlay_Cloaked = Material("hud/cpthazama/avp/tt_tech_overlay_cloaked")
 	local matHUD = Material("hud/cpthazama/avp/predator_hud.png","smooth additive")
 	local matHUD_Cloaked = Material("hud/cpthazama/avp/predator_cloak_hud.png","smooth additive")
 	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png","smooth additive")
@@ -625,7 +629,7 @@ if CLIENT then
 			local maskBG = ent:FindBodygroupByName("mask")
 			local hasMask = true
 			if maskBG > -1 then
-				local mask = ent:GetBodygroup(maskBG)
+				local mask = ent.PredLord && 1 or ent:GetBodygroup(maskBG)
 				if mask == 0 then
 					a = 0
 					hasMask = false
@@ -815,7 +819,7 @@ if CLIENT then
 				local maskBG = ent:FindBodygroupByName("mask")
 				local hasMask = true
 				if maskBG > -1 then
-					local mask = ent:GetBodygroup(maskBG)
+					local mask = ent.PredLord && 1 or ent:GetBodygroup(maskBG)
 					if mask == 0 then
 						mode = 0
 						hasMask = false
@@ -994,7 +998,7 @@ if CLIENT then
 			local hasMask = true
 			local maskBG = ent:FindBodygroupByName("mask")
 			if maskBG > -1 then
-				local mask = ent:GetBodygroup(maskBG)
+				local mask = ent.PredLord && 1 or ent:GetBodygroup(maskBG)
 				if mask == 0 then
 					hasMask = false
 				end
@@ -1010,9 +1014,16 @@ if CLIENT then
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5
 			end
-
 			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],(1 -lightLevel) *0.72)
 			tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
+			-- tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.5,0.6,1))
+			-- tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.25,0.08,0.18))
+			-- print("--------------------")
+			-- print("--------------------")
+			-- print("--------------------")
+			-- print("--------------------")
+			-- print("Brightness: " .. tab_thermal["$pp_colour_brightness"])
+			-- print("Contrast: " .. tab_thermal["$pp_colour_contrast"])
 
 			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],math_Clamp(lightLevel *-1.3,-1.2,-0.8))
 			tab_xeno["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *-0.2,-0.35,-0.2))
@@ -1023,27 +1034,35 @@ if CLIENT then
 			tab_nomask["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_nomask["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
 
 			if mode > 0 then
-				local dLight = DynamicLight(ent:EntIndex())
-				if dLight then
-					dLight.Pos = ent:GetPos() +ent:OBBCenter()
-					dLight.r = 5
-					dLight.g = 5
-					dLight.b = 5
-					dLight.Brightness = 1
-					dLight.Size = 4000
-					dLight.Decay = 0
-					dLight.DieTime = CurTime() +0.2
-					dLight.Style = 0
+				if lightLevel <= 0.1 then
+					local dLight = DynamicLight(ent:EntIndex())
+					if dLight then
+						dLight.Pos = ent:GetPos() +ent:OBBCenter()
+						dLight.r = 5
+						dLight.g = 5
+						dLight.b = 5
+						dLight.Brightness = 1
+						dLight.Size = 4000
+						dLight.Decay = 0
+						dLight.DieTime = CurTime() +0.2
+						dLight.Style = 0
+					end
 				end
 				DrawMotionBlur(0.4,0.8,0.015)
 				if mode == 2 then
 					DrawColorModify(tab_xeno)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
 					DrawTexturize(0,matGradientXeno)
+					-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+					-- 	RunConsoleCommand("mat_fullbright","0")
+					-- end
 				elseif mode == 3 then
 					DrawColorModify(tab_tech)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
 					DrawTexturize(0,matGradientTech)
+					-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+					-- 	RunConsoleCommand("mat_fullbright","0")
+					-- end
 				end
 				for _,v in ents.Iterator() do
 					if mode == 1 then
@@ -1054,7 +1073,7 @@ if CLIENT then
 									render.OverrideDepthEnable(true,false)
 									render.SetLightingMode(2)
 									render.SetColorModulation(2,0,0)
-									if v.VJ_AVP_Predator && v:GetCloaked() then
+									if v.GetCloaked && v:GetCloaked() then
 										render.MaterialOverride(matTT_Thermal)
 									end
 									-- render.MaterialOverride((v.VJ_AVP_Predator && v:GetCloaked()) && matTT_Thermal or matTT_Thermal_Overlay)
@@ -1084,7 +1103,6 @@ if CLIENT then
 								end
 							cam.End3D()
 						end
-
 					elseif mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
 						cam.Start3D(EyePos(),EyeAngles())
 							if util.IsValidModel(v:GetModel()) then
@@ -1103,7 +1121,11 @@ if CLIENT then
 								render.OverrideDepthEnable(true,false)
 								render.SetLightingMode(2)
 								render.SetBlend(1)
-								render.MaterialOverride(matColdOverlay)
+								if v.GetCloaked && v:GetCloaked() then
+									render.MaterialOverride(matColdOverlay_Cloaked)
+								else
+									render.MaterialOverride(matColdOverlay)
+								end
 								v:DrawModel()
 								render.OverrideDepthEnable(false,false)
 								render.SetLightingMode(0)
@@ -1122,10 +1144,16 @@ if CLIENT then
 				-- DrawBloom(0,0.5,1,1,0,0,10,10,10)
 				DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
 				DrawTexturize(0,matGradientThermal)
+				-- if GetConVar("mat_fullbright"):GetInt() != 1 then
+				-- 	RunConsoleCommand("mat_fullbright","1")
+				-- end
 			elseif mode == 0 then
 				if IsValid(cont) then
 					cont:SetDSP(1)
 				end
+				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+				-- 	RunConsoleCommand("mat_fullbright","0")
+				-- end
 			end
 		end)
 		-- hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision",function()
@@ -1191,6 +1219,9 @@ if CLIENT then
 		-- 	end
 		-- end)
 		if delete == true then
+			-- if GetConVar("mat_fullbright"):GetInt() != 0 then
+			-- 	RunConsoleCommand("mat_fullbright","0")
+			-- end
 			hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_Vision")
 			-- hook.Remove("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision")
 			if IsValid(cont) then

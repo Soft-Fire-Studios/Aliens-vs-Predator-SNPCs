@@ -21,8 +21,16 @@
 	"$DEM_TintScale" 			"[1 1 1]"
 	"$DEM_Multiplier" 			"1.25"
 
-	"Proxies" 
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"Proxies"
 	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
 		"DynamicEnvMap"
 		{
 			resultVar	"$envmaptint"

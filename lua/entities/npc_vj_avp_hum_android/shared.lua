@@ -8,3 +8,4 @@ ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= "VJ Base"
 
 ENT.VJ_AVP_IsTech = true
+ENT.EntityClass = AVP_ENTITYCLASS_ANDROID

@@ -14,6 +14,8 @@ ENT.VJ_NPC_Class = {"CLASS_WEYLAND_YUTANI"}
 
 ENT.HasFlashlight = false
 ENT.HasMotionTracker = true
+
+ENT.AllowCloaking = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/android.mdl"
@@ -47,6 +49,9 @@ function ENT:SynthInitialize()
 		"cpthazama/avp/humans/vocals/Android_01/pain_and01_03.ogg",
 		"cpthazama/avp/humans/vocals/Android_01/pain_and01_04.ogg",
 		"cpthazama/avp/humans/vocals/Android_01/pain_and01_05.ogg",
+		"cpthazama/avp/humans/android/pain_and01_01.ogg",
+		"cpthazama/avp/humans/android/pain_and01_02.ogg",
+		"cpthazama/avp/humans/android/pain_and01_03.ogg",
 	}
 	self.SoundTbl_Investigate = {
 		"cpthazama/avp/humans/vocals/Android_01/PASSIVE_TO_ALERT_AND01_03.ogg",
@@ -97,6 +102,154 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
+	self.HasFallen = false
+	self.NextCloakT = 0
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomBeforeApplyRelationship(v)
+	if self:GetCloaked() then
+		local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(self:GetSprinting() && 3 or 1))
+		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
+			return
+		end
+		if v.EntityClass == AVP_ENTITYCLASS_ANDROID then
+			calcMult = calcMult *1.6
+		end
+		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
+			self:AddEntityRelationship(v, D_NU, 10)
+			return false
+		end
+		if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
+			if v:HasEnemyMemory(self) then
+				v:ClearEnemyMemory(self)
+			end
+			if v:GetEnemy() == self then
+				v:SetEnemy(nil)
+			end
+			self:AddEntityRelationship(v, D_NU, 10)
+			return false
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnThink(curTime)
+	if !self.AllowCloaking or self.HasFallen then return end
+	local enemy = self:GetEnemy()
+	local cont = self.VJ_IsBeingControlled
+	if self:GetCloaked() then
+		for _,v in ents.Iterator() do
+			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
+				local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(sprinting && 3 or 1))
+				if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
+					continue
+				end
+				if v.EntityClass == AVP_ENTITYCLASS_ANDROID then
+					calcMult = calcMult *1.6
+				end
+				if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
+					continue
+				end
+				if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
+					if v.HasEnemyMemory && v:HasEnemyMemory(self) then
+						v:ClearEnemyMemory(self)
+					end
+					if v.GetEnemy && v:GetEnemy() == self then
+						v:SetEnemy(nil)
+					end
+				end
+			end
+		end
+		if self:WaterLevel() >= 2 or !IsValid(self:GetEnemy()) && !self.Alerted && !cont then
+			self:Camo(false)
+			self.NextCloakT = curTime +2
+		end
+	else
+		-- if !self:GetCloaked() && curTime > self.NextCloakT then
+		-- 	self:Camo(!self:GetCloaked())
+		-- 	self.NextCloakT = curTime +1
+		-- end
+		if IsValid(enemy) && !cont then
+			if !self:GetCloaked() && self:GetState() == VJ_STATE_NONE && curTime > self.NextCloakT && !enemy.VJ_AVP_Xenomorph && math.random(1,30) == 1 then
+				self:Camo(!self:GetCloaked())
+				self.NextCloakT = curTime +1
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Camo(set)
+	self:SetCloaked(set)
+	if set then
+		-- self:SetMaterial("models/cpthazama/avp/cloak")
+		-- self:AddFlags(FL_NOTARGET)
+		self:DrawShadow(false)
+		if IsValid(self:GetActiveWeapon()) then
+			self:GetActiveWeapon():DrawShadow(false)
+			-- self:GetActiveWeapon():SetMaterial("models/cpthazama/avp/cloak")
+		end
+		self:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
+		for _,x in ents.Iterator() do
+			if (x:GetClass() != self:GetClass() && x:GetClass() != "npc_grenade_frag") && x:IsNPC() && self:Visible(x) then
+				x:AddEntityRelationship(self,D_NU,99)
+				if x.IsVJBaseSNPC == true then
+					x.MyEnemy = NULL
+					x:SetEnemy(NULL)
+					x:ClearEnemyMemory()
+				end
+				if VJ_HasValue(self.NPCTbl_Combine,x:GetClass()) or VJ_HasValue(self.NPCTbl_Resistance,x:GetClass()) then
+					x:VJ_SetSchedule(SCHED_RUN_RANDOM)
+					x:SetEnemy(NULL)
+					x:ClearEnemyMemory()
+				end
+			end
+		end
+	else
+		-- self:SetMaterial(" ")
+		self:RemoveFlags(FL_NOTARGET)
+		self:DrawShadow(true)
+		self:EmitSound(self:WaterLevel() >= 2 && "cpthazama/avp/predator/cloak/predator_decloak_water.ogg" or "cpthazama/avp/predator/cloak/prd_uncloak.ogg",70)
+		if IsValid(self:GetActiveWeapon()) then
+			self:GetActiveWeapon():DrawShadow(true)
+			-- self:GetActiveWeapon():SetMaterial(" ")
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local nono = {
+	"crossbow",
+	"pistol",
+	"revolver",
+}
+--
+function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+	if self:GetCloaked() && CurTime() > self.NextCloakT && math.random(1,4) == 1 then
+		self:Camo(false)
+		self.NextCloakT = CurTime() +1
+	end
+	if !self.HasFallen && self:Health() <= self:GetMaxHealth() *0.2 && math.random(1,(hitgroup == HITGROUP_LEFTLEG or hitgroup == HITGROUP_RIGHTLEG) && 1 or 12) == 1 && IsValid(self:GetActiveWeapon()) && !nono[self:GetActiveWeapon():GetHoldType()] then
+		self.HasFallen = true
+		self:Camo(false)
+		self.AnimationTranslations[ACT_IDLE] = ACT_IDLE_HURT
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] = ACT_IDLE_SMG1
+		self.AnimationTranslations[ACT_IDLE_ANGRY] = ACT_IDLE_STEALTH
+		self:DoChangeMovementType(VJ_MOVETYPE_STATIONARY)
+		self:SetMaxYawSpeed(1)
+		dmginfo:SetDamageForce(vector_origin)
+		self:SetLocalVelocity(vector_origin)
+		self:PlayAnimation("android_thwa_LooseLeg_to_sit",true,false,false)
+		if hitgroup == HITGROUP_LEFTLEG then
+			self:SetBodygroup(self:FindBodygroupByName("lleg"),1)
+		elseif hitgroup == HITGROUP_RIGHTLEG then
+			self:SetBodygroup(self:FindBodygroupByName("rleg"),1)
+		end
+		self.PoseParameterLooking_Names = {pitch={"pp_sit_pitch"}, yaw={"pp_sit_yaw"}, roll={}}
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomDeathAnimationCode(dmginfo, hitgroup)
+	if self:GetCloaked() then
+		self:Camo(false)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
@@ -105,6 +258,17 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
+	end
+	local doSplode = true
+	if !self.HasFallen && math.random(1,4) == 1 then
+		doSplode = false
+	end
+	local class = self:GetClass()
+	local wep = self.StoredWeapon
+	local fac = self.VJ_NPC_Class
+
+	if !doSplode then
+		undo.ReplaceEntity(self,ent)
 	end
 
 	timer.Simple(1.25,function()
@@ -116,6 +280,48 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 
 	timer.Simple(5,function()
 		if IsValid(ent) then
+			if !doSplode then
+				local tr = util.TraceLine({
+					start = ent:GetPos(),
+					endpos = ent:GetPos() -Vector(0,0,128),
+					filter = ent
+				})
+				local npc = ents.Create(class)
+				npc:SetPos(tr.HitPos or ent:GetPos())
+				npc:SetAngles(ent:GetAngles())
+				npc.VJ_NPC_Class = fac
+				npc:Spawn()
+				npc:Activate()
+				SafeRemoveEntity(npc:GetActiveWeapon())
+				undo.ReplaceEntity(ent,npc)
+				timer.Simple(0,function()
+					if IsValid(npc) then
+						ParticleEffectAttach("vj_avp_android_death_charge",PATTACH_ABSORIGIN_FOLLOW,npc,0)
+						npc:DoChangeWeapon(wep)
+						npc:StopAllCommonSpeechSounds()
+						VJ.CreateSound(npc,"cpthazama/avp/humans/vocals/Android_01/head_missing_and01_0" .. math.random(2,4) .. ".ogg",75)
+						npc:PlayAnimation("android_thwa_spark_and_sit_up",true,false,false)
+						npc.HasFallen = true
+						timer.Simple(0.1,function()
+							if IsValid(npc) then
+								npc.AnimationTranslations[ACT_IDLE] = ACT_IDLE_HURT
+								npc.AnimationTranslations[ACT_RANGE_ATTACK1] = ACT_IDLE_SMG1
+								npc.AnimationTranslations[ACT_IDLE_ANGRY] = ACT_IDLE_STEALTH
+								npc.PoseParameterLooking_Names = {pitch={"pp_sit_pitch"}, yaw={"pp_sit_yaw"}, roll={}}
+							end
+						end)
+						timer.Simple(1,function()
+							if IsValid(npc) then
+								npc:StopParticles()
+							end
+						end)
+						npc:DoChangeMovementType(VJ_MOVETYPE_STATIONARY)
+						npc:SetMaxYawSpeed(1)
+					end
+				end)
+				SafeRemoveEntity(ent)
+				return
+			end
 			local fakeNPC = ents.Create("npc_vj_avp_hum_android")
 			fakeNPC:SetPos(ent:GetPos())
 			fakeNPC:SetAngles(ent:GetAngles())

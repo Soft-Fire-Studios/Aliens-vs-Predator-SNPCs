@@ -773,6 +773,7 @@ function ENT:CustomOnInitialize()
 	self.NextSpearGunFireT = 0
 	self.ActivatedSelfDestruct = false
 	self.TotalBasicAttacks = 0
+	self.NextKnockdownT = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -1632,6 +1633,9 @@ function ENT:CustomBeforeApplyRelationship(v)
 		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
 			return
 		end
+		if v.EntityClass == AVP_ENTITYCLASS_ANDROID then
+			calcMult = calcMult *1.6
+		end
 		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
 			self:AddEntityRelationship(v, D_NU, 10)
 			return false
@@ -2385,6 +2389,9 @@ function ENT:CustomOnThink_AIEnabled()
 					if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
 						continue
 					end
+					if v.EntityClass == AVP_ENTITYCLASS_ANDROID then
+						calcMult = calcMult *1.6
+					end
 					if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
 						continue
 					end
@@ -2862,6 +2869,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	local explosion = dmginfo:IsExplosionDamage()
 	local dmg = dmginfo:GetDamage()
 	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
+		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
@@ -2881,7 +2889,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		-- self.CanFlinch = 0
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		-- self.Flinching = true
-		self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+		local _,dir = self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then
 			-- if interrupted && self.NextFlinchT < CurTime() then
 				-- self.Flinching = false
@@ -2891,6 +2899,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 			-- self.Flinching = false
 			-- self.CanFlinch = 1
 		end})
+		self.NextKnockdownT = CurTime() +(dir *0.5)
 		self.NextCallForBackUpOnDamageT = CurTime() +1
 	end
 end

@@ -16,9 +16,13 @@ ENT.VJC_Data = {
 
 ENT.BloodColor = "Red"
 
+ENT.PoseParameterLooking_InvertPitch = true
+ENT.PoseParameterLooking_InvertYaw = true
+
 ENT.UsePlayerModelMovement = true
 ENT.HasMeleeAttack = true
 ENT.CanCrouchOnWeaponAttack = false
+ENT.Weapon_AimTurnDiff = 0.74
 
 local moveslikejaggerfuckingkms = 21378944
 ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
@@ -831,6 +835,12 @@ function ENT:OnKeyPressed(ply,key)
 			self:UseStimpack()
 			self.NextHealT = CurTime() +3
 		end
+    elseif key == KEY_V && self.EntityClass == AVP_ENTITYCLASS_ANDROID then
+		if !self.AllowCloaking or self.HasFallen then return end
+		if self:GetState() == VJ_STATE_NONE && CurTime() > self.NextCloakT then
+			self:Camo(!self:GetCloaked())
+			self.NextCloakT = CurTime() +1
+		end
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -926,6 +936,12 @@ function ENT:SetAnimationTranslations(hType)
 		
 		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "ohwn_Run")
 		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "ohwa_Run_fwd_Look_fwd")
+
+		self.PoseParameterLooking_Names = {pitch={"pp_ohw_pitch"}, yaw={"pp_ohw_yaw"}, roll={}}
+	elseif hType == "crossbow" then
+		// Smartgun
+
+		self.PoseParameterLooking_Names = {pitch={"pp_smartgun_pitch"}, yaw={"pp_smartgun_yaw"}, roll={}}
 	else
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= ACT_HL2MP_IDLE_AR2
 		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
@@ -939,6 +955,8 @@ function ENT:SetAnimationTranslations(hType)
 		
 		self.AnimationTranslations[ACT_RUN] 							= ACT_HL2MP_WALK_CROUCH_AR2
 		self.AnimationTranslations[ACT_RUN_AIM] 						= ACT_HL2MP_RUN_AR2
+
+		self.PoseParameterLooking_Names = {pitch={"pp_thw_pitch"}, yaw={"pp_thw_yaw"}, roll={}}
 	end
 	return true
 end
@@ -1000,6 +1018,10 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 	end
 
+	if self.OnThink then
+		self:OnThink(curTime)
+	end
+
 	if self.HasMotionTracker then
 		VJ_AVP_MotionTracker(self)
 	end
@@ -1021,6 +1043,8 @@ function ENT:CustomOnKilled()
 			end
 		end
 	end
+
+	self.StoredWeapon = IsValid(self:GetActiveWeapon()) && self:GetActiveWeapon():GetClass()
 
 	if self.WhenKilled then
 		self:WhenKilled()

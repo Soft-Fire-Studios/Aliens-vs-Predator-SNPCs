@@ -505,6 +505,7 @@ function ENT:CustomOnInitialize()
 	self.BlockAnimTime = 0
 	self.AI_BlockTime = 0
 	self.SpecialBlockAnimTime = 0
+	self.NextKnockdownT = 0
 
 	if !self.VJ_AVP_XenomorphLarge then
 		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
@@ -2564,6 +2565,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 
 	local explosion = dmginfo:IsExplosionDamage()
 	if self.CanBeKnockedDown && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
 		dmgAng.r = 0
@@ -2594,10 +2596,11 @@ function ENT:CustomOnFlinch_AfterFlinch(dmginfo, hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoKnockdownAnimation(dmgDir)
-	self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
+	local _,dir = self:VJ_ACT_PLAYACTIVITY(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		self:SetState()
 	end})
+	self.NextKnockdownT = CurTime() +(dir *0.5)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled(dmginfo)

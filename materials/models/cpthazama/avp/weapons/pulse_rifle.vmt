@@ -31,8 +31,16 @@
 	"$emissiveBlendStrength"    	"0"
 	"$emissiveBlendScrollVector"	"[0 0]"
 
-	"Proxies" 
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"Proxies"
 	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
 		"DynamicEnvMap"
 		{
 			resultVar	"$envmaptint"
