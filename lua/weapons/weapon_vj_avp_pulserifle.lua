@@ -25,7 +25,7 @@ SWEP.WorldModel_CustomPositionBone = "ValveBiped.Bip01_R_Hand"
 SWEP.HasMotionTracker			= true
 SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_big_main"}
 
-SWEP.Primary.Damage				= 14
+SWEP.Primary.Damage				= 11
 SWEP.Primary.ClipSize			= 99
 SWEP.Primary.RPM				= 900
 SWEP.Primary.AccurateRange 		= 28

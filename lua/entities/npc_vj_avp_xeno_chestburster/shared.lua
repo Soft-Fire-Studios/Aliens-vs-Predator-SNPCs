@@ -74,7 +74,7 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
-	function ENT:CustomOnCalcView(ply, origin, angles, fov, camera, cameraMode)
+	function ENT:Controller_CalcView(ply, origin, angles, fov, camera, cameraMode)
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
 		if cameraMode == 2 then -- First person

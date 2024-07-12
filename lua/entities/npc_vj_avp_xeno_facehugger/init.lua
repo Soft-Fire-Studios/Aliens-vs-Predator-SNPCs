@@ -203,6 +203,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 
 			corpse.VJ_AVP_Facehugged = true
 			corpse.VJ_AVP_Facehugger = self
+			self:SetFacehugged(corpse)
 			corpse.VJ_AVP_Faction = self.VJ_NPC_Class
 			corpse.VJ_AVP_Class = self:GetClass()
 			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 90 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")

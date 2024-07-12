@@ -123,6 +123,13 @@ if CLIENT then
 	local matLaser = Material("sprites/avp/turret_laser_fade")
 	local matLaserStart = Material("vj_base/effects/muzzlestarlarge_01")
 	local laserColor = Color(255,0,0,135)
+	local matNil = Material(" ")
+	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
+	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
+	local matGradientThermal2 = Material("hud/cpthazama/avp/thermal_gradient_cold_b.png")
+	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
+	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
+	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
     function ENT:Initialize()
 		self.Mat_cloakfactor = 0
 		self.CL_PreviousVisionMode = 0
@@ -248,9 +255,34 @@ if CLIENT then
 				vm:SetSkin(self.VJ_AVP_Predator_IsDark && 1 or 0)
 				if self:GetVisionMode() == 1 then
 					vm:SetBodygroup(1,self:GetCloaked() && 2 or 1)
+					-- vm:SetNoDraw(true)
 					-- vm:SetMaterial(self:GetCloaked() && "hud/cpthazama/avp/tt_thermal" or "hud/cpthazama/avp/tt_thermal_overlay")
+					-- cam.Start3D(EyePos(),EyeAngles(),94)
+					-- 	render.ClearStencil()
+					-- 	render.SetStencilEnable(true)
+					-- 	render.SetStencilWriteMask(255)
+					-- 	render.SetStencilTestMask(255)
+					-- 	render.SetStencilReferenceValue(1)
+					-- 	render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+					-- 	render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+					-- 	render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+					-- 	render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+					-- 	vm:DrawModel()
+					-- 	render.SuppressEngineLighting(true)
+					-- 	render.SetColorModulation(1.65,1.65,1.65)
+					-- 	render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+					-- 	render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+					-- 	vm:DrawModel()
+					-- 	DrawBloom(0,1,1,1,1,2,1,0.8,0.8)
+					-- 	DrawTexturize(0,matGradientThermal)
+					-- 	render.SetColorModulation(1,1,1)
+					-- 	render.MaterialOverride(0)
+					-- 	render.SuppressEngineLighting(false)
+					-- 	render.SetStencilEnable(false)
+					-- cam.End3D()
 				else
 					vm:SetBodygroup(1,0)
+					-- vm:SetNoDraw(false)
 					-- vm:SetMaterial("")
 				end
 
@@ -498,12 +530,6 @@ if CLIENT then
 	local matHUD_Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive")
 	local matHUDCloak_Solid = Material("hud/cpthazama/avp/predmask_solid.png","smooth additive")
 	local matHUDCloak_Outline = Material("hud/cpthazama/avp/predmask_outline.png","smooth additive")
-	local matNil = Material(" ")
-	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
-	local matGradientThermal = Material("hud/cpthazama/avp/thermal_gradient.png")
-	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
-	local matGradientTech = Material("hud/cpthazama/avp/thermal_gradient_cold.png")
-	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
 
 	local matHUD_Blood = {
 		Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
@@ -564,6 +590,16 @@ if CLIENT then
 		{x=-6,y=8}, // Spear
 		{x=6,y=8}, // Spear-Gun
 	}
+
+	local matSurf = {
+		alienflesh=true,
+		antlion=true,
+		antlion_eggshell=true,
+		armorflesh=true,
+		bloodyflesh=true,
+		flesh=true,
+		zombieflesh=true,
+	}
 	
 	local render_GetLightColor = render.GetLightColor
 	local math_Clamp = math.Clamp
@@ -621,10 +657,10 @@ if CLIENT then
 				b = 0
 				hpColor = Color(255,247,0)
 			elseif mode == 3 then -- Tech mode
-				r = 255
-				g = 150
-				b = 20
-				hpColor = Color(0,255,115)
+				r = 180
+				g = 0
+				b = 220
+				hpColor = Color(0,173,78)
 			end
 			local maskBG = ent:FindBodygroupByName("mask")
 			local hasMask = true
@@ -1014,95 +1050,118 @@ if CLIENT then
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5
 			end
+
 			tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],(1 -lightLevel) *0.72)
 			tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
-			-- tab_thermal["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.5,0.6,1))
-			-- tab_thermal["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_thermal["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.25,0.08,0.18))
-			-- print("--------------------")
-			-- print("--------------------")
-			-- print("--------------------")
-			-- print("--------------------")
-			-- print("Brightness: " .. tab_thermal["$pp_colour_brightness"])
-			-- print("Contrast: " .. tab_thermal["$pp_colour_contrast"])
 
 			tab_xeno["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_brightness"],math_Clamp(lightLevel *-1.3,-1.2,-0.8))
 			tab_xeno["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_xeno["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *-0.2,-0.35,-0.2))
 
-			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
-			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.25,0.1,0.2))
+			tab_tech["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_brightness"],(1 -lightLevel) *0.72)
+			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
 
 			tab_nomask["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_nomask["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
 
 			if mode > 0 then
-				if lightLevel <= 0.1 then
-					local dLight = DynamicLight(ent:EntIndex())
-					if dLight then
-						dLight.Pos = ent:GetPos() +ent:OBBCenter()
-						dLight.r = 5
-						dLight.g = 5
-						dLight.b = 5
-						dLight.Brightness = 1
-						dLight.Size = 4000
-						dLight.Decay = 0
-						dLight.DieTime = CurTime() +0.2
-						dLight.Style = 0
-					end
+				local dLight = DynamicLight(ent:EntIndex())
+				if dLight then
+					dLight.Pos = ent:GetPos() +ent:OBBCenter()
+					dLight.r = 5
+					dLight.g = 5
+					dLight.b = 5
+					dLight.Brightness = 1
+					dLight.Size = 4000
+					dLight.Decay = 0
+					dLight.DieTime = CurTime() +0.2
+					dLight.Style = 0
 				end
 				DrawMotionBlur(0.4,0.8,0.015)
-				if mode == 2 then
+				if mode == 1 then
+					-- DrawColorModify(tab_thermal)
+					DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
+					DrawTexturize(10,matGradientThermal2)
+				elseif mode == 2 then
 					DrawColorModify(tab_xeno)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
-					DrawTexturize(0,matGradientXeno)
-					-- if GetConVar("mat_fullbright"):GetInt() != 0 then
-					-- 	RunConsoleCommand("mat_fullbright","0")
-					-- end
+					DrawTexturize(10,matGradientXeno)
 				elseif mode == 3 then
 					DrawColorModify(tab_tech)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
-					DrawTexturize(0,matGradientTech)
-					-- if GetConVar("mat_fullbright"):GetInt() != 0 then
-					-- 	RunConsoleCommand("mat_fullbright","0")
-					-- end
+					DrawTexturize(10,matGradientTech)
 				end
 				for _,v in ents.Iterator() do
 					if mode == 1 then
-						if v:IsNPC() or v:IsPlayer() or v:IsNextBot() or acceptClasses[v:GetClass()] then
+						if v:IsNPC() or v:IsPlayer() or v:IsNextBot() or v:GetClass() == "prop_ragdoll" /*or v:GetClass() == "viewmodel"*/ then
 							if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
-							cam.Start3D(EyePos(),EyeAngles())
-								if util.IsValidModel(v:GetModel()) then
-									render.OverrideDepthEnable(true,false)
-									render.SetLightingMode(2)
-									render.SetColorModulation(2,0,0)
-									if v.GetCloaked && v:GetCloaked() then
+							local isVM = v:GetClass() == "viewmodel"
+							-- if v:GetClass() == "prop_ragdoll" then
+							-- 	print(v:GetModel(),v:GetBoneSurfaceProp(0),matSurf[v:GetBoneSurfaceProp(0)] != true)
+							-- end
+							if v:GetClass() == "prop_ragdoll" && matSurf[v:GetBoneSurfaceProp(0)] != true then continue end
+							cam.Start3D(EyePos(),EyeAngles(),isVM && 92)
+								if !isVM && util.IsValidModel(v:GetModel()) or isVM then
+								-- if util.IsValidModel(v:GetModel()) then
+									render.ClearStencil()
+									render.SetStencilEnable(true)
+									render.SetStencilWriteMask(255)
+									render.SetStencilTestMask(255)
+									render.SetStencilReferenceValue(1)
+									render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+									render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+									render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+									render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+									v:DrawModel()
+									render.SuppressEngineLighting(true)
+									if v.VJ_AVP_Predator && v:GetCloaked() then
 										render.MaterialOverride(matTT_Thermal)
 									end
-									-- render.MaterialOverride((v.VJ_AVP_Predator && v:GetCloaked()) && matTT_Thermal or matTT_Thermal_Overlay)
+									render.SetColorModulation(1.65,1.65,1.65)
+									render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+									render.SetStencilPassOperation(STENCILOPERATION_KEEP)
 									v:DrawModel()
+									if !(v.VJ_AVP_Predator && v:GetCloaked()) then
+										DrawMotionBlur(1,0.15,1)
+										DrawBloom(0,1,1,1,1,2,1,0.8,0.8)
+										DrawTexturize(0,matGradientThermal)
+									end
 									render.SetColorModulation(1,1,1)
 									render.MaterialOverride(0)
-									render.SetLightingMode(0)
-									render.OverrideDepthEnable(false,false)
-									for _,x in pairs(v:GetChildren()) do
-										if IsValid(x) && !x:IsEffectActive(EF_NODRAW ) then
-											local mdl = x:GetModel()
-											if mdl && util.IsValidModel(mdl) then
-												render.OverrideDepthEnable(true,false)
-												render.SetLightingMode(2)
-												render.SetColorModulation(2,0,0)
-												if v.VJ_AVP_Predator && v:GetCloaked() then
-													render.MaterialOverride(matTT_Thermal)
-												end
-												x:DrawModel()
-												render.SetColorModulation(1,1,1)
-												render.MaterialOverride(0)
-												render.SetLightingMode(0)
-												render.OverrideDepthEnable(false,false)
-											end
-										end
-									end
+									render.SuppressEngineLighting(false)
+									render.SetStencilEnable(false)
+
+									-- render.OverrideDepthEnable(true,false)
+									-- render.SetLightingMode(2)
+									-- render.SetColorModulation(2,0,0)
+									-- if v.VJ_AVP_Predator && v:GetCloaked() then
+									-- 	render.MaterialOverride(matTT_Thermal)
+									-- end
+									-- v:DrawModel()
+									-- render.SetColorModulation(1,1,1)
+									-- render.MaterialOverride(0)
+									-- render.SetLightingMode(0)
+									-- render.OverrideDepthEnable(false,false)
+									-- for _,x in pairs(v:GetChildren()) do
+									-- 	if IsValid(x) then
+									-- 		local mdl = x:GetModel()
+									-- 		if mdl && util.IsValidModel(mdl) then
+									-- 			render.OverrideDepthEnable(true,false)
+									-- 			render.SetLightingMode(2)
+									-- 			render.SetColorModulation(2,0,0)
+									-- 			if v.VJ_AVP_Predator && v:GetCloaked() then
+									-- 				render.MaterialOverride(matTT_Thermal)
+									-- 			end
+									-- 			x:DrawModel()
+									-- 			render.SetColorModulation(1,1,1)
+									-- 			render.MaterialOverride(0)
+									-- 			render.SetLightingMode(0)
+									-- 			render.OverrideDepthEnable(false,false)
+									-- 		end
+									-- 	end
+									-- end
 								end
 							cam.End3D()
 						end
+
 					elseif mode == 2 && (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) && v:IsNPC() then
 						cam.Start3D(EyePos(),EyeAngles())
 							if util.IsValidModel(v:GetModel()) then
@@ -1139,21 +1198,10 @@ if CLIENT then
 					cont:SetDSP(31)
 				end
 			end
-			if mode == 1 then
-				DrawColorModify(tab_thermal)
-				-- DrawBloom(0,0.5,1,1,0,0,10,10,10)
-				DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
-				DrawTexturize(0,matGradientThermal)
-				-- if GetConVar("mat_fullbright"):GetInt() != 1 then
-				-- 	RunConsoleCommand("mat_fullbright","1")
-				-- end
-			elseif mode == 0 then
+			if mode == 0 then
 				if IsValid(cont) then
 					cont:SetDSP(1)
 				end
-				-- if GetConVar("mat_fullbright"):GetInt() != 0 then
-				-- 	RunConsoleCommand("mat_fullbright","0")
-				-- end
 			end
 		end)
 		-- hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_XenoVision",function()

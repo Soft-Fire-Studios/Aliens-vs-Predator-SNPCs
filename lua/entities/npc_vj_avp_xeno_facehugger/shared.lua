@@ -15,6 +15,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Vision")
 	self:NetworkVar("Int",0,"HP")
 	self:NetworkVar("Vector",0,"QueenMarker")
+	self:NetworkVar("Entity",0,"Facehugged")
 end
 
 if CLIENT then
@@ -72,9 +73,26 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
-	function ENT:CustomOnCalcView(ply, origin, angles, fov, camera, cameraMode)
-		local pos = origin -- The position that will be set
+	function ENT:Controller_CalcView(ply, origin, angles, fov, camera, cameraMode)
+		local pos = origin
 		local ang = ply:EyeAngles()
+		local facehugged = self:GetFacehugged()
+		if IsValid(facehugged) then
+			if ply.VJC_FP_Bone != -1 then
+				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
+			end
+			local tr = util.TraceHull({
+				start = facehugged:GetPos() +facehugged:OBBCenter(),
+				endpos = facehugged:GetPos() +facehugged:OBBCenter() +angles:Forward() *-camera.Zoom,
+				filter = {ply,camera,self,facehugged,facehugged:GetOwner()},
+				mins = Vector(-5,-5,-5),
+				maxs = Vector(5,5,5),
+				mask = MASK_SHOT
+			})
+			pos = tr.HitPos +tr.HitNormal *2
+			fov = 75
+			return {origin = pos,angles = ang,fov = fov,speed = 0}
+		end
 		if cameraMode == 2 then -- First person
 			local setPos = self:EyePos() + self:GetForward()*20
 			local offset = ply.VJC_FP_Offset
@@ -101,7 +119,7 @@ if CLIENT then
 				-- 	self:ManipulateBoneScale(v, vec1)
 				-- end
 			end
-			local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
+			local offset = ply.VJC_TP_Offset + Vector(0, 0, 30) // + vectp
 			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
