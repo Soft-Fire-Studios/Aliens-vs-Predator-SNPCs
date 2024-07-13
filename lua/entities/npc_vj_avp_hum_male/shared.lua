@@ -17,6 +17,23 @@ function ENT:SetupDataTables()
 end
 
 if CLIENT then
+	local render_GetLightColor = render.GetLightColor
+	function ENT:Draw()
+		self:DrawModel()
+
+		if VJ_AVP_CVAR_FLASHLIGHT then
+			local light = render_GetLightColor(self:GetPos() +self:OBBCenter()):Length()
+			-- print(light)
+			if CurTime() > (self.NextDarknessT or 0) && light <= 1 then
+				net.Start("VJ_AVP_Marine_Darkness")
+					net.WriteEntity(self)
+					net.WriteFloat(light,4)
+				net.SendToServer()
+				self.NextDarknessT = CurTime() +math.Rand(3,5)
+			end
+		end
+	end
+
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
 	local function ScreenPos(x,y)
 		local w = ScrW()

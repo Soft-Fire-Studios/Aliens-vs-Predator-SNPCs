@@ -751,8 +751,23 @@ function ENT:CustomOnInitialize()
 
 	if self:FindBodygroupByName("vest") > -1 && self:GetBodygroup(self:FindBodygroupByName("vest")) > 0 then return end
 
+	self.FlashlightStatus = false
 	local att = self:LookupAttachment("flashlight")
 	if att > 0 && self.HasFlashlight then
+		self.CanUseFlashlight = true
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ToggleFlashlight(on)
+	if !self.CanUseFlashlight then return end
+	local att = self:LookupAttachment("flashlight")
+	if att <= 0 then return end
+	if self.FlashlightStatus == on then return end
+
+	self.FlashlightEntities = self.FlashlightEntities or {}
+	self.FlashlightStatus = on
+
+	if on then
 		local envLight = ents.Create("env_projectedtexture")
 		envLight:SetLocalPos(self:GetPos())
 		envLight:SetLocalAngles(self:GetAngles())
@@ -767,21 +782,23 @@ function ENT:CustomOnInitialize()
 		envLight:Spawn()
 		envLight:Fire("setparentattachment","flashlight")
 		self:DeleteOnRemove(envLight)
+		table.insert(self.FlashlightEntities,envLight)
 
-        local spotlight = ents.Create("beam_spotlight")
-        spotlight:SetPos(self:GetPos())
-        spotlight:SetAngles(self:GetAngles())
-        spotlight:SetKeyValue("spotlightlength",700)
-        spotlight:SetKeyValue("spotlightwidth",30)
+		local spotlight = ents.Create("beam_spotlight")
+		spotlight:SetPos(self:GetPos())
+		spotlight:SetAngles(self:GetAngles())
+		spotlight:SetKeyValue("spotlightlength",700)
+		spotlight:SetKeyValue("spotlightwidth",30)
 		spotlight:SetKeyValue("spawnflags","2")
-        spotlight:Fire("Color","255 247 206")
-        spotlight:SetParent(self)
-        spotlight:Spawn()
-        spotlight:Activate()
+		spotlight:Fire("Color","255 247 206")
+		spotlight:SetParent(self)
+		spotlight:Spawn()
+		spotlight:Activate()
 		spotlight:Fire("setparentattachment","flashlight")
-        spotlight:Fire("lighton")
+		spotlight:Fire("lighton")
 		spotlight:AddEffects(EF_PARENT_ANIMATES)
-        self:DeleteOnRemove(spotlight)
+		self:DeleteOnRemove(spotlight)
+		table.insert(self.FlashlightEntities,spotlight)
 
 		local glow1 = ents.Create("env_sprite")
 		glow1:SetKeyValue("model","sprites/light_ignorez.vmt")
@@ -794,6 +811,7 @@ function ENT:CustomOnInitialize()
 		glow1:Fire("SetParentAttachment","flashlight",0)
 		glow1:Spawn()
 		self:DeleteOnRemove(glow1)
+		table.insert(self.FlashlightEntities,glow1)
 
 		-- local glowLight = ents.Create("light_dynamic")
 		-- glowLight:SetKeyValue("brightness","1.4")
@@ -811,6 +829,16 @@ function ENT:CustomOnInitialize()
 		-- self.Light = envLight
 		-- self.LightGlow = glow1
 		-- self.LightGlowDynamic = glowLight
+
+		VJ.EmitSound(self,"cpthazama/avp/weapons/human/torch/torch_01_switch_on.ogg",70)
+	else
+		for _,v in ipairs(self.FlashlightEntities) do
+			if IsValid(v) then
+				v:Remove()
+			end
+		end
+		self.FlashlightEntities = {}
+		VJ.EmitSound(self,"cpthazama/avp/weapons/human/torch/torch_01_switch_off.ogg",70)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1028,6 +1056,16 @@ function ENT:CustomOnThink_AIEnabled()
 
 	if self.OnThink then
 		self:OnThink(curTime)
+	end
+
+	local darkness = self.DarknessLevel
+	-- print(darkness,CurTime())
+	if VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
+		if darkness <= 0.2 then
+			self:ToggleFlashlight(true)
+		else
+			self:ToggleFlashlight(false)
+		end
 	end
 
 	if self.HasMotionTracker then

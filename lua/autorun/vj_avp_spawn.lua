@@ -17,6 +17,7 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_flashlight",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_bots",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_maxbots",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_survival_respawn",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -29,6 +30,7 @@ if VJExists == true then
 	VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Pinging?")
 
 	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
+	VJ_AVP_CVAR_FLASHLIGHT = GetConVar("vj_avp_flashlight"):GetBool()
 
 	local vCat = "Aliens vs Predator"
 	local vCat_M = "Aliens vs Predator - Humans"
@@ -186,6 +188,10 @@ if VJExists == true then
 	cvars.AddChangeCallback("vj_avp_xenostealth", function(convar_name, oldValue, newValue)
 		VJ_AVP_CVAR_XENOSTEALTH = tonumber(newValue) == 1
 	end)
+	
+	cvars.AddChangeCallback("vj_avp_flashlight", function(convar_name, oldValue, newValue)
+		VJ_AVP_CVAR_FLASHLIGHT = tonumber(newValue) == 1
+	end)
 
 	local function AddPM(name, mdl, hands, skin)
 		player_manager.AddValidModel(name, mdl)
@@ -195,14 +201,39 @@ if VJExists == true then
 	end
 
 	AddPM("Alex", "models/cpthazama/avp/marines/alex.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Combat Android", "models/cpthazama/avp/marines/android.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Cannor", "models/cpthazama/avp/marines/connor.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Charity", "models/cpthazama/avp/marines/female_black1.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Monica", "models/cpthazama/avp/marines/female_black2.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Elaine", "models/cpthazama/avp/marines/female_blonde.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Butch", "models/cpthazama/avp/marines/female_butch.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Gibson", "models/cpthazama/avp/marines/gibson.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Martinez", "models/cpthazama/avp/marines/hispanic.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Johnson", "models/cpthazama/avp/marines/johnson.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Moss", "models/cpthazama/avp/marines/moss.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Rookie", "models/cpthazama/avp/marines/rookie.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Security Guard", "models/cpthazama/avp/marines/security.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Tequila", "models/cpthazama/avp/marines/tequila.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Van Zandt", "models/cpthazama/avp/marines/vandieter.mdl", "models/weapons/c_arms_cstrike.mdl")
+	AddPM("Thomas", "models/cpthazama/avp/marines/youngwhite.mdl", "models/weapons/c_arms_cstrike.mdl")
 
 	if SERVER then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
+		util.AddNetworkString("VJ_AVP_Marine_Darkness")
 		util.AddNetworkString("VJ_AVP_Predator_Client")
 		util.AddNetworkString("VJ_AVP_Xeno_Client")
 		util.AddNetworkString("VJ_AVP_Xeno_Darkness")
 		util.AddNetworkString("VJ_AVP_CSound")
 		util.AddNetworkString("VJ_AVP_PingTable")
+
+		net.Receive("VJ_AVP_Marine_Darkness",function(len,pl)
+			local ent = net.ReadEntity()
+			local light = net.ReadFloat()
+			if IsValid(ent) then
+				ent.DarknessLevel = light
+				ent.LastNetworkT = CurTime()
+			end
+		end)
 
 		net.Receive("VJ_AVP_Xeno_Darkness",function(len,pl)
 			local ent = net.ReadEntity()
@@ -807,6 +838,8 @@ if VJExists == true then
 				Panel:AddPanel(vj_icon)
 				Panel:AddControl("Label", {Text = "Human Settings"})
 				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_m"})
+				Panel:AddControl("Checkbox", {Label = "Enable Dynamic Flashlights", Command = "vj_avp_flashlight"})
+				Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."})
 			end)
 		end)
 	end

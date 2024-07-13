@@ -134,6 +134,39 @@ if CLIENT then
 		self.Mat_cloakfactor = 0
 		self.CL_PreviousVisionMode = 0
 
+		-- hook.Add("PreDrawOpaqueRenderables",self,function(self)
+		-- 	local ply = LocalPlayer()
+		-- 	if IsValid(ply) && ply.VJCE_NPC == self && ply.VJC_Camera_Mode == 2 then
+		-- 		local vm = ply:GetViewModel()
+		-- 		if IsValid(vm) then
+		-- 			cam.Start3D(EyePos(),EyeAngles())
+		-- 				render.ClearStencil()
+		-- 				render.SetStencilEnable(true) 
+		-- 				render.SetStencilWriteMask(255)
+		-- 				render.SetStencilTestMask(255)
+		-- 				render.SetStencilReferenceValue(1)
+		-- 				render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+		-- 				render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+		-- 				render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+		-- 				render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+		-- 				vm:DrawModel()
+		-- 				render.SuppressEngineLighting(true)
+		-- 				if self:GetCloaked() then
+		-- 					render.MaterialOverride(matTT_Thermal)
+		-- 				end
+		-- 				render.SetColorModulation(1.65,1.65,1.65)
+		-- 				render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+		-- 				render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+		-- 				vm:DrawModel()
+		-- 				render.SetColorModulation(1,1,1)
+		-- 				render.MaterialOverride(0)
+		-- 				render.SuppressEngineLighting(false)
+		-- 				render.SetStencilEnable(false)
+		-- 			cam.End3D()
+		-- 		end
+		-- 	end
+		-- end)
+
 		-- local attStart = self:LookupAttachment("laser")
         -- hook.Add("PreDrawEffects",self,function(self)
 		-- 	if !self:GetBeam() then return end
