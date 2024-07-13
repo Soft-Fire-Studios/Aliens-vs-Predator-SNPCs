@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/security/security_guard_cap_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/security/security_guard_cap_norm"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "1"
+	"$phongexponent"             "10"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"  "1"
+}

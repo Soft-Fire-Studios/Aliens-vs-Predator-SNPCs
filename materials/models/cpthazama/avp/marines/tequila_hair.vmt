@@ -1,12 +1,12 @@
 "VertexLitGeneric"
 {
-    "$basetexture"              "models/cpthazama/mgr/pl/raiden/tequila_hair_colspec"
-	"$bumpmap"					"models/cpthazama/mgr/pl/raiden/tequila_hair_norms"
+    "$basetexture"              "models/cpthazama/avp/marines/tequila_hair_colspec"
+	"$bumpmap"					"models/cpthazama/avp/marines/tequila_hair_norms"
 
 	"$nodecal"					"1"
 	"$nocull"					"1"
-	"$alphatest"				"1"
-	"$allowalphatocoverage"		"1"
+    "$alphatest" 				"1"
+    "$allowalphatocoverage" 	"1"
 
 	"$phong"                     "1"
 	"$phongboost"                "1"

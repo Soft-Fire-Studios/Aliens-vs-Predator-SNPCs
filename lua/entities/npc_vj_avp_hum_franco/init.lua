@@ -19,4 +19,5 @@ function ENT:OnInit()
 	end
 	self:SetBodygroup(self:FindBodygroupByName("decal_lleg"),math.random(1,4) == 1 && 1 or 0)
 	self:SetBodygroup(self:FindBodygroupByName("decal_rleg"),math.random(1,4) == 1 && 1 or 0)
+	self:SetBodygroup(self:FindBodygroupByName("helmet"),math.random(1,4) == 1 && 1 or 0)
 end

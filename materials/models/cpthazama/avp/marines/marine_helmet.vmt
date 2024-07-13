@@ -1,0 +1,29 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/marine_helmet_colour"
+	"$bumpmap"					"models/cpthazama/avp/marines/marine_helmet_normal"
+
+    "$nodecal" 					"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "15"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+
+	"$envmapfresnel"            "1"
+	"$envmap"                   "env_cubemap"
+	"$envmaptint" 				"[0.1 0.1 0.1]"
+	"$normalmapalphaenvmapmask" "1"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"1.25"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

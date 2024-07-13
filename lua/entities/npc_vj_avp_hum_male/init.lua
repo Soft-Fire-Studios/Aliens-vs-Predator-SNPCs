@@ -21,11 +21,15 @@ ENT.PoseParameterLooking_InvertYaw = true
 
 ENT.UsePlayerModelMovement = true
 ENT.HasMeleeAttack = true
+ENT.TimeUntilMeleeAttackDamage = 0.25
 ENT.CanCrouchOnWeaponAttack = false
 ENT.Weapon_AimTurnDiff = 0.74
 
 local moveslikejaggerfuckingkms = 21378944
 ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
+
+ENT.GeneralSoundPitch1 = 97
+ENT.GeneralSoundPitch2 = 103
 
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
@@ -926,6 +930,8 @@ function ENT:SetAnimationTranslations(hType)
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "ohwa_pistol_idle")
 		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_ohwa_pistol_shoot"
 		self.AnimTbl_WeaponReload 										= "vjges_ohwa_pistol_reload"
+
+		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "ohwa_melee_light_attack")
 		
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
 		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "ohwa_pistol_idle")
@@ -946,6 +952,8 @@ function ENT:SetAnimationTranslations(hType)
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= ACT_HL2MP_IDLE_AR2
 		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
 		self.AnimTbl_WeaponReload 										= "vjges_THWA_Stand_reload"
+		
+		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "thwa_melee_light_attack")
 		
 		self.AnimationTranslations[ACT_IDLE] 							= ACT_HL2MP_SWIM_IDLE_AR2
 		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= ACT_HL2MP_IDLE_AR2

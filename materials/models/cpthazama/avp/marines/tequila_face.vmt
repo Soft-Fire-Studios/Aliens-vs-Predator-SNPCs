@@ -7,10 +7,9 @@
 	"$nodecal"					"1"
 
 	"$phong"					"1"
-	"$phongboost"				"1"
-	"$phongexponent"            "20"
-	"$phongexponent"			"15"
-	"$phongfresnelranges"		"[0.67 0.83 1]"
+	"$phongboost"				"2"
+	"$phongexponent"			"25"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
 	"$phongalbedotint" 			"1"
 
 	"$rimlight"					"1"

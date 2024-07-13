@@ -189,8 +189,24 @@ ENT.MaxNPCs = 15
 ENT.IncrementAmount = 4
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local marineList = {
+	"npc_vj_avp_hum_connor",
 	"npc_vj_avp_hum_franco",
+	"npc_vj_avp_hum_gibson",
+	"npc_vj_avp_hum_johnson",
+	"npc_vj_avp_hum_moss",
+	"npc_vj_avp_hum_youngwhite",
+	"npc_vj_avp_hum_hispanic",
+	"npc_vj_avp_hum_youngwhite",
+	"npc_vj_avp_hum_butch",
 	"npc_vj_avp_hum_blonde",
+	"npc_vj_avp_hum_black",
+	"npc_vj_avp_hum_black2",
+	"npc_vj_avp_hum_van",
+	"npc_vj_avp_hum_tequila",
+	"npc_vj_avp_hum_rookie",
+	-- "npc_vj_avp_hum_kaneko",
+
+	"npc_vj_avp_hum_secuirty",
 }
 local marineWepList = {
 	"weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle","weapon_vj_avp_pulserifle",
@@ -248,6 +264,10 @@ function ENT:SpawnBot(count,respawn)
 						local bot = ents.Create(VJ.PICK(marineList))
 						self:SetProperPos(bot,spawnPoint +randOffset)
 						bot:SetAngles(Angle(0,AngleRand().y,0))
+						bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
+						bot.FriendsWithAllPlayerAllies = true
+						bot.StartHealth = 100
+						bot.HasHealthRegeneration = false
 						bot:Spawn()
 						bot:Activate()
 						bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
@@ -350,6 +370,12 @@ function ENT:Initialize()
 		local cEnt = v.VJ_TheControllerEntity
 		if IsValid(cEnt) && cEnt.VJCE_NPC.VJ_AVP_Predator then
 			self.IsPredatorPlayers = true
+		end
+
+		if !self.IsPredatorPlayers then
+			v:StripWeapons()
+			v:Give("weapon_vj_avp_pistol")
+			v:Give("weapon_vj_avp_pulserifle")
 		end
 	end
 

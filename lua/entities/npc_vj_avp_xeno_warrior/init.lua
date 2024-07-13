@@ -1698,29 +1698,44 @@ function ENT:AttackCode(isCrawling,forceAttack)
 									self:PlaySound(self.SoundTbl_Attack,75)
 									self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 										if interrupted or self.InFatality then return end
-										self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-											if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-											self.CurrentSet = 1
-											self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-											self.ChangeSetT = CurTime() +0.5
-										end})
+										-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+										-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+										-- 	self.CurrentSet = 1
+										-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+										-- 	self.ChangeSetT = CurTime() +0.5
+										-- end})
+										if self.CurrentSet == 1 then
+											self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+										else
+											self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+										end
 									end})
 								else
-									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-										self.CurrentSet = 1
-										self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-										self.ChangeSetT = CurTime() +0.5
-									end})
+									if self.CurrentSet == 1 then
+										self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+									else
+										self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+									end
+									-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+									-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+									-- 	self.CurrentSet = 1
+									-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+									-- 	self.ChangeSetT = CurTime() +0.5
+									-- end})
 								end
 							end})
 						else
-							self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-								if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-								self.CurrentSet = 1
-								self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-								self.ChangeSetT = CurTime() +0.5
-							end})
+							if self.CurrentSet == 1 then
+								self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+							else
+								self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+							end
+							-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+							-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+							-- 	self.CurrentSet = 1
+							-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+							-- 	self.ChangeSetT = CurTime() +0.5
+							-- end})
 						end
 					end})
 				else
@@ -1763,29 +1778,38 @@ function ENT:AttackCode(isCrawling,forceAttack)
 								self:PlaySound(self.SoundTbl_Attack,75)
 								self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 									if interrupted or self.InFatality then return end
-									self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-										if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-										self.CurrentSet = 1
-										self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-										self.ChangeSetT = CurTime() +0.5
-									end})
+									if self.CurrentSet == 1 then
+										self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+									else
+										self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+									end
 								end})
 							else
-								self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-									if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-									self.CurrentSet = 1
-									self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-									self.ChangeSetT = CurTime() +0.5
-								end})
+								if self.CurrentSet == 1 then
+									self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+								else
+									self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+								end
+								-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+								-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+								-- 	self.CurrentSet = 1
+								-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+								-- 	self.ChangeSetT = CurTime() +0.5
+								-- end})
 							end
 						end})
 					else
-						self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-							if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
-							self.CurrentSet = 1
-							self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-							self.ChangeSetT = CurTime() +0.5
-						end})
+						if self.CurrentSet == 1 then
+							self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+						else
+							self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+						end
+						-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+						-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+						-- 	self.CurrentSet = 1
+						-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+						-- 	self.ChangeSetT = CurTime() +0.5
+						-- end})
 					end
 				end})
 			else
@@ -1800,7 +1824,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 		end
 	else
 		if self:IsMoving() then
-			// Gesture claw attack
+			// Heavy attack
 			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 				self.AttackType = 5
 				self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
@@ -1809,6 +1833,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:VJ_ACT_PLAYACTIVITY("melee_heavy_attack_long",true,false,true)
 				end})
 			else
+				// Gesture claw attack
 				self.AttackType = 2
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{AlwaysUseGesture=true})
@@ -1828,27 +1853,79 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackType = 1
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
-				self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
-					if interrupted or self.InFatality then return end -- Means we hit something
-					if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
-						self.AttackSide = self.AttackSide == "right" && "left" or "right"
-						self:PlaySound(self.SoundTbl_Attack,75)
-						self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
-							if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+				if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_FORWARD) then
+					self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
+						if interrupted or self.InFatality then return end -- Means we hit something
+						if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
-							self:VJ_ACT_PLAYACTIVITY({"light_attack_" .. self.AttackSide .. "_to_run_fwd","light_attack_" .. self.AttackSide .. "_to_crawl_fwd"},true,false,true,0,{OnFinish=function(interrupted,anim)
+							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+							self:PlaySound(self.SoundTbl_Attack,75)
+							self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 								if interrupted or self.InFatality then return end
-								self.CurrentSet = (anim == "light_attack_" .. self.AttackSide .. "_to_run_fwd") && 2 or 1
-								self.ChangeSetT = CurTime() +0.5
-								if self.CurrentSet == 2 then
-									self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+								if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+									self.AttackSide = self.AttackSide == "right" && "left" or "right"
+									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
+									self:PlaySound(self.SoundTbl_Attack,75)
+									self:VJ_ACT_PLAYACTIVITY({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
+										if interrupted or self.InFatality then return end
+										if self.CurrentSet == 1 then
+											self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+										else
+											self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+										end
+									end})
 								else
-									self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+									self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false,0,{OnFinish=function(interrupted,anim)
+										if interrupted or self.InFatality then return end
+										self.CurrentSet = 2
+										self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+										self.ChangeSetT = CurTime() +0.5
+									end})
+									-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+									-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+									-- 	self.CurrentSet = 1
+									-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+									-- 	self.ChangeSetT = CurTime() +0.5
+									-- end})
 								end
 							end})
-						end})
-					end
-				end})
+						else
+							if self.CurrentSet == 1 then
+								self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_crawl_fwd",true,false,false)
+							else
+								self:VJ_ACT_PLAYACTIVITY("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
+							end
+							-- self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
+							-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+							-- 	self.CurrentSet = 1
+							-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+							-- 	self.ChangeSetT = CurTime() +0.5
+							-- end})
+						end
+					end})
+				else
+					self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
+						if interrupted or self.InFatality then return end -- Means we hit something
+						if IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+							self.AttackSide = self.AttackSide == "right" && "left" or "right"
+							self:PlaySound(self.SoundTbl_Attack,75)
+							self:VJ_ACT_PLAYACTIVITY("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
+								if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+								self.AttackSide = self.AttackSide == "right" && "left" or "right"
+								self:VJ_ACT_PLAYACTIVITY({"light_attack_" .. self.AttackSide .. "_to_run_fwd","light_attack_" .. self.AttackSide .. "_to_crawl_fwd"},true,false,true,0,{OnFinish=function(interrupted,anim)
+									if interrupted or self.InFatality then return end
+									self.CurrentSet = (anim == "light_attack_" .. self.AttackSide .. "_to_run_fwd") && 2 or 1
+									self.ChangeSetT = CurTime() +0.5
+									if self.CurrentSet == 2 then
+										self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
+									else
+										self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
+									end
+								end})
+							end})
+						end
+					end})
+				end
 			end
 		end
 	end
