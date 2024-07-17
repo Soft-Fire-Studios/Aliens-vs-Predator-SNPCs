@@ -451,7 +451,7 @@ function ENT:SetGroundAngle()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMaintainRelationships(ent, entFri, entDist)
+function ENT:OnMaintainRelationships(ent, entFri, entDist)
 	if entFri && ent.VJ_AVP_XenomorphCarrier && !self.Carrier && entDist <= 500 && CurTime() > self.NextCarrierT && ent:GetFacehuggerCount() < 9 then
 		self:SetTarget(ent)
 		self:VJ_TASK_GOTO_TARGET("TASK_RUN_PATH")

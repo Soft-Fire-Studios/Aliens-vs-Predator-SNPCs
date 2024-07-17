@@ -108,7 +108,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition())
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMaintainRelationships(ent, entFri, entDist)
+function ENT:OnMaintainRelationships(ent, entFri, entDist)
 	if entFri && ent.VJ_AVP_XenomorphCarrier && !self.Opened && entDist <= 400 && ent:GetFacehuggerCount() < 9 then
 		self:Open()
 	end
