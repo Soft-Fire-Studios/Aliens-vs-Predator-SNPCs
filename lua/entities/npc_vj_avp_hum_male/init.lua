@@ -873,6 +873,25 @@ function ENT:OnKeyPressed(ply,key)
 			self:Camo(!self:GetCloaked())
 			self.NextCloakT = CurTime() +1
 		end
+    elseif key == KEY_F then
+		if (!self.CanUseFlashlight or self:LookupAttachment("flashlight") <= 0) && !IsValid(self:GetFlare()) && !self:IsBusy() then
+			-- self:PlayAnimation("vjges_THWA_Stand_Throw_Flare",true,false,false)
+			-- self.NextChaseTime = 0
+			local flare = ents.Create("obj_vj_avp_flare")
+			flare:SetPos(self:GetShootPos() +self:GetUp() *-5)
+			flare:SetAngles(self:EyeAngles() +Angle(90,25,0))
+			flare:SetOwner(self)
+			flare:Spawn()
+			flare:Activate()
+			local phys = flare:GetPhysicsObject()
+			if IsValid(phys) then
+				phys:Wake()
+				phys:SetVelocity(self:GetAimVector() *850)
+			end
+			self:SetFlare(flare)
+			return
+		end
+		self:ToggleFlashlight(!self.FlashlightStatus)
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1060,7 +1079,7 @@ function ENT:CustomOnThink_AIEnabled()
 
 	local darkness = self.DarknessLevel
 	-- print(darkness,CurTime())
-	if VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
+	if !IsValid(self.VJ_TheController) && VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
 		if darkness <= 0.2 then
 			self:ToggleFlashlight(true)
 		else
