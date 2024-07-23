@@ -126,7 +126,7 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_06.ogg"
 	}
 	self.SoundTbl_Death = {
-		"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg"
+		"^cpthazama/avp/xeno/alien/vocals/queen death.ogg"
 	}
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true
@@ -236,6 +236,9 @@ function ENT:OnThink()
 		})
 		self:SetLastPosition(tr.HitPos +tr.HitNormal *300)
 		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.NPC_FACE_ENEMY} end)
+		if self:OnGround() then
+			self:SetVelocity(self:GetMovementVelocity() *1)
+		end
 		if tr.Hit then
 			if tr.HitWorld then
 				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide_injured",true,false,false)
@@ -344,7 +347,7 @@ function ENT:OnThink()
 		if self:IsMoving() then
 			self:StopMoving()
 		end
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		self:SetState(VJ_STATE_ONLY_ANIMATION)
 		if curTime > self.NextCommandXenosT && math.random(1,20) == 1 then
 			self.NextCommandXenosT = curTime +math.random(20,40)
 			local command = {}
@@ -643,6 +646,8 @@ function ENT:SelectMovementActivity(act)
 			act = ACT_WALK
 		elseif self.InCharge then
 			act = ACT_SPRINT
+		else
+			act = ACT_RUN
 		end
 		return act
 	end
@@ -686,6 +691,9 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if visible then
+		if self.InBirth then
+			return
+		end
 		if self.CanAttack then
 			if dist <= self.AttackDistance *(self.VJ_AVP_Xenomorph_Matriarch && 2 or 1) && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)

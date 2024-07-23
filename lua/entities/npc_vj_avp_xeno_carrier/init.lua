@@ -36,8 +36,8 @@ ENT.AnimTranslations = {
 }
 ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2MP_RUN_SMG1,ACT_VM_SPRINT_IDLE}
 
-ENT.StandingBounds = Vector(16,16,100)
-ENT.CrawlingBounds = Vector(16,16,100)
+ENT.StandingBounds = Vector(16,16,84)
+ENT.CrawlingBounds = Vector(16,16,84)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	self.FootData = {

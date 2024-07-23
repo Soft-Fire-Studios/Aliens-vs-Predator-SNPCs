@@ -1,0 +1,71 @@
+Predator
+  - LMB = Light Attack
+  - RMB = Heavy Attack
+  - LMB + Shift = Leap Attack
+  - LMB + RMB (Hold) = Block
+  - E = Use / Fatality (or Distract if looking at an enemy)
+  - R = Toggle Cloak
+  - F = Toggle Vision Mode (Normal, Thermal, Xenomorph, Synthetic)
+  - G = Use Medicomp
+  - 1,2,3,4,5 = Select Equipment
+  - Ctrl (Can be held for equipment 1) = Use Equipment
+  - Shift (Hold) = Prepare Long Jump
+  - Shift + Space = Long Jump
+
+Xenomorph
+  (Crouching)
+  - LMB = Light Attack
+  - RMB = Heavy Attack / Spit Attack
+  - LMB + Shift = Leap Attack
+  - Move + LMB = Light Attack Combo
+  - Move + RMB = Jump Attack
+  - LMB + RMB (Hold) = Block
+  - E = Use / Fatality (or Distract if looking at an enemy)
+  - Space = Long Jump (Will mount to surface if its a wall)
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+  - Ctrl = Stand
+
+  (Standing)
+  - LMB = Light Attack
+  - RMB = Heavy Attack / Spit Attack
+  - LMB + Shift = Leap Attack
+  - Move + LMB = Light Attack Combo
+  - LMB + RMB (Hold) = Block
+  - E = Use / Fatality (or Distract if looking at an enemy)
+  - Space = Long Jump (Will mount to surface if its a wall)
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+  - Ctrl = Crouch
+
+  (Facehugger)
+  - LMB = Grapple
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+
+  (Chestburster)
+  - LMB = Bite
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+
+  (Predalien)
+  - LMB = Light Attack
+  - RMB = Slam Attack
+  - LMB + Shift = Leap Attack
+  - Space = Long Jump
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+
+  (Praetorian)
+  - Same as Xenomorph
+  - B = Call for reinforcements
+
+  (Queen/Matriarch)
+  - LMB = Heavy Attack
+  - RMB = Spit Attack
+  - Shift = Charge Attack
+  - Space = Toggle Egg Sack
+  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+
+Human
+  - LMB = Melee Attack
+  - RMB = Fire Weapon
+  - LMB + RMB (Hold) = Block
+  - R = Reload Weapon
+  - F = Toggle Flashlight (Throw flare is no flashlight available)
+  - G = Use Stimpack

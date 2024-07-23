@@ -67,7 +67,7 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/alien hag queen/alien_hag_queen_scream_short_03.ogg"
 	}
 	self.SoundTbl_Death = {
-		"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg"
+		"^cpthazama/avp/xeno/alien/vocals/queen death.ogg"
 	}
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true

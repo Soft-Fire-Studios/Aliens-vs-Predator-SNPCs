@@ -140,7 +140,9 @@ if CLIENT then
 		["models/cpthazama/avp/xeno/carrier/alien_carrier_dome"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
 		["models/cpthazama/avp/xeno/carrier/praetorian_chunk_bits"] = "models/cpthazama/avp/xeno/praetorian/praetorian_chunk_bits_xv",
 		["models/cpthazama/avp/xeno/carrier/alien_carrier_gib"] = "models/cpthazama/avp/xeno/warrior/alien_carrier_gib_xv",
-		
+
+		["models/cpthazama/avp/xeno/ranger/head"] = "models/cpthazama/avp/xeno/ranger/head_xv",
+		["models/cpthazama/avp/xeno/ranger/body"] = "models/cpthazama/avp/xeno/ranger/body_xv",
 
 		// K-Series
 		["models/cpthazama/avp/xeno/warrior/alien_warrior_body_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_body_xv",
@@ -168,6 +170,9 @@ if CLIENT then
 
 		["models/cpthazama/avp/xeno/carrier/alien_carrier_head_k"] = "models/cpthazama/avp/xeno/warrior/alien_warrior_head_xv",
 		["models/cpthazama/avp/xeno/carrier/alien_carrier_dome_k"] = "models/cpthazama/avp/xeno/drone/alien_warrior_dome_xv",
+
+		["models/cpthazama/avp/xeno/ranger/head_k"] = "models/cpthazama/avp/xeno/ranger/head_xv",
+		["models/cpthazama/avp/xeno/ranger/body_k"] = "models/cpthazama/avp/xeno/ranger/body_xv",
 	}
 
 	function ENT:Initialize()

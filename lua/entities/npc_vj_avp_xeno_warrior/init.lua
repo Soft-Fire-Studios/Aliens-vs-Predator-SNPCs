@@ -279,18 +279,28 @@ ENT.SoundTbl_CombatIdle = {
 	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_04.ogg",
 	"cpthazama/avp/xeno/alien/vocals/alien_growl_short_05.ogg",
 }
-ENT.SoundTbl_BeforeRangeAttack = {
-	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_01.ogg",
-	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_02.ogg",
-	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_03.ogg",
-	"cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_04.ogg",
-}
+-- ENT.SoundTbl_BeforeRangeAttack = {
+	-- "cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_01.ogg",
+	-- "cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_02.ogg",
+	-- "cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_03.ogg",
+	-- "cpthazama/avp/weapons/alien/spit/aln_pre_spit_attack_04.ogg",
+-- }
 ENT.SoundTbl_RangeAttack = {
 	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_01.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_01a.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_01b.ogg",
 	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_02.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_02a.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_02b.ogg",
 	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_03.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_03a.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_03b.ogg",
 	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_04.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_04a.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_04b.ogg",
 	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_05.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_05a.ogg",
+	"cpthazama/avp/weapons/alien/spit/aln_spit_attack_05b.ogg",
 }
 ENT.SoundTbl_Jump = {
 	"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_01.ogg",
@@ -1392,6 +1402,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_04.ogg",80)
 	elseif key == "spit" then
 		local ent = self:GetEnemy()
+		self:StopAllCommonSpeechSounds()
+		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:VJ_DecideSoundPitch(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1

@@ -164,6 +164,8 @@ local animClass = {
 	["npc_vj_avp_xeno_praetorian"] = "praetorian_stand_summon",
 	["npc_vj_avp_xeno_carrier"] = "praetorian_stand_summon",
 	["npc_vj_avp_kxeno_carrier"] = "praetorian_stand_summon",
+	["npc_vj_avp_xeno_royal"] = "praetorian_stand_summon",
+	["npc_vj_avp_kxeno_royal"] = "praetorian_stand_summon",
 }
 --
 function ENT:CustomOnThink_AIEnabled()

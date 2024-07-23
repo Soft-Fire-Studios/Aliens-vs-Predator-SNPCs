@@ -45,8 +45,8 @@ ENT.AnimTranslations = {
 }
 ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2MP_RUN_SMG1}
 
-ENT.StandingBounds = Vector(16,16,100)
-ENT.CrawlingBounds = Vector(16,16,100)
+ENT.StandingBounds = Vector(16,16,84)
+ENT.CrawlingBounds = Vector(16,16,84)
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -302,9 +302,20 @@ function ENT:OnCustomAttack(ply,ent,vis,dist)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local subSpecies = {
+	"npc_vj_avp_xeno_carrier",
+	"npc_vj_avp_xeno_venator",
+	-- "npc_vj_avp_xeno_ravager",
+}
+local subKSpecies = {
+	"npc_vj_avp_kxeno_carrier",
+	"npc_vj_avp_kxeno_venator",
+	-- "npc_vj_avp_kxeno_ravager",
+}
+--
 function ENT:DoRoyalTransformation(subClass)
-	if subClass then -- Not a Queen, rather a Carrier or Ravager
-		local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_carrier" or "npc_vj_avp_xeno_carrier")
+	if subClass then -- Not a Queen, rather a Carrier, Venator or Ravager
+		local xeno = ents.Create(VJ.PICK(self.VJ_AVP_K_Xenomorph && subKSpecies or subSpecies))
 		xeno:SetPos(self:GetPos())
 		xeno:SetAngles(self:GetAngles())
 		xeno.VJ_NPC_Class = self.VJ_NPC_Class

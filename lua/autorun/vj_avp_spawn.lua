@@ -57,6 +57,8 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_xeno_ridged",vCat_A)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_xeno_praetorian",vCat_A)
 	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_xeno_carrier",vCat_A)
+	VJ.AddNPC("Xenomorph Venator","npc_vj_avp_xeno_royal",vCat_A)
+	VJ.AddNPC("Xenomorph Ravager","npc_vj_avp_xeno_ravager",vCat_A)
 	VJ.AddNPC("Xenomorph Egg","npc_vj_avp_xeno_egg",vCat_A)
 	VJ.AddNPC("The Abomination","npc_vj_avp_xeno_predalien",vCat_A)
 	VJ.AddNPC("Nethead","npc_vj_avp_xeno_nethead",vCat_A)
@@ -73,6 +75,8 @@ if VJExists == true then
 	VJ.AddNPC("Xenomorph Warrior Ridged","npc_vj_avp_kxeno_ridged",vCat_AK)
 	VJ.AddNPC("Xenomorph Praetorian","npc_vj_avp_kxeno_praetorian",vCat_AK)
 	VJ.AddNPC("Xenomorph Carrier","npc_vj_avp_kxeno_carrier",vCat_AK)
+	VJ.AddNPC("Xenomorph Venator","npc_vj_avp_kxeno_royal",vCat_AK)
+	VJ.AddNPC("Xenomorph Ravager","npc_vj_avp_kxeno_ravager",vCat_AK)
 	VJ.AddNPC("Xenomorph Predalien","npc_vj_avp_kxeno_predalien",vCat_AK)
 
 	VJ.AddNPC("Young Blood","npc_vj_avp_pred",vCat_P)
@@ -85,6 +89,7 @@ if VJExists == true then
 	VJ.AddNPC("Lord","npc_vj_avp_pred_lord",vCat_P)
 	VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
 	VJ.AddNPC("Extinction","npc_vj_avp_pred_extinction",vCat_P)
+	VJ.AddNPC("Tech","npc_vj_avp_pred_tech",vCat_P)
 	VJ.AddNPC("Ancient","npc_vj_avp_pred_predlord",vCat_P)
 
 	/*
