@@ -19,7 +19,6 @@ ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allie
 ENT.HasMeleeAttack = true
 ENT.MeleeAttackDamage = 5
 ENT.AnimTbl_MeleeAttack = {"vjges_vjseq_bite"}
-ENT.MeleeAttackAnimationAllowOtherTasks = true
 ENT.MeleeAttackDistance = 15
 ENT.MeleeAttackDamageDistance = 60
 ENT.TimeUntilMeleeAttackDamage = false
