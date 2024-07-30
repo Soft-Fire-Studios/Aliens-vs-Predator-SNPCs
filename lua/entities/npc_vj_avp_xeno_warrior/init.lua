@@ -58,8 +58,6 @@ ENT.RangeToMeleeDistance = 400
 ENT.TimeUntilRangeAttackProjectileRelease = false
 ENT.NextRangeAttackTime = 6
 ENT.NextRangeAttackTime_DoRand = 12
-ENT.RangeUseAttachmentForPos = true
-ENT.RangeUseAttachmentForPosID = "eyes"
 ENT.DisableDefaultRangeAttackCode = true
 
 ENT.CanFlinch = 1
@@ -1407,7 +1405,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
-			local att = self:GetAttachment(self:LookupAttachment(self.RangeUseAttachmentForPosID or "eyes"))
+			local att = self:GetAttachment(self:LookupAttachment("eyes"))
 			local targetPos = (self.EnemyData && !self:Visible(ent) && self.EnemyData.LastVisiblePos) or ent:GetPos() +ent:OBBCenter()
 			local targetAng = (targetPos -att.Pos):Angle()
 			local ang = self:GetAngles()
@@ -1625,6 +1623,10 @@ function ENT:CustomAttack(ent,visible)
 			self.NextMoveRandomlyT = curTime +math.random(3,8)
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:RangeAttackProjSpawnPos(projectile)
+	return self:GetAttachment(self:LookupAttachment("eyes")).Pos
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRangeAttack_AfterStartTimer()
