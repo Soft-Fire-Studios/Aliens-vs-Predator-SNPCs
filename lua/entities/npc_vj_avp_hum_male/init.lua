@@ -946,7 +946,7 @@ function ENT:TranslateActivity(act)
 		end
 	elseif act == ACT_RUN && self.NoWeapon_UseScaredBehavior_Active == true && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
-	elseif (act == ACT_RUN or act == ACT_WALK) && self.HasShootWhileMoving == true && IsValid(self:GetEnemy()) then
+	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_ShootWhileMoving == true && IsValid(self:GetEnemy()) then
 		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:IsAbleToShootWeapon(true, false) == true then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then

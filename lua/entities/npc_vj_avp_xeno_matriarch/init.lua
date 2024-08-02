@@ -5,7 +5,7 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/queen_hag.mdl"} -- The game will pick a random model from the table when the SNPC is spawned | Add as many as you want
+ENT.Model = {"models/cpthazama/avp/xeno/queen_hag.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
 ENT.StartHealth = 6000
 ENT.HullType = HULL_LARGE
 
