@@ -71,6 +71,7 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 						"cpthazama/avp/predator/vision/vision_change_04.ogg",
 						"cpthazama/avp/predator/vision/vision_change_05.ogg",
 					}),65)
+					-- ply:EmitSound("cpthazama/avp/predator/Vision_Change.ogg",65)
 				end
 				npc:SetVisionMode(mode +1 > 3 && 0 or mode +1)
 				-- local snd = CreateSound(ply,"cpthazama/avp/predator/vision_change_01.wav")

@@ -149,6 +149,7 @@ ENT.SoundTbl_Land = {
 ENT.SoundTbl_Attack = {
 	"cpthazama/avp/predator/vocals/prd_trophy_growl_01.ogg",
 	"cpthazama/avp/predator/vocals/prd_trophy_growl_02.ogg",
+	"cpthazama/avp/predator/pred_win.WAV",
 }
 ENT.SoundTbl_Stimpack = {
 	"cpthazama/avp/predator/vocals/prd_health_pain_scream_01.ogg",
@@ -176,6 +177,7 @@ ENT.SoundTbl_Pain = {
 	"cpthazama/avp/predator/vocals/prd_hurt_medium_08.ogg",
 	"cpthazama/avp/predator/vocals/prd_hurt_medium_09.ogg",
 	"cpthazama/avp/predator/vocals/prd_hurt_medium_10.ogg",
+	"cpthazama/avp/predator/Pred_bodygib.WAV",
 }
 ENT.SoundTbl_Death = {
 	"cpthazama/avp/predator/vocals/prd_death_scream_01.ogg",

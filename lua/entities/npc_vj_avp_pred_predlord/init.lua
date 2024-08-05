@@ -15,7 +15,7 @@ ENT.AttackDamageMultiplier = 1.2
 function ENT:OnInit()
 	if GetConVar("vj_avp_bosstheme_p"):GetBool() then
 		self.HasSoundTrack = true
-		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Annihilation.mp3"}
+		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/March Of The Hunted.mp3"}
 	end
 
 	self.SoundTbl_Idle = {
