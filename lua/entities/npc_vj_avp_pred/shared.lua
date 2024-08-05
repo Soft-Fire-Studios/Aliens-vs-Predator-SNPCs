@@ -236,6 +236,9 @@ if CLIENT then
 
 			local parent = ent:GetParent()
 			local checkEnt = IsValid(parent) && parent or ent
+			-- if checkEnt:GetClass() == "viewmodel" then
+				-- checkEnt = checkEnt:GetOwner()
+			-- end
 			ent.Mat_cloakfactor = ent.Mat_cloakfactor or (IsValid(parent) && parent.Mat_cloakfactor or 0)
 			local curValue = ent.Mat_cloakfactor
 			local finalResult = curValue or 0
@@ -253,6 +256,7 @@ if CLIENT then
 					finalResultRefract = 0
 				end
 			end
+			-- print(finalResult,checkEnt)
 			ent.Mat_cloakfactor = Lerp(FrameTime() *0.3,curValue,finalResult)
 			self.CloakColorTint = LerpVector(FrameTime() *0.3,self.CloakColorTint,math_abs(curValue -finalResult) > 0.1 && blueFX or whiteFX)
 			if IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_Predator && ent:GetClass() == "viewmodel" && ent:GetOwner() == ply then

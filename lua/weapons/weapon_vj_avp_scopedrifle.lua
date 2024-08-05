@@ -40,6 +40,7 @@ SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 SWEP.AnimTbl_SecondaryFire 		= false
 
 SWEP.NPC_FiringDistanceScale = 1.75
+SWEP.NPC_CustomSpread = 0.225
 
 SWEP.Primary.Sound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new_01_st.ogg"}
 -- SWEP.Primary.DistantSound = {"cpthazama/avp/weapons/human/scoped_rifle/scoped_rifle_new_01_mn.ogg"}

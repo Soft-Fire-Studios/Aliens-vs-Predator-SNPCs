@@ -1011,6 +1011,24 @@ function ENT:OnKeyPressed(ply,key)
 			self:UseStimpack()
 			self.NextHealT = CurTime() +3
 		end
+	elseif key == KEY_SPACE && !self:IsBusy() then
+		local ply = self.VJ_TheController
+		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
+
+		local moving = self:IsMoving()
+		local moveDir, moveAng = self:GetMovementDirection()
+		local ang = ply:EyeAngles()
+		ang:RotateAroundAxis(ang:Up(), moveAng.y)
+		self:SetGroundEntity(NULL)
+		self:StopCurrentSchedule()
+		local jumpPos
+		if moving then
+			jumpPos = self:GetPos() +ang:Forward() *1 +ang:Up() *1
+		else
+			jumpPos = self:GetPos() +ang:Up() *1
+		end
+		local trajectory = VJ.CalculateTrajectory(self,nil,"CurveOld",self:GetPos(),jumpPos,moving && 500 or 400)
+		self:ForceMoveJump(trajectory)
     elseif key == KEY_1 then
 		self:ChangeEquipment(1)
 	elseif key == KEY_2 then
@@ -1022,6 +1040,39 @@ function ENT:OnKeyPressed(ply,key)
 	elseif key == KEY_5 then
 		self:ChangeEquipment(5)
     end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetMovementDirection()
+	local ply = self.VJ_TheController
+	if !IsValid(ply) then return end
+
+	local key_forward = ply:KeyDown(IN_FORWARD)
+	local key_back = ply:KeyDown(IN_BACK)
+	local key_left = ply:KeyDown(IN_MOVELEFT)
+	local key_right = ply:KeyDown(IN_MOVERIGHT)
+
+	local rot = Angle()
+	if key_forward then
+		if key_left then
+			rot = Angle(0,45,0)
+		elseif key_right then
+			rot = Angle(0,-45,0)
+		end
+	elseif key_back then
+		if key_left then
+			rot = Angle(0,135,0)
+		elseif key_right then
+			rot = Angle(0,-135,0)
+		else
+			rot = Angle(0,180,0)
+		end
+	elseif key_left then
+		rot = Angle(0,90,0)
+	elseif key_right then
+		rot = Angle(0,-90,0)
+	end
+
+	return rot:Forward(), rot
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetFatalityOffset(ent)
@@ -1140,6 +1191,10 @@ function ENT:CustomAttack(ent,vis)
 					self:ChangeEquipment(1)
 					return
 				end
+				-- if !self.DisableChasingEnemy then
+				-- 	self.DisableChasingEnemy = true
+				-- end
+				-- self:StopMoving()
 				self:FireSpearGun()
 			elseif !doingBlock && vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
 				self:DistractionCode(ent)
@@ -1208,6 +1263,9 @@ function ENT:CustomAttack(ent,vis)
 			elseif !doingBlock && vis && dist > 200 && dist <= 1500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 80 or 35) == 1 then
 				self:ChangeEquipment(4)
 				self:SpecialAttackCode(4)
+			-- elseif self.DisableChasingEnemy && !doingBlock && vis && dist > 1000 && dist <= 4000 && !self:IsBusy() && math.random(1,600) == 1 then
+				-- self:ChangeEquipment(5)
+				-- self:SpecialAttackCode(5)
 			end
 			local pos = ent:GetPos()
 			local heightDif = math.abs(pos.z -self:GetPos().z)
@@ -1590,6 +1648,26 @@ function ENT:LongJumpCode(gotoPos,atk)
 	self.PredatorLandingPos = nil
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:FindNodesNearPoint(checkPos,total,dist,minDist)
+	local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
+	local closestNode = NULL
+	local closestDist = 999999
+	for _,v in pairs(nodegraph) do
+		local dist = v.pos:Distance(checkPos)
+		if dist < closestDist then
+			closestNode = v
+			closestDist = dist
+		end
+	end
+	local savedPoints = {}
+	for _,v in pairs(nodegraph) do
+		if v.pos:Distance(closestNode.pos) <= (dist or 1024) && v.pos:Distance(closestNode.pos) >= (minDist or 0) then
+			table.insert(savedPoints,v.pos)
+		end
+	end
+	return #savedPoints > 0 && savedPoints or false
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
 	self:StopAllCommonSpeechSounds()
 	if math.random(1,4) == 1 then
@@ -1597,7 +1675,11 @@ function ENT:DistractionCode(ent)
 		self.DistractT = CurTime() +5
 	else
 		local soundPos = ent:GetPos() +VectorRand() *600
-		local soundF = VJ_PICK(self.SoundTbl_Distract)
+		local findPos = self:FindNodesNearPoint(soundPos,12,768,256)
+		if findPos then
+			soundPos = VJ.PICK(findPos)
+		end
+		local soundF = VJ.PICK(self.SoundTbl_Distract)
 		self.DistractT = CurTime() +SoundDuration(soundF) +5
 		sound.Play(soundF,soundPos,72)
 		VJ.EmitSound(self,soundF,65)
@@ -1671,7 +1753,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		self:SetLocalVelocity(Vector(0,0,0))
 		self:SetVelocity(self:GetForward() *150 +Vector(0,0,-100))
 		VJ.CreateSound(self,self.SoundTbl_Land,75)
-		VJ.EmitSound(self,VJ_PICK({"cpthazama/avp/predator/jump/pred_heavy_land_01.ogg","cpthazama/avp/predator/jump/pred_heavy_land_02.ogg","cpthazama/avp/predator/jump/pred_heavy_land_03.ogg"}),75)
+		VJ.EmitSound(self,VJ.PICK({"cpthazama/avp/predator/jump/pred_heavy_land_01.ogg","cpthazama/avp/predator/jump/pred_heavy_land_02.ogg","cpthazama/avp/predator/jump/pred_heavy_land_03.ogg"}),75)
 		local tr = util.TraceLine({
 			start = self:GetPos(),
 			endpos = self:GetPos() +self:GetUp() *-100,
@@ -1753,6 +1835,8 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			self:DeleteOnRemove(proj)
 			proj.RemoveOnHit = false
 			proj.Predator = self
+			proj:SetNW2Bool("AVP.IsTech",true)
+			proj.VJ_AVP_IsTech = true
 			proj:DrawShadow(true)
 			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
@@ -1828,9 +1912,13 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 			-- ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
 
 			local phys = proj:GetPhysicsObject()
+			local targetPos = IsValid(self.VJ_TheController) && (self:GetEnemy():GetPos() +self:GetUp() *-35) or self:EyePos() +self:GetForward() *600
+			local targetAng = (targetPos -proj:GetPos()):Angle()
+			targetPos = self:GetPos() +targetAng:Forward() *600
 			if IsValid(phys) then
 				phys:EnableGravity(true)
-				phys:SetVelocity(proj:GetForward() *500)
+				-- phys:SetVelocity(proj:GetForward() *500)
+				phys:SetVelocity(VJ.CalculateTrajectory(self,nil,"CurveAntlion",proj:GetPos(),targetPos,600))
 			end
 			self:SetEnergy(self:GetEnergy() -50)
 			self.NextRegenEnergyT = CurTime() +5
@@ -1876,9 +1964,9 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "spear_throw" then
 		SafeRemoveEntity(self.SpearProp)
 		local att = self:GetAttachment(self:LookupAttachment("spear"))
-		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *1000
+		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
 		local targetAng = (targetPos -att.Pos):Angle()
-		targetPos = self:GetPos() +targetAng:Forward() *2000
+		-- targetPos = self:GetPos() +targetAng:Forward() *2000
 		local proj = ents.Create("obj_vj_avp_pred_spear")
 		proj:SetPos(att.Pos)
 		proj:SetAngles(targetAng)
@@ -1895,7 +1983,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		if IsValid(phys) then
 			-- phys:SetVelocity(proj:GetForward() *2500)
 			-- phys:SetVelocity(self:CalculateTrajectory(proj:GetPos(),targetPos,2))
-			phys:SetVelocity(VJ.CalculateTrajectory(self,nil,"Curve",proj:GetPos(),targetPos,2))
+			phys:SetVelocity(VJ.CalculateTrajectory(self,nil,"CurveAntlion",proj:GetPos(),targetPos,2500))
 		end
 	elseif key == "spear_retract" then
 		if IsValid(self.SpearProp) then
@@ -1959,7 +2047,7 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 		
 	elseif key == "cin_predintro_pred_land" then
 		VJ.CreateSound(self,self.SoundTbl_Land,75)
-		VJ.EmitSound(self,VJ_PICK({"cpthazama/avp/predator/jump/pred_heavy_land_01.ogg","cpthazama/avp/predator/jump/pred_heavy_land_02.ogg","cpthazama/avp/predator/jump/pred_heavy_land_03.ogg"}),75)
+		VJ.EmitSound(self,VJ.PICK({"cpthazama/avp/predator/jump/pred_heavy_land_01.ogg","cpthazama/avp/predator/jump/pred_heavy_land_02.ogg","cpthazama/avp/predator/jump/pred_heavy_land_03.ogg"}),75)
 		local tr = util.TraceLine({
 			start = self:GetBonePosition(1),
 			endpos = self:GetBonePosition(1) +self:GetUp() *-100,
@@ -2529,7 +2617,7 @@ function ENT:CustomOnThink_AIEnabled()
 						end
 						vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
 						vsched.HasMovement = true
-						if math.random(1,2) == 1 then
+						if vis && math.random(1,2) == 1 then
 							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
 							vsched.MoveType = 0
 							vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
@@ -2538,7 +2626,7 @@ function ENT:CustomOnThink_AIEnabled()
 							vsched.MoveType = 1
 						end
 						self:StartSchedule(vsched)
-						self.NextFindStalkPos = curTime +math.Rand(5,20)
+						self.NextFindStalkPos = curTime +math.Rand(5,vis && 20 or 7)
 					end
 				else
 					self.DisableChasingEnemy = false
@@ -2743,7 +2831,7 @@ function ENT:FootStep(pos,name)
 		mat = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[mat] then
-		VJ.EmitSound(self,VJ_PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
 		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
@@ -2946,7 +3034,7 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 	if setCurSnd then
 		self:StopAllCommonSpeechSounds()
 	end
-	local sndName = VJ_PICK(sndTbl)
+	local sndName = VJ.PICK(sndTbl)
 	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
@@ -3022,17 +3110,17 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
 				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+				self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
 			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_lef then
 			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		elseif gerta_rig then
 			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
@@ -3042,21 +3130,18 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:StartMovement(cont, Dir, Rot)
-	local self = cont.VJCE_NPC
+function ENT:StartMovement(Dir, Rot)
+	local cont = self.VJ_TheControllerEntity
 	local ply = cont.VJCE_Player
 	if self:GetState() != VJ_STATE_NONE then return end
 
-	local DEBUG = ply:GetInfoNum("vj_npc_cont_devents", 0) == 1
+	local DEBUG = false
 	local plyAimVec = Dir
 	plyAimVec.z = 0
 	plyAimVec:Rotate(Rot)
 
-	-- self:SetMovementActivity(ply:KeyDown(IN_SPEED) && VJ.PICK(self.AnimTbl_Run) or VJ.PICK(self.AnimTbl_Walk))
-	-- self:ResetIdealActivity(self:GetMovementActivity())
-
 	local selfPos = self:GetPos()
-	local centerToPos = self:OBBCenter():Distance(self:OBBMins()) + 20 // self:OBBMaxs().z
+	local centerToPos = self:OBBCenter():Distance(self:OBBMins()) // self:OBBMaxs().z
 	local NPCPos = selfPos + self:GetUp()*centerToPos
 	local groundSpeed = math.Clamp(self:GetSequenceGroundSpeed(self:GetSequence()), 300, 9999)
 	local defaultFilter = {cont, self, ply}
