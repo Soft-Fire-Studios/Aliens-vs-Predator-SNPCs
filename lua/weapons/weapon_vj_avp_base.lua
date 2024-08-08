@@ -25,7 +25,7 @@ SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticlesAsOne = true
 SWEP.PrimaryEffects_SpawnShells = false
 SWEP.Primary.TracerType = "VJ_AVP_Trace"
-SWEP.PrimaryEffects_ShellType = "ShellEject" -- Pistol = ShellEject | Rifle = RifleShellEject | Shotgun = ShotgunShellEject
+SWEP.PrimaryEffects_ShellType = "ShellEject" -- Pistol = "ShellEject" | Rifle = "RifleShellEject" | Shotgun = "ShotgunShellEject"
 SWEP.Primary.SoundPitch	= VJ_Set(100, 100)
 
 SWEP.NPC_TimeUntilFire = 0
@@ -843,13 +843,14 @@ if CLIENT then
 		if self.WorldModel_UseCustomPosition == true then
 			if IsValid(owner) then
 				if owner:IsPlayer() && owner:InVehicle() then return end
-				local wepPos = self:GetWeaponCustomPosition(owner)
-				if wepPos == nil then return end
-				self:SetRenderOrigin(wepPos.pos)
-				self:SetRenderAngles(wepPos.ang)
-				-- self:FrameAdvance(FrameTime())
-				-- self:SetupBones()
-				if noDraw == false then self:DrawModel() end
+				local wepPos, wepAng = self:GetWeaponCustomPosition(owner)
+				if wepPos then
+					self:SetRenderOrigin(wepPos)
+					self:SetRenderAngles(wepAng)
+					--self:FrameAdvance(FrameTime())
+					--self:SetupBones()
+					if noDraw == false then self:DrawModel() end
+				end
 			else
 				self:SetRenderOrigin(nil)
 				self:SetRenderAngles(nil)
