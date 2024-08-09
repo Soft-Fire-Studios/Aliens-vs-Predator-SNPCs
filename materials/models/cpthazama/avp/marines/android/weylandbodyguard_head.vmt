@@ -1,0 +1,41 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/android/weylandbodyguard_head_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/android/combatandroid_head_norms"
+	"$detail"					"models/cpthazama/avp/marines/android/weylandbodyguard_head_selfillum"
+
+	"$detailscale" 				"1"
+	"$detailblendmode" 			"5"
+	"$detailblendfactor" 		"1.5"
+
+    "$nodecal" 					"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"		"[0.67 0.83 1]"
+
+	"$normalmapalphaenvmapmask"  "1"
+
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"$emissiveTexture" 			"models/cpthazama/avp/marines/android/weylandbodyguard_head_selfillum"
+	"$emissiveTint" 			"[1 1 1]"
+
+	"Proxies"
+	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
+		"EfxEmissive"
+		{
+			"index" 		9
+			"color" 		$emissiveTint
+			"brightness" 	0.5
+			"emissivetexture" $emissiveTexture
+		}
+	}
+}

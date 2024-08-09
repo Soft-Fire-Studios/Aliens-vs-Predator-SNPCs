@@ -124,9 +124,9 @@ if VJExists == true then
 	-- VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",wepMarines,vCat_M)
 	-- VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
-	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_scopedrifle"},vCat_M)
-	-- VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_scopedrifle"},vCat_M)
-	-- VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_pistol"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_flamethrower","weapon_vj_avp_scopedrifle"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle"},vCat_M)
+	-- VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
 
 	-- VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",wepMarines,vCat_M)
 	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",wepMarines,vCat_M)
@@ -757,6 +757,7 @@ if VJExists == true then
 	VJ.AddParticle("particles/vj_avp_muzzle.pcf",{
 		"vj_avp_muzzle_main",
 		"vj_avp_muzzle_big_main",
+		"vj_avp_muzzle_big_main_2",
 		"vj_avp_muzzle_sg_main",
 		"vj_avp_muzzle_lmg_main",
 		"vj_avp_muzzle_ft",

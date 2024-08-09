@@ -101,9 +101,16 @@ function ENT:SynthInitialize()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
-	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
+	self:SetBodygroup(self:FindBodygroupByName("mask"),self.AllowCloaking && 2 or 1)
 	self.HasFallen = false
 	self.NextCloakT = 0
+
+	if self.AllowCloaking then
+		self:SetSkin(1)
+		self:SetBodygroup(self:FindBodygroupByName("armor"),1)
+		self.GeneralSoundPitch1 = 90
+		self.GeneralSoundPitch2 = 95
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomBeforeApplyRelationship(v)
