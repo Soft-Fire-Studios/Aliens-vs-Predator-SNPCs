@@ -1,0 +1,33 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/ravager/alien_warrior_head_k_colour"
+	"$bumpmap"					"models/cpthazama/avp/xeno/warrior/alien_warrior_head_normal"
+
+    "$nodecal" 					"1"
+    "$nocull" 					"1"
+    "$color2" 					"[1.3 1.5 1.3]"
+
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongtint"       			"[1 0.75 0]"
+	"$phongwarptexture"  		"models/cpthazama/avp/xeno/ravager/ramp_k"
+
+	"$envmapfresnel"            "1"
+	"$envmap"                   "env_cubemap"
+	"$envmaptint" 				"[0.35 0.185 0.185]"
+	"$envmapcontrast" 			"1"
+	"$normalmapalphaenvmapmask" "1"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.45"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

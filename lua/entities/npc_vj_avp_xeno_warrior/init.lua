@@ -344,8 +344,11 @@ ENT.CanScreamForHelp = true
 ENT.CanSetGroundAngle = true
 ENT.CanBlock = true
 ENT.AlwaysStand = false
+ENT.ReactsToFire = true
 ENT.CanBeKnockedDown = true
 ENT.DisableFatalities = false
+ENT.BulletDamageReductionRequirement = 30
+ENT.BulletDamageReduction = 0.2
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED,ACT_WALK_RELAXED}
 ENT.HitGroups = {
 	[HITGROUP_HEAD] = {
@@ -1490,6 +1493,9 @@ end
 function ENT:RunDamageCode(mult)
 	mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
+	if self.BeforeRunDamage then
+		self:BeforeRunDamage(mult)
+	end
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		self:CustomOnMeleeAttack_AfterChecks(ent, false)
@@ -2617,8 +2623,9 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 		self.AI_BlockTime = 0
 		local ammoType = dmginfo:GetAmmoType()
 		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
-		if dmginfo:GetDamage() <= 30 then
-			dmginfo:SetDamage(dmginfo:GetDamage() <= 10 && 1 or math_Clamp(dmginfo:GetDamage() *0.2,1,30))
+		local bulletReq = self.BulletDamageReductionRequirement
+		if dmginfo:GetDamage() <= bulletReq then
+			dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.33) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
 		end
 	end
 
@@ -2728,7 +2735,7 @@ function ENT:SelectMovementActivity(act)
 	local ply = self.VJ_TheController
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
-	if self:IsOnFire() then
+	if self:IsOnFire() && self.ReactsToFire then
 		return ACT_WALK_ON_FIRE
 	end
 	local gib = self.Gibbed
