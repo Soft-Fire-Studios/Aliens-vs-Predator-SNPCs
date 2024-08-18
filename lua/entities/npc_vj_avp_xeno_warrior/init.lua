@@ -347,7 +347,7 @@ ENT.AlwaysStand = false
 ENT.ReactsToFire = true
 ENT.CanBeKnockedDown = true
 ENT.DisableFatalities = false
-ENT.BulletDamageReductionRequirement = 30
+ENT.BulletDamageReductionRequirement = 20
 ENT.BulletDamageReduction = 0.2
 ENT.FaceEnemyMovements = {ACT_RUN_RELAXED,ACT_RUN,ACT_WALK_STIMULATED,ACT_WALK_RELAXED}
 ENT.HitGroups = {
@@ -2628,7 +2628,7 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
 		local bulletReq = self.BulletDamageReductionRequirement
 		if dmginfo:GetDamage() <= bulletReq then
-			dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.33) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
+			dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.5) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
 		end
 		if self.VJ_AVP_XenomorphRavager then
 			if self.HasSounds == true && self.HasImpactSounds == true then
@@ -2647,8 +2647,7 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 
 	local dmgInflictor = dmginfo:GetInflictor()
 	local dmgAttacker = dmginfo:GetAttacker()
-	local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
-	if isFireDmg then
+	if (self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame") then
 		dmginfo:ScaleDamage(2)
 	end
 end
