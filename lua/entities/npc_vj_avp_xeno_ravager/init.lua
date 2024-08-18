@@ -29,6 +29,7 @@ ENT.FlinchChance = 60
 
 ENT.AttackDamageMultiplier = 3
 ENT.BulletDamageReductionRequirement = 80
+ENT.CanBeKnockedDown = false
 ENT.CanSpit = false
 ENT.CanScreamForHelp = false
 ENT.CanLeap = false

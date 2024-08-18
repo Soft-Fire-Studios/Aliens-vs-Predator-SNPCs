@@ -11,6 +11,13 @@ if CLIENT then
 end
 
 sound.Add({
+	name = "AVP.SmartGun.Fire",
+	channel = CHAN_WEAPON,
+	volume = 1,
+	level = SNDLVL_GUNFIRE,
+	sound = {"cpthazama/avp/weapons/human/minigun/minigun_shoot_loop_01.wav"}
+})
+sound.Add({
 	name = "AVP.SmartGun.ClipIn",
 	sound = "cpthazama/avp/weapons/human/shotgun/shotgun_clip_in_01.ogg",
 	channel = CHAN_STATIC,
@@ -54,7 +61,7 @@ SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == fals
 SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 
 SWEP.Primary.UsesLoopedSound 	= true
-SWEP.Primary.Sound 				= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_loop_01.wav"}
+SWEP.Primary.Sound 				= {"AVP.SmartGun.Fire"}
 SWEP.Primary.StartSound 		= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_start_01.ogg"}
 SWEP.Primary.EndSound 			= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_end_01.ogg"}
 

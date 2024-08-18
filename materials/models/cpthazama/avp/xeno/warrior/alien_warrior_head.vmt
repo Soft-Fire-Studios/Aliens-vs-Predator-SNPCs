@@ -5,6 +5,7 @@
 	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/warrior/alien_warrior_head_specular"
 
     "$nodecal" 					"1"
+    "$nocull" 					"1"
 
 	"$phong"                    "1"
 	"$phongboost"               "2"

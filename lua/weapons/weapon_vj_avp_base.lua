@@ -122,7 +122,7 @@ function SWEP:CustomOnInitialize()
 	if self.Primary.UsesLoopedSound then
 		self.PrimarySound = self.Primary.Sound
 		self.Primary.Sound = nil
-		self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound))
+		self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound), VJ_RecipientFilter)
 		self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
 	end
 
@@ -187,7 +187,7 @@ function SWEP:CustomOnPrimaryAttack_AfterShoot()
 		self.PrimaryLoopSoundT = CurTime() +0.1
 		if math.random(1,7) == 1 && self.PrimaryLoop:IsPlaying() && #self.PrimarySound > 1 then
 			self.PrimaryLoop:Stop()
-			self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound))
+			self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound), VJ_RecipientFilter)
 			self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
 			self.PrimaryLoop:Play()
 		end
