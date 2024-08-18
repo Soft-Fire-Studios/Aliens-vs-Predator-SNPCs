@@ -47,6 +47,8 @@ ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2
 
 ENT.StandingBounds = Vector(16,16,125)
 ENT.CrawlingBounds = Vector(16,16,125)
+
+ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	self.FootData = {
@@ -57,6 +59,52 @@ function ENT:OnInit()
 	self.GeneralSoundPitch2 = 75
 
 	self.HitGroups = {}
+	self.SoundTbl_Alert = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_02.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_03.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_04.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_05.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_06.ogg",
+	}
+	self.SoundTbl_Attack = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_02.ogg",
+	}
+	self.SoundTbl_CombatIdle = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_02.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_03.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_04.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_05.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_taunt_06.ogg",
+	}
+	self.SoundTbl_BeforeRangeAttack = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_02.ogg",
+	}
+	self.SoundTbl_RangeAttack = {}
+	self.SoundTbl_Jump = {
+		"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_01.ogg",
+		"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_02.ogg",
+		"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_03.ogg",
+		"cpthazama/avp/xeno/alien/vocals/alien_jump_grunt_04.ogg",
+	}
+	self.SoundTbl_Pain = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_02.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_04.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_05.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_06.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_07.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_08.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_09.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_pain_10.ogg",
+	}
+	self.SoundTbl_Death = {
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_01.ogg",
+		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",
+	}
 
 	self:SetStepHeight(40)
 	self:CapabilitiesRemove(CAP_MOVE_JUMP)

@@ -2621,11 +2621,27 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 		self.BlockAnimTime = 0
 		self.AI_IsBlocking = false
 		self.AI_BlockTime = 0
+	end
+
+	if dmginfo:IsBulletDamage() then
 		local ammoType = dmginfo:GetAmmoType()
 		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
 		local bulletReq = self.BulletDamageReductionRequirement
 		if dmginfo:GetDamage() <= bulletReq then
 			dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.33) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
+		end
+		if self.VJ_AVP_XenomorphRavager then
+			if self.HasSounds == true && self.HasImpactSounds == true then
+				VJ.EmitSound(self, "vj_base/impact/armor"..math.random(1, 10)..".wav", 60)
+			end
+			-- if math.random(1, 3) == 1 then
+			-- 	local effectData = EffectData()
+			-- 	effectData:SetOrigin(dmginfo:GetDamagePosition())
+			-- 	effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
+			-- 	effectData:SetMagnitude(3)
+			-- 	effectData:SetScale(1)
+			-- 	util.Effect("ElectricSpark", effectData)
+			-- end
 		end
 	end
 

@@ -1082,7 +1082,7 @@ if CLIENT then
 			local isDark = lightLevel <= 0.1
 			ent.AVP_LastDark = ent.AVP_LastDark or isDark
 			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
-			if mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
+			if hasMask && mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
 				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,mode == 1 && math.random(95,110) or mode == 2 && math.random(115,125) or mode == 3 && math.random(75,90))
 				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(64,117,126) or Color(124,0,0),0.3,0)
 				ent.AVP_LastDark = isDark
@@ -1099,6 +1099,17 @@ if CLIENT then
 			tab_tech["$pp_colour_contrast"] = Lerp(FrameTime() *2,tab_tech["$pp_colour_contrast"],math_Clamp((1 -lightLevel) *0.14,0.07,0.15))
 
 			tab_nomask["$pp_colour_brightness"] = Lerp(FrameTime() *2,tab_nomask["$pp_colour_brightness"],math_Clamp((1 -lightLevel) *0.9,0.6,1))
+
+			if !hasMask then
+				DrawColorModify(tab_nomask)
+				DrawBloom(0,0.5,1,1,0,0,10,10,10)
+				DrawTexturize(0,matGradientNoMask)
+				if IsValid(cont) then
+					cont:SetDSP(1)
+				end
+				mode = 0
+				return
+			end
 
 			if mode > 0 then
 				local dLight = DynamicLight(ent:EntIndex())
