@@ -2891,7 +2891,7 @@ function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
 		if !IsValid(attacker) then
 			attacker = dmginfo:GetInflictor()
 		end
-		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJ_IsHugeMonster && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
 		if IsValid(attacker) && isBigDmg then
 			local attackerLookDir = attacker:GetAimVector()
 			local dotForward = attackerLookDir:Dot(self:GetForward())
@@ -2958,7 +2958,7 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
 	local dmg = dmginfo:GetDamage()
-	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
+	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJTag_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0

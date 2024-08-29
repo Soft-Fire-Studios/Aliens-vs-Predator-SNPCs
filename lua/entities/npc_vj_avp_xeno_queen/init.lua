@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/queen.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
 ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
-ENT.VJ_IsHugeMonster = true
+ENT.VJTag_ID_Boss = true
 
 ENT.VJC_Data = {
     CameraMode = 2,
@@ -176,7 +176,7 @@ function ENT:OnHitEntity(ent,isProp)
 			phys:ApplyForceCenter(self:GetForward() *(self.VJ_AVP_Xenomorph_Matriarch && 3500 or 2000) +self:GetUp() *250)
 		end
 	else
-		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJ_IsHugeMonster or ent.IsVJBaseSNPC_Tank) then
+		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJTag_ID_Boss or ent.IsVJBaseSNPC_Tank) then
 			ent:SetGroundEntity(NULL)
 			ent:SetVelocity(self:MeleeAttackKnockbackVelocity(ent))
 		end
@@ -618,7 +618,7 @@ function ENT:OnCollision(ent,colType)
 						phys:ApplyForceCenter(hitDir *phys:GetMass() *(300 *distPercentage))
 					end
 				else
-					if v.MovementType != VJ_MOVETYPE_STATIONARY && (!v.VJ_IsHugeMonster or v.IsVJBaseSNPC_Tank) then
+					if v.MovementType != VJ_MOVETYPE_STATIONARY && (!v.VJTag_ID_Boss or v.IsVJBaseSNPC_Tank) then
 						v:SetGroundEntity(NULL)
 						v:SetVelocity(v:GetUp() *(math.random(100,200) *distPercentage) +v:GetForward() *(math.random(-500,500) *distPercentage) +v:GetRight() *(math.random(-500,500) *distPercentage))
 					end

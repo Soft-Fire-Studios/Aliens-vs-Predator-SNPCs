@@ -7,7 +7,7 @@ include("shared.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/predalien.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
 ENT.StartHealth = 1500
-ENT.VJ_IsHugeMonster = true
+ENT.VJTag_ID_Boss = true
 ENT.HullType = HULL_LARGE
 
 ENT.VJC_Data = {
