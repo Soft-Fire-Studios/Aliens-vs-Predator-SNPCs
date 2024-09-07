@@ -1570,6 +1570,9 @@ function ENT:LongJumpCode(gotoPos,atk)
 	local aimVec = IsValid(ply) && ply:GetAimVector()
 	local tr1
 	local canJump = true
+	if IsValid(ply) && ply:KeyDown(IN_ATTACK) then
+		atk = true
+	end
 	if gotoPos then
 		tr1 = util.TraceLine({
 			start = self:EyePos(),

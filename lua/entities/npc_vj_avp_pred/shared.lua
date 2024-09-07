@@ -481,7 +481,7 @@ if CLIENT then
 					self:ManipulateBoneScale(v, vec1)
 				end
 			end
-			local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
+			local offset = ply.VJC_TP_Offset + Vector(0, 0, 95) // + vectp
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
 				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),

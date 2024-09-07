@@ -141,6 +141,24 @@ function ENT:CustomOnThink()
 	return true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Touch(ent)
+	local data = {
+		HitEntity = ent,
+		HitPos = self:GetPos(),
+		HitNormal = self:GetForward(),
+		HitGroup = 0,
+		HitDistance = 0,
+		HitWorld = ent:IsWorld(),
+	}
+	self:DoDamageCode(data, self:GetPhysicsObject())
+	if VJ.IsProp(ent) then
+		local phys = ent:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:ApplyForceCenter(self:GetForward() *1000)
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnPhysicsCollide(data, phys)
 	if data.HitEntity == Entity(0) or data.HitWorld then
 		self.HitT = CurTime() +(self.ReturnTo && 0.05 or 0.15)
@@ -178,5 +196,43 @@ function ENT:CustomOnRemove()
 	end
 	if IsValid(self.Predator) then
 		self.Predator:OnCatchDisc(self)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:PhysicsCollide(data, phys)
+	if self.Dead then return end
+	//self.Dead = true
+	if self:CustomOnPhysicsCollide(data, phys) != false then
+		if self.RemoveOnHit == true then
+			self.Dead = true
+			-- self:DoDamageCode(data, phys)
+			self:OnCollideSoundCode()
+			if self.PaintDecalOnDeath == true && VJ.PICK(self.DecalTbl_DeathDecals) != false && self.AlreadyPaintedDeathDecal == false then
+				self.AlreadyPaintedDeathDecal = true
+				util.Decal(VJ.PICK(self.DecalTbl_DeathDecals), data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
+			end
+			if self.ShakeWorldOnDeath == true then util.ScreenShake(data.HitPos, self.ShakeWorldOnDeathAmplitude or 16, self.ShakeWorldOnDeathFrequency or 200, self.ShakeWorldOnDeathDuration or 1, self.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
+			self:SetDeathVariablesTrue(data, phys, true)
+			if self.DelayedRemove > 0 then
+				self:SetNoDraw(true)
+				self:SetMoveType(MOVETYPE_NONE)
+				self:AddSolidFlags(FSOLID_NOT_SOLID)
+				self:SetLocalVelocity(defVec)
+				SafeRemoveEntityDelayed(self, self.DelayedRemove)
+				self:OnRemove()
+			else
+				self:Remove()
+			end
+		end
+		
+		if self.CollideCodeWithoutRemoving == true && CurTime() > self.NextCollideWithoutRemoveT then
+			-- self:DoDamageCode(data, phys)
+			self:OnCollideSoundCode()
+			if self.PaintDecalOnCollide == true && VJ.PICK(self.DecalTbl_OnCollideDecals) != false && self.AlreadyPaintedDeathDecal == false then
+				util.Decal(VJ.PICK(self.DecalTbl_OnCollideDecals), data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
+			end
+			self:CustomOnCollideWithoutRemove(data, phys)
+			self.NextCollideWithoutRemoveT = CurTime() + math.Rand(self.NextCollideWithoutRemove.a, self.NextCollideWithoutRemove.b)
+		end
 	end
 end
