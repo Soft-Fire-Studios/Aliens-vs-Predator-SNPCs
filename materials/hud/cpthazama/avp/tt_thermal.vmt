@@ -3,6 +3,8 @@
 	"$basetexture" "hud/cpthazama/avp/thermal_cloak"
 	
 	"$model" "1"
+	// "$translucent" "1"
+	"$allowalphatocoverage" "1"
 	"$additive" "1"
 	// "$nocull" "1"
 	"$nodecal" "1"
@@ -11,10 +13,11 @@
 	"$FleshInteriorTexture"      	"hud/cpthazama/avp/thermal_gradient_flip"
 	"$FleshNormalTexture"			"hud/cpthazama/avp/thermal_cloak"
 	"$FleshBorderTexture1D"      	"hud/cpthazama/avp/thermal_gradient_flip"
+	// "$FleshInteriorNoiseTexture" 	"models/cpthazama/avp/noise"
 	"$FleshInteriorNoiseTexture" 	"hud/cpthazama/avp/tt_thermal"
 	"$FleshSubsurfaceTexture"	 	"hud/cpthazama/avp/thermal_gradient_flip"
 	"$FleshSubsurfaceTint" 			"[1 1 1]"
-	"$FleshBorderNoiseScale"     	"4"
+	"$FleshBorderNoiseScale"     	"5"
 	"$FleshBorderWidth"				"1.75"
 	"$FleshBorderSoftness"			"0.2"
 	"$FleshBorderTint"				"[2 2 2]"
@@ -29,5 +32,5 @@
 		}
 	}
 
-	$lightwarptexture "hud/cpthazama/avp/thermal_gradient_flip"
+	$lightwarptexture "hud/cpthazama/avp/tt_thermal"
 }

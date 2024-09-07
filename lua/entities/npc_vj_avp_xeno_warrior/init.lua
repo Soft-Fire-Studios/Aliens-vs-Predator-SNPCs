@@ -522,6 +522,8 @@ function ENT:CustomOnInitialize()
 		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
 		self.BreathLoop:SetSoundLevel(50)
 		self.BreathLoop:Play()
+
+		self.CanEat = true
 	end
 
 	if self.OnInit then
@@ -562,7 +564,24 @@ function ENT:CustomOnInitialize()
 
 	self:SetStepHeight(22)
 end
---
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomOnEat(status, statusInfo)
+	if status == "CheckFood" then
+		local ent = statusInfo.owner
+		return self:Health() <= self:GetMaxHealth() *0.6 && ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten
+	elseif status == "BeginEating" then
+		return 0
+	elseif status == "Eat" then
+		self:HeadbiteCorpse(self.EatingData.Ent)
+		return 999
+	elseif status == "StopEating" then
+		if statusInfo != "Dead" && self.EatingData.AnimStatus != "None" then
+			return 0
+		end
+	end
+	return 0
+end
+-----------------------------------------------------------------------------------------------------------------------------------------------
 local math_acos = math.acos
 local math_deg = math.deg
 local math_abs = math.abs
@@ -898,7 +917,14 @@ end
 local NPCTbl_Animals = {npc_barnacle=true,npc_crow=true,npc_pigeon=true,npc_seagull=true,monster_cockroach=true}
 --
 function ENT:CheckRelationship(ent)
-	if ent.ForceEntAsEnemy == self then return D_HT end -- Always enemy to me (Used by the bullseye under certain circumstances)
+	if ent.ForceEntAsEnemy then
+		if ent.ForceEntAsEnemy == self then
+			return D_HT
+		else
+			return D_NU
+		end
+	end
+	-- if ent.ForceEntAsEnemy == self then return D_HT end -- Always enemy to me (Used by the bullseye under certain circumstances)
 	if ent:IsFlagSet(FL_NOTARGET) or NPCTbl_Animals[ent:GetClass()] then return D_NU end
 	if self:GetClass() == ent:GetClass() then return D_LI end
 	if ent:Health() > 0 && self:Disposition(ent) != D_LI then
@@ -935,6 +961,72 @@ local vecZ1 = Vector(0,0,1)
 local vec256 = Vector(0,0,-256)
 local math_Clamp = math.Clamp
 --
+function ENT:HeadbiteCorpse(ent)
+	local ply = self.VJ_TheController
+	VJ.CreateSound(self,"cpthazama/avp/xeno/alien/special/alien_brainbite_out_direct.ogg",75)
+	self:VJ_ACT_PLAYACTIVITY("headbite_2ndry",true,false,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
+	ent.VJ_AVP_CorpseHasBeenEaten = true
+	if !ent.VJ_AVP_IsTech then
+	-- if ent.BloodData.Color != "White" then
+		self:SetHealth(self:Health() +math_Clamp(self:GetMaxHealth() *0.5,0,250))
+	end
+	if ent.OnHeadAte then
+		ent:OnHeadAte(self)
+	end
+	local att1 = ent:LookupAttachment("eyes")
+	local att2 = ent:LookupAttachment("forward")
+	local att = (att1 > 0 && att1 or att2 > 0 && att2) or false
+	if IsValid(ply) then
+		net.Start("VJ.AVP.XenoEat")
+			net.WriteEntity(ent)
+			net.WriteTable(ent.BloodData)
+		net.Send(ply)
+		ply:ScreenFade(SCREENFADE.IN,colFade[ent.BloodData.Color] or Color(128,0,0),2,0.5)
+	end
+	if att then
+		local pos = ent:GetAttachment(att).Pos
+		local effect = VJ.PICK(ent.BloodData.Particle)
+		ParticleEffect(effect,pos,Angle())
+		local force = 500
+		local randVec = VectorRand() *48
+		randVec.z = 0
+		local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
+		local trNormalP = tr.HitPos +tr.HitNormal
+		local trNormalN = tr.HitPos -tr.HitNormal
+		util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
+		for _ = 1, 2 do
+			if math.random(1, 2) == 1 then
+				util.Decal(VJ.PICK(ent.BloodData.Decal), trNormalP +Vector(math.random(-70,70),math.random(-70,70),0),trNormalN,ent)
+			end
+		end
+		-- local tr = util.TraceLine({
+		-- 	start = pos,
+		-- 	endpos = pos -vecZ30,
+		-- 	filter = ent,
+		-- 	mask = CONTENTS_SOLID
+		-- })
+		-- if tr.HitWorld && (tr.HitNormal == vecZ1) then
+		-- 	ParticleEffect(getBloodPool,tr.HitPos,Angle())
+		-- end
+		for i = 1,math.random(6,12) do
+			timer.Simple(i *0.25,function()
+				if IsValid(ent) then
+					pos = ent:GetAttachment(att).Pos
+					ParticleEffect(effect,pos,Angle())
+					local force = 500
+					local randVec = VectorRand() *48
+					randVec.z = 0
+					local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
+					local trNormalP = tr.HitPos +tr.HitNormal
+					local trNormalN = tr.HitPos -tr.HitNormal
+					util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
+				end
+			end)
+		end
+		sound.Play("cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_0" .. math.random(1,5) .. ".ogg",pos,72)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	if self.OnKey then
 		self:OnKey(ply,key)
@@ -962,68 +1054,8 @@ function ENT:OnKeyPressed(ply,key)
 			-- print(ent,ent.IsVJBaseCorpse,!ent.VJ_AVP_Xenomorph,!ent.VJ_AVP_CorpseHasBeenEaten,!self:IsBusy())
 			-- print(ent,"Has been eaten?",ent.VJ_AVP_CorpseHasBeenEaten)
 			if ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten && !self:IsBusy() then
-				VJ.CreateSound(self,"cpthazama/avp/xeno/alien/special/alien_brainbite_out_direct.ogg",75)
-				self:VJ_ACT_PLAYACTIVITY("headbite_2ndry",true,false,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
-				ent.VJ_AVP_CorpseHasBeenEaten = true
-				if !ent.VJ_AVP_IsTech then
-				-- if ent.BloodData.Color != "White" then
-					self:SetHealth(self:Health() +math_Clamp(self:GetMaxHealth() *0.5,0,250))
-				end
-				if ent.OnHeadAte then
-					ent:OnHeadAte(self)
-				end
-				local att1 = ent:LookupAttachment("eyes")
-				local att2 = ent:LookupAttachment("forward")
-				local att = (att1 > 0 && att1 or att2 > 0 && att2) or false
-				net.Start("VJ.AVP.XenoEat")
-					net.WriteEntity(ent)
-					net.WriteTable(ent.BloodData)
-				net.Send(ply)
-				ply:ScreenFade(SCREENFADE.IN,colFade[ent.BloodData.Color] or Color(128,0,0),2,0.5)
-				if att then
-					local pos = ent:GetAttachment(att).Pos
-					local effect = VJ.PICK(ent.BloodData.Particle)
-					ParticleEffect(effect,pos,Angle())
-					local force = 500
-					local randVec = VectorRand() *48
-					randVec.z = 0
-					local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
-					local trNormalP = tr.HitPos +tr.HitNormal
-					local trNormalN = tr.HitPos -tr.HitNormal
-					util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
-					for _ = 1, 2 do
-						if math.random(1, 2) == 1 then
-							util.Decal(VJ.PICK(ent.BloodData.Decal), trNormalP +Vector(math.random(-70,70),math.random(-70,70),0),trNormalN,ent)
-						end
-					end
-					-- local tr = util.TraceLine({
-					-- 	start = pos,
-					-- 	endpos = pos -vecZ30,
-					-- 	filter = ent,
-					-- 	mask = CONTENTS_SOLID
-					-- })
-					-- if tr.HitWorld && (tr.HitNormal == vecZ1) then
-					-- 	ParticleEffect(getBloodPool,tr.HitPos,Angle())
-					-- end
-					for i = 1,math.random(6,12) do
-						timer.Simple(i *0.25,function()
-							if IsValid(ent) then
-								pos = ent:GetAttachment(att).Pos
-								ParticleEffect(effect,pos,Angle())
-								local force = 500
-								local randVec = VectorRand() *48
-								randVec.z = 0
-								local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
-								local trNormalP = tr.HitPos +tr.HitNormal
-								local trNormalN = tr.HitPos -tr.HitNormal
-								util.Decal(VJ.PICK(ent.BloodData.Decal),trNormalP,trNormalN,ent)
-							end
-						end)
-					end
-					sound.Play("cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_0" .. math.random(1,5) .. ".ogg",pos,72)
-				end
-			end
-			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
+				self:HeadbiteCorpse(ent)
+			elseif ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)
 				if canUse then
 					self:DoFatality(ent,inFront)
@@ -1137,7 +1169,8 @@ local vecZ50 = Vector(0, 0, -50)
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
-	self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	local _,dir = self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	self.BlockAttackT = CurTime() +(dir *1.4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local tblA = {
@@ -1667,8 +1700,7 @@ function ENT:DoLeapAttack()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
-	if self.InFatality or self.DoingFatality then return end
-	if !self.CanAttack then return end
+	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) then return end
 	local gib = self.Gibbed
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		self.AttackType = 2
@@ -2810,6 +2842,36 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	ent:SetNW2Bool("AVP.Xenomorph",true)
 
 	VJ_AVP_XenoBloodSpill(self,ent)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local colorYellow = VJ.Color2Byte(Color(255, 221, 35))
+--
+function ENT:SetUpGibesOnDeath(dmginfo, hitgroup)
+	if self.VJ_AVP_XenomorphLarge then return false end
+
+	self.HasDeathSounds = false
+	if self.HasGibDeathParticles then
+		local effectData = EffectData()
+		effectData:SetOrigin(self:GetPos() + self:OBBCenter())
+		effectData:SetColor(colorYellow)
+		effectData:SetScale(120)
+		util.Effect("VJ_Blood1", effectData)
+		effectData:SetScale(8)
+		effectData:SetFlags(3)
+		effectData:SetColor(1)
+		util.Effect("bloodspray", effectData)
+		util.Effect("bloodspray", effectData)
+	end
+
+	VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = self:GetPos(), Class = self.VJ_NPC_Class})
+	
+	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", BloodDecal="VJ_HLR_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
+	return true
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CustomGibOnDeathSounds(dmginfo, hitgroup)
+	VJ.EmitSound(self, "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg", 90)
+	return false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnPlayCreateSound(sdData, sdFile)

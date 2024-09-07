@@ -28,6 +28,7 @@ if VJExists == true then
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 	VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Pinging?")
+	VJ.AddClientConVar("vj_avp_moviepred", 0, "Enable AVP movie sounds for Predator Vision")
 
 	VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
 	VJ_AVP_CVAR_FLASHLIGHT = GetConVar("vj_avp_flashlight"):GetBool()
@@ -205,22 +206,22 @@ if VJExists == true then
 		end
 	end
 
-	AddPM("Alex", "models/cpthazama/avp/marines/alex.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Combat Android", "models/cpthazama/avp/marines/android.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Cannor", "models/cpthazama/avp/marines/connor.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Charity", "models/cpthazama/avp/marines/female_black1.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Monica", "models/cpthazama/avp/marines/female_black2.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Elaine", "models/cpthazama/avp/marines/female_blonde.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Butch", "models/cpthazama/avp/marines/female_butch.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Gibson", "models/cpthazama/avp/marines/gibson.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Martinez", "models/cpthazama/avp/marines/hispanic.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Johnson", "models/cpthazama/avp/marines/johnson.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Moss", "models/cpthazama/avp/marines/moss.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Rookie", "models/cpthazama/avp/marines/rookie.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Security Guard", "models/cpthazama/avp/marines/security.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Tequila", "models/cpthazama/avp/marines/tequila.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Van Zandt", "models/cpthazama/avp/marines/vandieter.mdl", "models/weapons/c_arms_cstrike.mdl")
-	AddPM("Thomas", "models/cpthazama/avp/marines/youngwhite.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Alex", "models/cpthazama/avp/marines/alex.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Combat Android", "models/cpthazama/avp/marines/android.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Cannor", "models/cpthazama/avp/marines/connor.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Charity", "models/cpthazama/avp/marines/female_black1.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Monica", "models/cpthazama/avp/marines/female_black2.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Elaine", "models/cpthazama/avp/marines/female_blonde.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Butch", "models/cpthazama/avp/marines/female_butch.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Gibson", "models/cpthazama/avp/marines/gibson.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Martinez", "models/cpthazama/avp/marines/hispanic.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Johnson", "models/cpthazama/avp/marines/johnson.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Moss", "models/cpthazama/avp/marines/moss.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Rookie", "models/cpthazama/avp/marines/rookie.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Security Guard", "models/cpthazama/avp/marines/security.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Tequila", "models/cpthazama/avp/marines/tequila.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Van Zandt", "models/cpthazama/avp/marines/vandieter.mdl", "models/weapons/c_arms_cstrike.mdl")
+	-- AddPM("Thomas", "models/cpthazama/avp/marines/youngwhite.mdl", "models/weapons/c_arms_cstrike.mdl")
 
 	if SERVER then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
@@ -301,6 +302,7 @@ if VJExists == true then
 
 		function VJ_AVP_MotionTracker(self)
 			local curTime = CurTime()
+			if self:IsNPC() && !VJ_CVAR_AI_ENABLED then return end
 			self:SetNW2Float("AVP.MotionTracker.Ping",self.Ping_NextPingT or 0)
 			if curTime > (self.Ping_NextPingT or 0) then
 				self.Ping_NextPingT = curTime +0.85

@@ -255,6 +255,11 @@ function ENT:SelectMovementActivity(act)
 			return speargun && ACT_HL2MP_RUN_SMG1 or ACT_RUN
 		end
 	else
+		if self.Cur_Walk && act == ACT_WALK then
+			return speargun && ACT_HL2MP_WALK_SMG1 or ACT_WALK
+		elseif self.Cur_Run && act == ACT_RUN then
+			return speargun && ACT_HL2MP_RUN_SMG1 or ACT_RUN
+		end
 		if act == ACT_RUN then
 			if dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
 				return speargun && ACT_HL2MP_SWIM_SMG1 or ACT_SPRINT
@@ -1493,8 +1498,7 @@ local sdClawMiss = {
 }
 --
 function ENT:AttackCode()
-	if self.InFatality or self.DoingFatality then return end
-	if !self.CanAttack then return end
+	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) then return end
 	self.AttackSide = self.AttackSide == "right" && "left" or "right"
 	local side = self.AttackSide
 	local anim = VJ.PICK(self.AttackAnimations)
@@ -1556,6 +1560,8 @@ end
 	predator_claws_jump_shallow -- Somewhat close
 	predator_claws_jump_short -- Up close
 */
+
+local math_clamp = math.Clamp
 --
 function ENT:LongJumpCode(gotoPos,atk)
 	if self.InFatality or self:IsBusy() or !self:OnGround() then return true end
@@ -1619,6 +1625,24 @@ function ENT:LongJumpCode(gotoPos,atk)
 	local height = self:GetPos().z -self.LongJumpPos.z
 	local atkAnim = "predator_claws_attack_left_lower_slash_medium"
 	if atk then
+		local targetPos = IsValid(self:GetEnemy()) && (self:GetEnemy():GetPos() +self:GetEnemy():OBBCenter()) or self.LongJumpPos
+		local dir = (targetPos -self:GetPos()):GetNormalized()
+		local targetDist = self:EyePos():Distance(targetPos)
+		-- if targetDist < 300 then
+			-- targetPos.z = self:GetPos().z
+			-- dir = (targetPos -self:GetPos()):GetNormalized()
+		-- end
+		local atkTr = util.TraceHull({
+			start = self:EyePos(),
+			endpos = self:GetPos() +dir *math_clamp(targetDist,300,2000),
+			filter = {self,ply},
+			mins = self:OBBMins() /2,
+			maxs = self:OBBMaxs() /2
+		})
+		-- if atkTr.Hit && IsValid(atkTr.Entity) && self:CheckRelationship(atkTr.Entity) == D_HT then
+		-- 	self.LongJumpPos = atkTr.HitPos +atkTr.HitNormal *4
+		-- end
+		self.LongJumpPos = atkTr.HitPos +atkTr.HitNormal *4
 		self.AttackSide = self.AttackSide == "right" && "left" or "right"
 		local side = self.AttackSide
 		local atkType = VJ.PICK({"lower_slash","punch","upper_slash"})
@@ -1630,9 +1654,9 @@ function ENT:LongJumpCode(gotoPos,atk)
 	end
 	-- print("Set ",self.LongJumpAttacking)
 	local animSetType = (self:GetEquipment() == 5 && "speargun" or "claws")
-	if height < -150 then
+	if !atk && height < -150 then
 		anim = "predator_" .. animSetType .. "_jump_gain_height"
-	elseif height > 150 then
+	elseif !atk && height > 150 then
 		anim = "predator_" .. animSetType .. "_jump_drop_down"
 	else
 		if dist > 1500 then
@@ -2540,6 +2564,8 @@ function ENT:CustomOnThink_AIEnabled()
 				self.LookForHidingSpot = false
 				self.LookForHidingSpotAttempts = 0
 				self.DisableChasingEnemy = false
+				self.Cur_Walk = nil
+				self.Cur_Run = nil
 				self:OnFailedHidingSpot(goalPos)
 				return
 			end
@@ -2547,6 +2573,8 @@ function ENT:CustomOnThink_AIEnabled()
 				self.LookForHidingSpot = false
 				self.LookForHidingSpotAttempts = 0
 				self.DisableChasingEnemy = false
+				self.Cur_Walk = nil
+				self.Cur_Run = nil
 				self:OnFoundHidingSpot(goalPos)
 			else
 				if curTime > self.NextLookForHidingSpotT && !self:IsBusy() then
@@ -2601,6 +2629,8 @@ function ENT:CustomOnThink_AIEnabled()
 			if enemy.VJ_AVP_Xenomorph then
 				self:SetVisionMode(2)
 				self.DisableChasingEnemy = false
+				self.Cur_Walk = nil
+				self.Cur_Run = nil
 			else
 				if enemy.VJ_AVP_IsTech then
 					self:SetVisionMode(3)
@@ -2620,11 +2650,15 @@ function ENT:CustomOnThink_AIEnabled()
 						vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
 						vsched.HasMovement = true
 						if vis && math.random(1,2) == 1 then
-							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
+							-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
+							self.Cur_Walk = ACT_WALK
+							self.Cur_Run = ACT_WALK
 							vsched.MoveType = 0
 							vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 						else
-							self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
+							-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
+							self.Cur_Walk = ACT_RUN
+							self.Cur_Run = ACT_RUN
 							vsched.MoveType = 1
 						end
 						self:StartSchedule(vsched)
@@ -2632,6 +2666,8 @@ function ENT:CustomOnThink_AIEnabled()
 					end
 				else
 					self.DisableChasingEnemy = false
+					self.Cur_Walk = nil
+					self.Cur_Run = nil
 				end
 			end
 		else
@@ -2946,7 +2982,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
 	self.AttackSide = self.AttackSide or "left"
-	self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	local _,dir = self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	self.BlockAttackT = CurTime() +(dir *1.4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
@@ -2954,6 +2991,8 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	if self.DisableChasingEnemy then
 		self:StopMoving()
 		self.DisableChasingEnemy = false
+		self.Cur_Walk = nil
+		self.Cur_Run = nil
 		self.NextFindStalkPos = CurTime() +math.Rand(15,20)
 	end
 	local explosion = dmginfo:IsExplosionDamage()

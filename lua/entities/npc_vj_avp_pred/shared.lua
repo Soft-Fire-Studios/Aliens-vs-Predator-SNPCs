@@ -60,12 +60,13 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 		if button == KEY_F then
 			if npc.VJ_AVP_Predator && (npc.PredLord && 1 or npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1) then
 				local mode = npc:GetVisionMode()
+				local movie = GetConVar("vj_avp_moviepred"):GetBool()
 				if mode == 0 then
-					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
+					ply:EmitSound(movie && "cpthazama/avp/predator/vision/Vision_Start_Movie.ogg" or "cpthazama/avp/predator/vision/prd_vision_mode_start_mono.ogg",65)
 				elseif mode == 3 then
-					ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
+					ply:EmitSound(movie && "cpthazama/avp/predator/vision/Vision_End_Movie.ogg" or "cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
 				else
-					ply:EmitSound(VJ.PICK({
+					ply:EmitSound(movie && "cpthazama/avp/predator/vision/Vision_Switch_Movie.ogg" or VJ.PICK({
 						"cpthazama/avp/predator/vision/vision_change_01.ogg",
 						"cpthazama/avp/predator/vision/vision_change_02.ogg",
 						"cpthazama/avp/predator/vision/vision_change_04.ogg",
@@ -653,7 +654,7 @@ if CLIENT then
 			cont:AllowFlashlight(true)
 			if cont.VisionHeart then cont.VisionHeart:Stop() end
 			if cont.VisionBuzz then cont.VisionBuzz:Stop() end
-			-- if cont.VisionIdle then cont.VisionIdle:Stop() end
+			if cont.VisionIdle then cont.VisionIdle:Stop() end
 			hook.Remove("PlayerButtonDown","VJ_AVP_Predator_Buttons")
 			if ply.VJC_FP_Bone != -1 && IsValid(ent) then
 				ent:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
@@ -927,35 +928,39 @@ if CLIENT then
 						ent.LandingParticle = nil
 					end
 				end
+				local movie = GetConVar("vj_avp_moviepred"):GetBool()
 				if !hasMask then
 					if mode > 0 then
-						ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
+						ply:EmitSound(movie && "cpthazama/avp/predator/vision/Vision_End_Movie.ogg" or "cpthazama/avp/predator/vision/prd_vision_mode_end.ogg",65)
 					end
 					mode = 0
 				end
 				if mode > 0 then
-					if cont.VisionHeart == nil then
-						cont.VisionHeart = CreateSound(cont,"cpthazama/avp/predator/vision/prd_vision_mode_heartbeat_loop.wav")
-						cont.VisionHeart:SetSoundLevel(0)
-						cont.VisionHeart:Play()
-						cont.VisionHeart:ChangeVolume(0.6)
+					if movie then
+						if cont.VisionIdle == nil then
+							cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision/Vision_Movie.wav")
+							-- cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")
+							cont.VisionIdle:SetSoundLevel(0)
+							cont.VisionIdle:Play()
+							cont.VisionIdle:ChangeVolume(1)
+						end
+					else
+						if cont.VisionHeart == nil then
+							cont.VisionHeart = CreateSound(cont,"cpthazama/avp/predator/vision/prd_vision_mode_heartbeat_loop.wav")
+							cont.VisionHeart:SetSoundLevel(0)
+							cont.VisionHeart:Play()
+							cont.VisionHeart:ChangeVolume(0.6)
+						end
+	
+						if cont.VisionBuzz == nil then
+							cont.VisionBuzz = CreateSound(cont,"cpthazama/avp/predator/vision/pred_vision_mode_buzz_loop.wav")
+							cont.VisionBuzz:SetSoundLevel(0)
+							cont.VisionBuzz:Play()
+							cont.VisionBuzz:ChangeVolume(0.3)
+						end
+	
+						cont.VisionBuzz:ChangePitch(mode == 1 && 100 or mode == 2 && 120 or mode == 3 && 80)
 					end
-
-					if cont.VisionBuzz == nil then
-						cont.VisionBuzz = CreateSound(cont,"cpthazama/avp/predator/vision/pred_vision_mode_buzz_loop.wav")
-						cont.VisionBuzz:SetSoundLevel(0)
-						cont.VisionBuzz:Play()
-						cont.VisionBuzz:ChangeVolume(0.3)
-					end
-
-					cont.VisionBuzz:ChangePitch(mode == 1 && 100 or mode == 2 && 120 or mode == 3 && 80)
-
-					-- if cont.VisionIdle == nil then
-					-- 	cont.VisionIdle = CreateSound(cont,"cpthazama/avp/predator/vision_loop_original.wav")
-					-- 	cont.VisionIdle:SetSoundLevel(0)
-					-- 	cont.VisionIdle:Play()
-					-- 	cont.VisionIdle:ChangeVolume(0.5)
-					-- end
 				elseif mode == 0 then
 					if cont.VisionHeart then
 						cont.VisionHeart:Stop()
@@ -965,10 +970,10 @@ if CLIENT then
 						cont.VisionBuzz:Stop()
 						cont.VisionBuzz = nil
 					end
-					-- if cont.VisionIdle then
-					-- 	cont.VisionIdle:Stop()
-					-- 	cont.VisionIdle = nil
-					-- end
+					if cont.VisionIdle then
+						cont.VisionIdle:Stop()
+						cont.VisionIdle = nil
+					end
 				end
 			end
 		end)
@@ -991,9 +996,9 @@ if CLIENT then
 			if ent.VJ_AVP_LockOn then
 				ent.VJ_AVP_LockOn:Stop()
 			end
-			-- if cont.VisionIdle then
-			-- 	cont.VisionIdle:Stop()
-			-- end
+			if cont.VisionIdle then
+				cont.VisionIdle:Stop()
+			end
 		end
 
 		local gDefault = {
@@ -1083,7 +1088,8 @@ if CLIENT then
 			ent.AVP_LastDark = ent.AVP_LastDark or isDark
 			ent.AVP_LastDarkT = ent.AVP_LastDarkT or 0
 			if hasMask && mode > 0 && isDark != ent.AVP_LastDark && CurTime() > ent.AVP_LastDarkT then
-				ply:EmitSound("cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,mode == 1 && math.random(95,110) or mode == 2 && math.random(115,125) or mode == 3 && math.random(75,90))
+				local movie = GetConVar("vj_avp_moviepred"):GetBool()
+				ply:EmitSound(movie && "cpthazama/avp/predator/vision/Vision_Switch_Movie.ogg" or "cpthazama/avp/predator/vision/prd_vision_adjust" .. math.random(1,4) .. ".ogg",0,mode == 1 && math.random(95,110) or mode == 2 && math.random(115,125) or mode == 3 && math.random(75,90))
 				ply:ScreenFade(SCREENFADE.IN,mode == 1 && Color(106,0,91,128) or mode == 2 && Color(0,0,0) or mode == 3 && Color(64,117,126) or Color(124,0,0),0.3,0)
 				ent.AVP_LastDark = isDark
 				ent.AVP_LastDarkT = CurTime() +1.5

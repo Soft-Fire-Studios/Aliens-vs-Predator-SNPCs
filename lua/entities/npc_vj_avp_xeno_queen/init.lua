@@ -449,7 +449,7 @@ function ENT:OnThink()
 				end
 				local count = table_Count(tbl.Praetorian)
 				for _,v in pairs(tbl.Praetorian) do
-					if !v.VJ_AVP_XenomorphCarrier && math.random(1,10) == 1 && count > 1 && v.DoRoyalTransformation then
+					if !v.VJ_AVP_XenomorphPraetorianSubClass && math.random(1,10) == 1 && count > 1 && v.DoRoyalTransformation then
 						v:DoRoyalTransformation(true)
 					else
 						local node = VJ.PICK(possibleNodes)

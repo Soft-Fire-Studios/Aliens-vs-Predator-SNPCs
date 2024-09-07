@@ -1092,6 +1092,58 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local bit_band = bit.band
+--
+function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+	local explosion = dmginfo:IsExplosionDamage()
+	if !self.InFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() >= 75 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() >= 65) or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster)) then
+		if CurTime() < (self.NextKnockdownT or 0) then return end
+		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
+		dmgAng.p = 0
+		dmgAng.r = 0
+		self:TaskComplete()
+		self:StopMoving()
+		self:ClearSchedule()
+		self:ClearGoal()
+		self:SetAngles(dmgAng)
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- local dmgDir = self:GetDamageDirection(dmginfo)
+		local _,dur = self:VJ_ACT_PLAYACTIVITY("ohwa_big_flinch_back",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+		end})
+		self.NextKnockdownT = CurTime() +(dur *0.5)
+		self.NextCallForBackUpOnDamageT = CurTime() +(dur *0.8)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_atan2 = math.atan2
+--
+function ENT:GetDamageDirection(dmginfo)
+	local dir = (self:GetPos() +self:OBBCenter()) -dmginfo:GetDamagePosition()
+	dir:Normalize()
+	dir.z = 0.5
+
+	local hitDir = 1
+	local forward = self:GetForward()
+	local angle = math_deg(math_atan2(dir:Dot(forward:Cross(Vector(0,0,1))),dir:Dot(forward)))
+	if angle >= 45 and angle <= 135 then
+		-- print("NPC was hit from the left")
+		hitDir = 2
+	elseif angle >= -135 and angle <= -45 then
+		-- print("NPC was hit from the right")
+		hitDir = 3
+	elseif angle >= 135 or angle <= -135 then
+		-- print("NPC was hit from the front")
+		hitDir = 1
+	else
+		-- print("NPC was hit from the back")
+		hitDir = 4
+	end
+
+	return hitDir
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnKilled()
 	if self:GetState() == VJ_STATE_NONE then
 		for i = 1,self:GetBoneCount() -1 do
