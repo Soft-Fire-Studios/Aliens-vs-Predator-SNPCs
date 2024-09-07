@@ -305,7 +305,8 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 					if IsValid(npc) then
 						ParticleEffectAttach("vj_avp_android_death_charge",PATTACH_ABSORIGIN_FOLLOW,npc,0)
 						npc:DoChangeWeapon(wep)
-						npc:StopAllCommonSpeechSounds()
+						VJ.STOPSOUND(self.CurrentSpeechSound)
+						VJ.STOPSOUND(self.CurrentIdleSound)
 						VJ.CreateSound(npc,"cpthazama/avp/humans/vocals/Android_01/head_missing_and01_0" .. math.random(2,4) .. ".ogg",75)
 						npc:PlayAnimation("android_thwa_spark_and_sit_up",true,false,false)
 						npc.HasFallen = true

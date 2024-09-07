@@ -1698,7 +1698,8 @@ function ENT:FindNodesNearPoint(checkPos,total,dist,minDist)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	if math.random(1,4) == 1 then
 		VJ.CreateSound(self,self.SoundTbl_Laugh,90)
 		self.DistractT = CurTime() +5
@@ -3076,7 +3077,8 @@ end
 function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 	if sndTbl == nil or istable(sndTbl) && #sndTbl <= 0 then return 0 end
 	if setCurSnd then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 	end
 	local sndName = VJ.PICK(sndTbl)
 	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))

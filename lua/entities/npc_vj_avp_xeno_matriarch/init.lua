@@ -108,7 +108,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
 		self:PlaySound("^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg",120)
 		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
@@ -117,7 +118,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnCallForHelp(ally)
 	if self:IsBusy() then return end
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
 	self:PlaySound("^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg",120)
 	util.ScreenShake(self:EyePos(),16,200,4,1000,true)

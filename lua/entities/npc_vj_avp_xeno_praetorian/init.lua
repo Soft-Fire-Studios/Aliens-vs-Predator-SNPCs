@@ -231,10 +231,12 @@ local math_abs = math.abs
 --
 function ENT:DoSummon()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	self:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then self:SetState() return end
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
 
 		self:Allies_CallHelp(8000)
@@ -325,7 +327,8 @@ function ENT:DoRoyalTransformation(subClass)
 		xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then xeno:SetState() return end
-			xeno:StopAllCommonSpeechSounds()
+			VJ.STOPSOUND(xeno.CurrentSpeechSound)
+			VJ.STOPSOUND(xeno.CurrentIdleSound)
 			VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110,125)
 			xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then xeno:SetState() return end

@@ -769,7 +769,8 @@ function ENT:CustomOnAlert(ent)
 	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
 	if math.random(1,10) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 		self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
@@ -779,7 +780,8 @@ end
 function ENT:CustomOnCallForHelp(ally)
 	if self.VJ_AVP_XenomorphLarge or !self.CanScreamForHelp or self:IsBusy() then return end
 	if math.random(1,10) != 1 then return end
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	self:VJ_ACT_PLAYACTIVITY("hiss_reaction",true,false,false)
 	self:PlaySound({"cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_scream_long_02.ogg"},80)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
@@ -1095,7 +1097,8 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	local soundPos = self:GetPos() +VectorRand() *300
 	self.DistractT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg") +5
 	VJ.CreateSound(self,self.DistractionSound or "cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg",65)
@@ -1432,11 +1435,13 @@ function ENT:CustomOnAcceptInput(key,activator,caller,data)
 	elseif key == "step" then
 		self:FootStepSoundCode()
 	elseif key == "spit_vo" then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_04.ogg",80)
 	elseif key == "spit" then
 		local ent = self:GetEnemy()
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:VJ_DecideSoundPitch(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
@@ -1678,7 +1683,8 @@ local math_Clamp = math.Clamp
 --
 function ENT:DoLeapAttack()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	VJ.CreateSound(self,self.SoundTbl_Jump,80)
 
 	local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
@@ -1689,7 +1695,8 @@ function ENT:DoLeapAttack()
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH,DMG_VEHICLE)
 		local dmgcode = self:RunDamageCode(2)
 		VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		VJ.CreateSound(self,self.SoundTbl_Attack,80)
 		self:VJ_ACT_PLAYACTIVITY(#dmgcode <= 0 && "leap_attack_miss" or "leap_long_land",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
@@ -2495,7 +2502,8 @@ function ENT:CustomOnThink_AIEnabled()
 	if !IsValid(ent) && !self.Alerted && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
 		if self.VJ_AVP_XenomorphID == "praetorian" then
 			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-			self:StopAllCommonSpeechSounds()
+			VJ.STOPSOUND(self.CurrentSpeechSound)
+			VJ.STOPSOUND(self.CurrentIdleSound)
 			VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",90,110)
 			self:VJ_ACT_PLAYACTIVITY("knockdown_forward",true,false,false,0,{OnFinish=function(interrupted)
 				if VJ_AVP_QueenExists(self) then return end
@@ -2507,7 +2515,8 @@ function ENT:CustomOnThink_AIEnabled()
 				xeno:Activate()
 				xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
 				xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				xeno:StopAllCommonSpeechSounds()
+				VJ.STOPSOUND(xeno.CurrentSpeechSound)
+				VJ.STOPSOUND(xeno.CurrentIdleSound)
 				xeno:SetModelScale(0.65)
 				VJ.CreateSound(xeno,"cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110,90)
 				local _,dur = xeno:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false,0,{OnFinish=function(interrupted)
@@ -2523,7 +2532,8 @@ function ENT:CustomOnThink_AIEnabled()
 		else
 			if VJ_AVP_GetPraetorianCount() < 2 then
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				self:StopAllCommonSpeechSounds()
+				VJ.STOPSOUND(self.CurrentSpeechSound)
+				VJ.STOPSOUND(self.CurrentIdleSound)
 				self:VJ_ACT_PLAYACTIVITY("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
 					local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
 					xeno:SetPos(self:GetPos())
@@ -2534,7 +2544,8 @@ function ENT:CustomOnThink_AIEnabled()
 					xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
 					xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 					xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
-						xeno:StopAllCommonSpeechSounds()
+						VJ.STOPSOUND(xeno.CurrentSpeechSound)
+						VJ.STOPSOUND(xeno.CurrentIdleSound)
 						VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
 						xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 							if interrupted then xeno:SetState() return end
@@ -2884,7 +2895,8 @@ end
 function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 	if sndTbl == nil or istable(sndTbl) && #sndTbl <= 0 then return 0 end
 	if setCurSnd then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 	end
 	local sndName = VJ_PICK(sndTbl)
 	if self.BreathLoop then

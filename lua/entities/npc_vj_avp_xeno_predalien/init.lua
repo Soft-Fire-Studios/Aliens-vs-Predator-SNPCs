@@ -109,7 +109,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_lava_angry_roar",true,false,false)
 		self:PlaySound("cpthazama/avp/xeno/predalien/scream3.ogg",90)
 		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
@@ -118,7 +119,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnCallForHelp(ally)
 	if self:IsBusy() then return end
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_lava_angry_roar",true,false,false)
 	self:PlaySound("cpthazama/avp/xeno/predalien/scream3.ogg",90)
 	util.ScreenShake(self:EyePos(),16,200,4,1000,true)
@@ -267,7 +269,8 @@ local math_Clamp = math.Clamp
 --
 function ENT:DoLeapAttack()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-	self:StopAllCommonSpeechSounds()
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
 	VJ.CreateSound(self,"cpthazama/avp/xeno/predalien/Predalien_Leap.ogg",90)
 	-- VJ.CreateSound(self,self.SoundTbl_Alert,90)
 
@@ -277,7 +280,8 @@ function ENT:DoLeapAttack()
 		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
 		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *2000
 		self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
-		self:StopAllCommonSpeechSounds()
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
 		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)
 		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_leap_to_grapple",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
@@ -298,7 +302,8 @@ function ENT:DoLeapAttack()
 				VJ.EmitSound(self,"cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",80)
 				ParticleEffect("AntlionFX_UnBurrow",tr.HitPos,Angle())
 				util.ScreenShake(self:GetPos(),12,200,4,900)
-				self:StopAllCommonSpeechSounds()
+				VJ.STOPSOUND(self.CurrentSpeechSound)
+				VJ.STOPSOUND(self.CurrentIdleSound)
 				VJ.CreateSound(self,self.SoundTbl_Pain,90)
 			end
 			self:VJ_ACT_PLAYACTIVITY((#dmgcode <= 0 && tr.HitWorld) && "Predalien_Hybrid_leap_attack_hit_wall" or "Predalien_Hybrid_leap_attack_miss",true,false,false,0,{OnFinish=function(interrupted)
