@@ -565,7 +565,7 @@ function ENT:CustomOnInitialize()
 	self:SetStepHeight(22)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnEat(status, statusInfo)
+function ENT:OnEat(status, statusInfo)
 	if status == "CheckFood" then
 		local ent = statusInfo.owner
 		return self:Health() <= self:GetMaxHealth() *0.6 && ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten
@@ -1121,7 +1121,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ50 = Vector(0, 0, -50)
 --
--- function ENT:CustomOnEat(status, statusInfo)
+-- function ENT:OnEat(status, statusInfo)
 -- 	if status == "CheckFood" then
 -- 		if statusInfo.owner.VJ_AVP_Xenomorph or statusInfo.owner.VJ_AVP_IsTech then
 -- 			return false
