@@ -1167,6 +1167,20 @@ function ENT:CustomAttack(ent,vis)
 		self.IsBlocking = true
 	end
 	if IsValid(cont) then
+		if VJ_AVP_PREDINFO_ENABLED then
+			local target = ent
+			local tr = util.TraceHull({
+				start = self:EyePos(),
+				endpos = self:EyePos() +cont:GetAimVector() *2048,
+				filter = {self,cont},
+				mins = Vector(-5,-5,-5),
+				maxs = Vector(5,5,5),
+				mask = MASK_SHOT
+			})
+			target = tr.Entity
+			VJ_AVP_PredatorHUD_Transmit(target,cont)
+			self:SetLookEntity(target)
+		end
 		self.LookForHidingSpot = false
 		if doingBlock then return end
 		if equipment == 5 then

@@ -34,6 +34,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Entity",1,"VM")
 	self:NetworkVar("Entity",2,"Spear")
 	self:NetworkVar("Entity",3,"Disc")
+	self:NetworkVar("Entity",4,"LookEntity")
 	self:NetworkVar("Int",0,"VisionMode")
 	self:NetworkVar("Int",1,"Equipment")
 	self:NetworkVar("Int",2,"StimCount")
@@ -569,6 +570,17 @@ if CLIENT then
 	local matHUD_Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive")
 	local matHUDCloak_Solid = Material("hud/cpthazama/avp/predmask_solid.png","smooth additive")
 	local matHUDCloak_Outline = Material("hud/cpthazama/avp/predmask_outline.png","smooth additive")
+	local matHUD_Target_Base = Material("hud/cpthazama/avp/highlight_bar.png","smooth additive")
+	local matHUD_Target_Icon_Nil = Material("hud/cpthazama/avp/icons/generic.png","smooth additive")
+	local matHUD_Target_Icon_Human = Material("hud/cpthazama/avp/icons/human.png","smooth additive")
+	local matHUD_Target_Icon_Android = Material("hud/cpthazama/avp/icons/android.png","smooth additive")
+	local matHUD_Target_Icon_Xeno = Material("hud/cpthazama/avp/icons/xeno.png","smooth additive")
+	local matHUD_Target_Icon_XenoPred = Material("hud/cpthazama/avp/icons/predalien.png","smooth additive")
+	local matHUD_Target_Icon_XenoQueen = Material("hud/cpthazama/avp/icons/queen.png","smooth additive")
+	local matHUD_Target_Icon_Pred = Material("hud/cpthazama/avp/icons/predator.png","smooth additive")
+	local matHUD_Target_Icon_Veh = Material("hud/cpthazama/avp/icons/vehicle.png","smooth additive")
+	local matHUD_Target_Range_Base = Material("hud/cpthazama/avp/range.png","smooth additive")
+	local matHUD_Target_Range_Glow = Material("hud/cpthazama/avp/range_glow.png","smooth additive")
 
 	local matHUD_Blood = {
 		Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
@@ -617,9 +629,29 @@ if CLIENT then
 		surface.DrawTexturedRectUV(pos.x,pos.y,size.x,size.y,uv[1],uv[2],uv[3],uv[4])
 	end
 
+	local function DrawText(text,font,x,y,color,alignX,alignY)
+		local textSize = surface.GetTextSize(text) or string.len(text)
+		local pos = ScreenPos(x,y)
+		local size = ScreenScale(textSize,0)
+	
+		draw.SimpleText(text,font,pos.x,pos.y,color or color_white,alignX or 0,alignY or 0)
+	end
+
+	surface.CreateFont("VJFont_AVP_Predator", {
+		font = "Predator",
+		size = 32,
+		weight = 600,
+		blursize = 1,
+		antialias = true,
+		italic = false,
+	})
+
 	local stimsA = {255,255,255,255,255}
 	local energysA = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255}
 	local cloakA = 0
+	local targetAlpha = 0
+	local string_Left = string.Left
+	local math_ceil = math.ceil
 
 	local debugEquipT = CurTime() +1.5
 	local equipPoints = {
@@ -746,6 +778,75 @@ if CLIENT then
 			surface.SetDrawColor(Color(r,g,b,a))
 			surface.SetMaterial(matHUD)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+	
+			if GetConVar("vj_avp_hud_predinfo"):GetBool() then
+				local lockOn = ent:GetLockOn()
+				local target = (ent:GetBeam() && lockOn) or ent:GetLookEntity()
+				local targetName,targetMelee,targetRange,targetIcon,targetAddLen = "",0,0,matHUD_Target_Icon_Nil,0
+				if IsValid(target) && (target:IsNPC() or target:IsPlayer() or target:IsNextBot()) then
+					targetAlpha = Lerp(FT *8,targetAlpha,a)
+					if target:IsPlayer() then
+						targetName = target:Nick()
+					elseif target:IsNPC() then
+						local listData = list.Get("NPC")[target:GetClass()]
+						targetName = listData && listData.Name
+					else
+						targetName = target:GetClass()
+					end
+					if (target.IsVJBaseSNPC_Tank or target.VJTag_ID_Vehicle) then
+						targetIcon = matHUD_Target_Icon_Veh
+						targetAddLen = 4
+					elseif (target:GetNW2Bool("AVP.IsTech",false) or target.VJ_AVP_IsTech) && target.IsVJBaseSNPC_Human then
+						targetIcon = matHUD_Target_Icon_Android
+					elseif (target.VJ_AVP_Xenomorph or target:GetNW2Bool("AVP.Xenomorph",false)) then
+						if target.VJ_AVP_XenomorphPredalien then
+							targetIcon = matHUD_Target_Icon_XenoPred
+						elseif target.VJ_AVP_Xenomorph_Queen then
+							targetIcon = matHUD_Target_Icon_XenoQueen
+						else
+							targetIcon = matHUD_Target_Icon_Xeno
+						end
+						targetAddLen = 5
+					elseif target.VJ_AVP_Predator then
+						targetIcon = matHUD_Target_Icon_Pred
+					elseif (target.IsVJBaseSNPC_Human or target:IsPlayer()) then
+						targetIcon = matHUD_Target_Icon_Human
+					end
+					local data = Entity(1).VJ_AVP_PredatorHUD_TargetData
+					if data then
+						targetMelee = data.HasMelee && math_Clamp(math_ceil(data.MeleeDistance /50),1,5) or 0
+						targetRange = data.HasRange && math_Clamp(math_ceil(data.RangeDistance /350),1,5) or 0
+						if target.VJ_AVP_Predator then
+							targetRange = 5
+						end
+					end
+				else
+					targetAlpha = Lerp(FT *8,targetAlpha,0)
+				end
+				local targetCol = Color(r,g,b,targetAlpha)
+				DrawIcon(matHUD_Target_Base,32,-1,25,45,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+				DrawIcon(targetIcon,32 +(targetAddLen *0.5),-15,8 +targetAddLen,8,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+				targetName = string_Left(targetName or "",18)
+				DrawText(targetName,"VJFont_AVP_Predator",26,-10,targetCol,0,0)
+
+				if targetMelee > 0 then
+					local meleeRangeStartX,meleeRangeStartY = 28,-1
+					for i = 1,5 do
+						DrawIcon(targetMelee >= i && matHUD_Target_Range_Glow or matHUD_Target_Range_Base,meleeRangeStartX,meleeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+						meleeRangeStartX = meleeRangeStartX +4
+					end
+					DrawText("Melee Distance","VJFont_AVP_Predator",26,3.65,targetCol,0,0)
+				end
+
+				if targetRange > 0 then
+					local rangeRangeStartX,rangeRangeStartY = 28,12
+					for i = 1,5 do
+						DrawIcon(targetRange >= i && matHUD_Target_Range_Glow or matHUD_Target_Range_Base,rangeRangeStartX,rangeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+						rangeRangeStartX = rangeRangeStartX +4
+					end
+					DrawText("Range Distance","VJFont_AVP_Predator",26,15.65,targetCol,0,0)
+				end
+			end
 
 			DrawIcon(cloaked && matHUDCloak_Outline or matHUDCloak_Solid,0,25.5,4.5,4.5,r,g,b,a)
 
@@ -845,7 +946,6 @@ if CLIENT then
 			end
 
 			if equip != 1 then return end
-			local lockOn = ent:GetLockOn()
 			if lockOn != ent.LastLockOn then
 				if IsValid(ent.LastLockOn) then
 					ply:EmitSound("cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_aquiretarget_01.ogg",65)

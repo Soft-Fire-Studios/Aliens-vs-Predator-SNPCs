@@ -25,8 +25,10 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_bosstheme_a",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_pred_info",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
+	VJ.AddClientConVar("vj_avp_hud_predinfo", 1, "Enable Predator HUD info display?")
 	VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Pinging?")
 	VJ.AddClientConVar("vj_avp_moviepred", 0, "Enable AVP movie sounds for Predator Vision")
 
@@ -223,6 +225,11 @@ if VJExists == true then
 	-- AddPM("Van Zandt", "models/cpthazama/avp/marines/vandieter.mdl", "models/weapons/c_arms_cstrike.mdl")
 	-- AddPM("Thomas", "models/cpthazama/avp/marines/youngwhite.mdl", "models/weapons/c_arms_cstrike.mdl")
 
+	VJ_AVP_PREDINFO_ENABLED = GetConVar("vj_avp_pred_info"):GetBool()
+	cvars.AddChangeCallback("vj_avp_pred_info", function(convar_name, oldValue, newValue)
+		VJ_AVP_PREDINFO_ENABLED = tonumber(newValue) == 1
+	end)
+
 	if SERVER then
 		util.AddNetworkString("VJ_AVP_Marine_Client")
 		util.AddNetworkString("VJ_AVP_Marine_Darkness")
@@ -259,6 +266,21 @@ if VJExists == true then
 				net.WriteEntity(ent)
 			net.Send(ent)
 		end
+
+		function VJ_AVP_PatchRound(ply)
+			if !ply:IsAdmin() then return end
+			local spawner
+			for _,v in pairs(ents.GetAll()) do
+				if v.VJ_AVP_SurvivalSpawner then
+					spawner = v
+					break
+				end
+			end
+			if IsValid(spawner) && !spawner:GetWaveSwitching() then
+				spawner:ClearCurrentWave()
+			end
+		end
+		concommand.Add("vj_avp_patchround",VJ_AVP_PatchRound)
 
 		VJ_AVP_MAX_EGGS = 50
 
@@ -364,7 +386,77 @@ if VJExists == true then
 				end
 			end
 		end)
+
+		util.AddNetworkString("VJ.AVP.PredatorHUD.Info")
+
+		function VJ_AVP_PredatorHUD_Transmit(target,ply)
+			local data = {}
+			if target.IsVJBaseSNPC_Tank then
+				data.HasMelee = true
+				data.MeleeDistance = 50
+				data.HasRange = true
+				data.RangeDistance = 4000
+			elseif target.IsVJBaseSNPC_Creature then
+				data.HasMelee = (target.HasMeleeAttack or target.HasLeapAttack)
+				data.MeleeDistance = target.AttackDistance or target.MeleeAttackDistance
+				data.HasRange = (target.CanSpit or target.HasRangeAttack)
+				data.RangeDistance = target.SpitAttackDistance or (target.RangeDistance or target.RangeAttackDistance)
+				if target.AttackDistance then
+					data.HasMelee = true
+				end
+				if target.SpitAttackDistance then
+					data.HasRange = true
+				end
+				if target.HasLeapAttack then
+					data.MeleeDistance = target.LeapDistance
+				end
+			elseif target.IsVJBaseSNPC_Human then
+				local wep = target:GetActiveWeapon()
+				data.HasMelee = target.HasMeleeAttack
+				data.MeleeDistance = target.MeleeAttackDistance
+				data.HasRange = IsValid(wep)
+				if IsValid(wep) && wep.IsVJBaseWeapon then
+					data.RangeDistance = target.Weapon_FiringDistanceFar *wep.NPC_FiringDistanceScale
+				else
+					data.RangeDistance = target.Weapon_FiringDistanceFar
+				end
+			elseif target:IsPlayer() then
+				local wep = target:GetActiveWeapon()
+				data.HasMelee = true
+				data.MeleeDistance = 50
+				data.HasRange = IsValid(wep)
+				data.RangeDistance = IsValid(wep) && (wep:GetHoldType() == "shotgun" && 200 or 1000) or 0
+			elseif target:IsNPC() then
+				local wep = target:GetActiveWeapon()
+				data.HasMelee = VJ.AnimExists(target,ACT_MELEE_ATTACK1)
+				data.MeleeDistance = 50
+				data.HasRange = IsValid(target:GetActiveWeapon()) or VJ.AnimExists(target,ACT_RANGE_ATTACK1)
+				data.RangeDistance = IsValid(wep) && 1536 or 1024
+			end
+
+			net.Start("VJ.AVP.PredatorHUD.Info")
+				net.WriteEntity(target)
+				net.WriteEntity(ply)
+				net.WriteTable(data)
+			net.Send(ply)
+		end
+
+		-- hook.Add("Think","TestHook",function()
+			-- local eyeEnt = Entity(1):GetEyeTrace().Entity
+			-- if IsValid(eyeEnt) && (eyeEnt:IsNPC() or eyeEnt:IsPlayer() or eyeEnt:IsNextBot()) then
+			-- 	VJ_AVP_PredatorHUD_Transmit(eyeEnt,Entity(1))
+			-- end
+		-- end)
 	else
+		net.Receive("VJ.AVP.PredatorHUD.Info", function(len, ply)
+			local target = net.ReadEntity()
+			local ply = net.ReadEntity()
+			local targetData = net.ReadTable()
+			if IsValid(ply) then
+				ply.VJ_AVP_PredatorHUD_TargetData = targetData
+			end
+		end)
+
 		/*
 			▒█▀▀█ █▀▀█ █▀▀ █▀▀▄ █▀▀█ ▀▀█▀▀ █▀▀█ █▀▀█ 　 ▒█░▒█ █░░█ █▀▀▄ 　 ▀▀█▀▀ █▀▀ █▀▀ ▀▀█▀▀ ░▀░ █▀▀▄ █▀▀▀ 
 			▒█▄▄█ █▄▄▀ █▀▀ █░░█ █▄▄█ ░░█░░ █░░█ █▄▄▀ 　 ▒█▀▀█ █░░█ █░░█ 　 ░▒█░░ █▀▀ ▀▀█ ░░█░░ ▀█▀ █░░█ █░▀█ 
@@ -839,6 +931,11 @@ if VJExists == true then
 				Panel:AddControl("Label", {Text = "Predator Settings"})
 				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_p"})
 				Panel:AddControl("Checkbox", {Label = "Enable Unique Spawns", Command = "vj_avp_predmobile"})
+				Panel:AddControl("Checkbox", {Label = "Enable Predator HUD Info Display", Command = "vj_avp_hud_predinfo"})
+				if LocalPlayer():IsAdmin() then
+					Panel:AddControl("Checkbox", {Label = "Toggle Predator HUD Info Code", Command = "vj_avp_pred_info"})
+					Panel:AddControl("Label", {Text = "Admin Only - Disables the background code for the info display. WILL BREAK THE HUD IN MOST INSTANCES!"})
+				end
 
 				local vj_icon = vgui.Create("DImage")
 				vj_icon:SetSize(512,130)

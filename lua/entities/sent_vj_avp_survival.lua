@@ -13,6 +13,8 @@ ENT.Spawnable = false
 ENT.AdminOnly = true
 ENT.AutomaticFrameAdvance = true
 
+ENT.VJ_AVP_SurvivalSpawner = true
+
 local math_Clamp = math.Clamp
 local useDebug = false
 local function debugMessage(...)
@@ -470,48 +472,62 @@ function ENT:Initialize()
 			if npc.VJ_AVP_Xenomorph_Queen then
 				self.HasKilledQueen = true
 			end
-			-- if self.KillsLeft > 0 then
-				-- for _,v in pairs(player.GetAll()) do
-					-- v:ChatPrint("Aliens Remaining: ".. self.KillsLeft)
-				-- end
-			-- end
-			if self.KillsLeft <= 0 then
-				self:SetWaveSwitching(true)
-				self:SetWaveSwitchVolTime(CurTime() +20)
-				for _,v in pairs(player.GetAll()) do
-					VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
-					v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
-				end
-
-				for _,v in pairs(self.Entities) do
-					if IsValid(v) then
-						v:Remove()
-					end
-				end
-
-				if self.AllowBots then
-					local bots = self.Bots
-					-- if CurTime() > self.NextBotsWaveRespawnT then
-						local deadBots = self.BotsToRespawn
-						if deadBots > 0 then
-							self:SpawnBot(deadBots,true)
-							self.BotsToRespawn = 0
-						end
-						-- self.NextBotsWaveRespawnT = CurTime() +120
-					-- end
-				end
-
-				timer.Simple(10,function()
-					if IsValid(self) then
-						self:NextRound()
-					end
-				end)
-			end
+			self:CheckNextRoundAvailability()
 		elseif VJ_HasValue(self.Bots,npc) then
 			table.RemoveByValue(self.Bots,npc)
 			self.BotsToRespawn = self.BotsToRespawn +1
 		end
 	end)
+
+	local function isDoorOpen(ent)
+		if ent:GetClass() == "prop_door_rotating" then
+			local state = ent:GetInternalVariable("m_eDoorState")
+			return state == 2
+		elseif ent:GetClass() == "func_door" or ent:GetClass() == "func_door_rotating" then
+			return ent:GetInternalVariable("m_toggle_state") == 0
+		end
+		return false
+	end
+    for _, ent in pairs(ents.GetAll()) do
+        if ent:GetClass() == "prop_door_rotating" or ent:GetClass() == "func_door" or ent:GetClass() == "func_door_rotating" then
+            ent:Fire("Unlock", "", 0)
+            if !isDoorOpen(ent) then
+                ent:Fire("Open", "", 0)
+            end
+        end
+    end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:CheckNextRoundAvailability()
+	if self.KillsLeft <= 0 then
+		self:SetWaveSwitching(true)
+		self:SetWaveSwitchVolTime(CurTime() +20)
+		for _,v in pairs(player.GetAll()) do
+			VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
+			v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
+		end
+
+		for _,v in pairs(self.Entities) do
+			if IsValid(v) then
+				v:Remove()
+			end
+		end
+
+		if self.AllowBots then
+			local bots = self.Bots
+			local deadBots = self.BotsToRespawn
+			if deadBots > 0 then
+				self:SpawnBot(deadBots,true)
+				self.BotsToRespawn = 0
+			end
+		end
+
+		timer.Simple(10,function()
+			if IsValid(self) then
+				self:NextRound()
+			end
+		end)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:NextRound()
@@ -668,6 +684,19 @@ function ENT:RespawnEntity(ent)
 	ent:SetAngles(Angle(0,math.random(0,360),0))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:ClearCurrentWave()
+	for _,v in pairs(self.Entities) do
+		if IsValid(v) then
+			v:Remove()
+		end
+	end
+	self.Entities = {}
+	self.Bosses = {}
+	self.KillsLeft = 0
+	self.BossKillsLeft = 0
+	self:CheckNextRoundAvailability()
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Think()
 	-- if !self.NodegraphExists then
 	-- 	for _,v in pairs(player.GetAll()) do
@@ -789,6 +818,7 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_warrior",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_royal",
 					"npc_vj_avp_" .. xenoType .. "_carrier"
 				})
 			elseif wave >= 20 && wave < 30 then
@@ -796,6 +826,7 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_ridged",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_royal",
 					"npc_vj_avp_" .. xenoType .. "_carrier",
 					"npc_vj_avp_" .. xenoType .. "_carrier"
 				})
@@ -806,11 +837,13 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_ridged",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
 					"npc_vj_avp_" .. xenoType .. "_ridged",
+					"npc_vj_avp_" .. xenoType .. "_royal",
 					"npc_vj_avp_" .. xenoType .. "_carrier",
 					"npc_vj_avp_" .. xenoType .. "_carrier",
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
+					"npc_vj_avp_" .. xenoType .. "_ravager",
 				})
 			end
 			local isQueen = (wave >= 30 && !self.HasKilledQueen && !IsValid(self.Queen))
