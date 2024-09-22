@@ -14,6 +14,11 @@ ENT.VJC_Data = {
     FirstP_Offset = Vector(4, 0, 1.5),
 }
 
+ENT.FootData = {
+    ["lfoot"] = {Range = 9.36, OnGround = true},
+    ["rfoot"] = {Range = 9.36, OnGround = true},
+}
+
 ENT.BloodColor = "Red"
 
 ENT.PoseParameterLooking_InvertPitch = true
@@ -30,6 +35,7 @@ ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
 
 ENT.GeneralSoundPitch1 = 97
 ENT.GeneralSoundPitch2 = 103
+ENT.DisableFootStepSoundTimer = true
 
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
@@ -738,6 +744,10 @@ function ENT:CustomOnInitialize()
 	self.Ping_NextPingT = CurTime() +1
 	self.NextHealT = CurTime() +1
 
+    for attName, var in pairs(self.FootData) do
+        var.AttID = self:LookupAttachment(attName)
+    end
+
 	self.AnimTbl_ScaredBehaviorMovement = {toAct(self,"nwn_Panic_run_fwd_look_fwd")}
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
@@ -1077,6 +1087,23 @@ function ENT:CustomOnThink_AIEnabled()
 		self:OnThink(curTime)
 	end
 
+	if self.FootData then
+		local checkPos = self:GetPos()
+		for attName, var in pairs(self.FootData) do
+			if !var.AttID then continue end
+	
+			local footPos = self:GetAttachment(var.AttID).Pos
+			checkPos.x = footPos.x
+			checkPos.y = footPos.y	
+			if ((footPos -checkPos):LengthSqr()) > (var.Range *var.Range) then
+				var.OnGround = false
+			elseif !var.OnGround then
+				var.OnGround = true
+				self:FootStep(footPos, attName)
+			end
+		end
+	end
+
 	local darkness = self.DarknessLevel
 	-- print(darkness,CurTime())
 	if !IsValid(self.VJ_TheController) && VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
@@ -1089,6 +1116,117 @@ function ENT:CustomOnThink_AIEnabled()
 
 	if self.HasMotionTracker then
 		VJ_AVP_MotionTracker(self)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+ENT.SoundTbl_FootSteps = {
+	[MAT_DIRT] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_10.ogg",
+	},
+	[MAT_GRASS] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_10.ogg",
+	},
+	[MAT_FOLIAGE] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_dirt_run/footsteps_dirt_run_10.ogg",
+	},
+	[MAT_CONCRETE] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_concrete_run/footsteps_concrete_run_10.ogg"
+	},
+	[MAT_METAL] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_10.ogg"
+	},
+	[MAT_GRATE] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_10.ogg"
+	},
+	[MAT_GLASS] = {
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_01.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_02.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_03.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_04.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_05.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_06.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_07.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_08.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_09.ogg",
+		"cpthazama/avp/humans/human/footsteps/footsteps_metal_solid_walk/footsteps_metal_walk_10.ogg"
+	}
+}
+--
+function ENT:FootStep(pos,name)
+	if !self:IsOnGround() then return end
+	local tbl = self.SoundTbl_FootSteps
+	if !tbl then return end
+	local tr = util.TraceLine({
+		start = self:GetPos(),
+		endpos = self:GetPos() +Vector(0,0,-150),
+		filter = {self}
+	})
+	local mat = tr.MatType
+	if mat && tbl[mat] == nil then
+		mat = MAT_CONCRETE
+	end
+	if tr.Hit && tbl[mat] then
+		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+	end
+	if self.OnStep then
+		self:OnStep(pos,name)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

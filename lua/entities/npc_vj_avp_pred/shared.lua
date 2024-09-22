@@ -781,7 +781,7 @@ if CLIENT then
 	
 			if GetConVar("vj_avp_hud_predinfo"):GetBool() then
 				local lockOn = ent:GetLockOn()
-				local target = (ent:GetBeam() && lockOn) or ent:GetLookEntity()
+				local target = ((ent:GetBeam() && IsValid(lockOn) && lockOn:GetClass() != "obj_vj_bullseye") && lockOn) or ent:GetLookEntity()
 				local targetName,targetMelee,targetRange,targetIcon,targetAddLen = "",0,0,matHUD_Target_Icon_Nil,0
 				if IsValid(target) && (target:IsNPC() or target:IsPlayer() or target:IsNextBot()) then
 					targetAlpha = Lerp(FT *8,targetAlpha,a)

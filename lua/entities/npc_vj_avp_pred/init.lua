@@ -28,8 +28,8 @@ ENT.JumpVars = {
 }
 
 ENT.FootData = {
-	["lfoot"] = {Range=9.53,OnGround=true},
-	["rfoot"] = {Range=9.53,OnGround=true},
+    ["lfoot"] = {Range = 9.53, OnGround = true, AttID = nil},
+    ["rfoot"] = {Range = 9.53, OnGround = true, AttID = nil},
 }
 ENT.FootStepSoundLevel = 62
 
@@ -795,6 +795,10 @@ function ENT:CustomOnInitialize()
 	if self.OnInit then
 		self:OnInit()
 	end
+
+    for attName, var in pairs(self.FootData) do
+        var.AttID = self:LookupAttachment(attName)
+    end
 
 	timer.Simple(0,function()
 		if IsValid(self) && (self.SpawnedUsingMutator or GetConVar("vj_avp_predmobile"):GetBool()) then
@@ -2701,23 +2705,18 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 
 	if self.FootData then
-		for attName,var in pairs(self.FootData) do
-			local attID = self:LookupAttachment(attName)
-			if !attID then continue end
-
-			local footPos = self:GetAttachment(attID).Pos
-			local checkPos = self:GetPos()
+		local checkPos = self:GetPos()
+		for attName, var in pairs(self.FootData) do
+			if !var.AttID then continue end
+	
+			local footPos = self:GetAttachment(var.AttID).Pos
 			checkPos.x = footPos.x
-			checkPos.y = footPos.y
-			local dist = footPos:Distance(checkPos)
-
-			if dist > var.Range then
+			checkPos.y = footPos.y	
+			if ((footPos -checkPos):LengthSqr()) > (var.Range *var.Range) then
 				var.OnGround = false
-			else
-				if var.OnGround == false then
-					var.OnGround = true
-					self:FootStep(footPos,attName)
-				end
+			elseif !var.OnGround then
+				var.OnGround = true
+				self:FootStep(footPos, attName)
 			end
 		end
 	end
