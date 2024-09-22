@@ -2,7 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/predators/newpredbody_col"
 	"$bumpmap"					"models/cpthazama/avp/predators/newpredbody_norms"
-	// "$phongexponenttexture"		"models/cpthazama/avp/predators/newpredbody_spec"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$nodecal" 					"1"
     "$color2" 					"[1 1 1]"
@@ -12,6 +12,8 @@
 	"$phongboost"               "6"
 	"$phongexponent"            "15"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$envmapfresnel"            "1"

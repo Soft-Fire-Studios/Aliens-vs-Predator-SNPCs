@@ -3,14 +3,17 @@
 	"$basetexture" 				"models/cpthazama/avp/predators/spartanmask_col"
 	"$bumpmap"					"models/cpthazama/avp/predators/spartanmask_norms"
 	// "$phongexponenttexture"		"models/cpthazama/avp/predators/spartanmask_spec"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$nodecal" 					"1"
-    "$color2" 					"[3 3 3]"
+    "$color2" 					"[2 2 2]"
 
 	"$phong"                    "1"
-	"$phongboost"               "2"
+	"$phongboost"               "6"
 	"$phongexponent"            "15"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$envmapfresnel"            "1"

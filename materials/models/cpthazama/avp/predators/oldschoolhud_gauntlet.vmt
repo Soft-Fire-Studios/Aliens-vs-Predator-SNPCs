@@ -2,14 +2,18 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/predators/oldschoolhud_gauntlet_colspec"
 	"$bumpmap"					"models/cpthazama/avp/predators/oldschoolhud_gauntlet_norms"
-	"$phongexponenttexture"		"models/cpthazama/avp/predators/oldschoolhud_gauntlet_spec"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$nodecal" 					"1"
-    // "$color2" 					"[3 3 3]"
+    "$color2" 					"[1 1 1]"
 
-	"$phong"                     "1"
-	"$phongboost"                "10"
-	"$phongfresnelranges"        "[0.35 0.745 0.215]"
+	"$phong"                    "1"
+	"$phongboost"               "6"
+	"$phongexponent"            "15"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$normalmapalphaenvmapmask"  "1"
 	"$envmapfresnel"             "1"

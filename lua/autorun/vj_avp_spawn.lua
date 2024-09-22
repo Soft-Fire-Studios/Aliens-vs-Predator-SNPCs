@@ -1,6 +1,6 @@
 /*--------------------------------------------------
 	=============== Autorun File ===============
-	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
+	*** Copyright (c) 2025 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 --------------------------------------------------*/
@@ -1097,6 +1097,7 @@ if VJExists == true then
 	if SERVER then
 		local vecZ30 = Vector(0, 0, 100)
 		local vecZ1 = Vector(0, 0, 1)
+		local math_abs = math.abs
 		--
 		function VJ_AVP_XenoBloodSpill(self,corpse,force,forceData)
 			if !IsValid(corpse) && !force then return end
@@ -1135,7 +1136,7 @@ if VJExists == true then
 							sound.EmitHint(SOUND_DANGER, dmgPos, 200, 0.24)
 
 							for _,v in pairs(ents.FindInSphere(dmgPos,100)) do
-								if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && !v.VJ_AVP_Xenomorph && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) then
+								if ((v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) or (v:IsNPC() && !v.VJ_AVP_Xenomorph && v:Health() > 0 && CheckFaction(v) == false) or v:IsNextBot()) && !v:IsFlagSet(FL_NOTARGET) && math_abs(v:GetPos().z -dmgPos.z) <= 40 then
 									local dmg = DamageInfo()
 									dmg:SetDamage(2)
 									dmg:SetDamageType(DMG_ACID)

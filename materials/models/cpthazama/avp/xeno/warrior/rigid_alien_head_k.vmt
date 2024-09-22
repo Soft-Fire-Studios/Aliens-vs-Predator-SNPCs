@@ -6,6 +6,7 @@
 
     "$color2" 					"[2.3 2.3 2.3]"
     "$nodecal" 					"1"
+    "$nocull" 					"1"
 
 	"$phong"                    "1"
 	"$phongboost"               "2"

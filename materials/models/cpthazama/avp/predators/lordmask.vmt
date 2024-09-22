@@ -2,6 +2,7 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/predators/lordmask_col"
 	"$bumpmap"					"models/cpthazama/avp/predators/lordmask_norms"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$nodecal" 					"1"
 
@@ -9,6 +10,8 @@
 	"$phongboost"               "2"
 	"$phongexponent"            "15"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$envmapfresnel"            "1"
