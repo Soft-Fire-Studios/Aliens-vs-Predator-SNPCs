@@ -228,7 +228,7 @@ local nono = {
 	"revolver",
 }
 --
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnDamaged(dmginfo,hitgroup)
 	if self:GetCloaked() && CurTime() > self.NextCloakT && math.random(1,4) == 1 then
 		self:Camo(false)
 		self.NextCloakT = CurTime() +1

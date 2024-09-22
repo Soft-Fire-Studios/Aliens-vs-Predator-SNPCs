@@ -84,7 +84,17 @@ ENT.AnimTbl_Fatalities = {
 			Kill = "v_alien_headbitebehind_kill"
 		}
 	},
-	Human = {},
+	Human = {
+		Trophy = {
+			Grab = "neckbite_marine_ohwa_grab",
+			Counter = "neckbite_marine_ohwa_counter",
+			Kill = "neckbite_marine_ohwa_death"
+		},
+		Stealth = {
+			Grab = "stealth_kill_marine_tailstab_head_hold",
+			Kill = "stealth_kill_marine_tailstab_head_kill"
+		}
+	},
 	Predator = {
 		Trophy = {
 			Grab = "headbite_pred",

@@ -13,6 +13,7 @@ ENT.VJ_AVP_Marine = true
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Sprinting")
 	self:NetworkVar("Bool",1,"Cloaked")
+	self:NetworkVar("Bool",2,"InFatality")
 	self:NetworkVar("Entity",0,"Flare")
 end
 

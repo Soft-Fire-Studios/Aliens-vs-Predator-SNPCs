@@ -1,5 +1,6 @@
 AddCSLuaFile("shared.lua")
 include("shared.lua")
+include("vj_base/extensions/avp_fatality_module.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -32,6 +33,28 @@ ENT.Weapon_AimTurnDiff = 0.74
 
 local moveslikejaggerfuckingkms = 21378944
 ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
+
+ENT.AnimTbl_FatalitiesResponse = {
+	["predator_claws_stealthkill_human_grab"] = "pred_stealthkill_hold",
+	["predator_claws_stealthkill_human_countered"] = "pred_stealthkill_counter",
+	["predator_claws_stealthkill_human_kill"] = "pred_stealthkill_stab_chest",
+	["predator_claws_stealthkill_human_kill_quick"] = "pred_stealthkill_die_quick",
+	["predator_claws_stealthkill_human_kill_slow"] = "pred_stealthkill_die_slow",
+	["predator_claws_stealthkill_human_kill_stab_chest"] = "pred_stealthkill_stab_chest",
+	["predator_claws_stealthkill_human_headrip_kill"] = "pred_stealthkill_headrip_death",
+	["predator_wristblade_marine_trophy_kill_lift"] = "trophy_lift",
+	["predator_wristblade_marine_trophy_kill_countered"] = "trophy_counter",
+	["predator_wristblade_marine_trophy_kill"] = "trophy_die",
+	["predator_wristblade_marine_trophy_kill_eyestab"] = "trophy_die_eyestab",
+	["predator_wristblade_marine_trophy_kill_stomachrip"] = "trophy_die_stomachrip",
+	["predator_wristblade_marine_trophy_kill_short"] = "trophy_die_short",
+
+	["stealth_kill_marine_tailstab_head_hold"] = "stealth_kill",
+	["stealth_kill_marine_tailstab_head_kill"] = "stealth_kill_death",
+	["neckbite_marine_ohwa_grab"] = "neckbite_ohwa_grab",
+	["neckbite_marine_ohwa_counter"] = "neckbite_ohwa_counter",
+	["neckbite_marine_ohwa_death"] = "neckbite_ohwa_death",
+}
 
 ENT.GeneralSoundPitch1 = 97
 ENT.GeneralSoundPitch2 = 103
@@ -1039,11 +1062,20 @@ function ENT:CustomOnThink_AIEnabled()
 	local curTime = CurTime()
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
+		local names = self.PoseParameterLooking_Names
+		for x = 1, #names.pitch do
+			self:SetPoseParameter(names.pitch[x],0)
+		end
+		for x = 1, #names.yaw do
+			self:SetPoseParameter(names.yaw[x],0)
+		end
+		for x = 1, #names.roll do
+			self:SetPoseParameter(names.roll[x],0)
+		end
 		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
 			self:SetHealth(0)
 			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
-			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
 	end
@@ -1252,6 +1284,9 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 		end})
 		self.NextKnockdownT = CurTime() +(dur *0.5)
 		self.NextCallForBackUpOnDamageT = CurTime() +(dur *0.8)
+	end
+	if self.OnDamaged then
+		self:OnDamaged(dmginfo,hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

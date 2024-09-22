@@ -74,7 +74,31 @@ ENT.AnimTbl_Fatalities = {
 			OnlyKill = true
 		}
 	},
-	Human = {},
+	Human = {
+		Trophy = {
+			Grab = "predator_wristblade_marine_trophy_kill_grab",
+			Lift = "predator_wristblade_marine_trophy_kill_lift",
+			Counter = "predator_wristblade_marine_trophy_kill_countered",
+			Kill = {
+				"predator_wristblade_marine_trophy_kill",
+				"predator_wristblade_marine_trophy_kill_eyestab",
+				"predator_wristblade_marine_trophy_kill_stomachrip",
+				"predator_wristblade_marine_trophy_kill_short"
+			}
+		},
+		Stealth = {
+			Grab = "predator_claws_stealthkill_human_grab",
+			Lift = "predator_claws_stealthkill_human_start",
+			Counter = "predator_claws_stealthkill_human_countered",
+			Kill = {
+				"predator_claws_stealthkill_human_kill",
+				"predator_claws_stealthkill_human_kill_quick",
+				"predator_claws_stealthkill_human_kill_slow",
+				"predator_claws_stealthkill_human_kill_stab_chest",
+				"predator_claws_stealthkill_human_headrip_kill"
+			}
+		}
+	},
 	Predator = {
 		Trophy = {
 			Grab = "predator_claws_trophy_pred_grab",
@@ -237,6 +261,9 @@ function ENT:TranslateActivity(act)
 		end
 	end
 	if act == ACT_WALK or act == ACT_RUN then
+		if self.IsBlocking then
+			return ACT_WALK
+		end
 		return self:SelectMovementActivity(act)
 	end
 	return act
@@ -992,6 +1019,7 @@ function ENT:OnKeyPressed(ply,key)
 				ent:Fire("Use",nil,0,ply,self)
 				return
 			end
+			print(ent,ent:IsNPC(),self.NearestPointToEnemyDistance <= self.AttackDistance,self.CanAttack,!self:IsBusy())
 			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
 				if self.CanAttack && !self:IsBusy() then
 					local canUse, inFront = self:CanUseFatality(ent)
@@ -1092,6 +1120,8 @@ function ENT:GetFatalityOffset(ent)
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1
 	elseif ent.VJ_AVP_Predator then
 		offset = 1
+	elseif ent.VJ_AVP_Marine then
+		offset = 0
 	end
 	return offset
 end

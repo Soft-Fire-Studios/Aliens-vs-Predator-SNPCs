@@ -357,12 +357,12 @@ if VJExists == true then
 					VJ.EmitSound(self,"cpthazama/avp/shared/motion_tracker_bleep_stevie.ogg",55,sndPitch)
 					if self.IsVJBaseSNPC && self.CanInvestigate && self.NextInvestigationMove < CurTime() then
 						if closestEnt:IsNPC() or closestEnt:IsPlayer() or closestEnt:IsNextBot() then
-							if self:Visible(closestEnt) then
+							if self:Visible(closestEnt) && math.random(1,3) == 1 && perDist <= 0.2 then
 								self:StopMoving()
 								self:SetTarget(closestEnt)
 								self:VJ_TASK_FACE_X("TASK_FACE_TARGET")
 								self.NextInvestigationMove = CurTime() +0.3
-							elseif self.IsFollowing == false && math.random(1,15) == 1 then
+							elseif self.IsFollowing == false && math.random(1,15) == 1 && perDist <= 0.35 then
 								self:SetLastPosition(closestEnt:GetPos())
 								self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH")
 								self.NextInvestigationMove = CurTime() +10

@@ -823,8 +823,9 @@ if CLIENT then
 				else
 					targetAlpha = Lerp(FT *8,targetAlpha,0)
 				end
-				local targetCol = Color(r,g,b,targetAlpha)
-				DrawIcon(matHUD_Target_Base,32,-1,25,45,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+				local targetCol = hpColor
+				targetCol.a = targetAlpha
+				DrawIcon(matHUD_Target_Base,32,-1,25,45,r,g,b,targetAlpha)
 				DrawIcon(targetIcon,32 +(targetAddLen *0.5),-15,8 +targetAddLen,8,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
 				targetName = string_Left(targetName or "",18)
 				DrawText(targetName,"VJFont_AVP_Predator",26,-10,targetCol,0,0)

@@ -13,9 +13,9 @@ cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, new
 end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CanUseFatality(ent)
-	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or !ent.AnimTbl_Fatalities or !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
+	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
+	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
 			return false, inFront
 		end
@@ -23,6 +23,18 @@ function ENT:CanUseFatality(ent)
 	end
 	return false, inFront
 end
+---------------------------------------------------------------------------------------------------------------------------------------------
+-- function ENT:CanUseFatality(ent)
+-- 	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
+-- 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
+-- 	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
+-- 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
+-- 			return false, inFront
+-- 		end
+-- 		return true, inFront
+-- 	end
+-- 	return false, inFront
+-- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
 	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
@@ -118,7 +130,7 @@ function ENT:DoFatality(ent,inFront)
 			anim = VJ.PICK(anim)
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-					if int then return end
+					-- if int then return end
 					if ent.ResetFatality then
 						ent:ResetFatality()
 					end
@@ -134,27 +146,25 @@ function ENT:DoFatality(ent,inFront)
 				end})
 			end
 			self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-				if int then return end
+				-- if int then return end
 				self:SetState()
 				self:ResetFatality()
 				if IsValid(ent) then
 					if ent.ResetFatality then
 						ent:ResetFatality()
 					end
-					if !counter then
-						ent.HasDeathAnimation = false
-						local dmginfo = DamageInfo()
-						dmginfo:SetDamage(ent:Health())
-						dmginfo:SetDamageType(DMG_SLASH)
-						dmginfo:SetDamageForce(self:GetForward() *250)
-						dmginfo:SetAttacker(self)
-						dmginfo:SetInflictor(self)
-						ent:TakeDamageInfo(dmginfo)
-					end
+					ent.HasDeathAnimation = false
+					local dmginfo = DamageInfo()
+					dmginfo:SetDamage(ent:Health())
+					dmginfo:SetDamageType(DMG_SLASH)
+					dmginfo:SetDamageForce(self:GetForward() *250)
+					dmginfo:SetAttacker(self)
+					dmginfo:SetInflictor(self)
+					ent:TakeDamageInfo(dmginfo)
 				end
 			end})
 		else
-			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
+			local counter = math.random(1,!inFront && 200 or 100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
 			end
@@ -162,7 +172,7 @@ function ENT:DoFatality(ent,inFront)
 				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Grab],true,false,true)
 			end
 			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
-				if int then return end
+				-- if int then return end
 				if IsValid(ent) then
 					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
 						ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
@@ -170,13 +180,13 @@ function ENT:DoFatality(ent,inFront)
 				end
 				if tbl.Lift then
 					self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
-						if int then return end
+						-- if int then return end
 						local anim = counter && tbl.Counter or tbl.Kill
 						anim = VJ.PICK(anim)
 						if IsValid(ent) then
 							if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 								ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-									if int then return end
+									-- if int then return end
 									if ent.ResetFatality then
 										ent:ResetFatality()
 									end
@@ -194,7 +204,7 @@ function ENT:DoFatality(ent,inFront)
 							end
 						end
 						self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-							if int then return end
+							-- if int then return end
 							self:SetState()
 							self:ResetFatality()
 							if IsValid(ent) then
@@ -220,7 +230,7 @@ function ENT:DoFatality(ent,inFront)
 					if IsValid(ent) then
 						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 							ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
-								if int then return end
+								-- if int then return end
 								if ent.ResetFatality then
 									ent:ResetFatality()
 								end
@@ -238,7 +248,7 @@ function ENT:DoFatality(ent,inFront)
 						end
 					end
 					self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
-						if int then return end
+						-- if int then return end
 						self:SetState()
 						self:ResetFatality()
 						if IsValid(ent) then
