@@ -15,7 +15,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/female_blonde.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	local vest = math.random(1,4) == 1 && 1 or 0
 	self:SetBodygroup(self:FindBodygroupByName("vest"),vest)
 	if vest == 0 then

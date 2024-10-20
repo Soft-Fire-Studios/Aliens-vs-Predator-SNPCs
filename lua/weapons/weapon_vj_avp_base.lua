@@ -107,7 +107,7 @@ function SWEP:CustomOnDeploy()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnInitialize()
+function SWEP:Init()
 	if SERVER then
 		self:SetZoomed(false)
 		self:SetSprinting(false)
@@ -128,8 +128,8 @@ function SWEP:CustomOnInitialize()
 
 	self.PrimaryLoopSoundT = 0
 
-	if self.OnInit then
-		self:OnInit()
+	if self.OnInit2 then
+		self:OnInit2()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -243,12 +243,12 @@ end
 local sprintAng = Angle(0,0.5,0.8)
 local string_find = string.find
 --
-function SWEP:CustomOnThink()
+function SWEP:OnThink()
 	local owner = self:GetOwner()
 	self.LastOwner = owner
 	local curTime = CurTime()
-	if self.OnThink then
-		self:OnThink(owner)
+	if self.OnThink2 then
+		self:OnThink2(owner)
 	end
 	if curTime > self.CoolDownT then
 		self:SetOverHeat(math_Clamp(self:GetOverHeat() -0.0025,0,1))

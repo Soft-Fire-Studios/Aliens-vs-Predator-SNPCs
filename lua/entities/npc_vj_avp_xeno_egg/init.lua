@@ -21,10 +21,10 @@ ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 ENT.HasMeleeAttack = false
 ENT.CallForHelp = false
 
-ENT.HasDeathRagdoll = true
+ENT.HasDeathCorpse = true
 ENT.DeathCorpseEntityClass = "prop_vj_animatable"
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self.Opened = false
 
 	self:SetAngles(Angle(0,math.random(0,360),0))
@@ -89,22 +89,24 @@ function ENT:Open()
 	self.Opened = true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if !self.Opened then
 		self:Open()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
-	local dmgInflictor = dmginfo:GetInflictor()
-	local dmgAttacker = dmginfo:GetAttacker()
-	local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
-	if isFireDmg then
-		dmginfo:ScaleDamage(2)
+function ENT:OnDamaged(dmginfo, hitgroup, status)
+	if status == "PreDamage" then
+		local dmgInflictor = dmginfo:GetInflictor()
+		local dmgAttacker = dmginfo:GetAttacker()
+		local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
+		if isFireDmg then
+			dmginfo:ScaleDamage(2)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition())
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -114,21 +116,23 @@ function ENT:OnMaintainRelationships(ent, entFri, entDist)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),150,20)
-	self:SetBodygroup(1,1)
-	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",75)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Finish" then
+		self:Acid(self:GetPos(),150,20)
+		self:SetBodygroup(1,1)
+		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/blood/alien_blood_10s_0" .. math.random(1,4) .. ".ogg",75)
 
-	local particle = ents.Create("info_particle_system")
-	particle:SetKeyValue("effect_name", "vj_avp_xeno_spit_impact")
-	particle:SetPos(self:GetPos())
-	particle:Spawn()
-	particle:Activate()
-	particle:Fire("Start")
-	particle:Fire("Kill", "", 0.1)
+		local particle = ents.Create("info_particle_system")
+		particle:SetKeyValue("effect_name", "vj_avp_xeno_spit_impact")
+		particle:SetPos(self:GetPos())
+		particle:Spawn()
+		particle:Activate()
+		particle:Fire("Start")
+		particle:Fire("Kill", "", 0.1)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, corpseEnt)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, corpseEnt)
 	corpseEnt:SetPos(self:GetPos() +self:GetUp() *-4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -148,7 +152,7 @@ local math_acos = math.acos
 local math_deg = math.deg
 local math_abs = math.abs
 --
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	local pos = self:GetPos()
 	local len = self:GetUp() *50
 	local ang = self:GetAngles()

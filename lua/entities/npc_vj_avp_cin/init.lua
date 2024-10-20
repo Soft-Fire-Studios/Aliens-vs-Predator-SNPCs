@@ -26,7 +26,7 @@ ENT.Behavior = VJ_BEHAVIOR_PASSIVE_NATURE
 
 ENT.GeneralSoundPitch1 = 100
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:AddFlags(FL_NOTARGET)
 
 	if IsValid(self:GetOwner()) then
@@ -48,8 +48,8 @@ function ENT:CustomOnInitialize()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAcceptInput(key, activator, caller, data)
+function ENT:OnInput(key, activator, caller, data)
 	if IsValid(self:GetOwner()) then
-		self:GetOwner():CustomOnAcceptInput(key, activator, caller, data)
+		self:GetOwner():OnInput(key, activator, caller, data)
 	end
 end

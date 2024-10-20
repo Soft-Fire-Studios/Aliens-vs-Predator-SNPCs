@@ -80,7 +80,7 @@ local sdTailMiss = {
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	if VJ_AVP_QueenExists(self) then
 		self:Remove()
 		if game.SinglePlayer() then
@@ -194,7 +194,7 @@ end
 local table_Count = table.Count
 local table_insert = table.insert
 --
-function ENT:OnThink()
+function ENT:OnThink2()
 	local curTime = CurTime()
 	local cont = self.VJ_TheController
 	if self.Alerted && !IsValid(cont) then
@@ -801,7 +801,7 @@ function ENT:OnStep(pos,name)
 	util.ScreenShake(pos,5,100,0.35,1000)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
@@ -811,7 +811,7 @@ function ENT:CustomOnAlert(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnCallForHelp(ally)
+function ENT:OnCallForHelp(ally)
 	if self:IsBusy() then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)

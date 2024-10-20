@@ -606,7 +606,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	controlEnt.VJC_NPC_CanTurn = false
 	self.AllowMovementJumping = false
 
-	function controlEnt:CustomOnThink()
+	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		if self.VJC_Camera_Mode == 2 then
@@ -669,7 +669,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
 			end
 			
-			self:CustomOnThink()
+			self:OnThink()
 	
 			local canTurn = true
 			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
@@ -681,7 +681,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 					npc:SetTurnTarget(bullseyePos, 0.2)
 					canTurn = false
 					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
-						npc:CustomOnWeaponAttack()
+						npc:OnWeaponAttack()
 						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
 						npc:VJ_ACT_PLAYACTIVITY(npc.CurrentWeaponAnimation, false, 2, false)
 						npc.DoingWeaponAttack = true
@@ -779,7 +779,7 @@ end
 local bounds = Vector(14,14,75)
 local defArmor = Vector(1,1,1)
 --
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:SetVisionMode(0)
 	self:SetEquipment(1)
 	self:SetStimCount(5)
@@ -819,8 +819,8 @@ function ENT:CustomOnInitialize()
 	self.AlertedIdle = toSeq(self,"predator_claws_ai_idle")
 	self.AttackIdle = toSeq(self,"predator_claws_idle_aim")
 
-	if self.OnInit then
-		self:OnInit()
+	if self.OnInit2 then
+		self:OnInit2()
 	end
 
     for attName, var in pairs(self.FootData) do
@@ -1768,7 +1768,7 @@ function ENT:DistractionCode(ent)
 				if ent.OnHearDistraction then
 					ent:OnHearDistraction(self,soundPos)
 				else
-					ent:CustomOnInvestigate(v)
+					ent:OnInvestigate(v)
 					ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
 				end
 			elseif !ent.IsVJBaseSNPC then
@@ -1815,7 +1815,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAcceptInput(key,activator,caller,data)
+function ENT:OnInput(key,activator,caller,data)
 	-- print(key)
 	if key == "jump_start" then
 		self:SetJumpPosition(self.LongJumpPos)
@@ -2268,7 +2268,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local VJ_IsProp = VJ.IsProp
 --
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent:SetNW2Vector("AVP.ArmorTint",self:GetArmorColor())
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
@@ -2327,7 +2327,7 @@ function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	if self.Dead then return end
 	if self.CountdownTimer then
 		local remainTime = self.CountdownTimer -CurTime()
@@ -2483,8 +2483,8 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 	end
 
-	if self.OnThink then
-		self:OnThink()
+	if self.OnThink2 then
+		self:OnThink2()
 	end
 
 	self:SetSprinting(sprinting)
@@ -2966,64 +2966,61 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
 --
-function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
-	if self.ActivatedSelfDestruct then return end
-	local dmgType = dmginfo:GetDamageType()
-	if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
-		local attacker = dmginfo:GetAttacker()
-		if !IsValid(attacker) then
-			attacker = dmginfo:GetInflictor()
-		end
-		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
-		if IsValid(attacker) && isBigDmg then
-			local attackerLookDir = attacker:GetAimVector()
-			local dotForward = attackerLookDir:Dot(self:GetForward())
-			local dotRight = attackerLookDir:Dot(self:GetRight())
-			if dotForward > 0.5 then -- Hit from the front
-				self:PlayAnimation("predator_claws_guard_block_broken_back",true,false,false)
-			elseif dotForward < -0.5 then -- Hit from the back
-				self:PlayAnimation("predator_claws_guard_block_broken",true,false,false)
-			elseif dotRight > 0.5 then -- Hit from the left
-				self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_bl",true,false,false)
-			elseif dotRight < -0.5 then -- Hit from the right
-				self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_br",true,false,false)
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnDamaged(dmginfo, hitgroup, status)
+	if status == "PreDamage" then
+		if self.ActivatedSelfDestruct then return end
+		local dmgType = dmginfo:GetDamageType()
+		if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+			local attacker = dmginfo:GetAttacker()
+			if !IsValid(attacker) then
+				attacker = dmginfo:GetInflictor()
 			end
-			self.SpecialBlockAnimTime = CurTime() +1
-			self.IsBlocking = false
-			self.AI_IsBlocking = false
-		else
-			dmginfo:SetDamage(0)
-			if IsValid(attacker) && attacker.OnAttackBlocked then
-				attacker:OnAttackBlocked(self)
-			end
-			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
-				self.AI_IsBlocking = false
+			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+			if IsValid(attacker) && isBigDmg then
+				local attackerLookDir = attacker:GetAimVector()
+				local dotForward = attackerLookDir:Dot(self:GetForward())
+				local dotRight = attackerLookDir:Dot(self:GetRight())
+				if dotForward > 0.5 then -- Hit from the front
+					self:PlayAnimation("predator_claws_guard_block_broken_back",true,false,false)
+				elseif dotForward < -0.5 then -- Hit from the back
+					self:PlayAnimation("predator_claws_guard_block_broken",true,false,false)
+				elseif dotRight > 0.5 then -- Hit from the left
+					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_bl",true,false,false)
+				elseif dotRight < -0.5 then -- Hit from the right
+					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_br",true,false,false)
+				end
+				self.SpecialBlockAnimTime = CurTime() +1
 				self.IsBlocking = false
-				self:HeavyAttackCode()
+				self.AI_IsBlocking = false
 			else
-				local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
-				self.BlockAnimTime = CurTime() +animTime
-				if IsValid(attacker) && attacker:IsPlayer() then
-					attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
-					local impact = math.random(5,10)
-					local ang = attacker:EyeAngles()
-					ang.p = ang.p +math.random(-impact,impact)
-					ang.y = ang.y +math.random(-impact,impact)
-					attacker:SetEyeAngles(ang)
+				dmginfo:SetDamage(0)
+				if IsValid(attacker) && attacker.OnAttackBlocked then
+					attacker:OnAttackBlocked(self)
+				end
+				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+					self.AI_IsBlocking = false
+					self.IsBlocking = false
+					self:HeavyAttackCode()
+				else
+					local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
+					self.BlockAnimTime = CurTime() +animTime
+					if IsValid(attacker) && attacker:IsPlayer() then
+						attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+						local impact = math.random(5,10)
+						local ang = attacker:EyeAngles()
+						ang.p = ang.p +math.random(-impact,impact)
+						ang.y = ang.y +math.random(-impact,impact)
+						attacker:SetEyeAngles(ang)
+					end
 				end
 			end
+		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
+			self.IsBlocking = false
+			self.BlockAnimTime = 0
+			self.AI_IsBlocking = false
+			self.AI_BlockTime = 0
 		end
-	elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
-		self.IsBlocking = false
-		self.BlockAnimTime = 0
-		self.AI_IsBlocking = false
-		self.AI_BlockTime = 0
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomDeathAnimationCode(dmginfo, hitgroup)
-	if self:GetCloaked() then
-		self:Camo(false)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3033,7 +3030,7 @@ function ENT:OnAttackBlocked(ent)
 	self.BlockAttackT = CurTime() +(dir *1.4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnBleed(dmginfo,hitgroup)
 	if self.ActivatedSelfDestruct then return end
 	if self.DisableChasingEnemy then
 		self:StopMoving()
@@ -3080,31 +3077,39 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnFlinch_AfterFlinch(dmginfo, hitgroup)
-	self:SetState()
+function ENT:OnFlinch(dmginfo, hitgroup, status)
+	if status == "Execute" then
+		self:SetState()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialKilled()
-	if !self.HasDeathAnimation && self:GetState() == VJ_STATE_NONE then
-		for i = 1,self:GetBoneCount() -1 do
-			if math.random(1,4) <= 3 then continue end
-			local bone = self:GetBonePosition(i)
-			if bone then
-				local particle = ents.Create("info_particle_system")
-				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
-				particle:SetPos(bone +VectorRand() *15)
-				particle:Spawn()
-				particle:Activate()
-				particle:Fire("Start")
-				particle:Fire("Kill", "", 0.1)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Initial" then
+		if !self.HasDeathAnimation && self:GetState() == VJ_STATE_NONE then
+			for i = 1,self:GetBoneCount() -1 do
+				if math.random(1,4) <= 3 then continue end
+				local bone = self:GetBonePosition(i)
+				if bone then
+					local particle = ents.Create("info_particle_system")
+					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetPos(bone +VectorRand() *15)
+					particle:Spawn()
+					particle:Activate()
+					particle:Fire("Start")
+					particle:Fire("Kill", "", 0.1)
+				end
 			end
 		end
-	end
-	if IsValid(self.FatalityEnt) then
-		self.FatalityEnt:SetHealth(0)
-		self.FatalityEnt.GodMode = false
-		self.FatalityEnt:TakeDamage(1000,self,self)
-		self.FatalityEnt = nil
+		if IsValid(self.FatalityEnt) then
+			self.FatalityEnt:SetHealth(0)
+			self.FatalityEnt.GodMode = false
+			self.FatalityEnt:TakeDamage(1000,self,self)
+			self.FatalityEnt = nil
+		end
+	elseif status == "DeathAnim" then
+		if self:GetCloaked() then
+			self:Camo(false)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

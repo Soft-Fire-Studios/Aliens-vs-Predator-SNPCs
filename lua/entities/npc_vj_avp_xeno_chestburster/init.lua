@@ -83,7 +83,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 	controlEnt.VJC_Player_DrawHUD = false
 
-	function controlEnt:CustomOnThink()
+	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
 	end
@@ -97,7 +97,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:SetCollisionBounds(Vector(4,4,6),Vector(-4,-4,0))
 	sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",self:GetPos(),72)
 	VJ.CreateSound(self,"cpthazama/avp/xeno/chestburster/chestburster_scream_0" .. math.random(1,3) .. ".ogg",80)
@@ -126,7 +126,7 @@ function ENT:CustomOnInitialize()
 	self:SetModelScale(2.5,60)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAcceptInput(key,activator,caller,data)
+function ENT:OnInput(key,activator,caller,data)
 	if key == "step" then
 		self:FootStepSoundCode()
 	end
@@ -167,7 +167,7 @@ local animClass = {
 	["npc_vj_avp_kxeno_royal"] = "praetorian_stand_summon",
 }
 --
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	if self.Dead then return end
 
 	self:SetHP(self:Health())
@@ -219,21 +219,25 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
-	local dmgInflictor = dmginfo:GetInflictor()
-	local dmgAttacker = dmginfo:GetAttacker()
-	local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
-	if isFireDmg then
-		dmginfo:ScaleDamage(2)
+function ENT:OnDamaged(dmginfo, hitgroup, status)
+	if status == "PreDamage" then
+		local dmgInflictor = dmginfo:GetInflictor()
+		local dmgAttacker = dmginfo:GetAttacker()
+		local isFireDmg = self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame"
+		if isFireDmg then
+			dmginfo:ScaleDamage(2)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnBleed(dmginfo,hitgroup)
 	self:Acid(dmginfo:GetDamagePosition(),125,3)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled()
-	self:Acid(self:GetPos(),200,15)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Finish" then
+		self:Acid(self:GetPos(),200,15)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_acos = math.acos

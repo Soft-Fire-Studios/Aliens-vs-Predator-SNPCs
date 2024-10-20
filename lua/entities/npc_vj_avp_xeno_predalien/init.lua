@@ -35,7 +35,7 @@ ENT.StandingBounds = Vector(16,16,85)
 ENT.CrawlingBounds = Vector(16,16,85)
 ENT.CanBlock = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	-- self.CurrentSet = 2
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true
@@ -107,7 +107,7 @@ function ENT:OnStep(pos,name)
 	util.ScreenShake(pos,5,100,0.35,500)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
@@ -117,7 +117,7 @@ function ENT:CustomOnAlert(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnCallForHelp(ally)
+function ENT:OnCallForHelp(ally)
 	if self:IsBusy() then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
@@ -213,7 +213,7 @@ local sdTailMiss = {
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
 }
 --
-function ENT:OnInput(key)
+function ENT:OnInput2(key)
 	if key == "hybrid_heavyattack" then
 		self.AttackDamage = 150
 		self.AttackDamageDistance = 140
@@ -428,7 +428,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vec0 = Vector(0,0,0)
 --
-function ENT:OnThink()
+function ENT:OnThink2()
 	-- if !IsValid(self:GetEnemy()) then
 		local goalPos = self:GetGoalPos()
 		if goalPos == vec0 or goalPos != vec0 && self:GetPos():Distance(goalPos) < 45 then

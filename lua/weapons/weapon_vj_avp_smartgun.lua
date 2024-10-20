@@ -98,7 +98,7 @@ else
 	end)
 end
 --
-function SWEP:OnInit()
+function SWEP:OnInit2()
 	self.LastTarget = NULL
 	self.LastTargetT = 0
 
@@ -121,7 +121,7 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnThink(owner)
+function SWEP:OnThink2(owner)
 	if !SERVER then return end
 	if owner:IsPlayer() then
 		local trPos = owner:GetEyeTrace().HitPos

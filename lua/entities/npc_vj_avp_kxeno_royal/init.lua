@@ -7,7 +7,7 @@ include("shared.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/k_royal_spitter.mdl"}
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
-	self.BaseClass.OnInit(self)
+function ENT:OnInit2()
+	self.BaseClass.OnInit2(self)
 	self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
 end

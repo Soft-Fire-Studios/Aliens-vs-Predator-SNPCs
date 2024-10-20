@@ -50,7 +50,7 @@ SWEP.ViewModelAdjust = {
 	Ang = {Right = 0,Up = 0,Forward = -1}
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit()
+function SWEP:OnInit2()
 	self.NextBurstFireT = 0
 
 	self.BurstFireShots = 0
@@ -64,7 +64,7 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnThink()
+function SWEP:OnThink2()
 	if self.BurstFireShots > 0 && CurTime() > self.ResetBurstFireT then
 		self.BurstFireShots = 0
 	end

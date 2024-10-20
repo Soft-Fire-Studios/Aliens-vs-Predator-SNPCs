@@ -100,7 +100,7 @@ function ENT:SynthInitialize()
 	}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	self:SetBodygroup(self:FindBodygroupByName("mask"),self.AllowCloaking && 2 or 1)
 	self.HasFallen = false
 	self.NextCloakT = 0
@@ -139,7 +139,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnThink(curTime)
+function ENT:OnThink2(curTime)
 	if !self.AllowCloaking or self.HasFallen then return end
 	local enemy = self:GetEnemy()
 	local cont = self.VJ_IsBeingControlled
@@ -253,13 +253,16 @@ function ENT:OnDamaged(dmginfo,hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomDeathAnimationCode(dmginfo, hitgroup)
-	if self:GetCloaked() then
-		self:Camo(false)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "DeathAnim" then
+		if self:GetCloaked() then
+			self:Camo(false)
+		end
 	end
+	self.BaseClass.OnDeath(self, dmginfo, hitgroup, status)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_IsTech = true
 	ent:SetNW2Bool("AVP.IsTech",true)
 	ent.OnHeadAte = function(corpse,xeno)

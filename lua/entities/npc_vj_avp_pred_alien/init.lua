@@ -10,6 +10,6 @@ ENT.StartHealth = 700
 
 ENT.AttackDamageMultiplier = 1.125
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:OnInit()
+-- function ENT:OnInit2()
 -- 	self.VJ_NPC_Class = {"CLASS_PREDATOR_TESTING"}
 -- end

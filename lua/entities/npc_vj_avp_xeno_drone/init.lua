@@ -10,6 +10,6 @@ ENT.StartHealth = 90
 
 ENT.CanSpit = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:OnInit()
+-- function ENT:OnInit2()
 -- 	self.VJ_NPC_Class = {"CLASS_XENOMORPH_TESTING"}
 -- end

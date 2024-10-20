@@ -49,7 +49,7 @@ ENT.SoundTbl_LostEnemy = {"bot/where_are_you_hiding.wav","bot/where_are_they.wav
 ENT.SoundTbl_Pain = {"bot/pain2.wav","bot/pain4.wav"}
 ENT.SoundTbl_Death = {"bot/pain5.wav","bot/pain8.wav","bot/pain9.wav"}
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:SetSurroundingBoundsType(BOUNDS_COLLISION)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

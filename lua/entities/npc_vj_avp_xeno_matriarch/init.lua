@@ -19,7 +19,7 @@ ENT.StandingBounds = Vector(25,25,200)
 ENT.CrawlingBounds = Vector(25,25,200)
 ENT.CanBlock = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	if VJ_AVP_MatriarchExists(self) then
 		self:Remove()
 		if game.SinglePlayer() then
@@ -106,7 +106,7 @@ end
 -- 	return self.InCharge && ACT_SPRINT or ACT_WALK
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
@@ -116,7 +116,7 @@ function ENT:CustomOnAlert(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnCallForHelp(ally)
+function ENT:OnCallForHelp(ally)
 	if self:IsBusy() then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)

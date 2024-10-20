@@ -88,7 +88,7 @@ function SWEP:AddVars()
 	self:NetworkVar("Entity", 0, "FlameAtt")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit()
+function SWEP:OnInit2()
 	if CLIENT then return end
 	local pos = self:GetPos()
 	pos = pos +self:GetUp() *18 +self:GetRight() *10
@@ -109,7 +109,7 @@ function SWEP:OnInit()
 	self:SetFlameAtt(fake)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnThink(owner)
+function SWEP:OnThink2(owner)
 	local lastFire = self:GetLastFire()
 	self:SetFlame(lastFire > 0 && CurTime() < lastFire +0.25)
 end

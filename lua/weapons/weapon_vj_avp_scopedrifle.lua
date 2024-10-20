@@ -85,7 +85,7 @@ else
 	end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit()
+function SWEP:OnInit2()
 	if SERVER then
 		self.HighlightT = 0
 		self.HighlightEnts = {}
@@ -202,7 +202,7 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnThink(owner)
+function SWEP:OnThink2(owner)
 	if !SERVER then return end
 	if !owner:IsPlayer() then return end
 

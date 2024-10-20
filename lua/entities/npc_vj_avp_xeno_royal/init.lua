@@ -41,7 +41,7 @@ ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2
 ENT.StandingBounds = Vector(16,16,84)
 ENT.CrawlingBounds = Vector(16,16,65)
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	self.FootData = {
 		["lfoot"] = {Range=15.5,OnGround=true},
 		["rfoot"] = {Range=15,OnGround=true},

@@ -57,7 +57,7 @@ function ENT:AddSound(snd,lvl,pit)
 	table.insert(self.DeleteSounds,cSnd)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:DrawShadow(false)
 	self:SetSolid(SOLID_BBOX)
 	-- self:SetSize(6)
@@ -65,16 +65,12 @@ function ENT:CustomOnInitialize()
 	self.DeleteSounds = {}
 	self.IsGrounded = false
 
-	if self.OnInit then
-		self:OnInit()
-	end
-
 	-- if self.LifeTime then
 		SafeRemoveEntityDelayed(self,60)
 	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
+function ENT:OnThink()
 	if self.DoesContactDamage != true then
 		sound.EmitHint(SOUND_DANGER, self:GetPos() +self:GetVelocity(), self.RadiusDamageRadius *1.5, 0.2, self)
 	end
@@ -93,8 +89,8 @@ function ENT:CustomOnThink()
 		return
 	end
 
-	if self.OnThink then
-		self:OnThink()
+	if self.OnThink2 then
+		self:OnThink2()
 	end
 
 	self:NextThink(CurTime())

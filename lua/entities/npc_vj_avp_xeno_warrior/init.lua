@@ -500,7 +500,8 @@ ENT.HitGroups = {
 local defStandingBounds = Vector(13,13,72)
 local defCrawlingBounds = Vector(13,13,34)
 --
-function ENT:CustomOnInitialize()
+function ENT:Init()
+	print("test")
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.LastSet = 0
@@ -536,8 +537,8 @@ function ENT:CustomOnInitialize()
 		self.CanEat = true
 	end
 
-	if self.OnInit then
-		self:OnInit()
+	if self.OnInit2 then
+		self:OnInit2()
 	end
 
     for attName, var in pairs(self.FootData) do
@@ -579,9 +580,9 @@ function ENT:CustomOnInitialize()
 	self:SetStepHeight(22)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnEat(status, statusInfo)
+function ENT:OnEat(status, statusData)
 	if status == "CheckFood" then
-		local ent = statusInfo.owner
+		local ent = statusData.owner
 		return self:Health() <= self:GetMaxHealth() *0.6 && ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten
 	elseif status == "BeginEating" then
 		return 0
@@ -589,7 +590,7 @@ function ENT:OnEat(status, statusInfo)
 		self:HeadbiteCorpse(self.EatingData.Ent)
 		return 999
 	elseif status == "StopEating" then
-		if statusInfo != "Dead" && self.EatingData.AnimStatus != "None" then
+		if statusData != "Dead" && self.EatingData.AnimStatus != "None" then
 			return 0
 		end
 	end
@@ -663,7 +664,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 	controlEnt.VJC_Player_DrawHUD = false
 
-	function controlEnt:CustomOnThink()
+	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 	end
@@ -722,7 +723,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
 			end
 			
-			self:CustomOnThink()
+			self:OnThink()
 	
 			local canTurn = true
 			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
@@ -734,7 +735,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 					npc:SetTurnTarget(bullseyePos, 0.2)
 					canTurn = false
 					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
-						npc:CustomOnWeaponAttack()
+						npc:OnWeaponAttack()
 						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
 						npc:VJ_ACT_PLAYACTIVITY(npc.CurrentWeaponAnimation, false, 2, false)
 						npc.DoingWeaponAttack = true
@@ -779,7 +780,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
 	if math.random(1,10) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
@@ -791,7 +792,7 @@ function ENT:CustomOnAlert(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnCallForHelp(ally)
+function ENT:OnCallForHelp(ally)
 	if self.VJ_AVP_XenomorphLarge or !self.CanScreamForHelp or self:IsBusy() then return end
 	if math.random(1,10) != 1 then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
@@ -1123,7 +1124,7 @@ function ENT:DistractionCode(ent)
 			if ent.OnHearDistraction then
 				ent:OnHearDistraction(self,soundPos)
 			else
-				ent:CustomOnInvestigate(ent)
+				ent:OnInvestigate(ent)
 				ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
 			end
 		elseif !ent.IsVJBaseSNPC then
@@ -1135,9 +1136,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ50 = Vector(0, 0, -50)
 --
--- function ENT:OnEat(status, statusInfo)
+-- function ENT:OnEat(status, statusData)
 -- 	if status == "CheckFood" then
--- 		if statusInfo.owner.VJ_AVP_Xenomorph or statusInfo.owner.VJ_AVP_IsTech then
+-- 		if statusData.owner.VJ_AVP_Xenomorph or statusData.owner.VJ_AVP_IsTech then
 -- 			return false
 -- 		end
 -- 		return true
@@ -1178,7 +1179,7 @@ local vecZ50 = Vector(0, 0, -50)
 -- 		return 1
 -- 	elseif status == "StopEating" then
 -- 		self.Cur_Idle = nil
--- 		if statusInfo != "Dead" && self.EatingData.AnimStatus != "None" then
+-- 		if statusData != "Dead" && self.EatingData.AnimStatus != "None" then
 -- 			return 0.2
 -- 		end
 -- 	end
@@ -1381,9 +1382,9 @@ local sdTailMiss = {
 local string_StartWith = string.StartWith
 local string_Replace = string.Replace
 --
-function ENT:CustomOnAcceptInput(key,activator,caller,data)
-	if self.OnInput then
-		self:OnInput(key)
+function ENT:OnInput(key,activator,caller,data)
+	if self.OnInput2 then
+		self:OnInput2(key)
 	end
 	if key == "jump_start" then
 		self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
@@ -2127,7 +2128,7 @@ end
 local VJ_HasValue = VJ.HasValue
 local debugUseSurfaceClimbing = false
 --
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	if self.Dead then return end
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
@@ -2262,8 +2263,8 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 	end	
 
-	if self.OnThink then
-		self:OnThink()
+	if self.OnThink2 then
+		self:OnThink2()
 	end
 
 	local darkness = self.DarknessLevel
@@ -2626,86 +2627,89 @@ end
 local bit_band = bit.band
 local math_Clamp = math.Clamp
 --
-function ENT:CustomOnTakeDamage_BeforeDamage(dmginfo, hitgroup)
-	local dmgType = dmginfo:GetDamageType()
-	if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
-		local attacker = dmginfo:GetAttacker()
-		if !IsValid(attacker) then
-			attacker = dmginfo:GetInflictor()
-		end
-		local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
-		if IsValid(attacker) && isBigDmg then
-			local attackerLookDir = attacker:GetAimVector()
-			local dotForward = attackerLookDir:Dot(self:GetForward())
-			if dotForward > 0.5 then -- Hit from the front
-				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken_back",true,false,false)
-			elseif dotForward < -0.5 then -- Hit from the back
-				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
-			else
-				self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnDamaged(dmginfo, hitgroup, status)
+	if status == "PreDamage" then
+		local dmgType = dmginfo:GetDamageType()
+		if (self.IsBlocking or self.AI_IsBlocking) && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+			local attacker = dmginfo:GetAttacker()
+			if !IsValid(attacker) then
+				attacker = dmginfo:GetInflictor()
 			end
-			self.SpecialBlockAnimTime = CurTime() +1
-			self.IsBlocking = false
-			self.AI_IsBlocking = false
-		else
-			dmginfo:SetDamage(0)
-			if IsValid(attacker) && attacker.OnAttackBlocked then
-				attacker:OnAttackBlocked(self)
-			end
-			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
-				self.AI_IsBlocking = false
+			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+			if IsValid(attacker) && isBigDmg then
+				local attackerLookDir = attacker:GetAimVector()
+				local dotForward = attackerLookDir:Dot(self:GetForward())
+				if dotForward > 0.5 then -- Hit from the front
+					self:VJ_ACT_PLAYACTIVITY("standing_guard_broken_back",true,false,false)
+				elseif dotForward < -0.5 then -- Hit from the back
+					self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
+				else
+					self:VJ_ACT_PLAYACTIVITY("standing_guard_broken",true,false,false)
+				end
+				self.SpecialBlockAnimTime = CurTime() +1
 				self.IsBlocking = false
-				self:AttackCode(false,5)
+				self.AI_IsBlocking = false
 			else
-				local _,animTime = self:VJ_ACT_PLAYACTIVITY({"standing_guard_block_left","standing_guard_block_right"},true,false,false)
-				self.BlockAnimTime = CurTime() +animTime
-				if IsValid(attacker) && attacker:IsPlayer() then
-					attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
-					local impact = math.random(5,10)
-					local ang = attacker:EyeAngles()
-					ang.p = ang.p +math.random(-impact,impact)
-					ang.y = ang.y +math.random(-impact,impact)
-					attacker:SetEyeAngles(ang)
+				dmginfo:SetDamage(0)
+				if IsValid(attacker) && attacker.OnAttackBlocked then
+					attacker:OnAttackBlocked(self)
+				end
+				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+					self.AI_IsBlocking = false
+					self.IsBlocking = false
+					self:AttackCode(false,5)
+				else
+					local _,animTime = self:VJ_ACT_PLAYACTIVITY({"standing_guard_block_left","standing_guard_block_right"},true,false,false)
+					self.BlockAnimTime = CurTime() +animTime
+					if IsValid(attacker) && attacker:IsPlayer() then
+						attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+						local impact = math.random(5,10)
+						local ang = attacker:EyeAngles()
+						ang.p = ang.p +math.random(-impact,impact)
+						ang.y = ang.y +math.random(-impact,impact)
+						attacker:SetEyeAngles(ang)
+					end
 				end
 			end
+		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
+			self.IsBlocking = false
+			self.BlockAnimTime = 0
+			self.AI_IsBlocking = false
+			self.AI_BlockTime = 0
 		end
-	elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
-		self.IsBlocking = false
-		self.BlockAnimTime = 0
-		self.AI_IsBlocking = false
-		self.AI_BlockTime = 0
-	end
 
-	if dmginfo:IsBulletDamage() then
-		local ammoType = dmginfo:GetAmmoType()
-		if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
-		local bulletReq = self.BulletDamageReductionRequirement
-		if dmginfo:GetDamage() <= bulletReq then
-			dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.5) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
-		end
-		if self.VJ_AVP_XenomorphRavager then
-			if self.HasSounds == true && self.HasImpactSounds == true then
-				VJ.EmitSound(self, "vj_base/impact/armor"..math.random(1, 10)..".wav", 60)
+		if dmginfo:IsBulletDamage() then
+			local ammoType = dmginfo:GetAmmoType()
+			if ammoType == 1 or ammoType == 5 or ammoType == 7 or ammoType == 13 or ammoType == 14 or ammoType == 20 or ammoType == 21 or ammoType == 22 or ammoType == 24 or ammoType == 36 then return end
+			local bulletReq = self.BulletDamageReductionRequirement
+			if dmginfo:GetDamage() <= bulletReq then
+				dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.5) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
 			end
-			-- if math.random(1, 3) == 1 then
-			-- 	local effectData = EffectData()
-			-- 	effectData:SetOrigin(dmginfo:GetDamagePosition())
-			-- 	effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
-			-- 	effectData:SetMagnitude(3)
-			-- 	effectData:SetScale(1)
-			-- 	util.Effect("ElectricSpark", effectData)
-			-- end
+			if self.VJ_AVP_XenomorphRavager then
+				if self.HasSounds == true && self.HasImpactSounds == true then
+					VJ.EmitSound(self, "vj_base/impact/armor"..math.random(1, 10)..".wav", 60)
+				end
+				-- if math.random(1, 3) == 1 then
+				-- 	local effectData = EffectData()
+				-- 	effectData:SetOrigin(dmginfo:GetDamagePosition())
+				-- 	effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
+				-- 	effectData:SetMagnitude(3)
+				-- 	effectData:SetScale(1)
+				-- 	util.Effect("ElectricSpark", effectData)
+				-- end
+			end
 		end
-	end
 
-	local dmgInflictor = dmginfo:GetInflictor()
-	local dmgAttacker = dmginfo:GetAttacker()
-	if (self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame") then
-		dmginfo:ScaleDamage(2)
+		local dmgInflictor = dmginfo:GetInflictor()
+		local dmgAttacker = dmginfo:GetAttacker()
+		if (self:IsOnFire() && IsValid(dmgInflictor) && IsValid(dmgAttacker) && dmgInflictor:GetClass() == "entityflame" && dmgAttacker:GetClass() == "entityflame") then
+			dmginfo:ScaleDamage(2)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnBleed(dmginfo,hitgroup)
 	-- print("Damaged!")
 	self:Acid(dmginfo:GetDamagePosition(),65,5)
 	-- VJ.AVP_ApplyRadiusDamage(self, self, dmginfo:GetDamagePosition(), 65, 5, DMG_ACID, true, true)
@@ -2757,8 +2761,10 @@ function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnFlinch_AfterFlinch(dmginfo, hitgroup)
-	self:SetState()
+function ENT:OnFlinch(dmginfo, hitgroup, status)
+	if status == "Execute" then
+		self:SetState()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoKnockdownAnimation(dmgDir)
@@ -2769,32 +2775,34 @@ function ENT:DoKnockdownAnimation(dmgDir)
 	self.NextKnockdownT = CurTime() +(dir *0.5)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled(dmginfo)
-	-- VJ.AVP_ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
-	self:Acid(self:GetPos(),150,20)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Finish" then
+		-- VJ.AVP_ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
+		self:Acid(self:GetPos(),150,20)
 
-	if IsValid(self.VJ_TheController) then
-		self.VJ_TheController:SetNW2Int("AVP_SurvivalRespawn",CurTime() +10)
-	end
+		if IsValid(self.VJ_TheController) then
+			self.VJ_TheController:SetNW2Int("AVP_SurvivalRespawn",CurTime() +10)
+		end
 
-	if self:GetState() == VJ_STATE_NONE then
-		for i = 1,self:GetBoneCount() -1 do
-			if math.random(1,4) <= 3 then continue end
-			local bone = self:GetBonePosition(i)
-			if bone then
-				local particle = ents.Create("info_particle_system")
-				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
-				particle:SetPos(bone +VectorRand() *15)
-				particle:Spawn()
-				particle:Activate()
-				particle:Fire("Start")
-				particle:Fire("Kill", "", 0.1)
+		if self:GetState() == VJ_STATE_NONE then
+			for i = 1,self:GetBoneCount() -1 do
+				if math.random(1,4) <= 3 then continue end
+				local bone = self:GetBonePosition(i)
+				if bone then
+					local particle = ents.Create("info_particle_system")
+					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetPos(bone +VectorRand() *15)
+					particle:Spawn()
+					particle:Activate()
+					particle:Fire("Start")
+					particle:Fire("Kill", "", 0.1)
+				end
 			end
 		end
-	end
 
-	if self.WhenKilled then
-		self:WhenKilled()
+		if self.WhenKilled then
+			self:WhenKilled()
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2858,7 +2866,7 @@ function ENT:OnChangeActivity(newAct)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent.VJ_AVP_Xenomorph = true
 	ent:SetNW2Bool("AVP.Xenomorph",true)
 
@@ -2871,7 +2879,7 @@ function ENT:SetUpGibesOnDeath(dmginfo, hitgroup)
 	if self.VJ_AVP_XenomorphLarge then return false end
 
 	self.HasDeathSounds = false
-	if self.HasGibDeathParticles then
+	if self.HasGibOnDeathEffects then
 		local effectData = EffectData()
 		effectData:SetOrigin(self:GetPos() + self:OBBCenter())
 		effectData:SetColor(colorYellow)
@@ -3064,7 +3072,7 @@ local math_angApproach = math.ApproachAngle
 local math_angDif = math.AngleDifference
 local offset = Vector(0,0,-16)
 --
-function ENT:DoPoseParameterLooking(resetPoses)
+function ENT:UpdatePoseParamTracking(resetPoses)
 	if !self.HasPoseParameterLooking then return end
 	//self:GetPoseParameters(true)
 	local ene = self:GetEnemy()
@@ -3087,7 +3095,7 @@ function ENT:DoPoseParameterLooking(resetPoses)
 		return
 	end
 	
-	self:CustomOn_PoseParameterLookingCode(newPitch, newYaw, newRoll)
+	self:OnUpdatePoseParamTracking(newPitch, newYaw, newRoll)
 	
 	local names = self.PoseParameterLooking_Names
 	for x = 1, #names.pitch do

@@ -57,7 +57,7 @@ function ENT:AddSound(snd,lvl,pit)
 	table.insert(self.DeleteSounds,cSnd)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self:DrawShadow(false)
 	self:SetSolid(SOLID_BBOX)
 	-- self:SetSize(6)
@@ -76,20 +76,16 @@ function ENT:CustomOnInitialize()
 
 	util.SpriteTrail(self,0,Color(255,55,55),true,80,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
 
-	if self.OnInit then
-		self:OnInit()
-	end
-
 	SafeRemoveEntityDelayed(self,15)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
+function ENT:OnThink()
 	if self.DoesContactDamage != true then
 		sound.EmitHint(SOUND_DANGER, self:GetPos() +self:GetVelocity(), self.RadiusDamageRadius *1.5, 0.2, self)
 	end
 
-	if self.OnThink then
-		self:OnThink()
+	if self.OnThink2 then
+		self:OnThink2()
 	end
 
 	if CurTime() > self.NextSndT then

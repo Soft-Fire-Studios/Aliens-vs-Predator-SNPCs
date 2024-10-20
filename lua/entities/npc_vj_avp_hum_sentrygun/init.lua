@@ -44,7 +44,7 @@ ENT.Turret_ScanDirUp = 0
 ENT.Turret_NextScanBeepT = 0
 ENT.Turret_ControllerStatus = 0
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	-- self:SetCollisionBounds(Vector(13, 13, 63), Vector(-13, -13, 0))
 	self.turret_idlesd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_mechanical_loop.wav") 
 	self.turret_idlesd:SetSoundLevel(60)
@@ -156,7 +156,7 @@ function ENT:Controller_Initialize(ply, controlEnt)
 	self.NextAlertSoundT = CurTime() + 1
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink()
+function ENT:OnThink()
 	local parameter = self:GetPoseParameter("aim_yaw")
 	if parameter != self.Turret_CurrentParameter then
 		self.turret_turningsd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav") 
@@ -172,7 +172,7 @@ function ENT:CustomOnThink()
 	self.Turret_CurrentParameter = parameter
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	local eneValid = IsValid(self:GetEnemy())
 	if self.Alerted && !eneValid then
 		self.PoseParameterLooking_CanReset = false
@@ -210,7 +210,7 @@ function ENT:CustomOnThink_AIEnabled()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOn_PoseParameterLookingCode(pitch, yaw, roll)
+function ENT:OnUpdatePoseParamTracking(pitch, yaw, roll)
 	if (math.abs(math.AngleDifference(self:GetPoseParameter("aim_yaw"), math.ApproachAngle(self:GetPoseParameter("aim_yaw"), yaw, self.PoseParameterLooking_TurningSpeed))) >= 10) or (math.abs(math.AngleDifference(self:GetPoseParameter("aim_pitch"), math.ApproachAngle(self:GetPoseParameter("aim_pitch"), pitch, self.PoseParameterLooking_TurningSpeed))) >= 10) then
 		if self.Turret_HasLOS == true && IsValid(self:GetEnemy()) then
 			VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun lost target 01.ogg", 70, 100)
@@ -273,33 +273,35 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defAng = Angle(0, 0, 0)
 --
-function ENT:CustomOnKilled(dmginfo, hitgroup)
-	if !self.DisableExplosionOnDeath then
-		VJ.ApplyRadiusDamage(self, self, self:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), true, true)
-		local startPos = self:GetPos() + self:OBBCenter()
-		ParticleEffect("explosion_turret_break_fire", startPos, defAng, NULL)
-		ParticleEffect("explosion_turret_break_flash", startPos, defAng, NULL)
-		ParticleEffect("explosion_turret_break_pre_smoke Version #2", startPos, defAng, NULL)
-		ParticleEffect("explosion_turret_break_sparks", startPos, defAng, NULL)
-		ParticleEffect("vj_avp_android_death",startPos,defAng)
-		sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",startPos,90)
-	
-		local FireLight1 = ents.Create("light_dynamic")
-		FireLight1:SetKeyValue("brightness","4")
-		FireLight1:SetKeyValue("distance","350")
-		FireLight1:SetPos(startPos)
-		FireLight1:SetLocalAngles(self:GetAngles())
-		FireLight1:Fire("Color","220 180 255")
-		FireLight1:SetParent(self)
-		FireLight1:Spawn()
-		FireLight1:Activate()
-		FireLight1:Fire("TurnOn","",0)
-		FireLight1:Fire("Kill","",0.9)
-		self:DeleteOnRemove(FireLight1)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Finish" then
+		if !self.DisableExplosionOnDeath then
+			VJ.ApplyRadiusDamage(self, self, self:GetPos(), 200, 50, bit.bor(DMG_BLAST,DMG_SHOCK), true, true)
+			local startPos = self:GetPos() + self:OBBCenter()
+			ParticleEffect("explosion_turret_break_fire", startPos, defAng, NULL)
+			ParticleEffect("explosion_turret_break_flash", startPos, defAng, NULL)
+			ParticleEffect("explosion_turret_break_pre_smoke Version #2", startPos, defAng, NULL)
+			ParticleEffect("explosion_turret_break_sparks", startPos, defAng, NULL)
+			ParticleEffect("vj_avp_android_death",startPos,defAng)
+			sound.Play("cpthazama/avp/weapons/predator/mine/prd_mine_explosion_01.ogg",startPos,90)
+		
+			local FireLight1 = ents.Create("light_dynamic")
+			FireLight1:SetKeyValue("brightness","4")
+			FireLight1:SetKeyValue("distance","350")
+			FireLight1:SetPos(startPos)
+			FireLight1:SetLocalAngles(self:GetAngles())
+			FireLight1:Fire("Color","220 180 255")
+			FireLight1:SetParent(self)
+			FireLight1:Spawn()
+			FireLight1:Activate()
+			FireLight1:Fire("TurnOn","",0)
+			FireLight1:Fire("Kill","",0.9)
+			self:DeleteOnRemove(FireLight1)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ParticleEffectAttach("smoke_exhaust_01a", PATTACH_POINT_FOLLOW, ent, 2)
 	ent.VJ_AVP_IsTech = true
 	ent:SetNW2Bool("AVP.IsTech",true)

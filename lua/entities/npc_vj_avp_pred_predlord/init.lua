@@ -12,7 +12,7 @@ ENT.StartHealth = 2000
 
 ENT.AttackDamageMultiplier = 1.2
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	if GetConVar("vj_avp_bosstheme_p"):GetBool() then
 		self.HasSoundTrack = true
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/March Of The Hunted.mp3"}
@@ -31,7 +31,7 @@ function ENT:OnInit()
 	self.PlasmaVisible = true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnThink()
+function ENT:OnThink2()
 	local equip = self:GetEquipment()
 	if equip == 1 && !self.PlasmaVisible then
 		self.PlasmaVisible = true

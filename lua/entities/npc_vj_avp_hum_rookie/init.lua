@@ -20,7 +20,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/rookie.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit()
+function ENT:OnInit2()
 	self.SoundTbl_LostEnemy = {}
 	self.SoundTbl_Alert = {}
 	self.SoundTbl_SeeBody = {}

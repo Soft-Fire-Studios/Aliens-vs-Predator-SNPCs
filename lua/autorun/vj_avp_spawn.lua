@@ -367,7 +367,7 @@ if VJExists == true then
 								self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH")
 								self.NextInvestigationMove = CurTime() +10
 							end
-							self:CustomOnInvestigate(v)
+							self:OnInvestigate(v)
 							if self.VJ_AVP_NPC && math.random(1,6) == 1 then
 								self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
 							end

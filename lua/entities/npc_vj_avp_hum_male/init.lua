@@ -67,7 +67,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/alex.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnPreInitialize()
+function ENT:PreInit()
 	-- self.Gender = self.Gender or 1 // math.random(1,2)
 	self.Model = self:GenderInit(self.Gender)
 
@@ -730,7 +730,7 @@ function ENT:MarineInitialize(gender)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnAlert(ent)
+function ENT:OnAlert(ent)
 	if #self.SoundTbl_Surprised > 0 && self:VJ_GetNearestPointToEntityDistance(ent,true) <= 250 then
 		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
 		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
@@ -755,9 +755,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local toAct = VJ.SequenceToActivity
 --
-function ENT:CustomOnInitialize()
-	if self.OnInit then
-		self:OnInit()
+function ENT:Init()
+	if self.OnInit2 then
+		self:OnInit2()
 	end
 
 	self.SprintT = 0
@@ -878,7 +878,7 @@ end
 function ENT:Controller_Initialize(ply,controlEnt)
 	controlEnt.VJC_Player_DrawHUD = false
 
-	function controlEnt:CustomOnThink()
+	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
 	end
@@ -979,8 +979,8 @@ function ENT:TranslateActivity(act)
 		end
 	elseif act == ACT_RUN && self.NoWeapon_UseScaredBehavior_Active == true && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
-	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_ShootWhileMoving == true && IsValid(self:GetEnemy()) then
-		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:IsAbleToShootWeapon(true, false) == true then
+	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanFireWhileMoving == true && IsValid(self:GetEnemy()) then
+		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then
 				self.DoingWeaponAttack = true
@@ -1049,7 +1049,7 @@ function ENT:SetAnimationTranslations(hType)
 	return true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnWeaponReload()
+function ENT:OnWeaponReload()
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1058,7 +1058,7 @@ local math_abs = math.abs
 local math_cos = math.cos
 local math_rad = math.rad
 --
-function ENT:CustomOnThink_AIEnabled()
+function ENT:OnThinkActive()
 	local curTime = CurTime()
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
@@ -1115,8 +1115,8 @@ function ENT:CustomOnThink_AIEnabled()
 		end
 	end
 
-	if self.OnThink then
-		self:OnThink(curTime)
+	if self.OnThink2 then
+		self:OnThink2(curTime)
 	end
 
 	if self.FootData then
@@ -1264,7 +1264,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
 --
-function ENT:CustomOnTakeDamage_OnBleed(dmginfo,hitgroup)
+function ENT:OnBleed(dmginfo,hitgroup)
 	local explosion = dmginfo:IsExplosionDamage()
 	if !self.InFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() >= 75 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() >= 65) or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster)) then
 		if CurTime() < (self.NextKnockdownT or 0) then return end
@@ -1317,31 +1317,33 @@ function ENT:GetDamageDirection(dmginfo)
 	return hitDir
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnKilled()
-	if self:GetState() == VJ_STATE_NONE then
-		for i = 1,self:GetBoneCount() -1 do
-			if math.random(1,4) <= 3 then continue end
-			local bone = self:GetBonePosition(i)
-			if bone then
-				local particle = ents.Create("info_particle_system")
-				particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
-				particle:SetPos(bone +VectorRand() *15)
-				particle:Spawn()
-				particle:Activate()
-				particle:Fire("Start")
-				particle:Fire("Kill", "", 0.1)
+function ENT:OnDeath(dmginfo, hitgroup, status)
+	if status == "Finish" then
+		if self:GetState() == VJ_STATE_NONE then
+			for i = 1,self:GetBoneCount() -1 do
+				if math.random(1,4) <= 3 then continue end
+				local bone = self:GetBonePosition(i)
+				if bone then
+					local particle = ents.Create("info_particle_system")
+					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetPos(bone +VectorRand() *15)
+					particle:Spawn()
+					particle:Activate()
+					particle:Fire("Start")
+					particle:Fire("Kill", "", 0.1)
+				end
 			end
 		end
-	end
-
-	self.StoredWeapon = IsValid(self:GetActiveWeapon()) && self:GetActiveWeapon():GetClass()
-
-	if self.WhenKilled then
-		self:WhenKilled()
+	
+		self.StoredWeapon = IsValid(self:GetActiveWeapon()) && self:GetActiveWeapon():GetClass()
+	
+		if self.WhenKilled then
+			self:WhenKilled()
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnDeath_AfterCorpseSpawned(dmginfo, hitgroup, ent)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
 	end
