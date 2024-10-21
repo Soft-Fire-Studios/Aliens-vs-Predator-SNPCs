@@ -50,7 +50,7 @@ SWEP.ViewModelAdjust = {
 	Ang = {Right = 0,Up = 0,Forward = -1}
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit2()
+function SWEP:OnInit()
 	self.NextBurstFireT = 0
 
 	self.BurstFireShots = 0

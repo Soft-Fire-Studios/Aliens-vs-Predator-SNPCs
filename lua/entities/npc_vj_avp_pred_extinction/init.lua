@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/predators/extinction.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
 ENT.StartHealth = 600
 -------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
-	-- self.BaseClass.OnInit2(self)
+function ENT:OnInit()
+	-- self.BaseClass.OnInit(self)
 	self.VJ_NPC_Class = {"CLASS_YAUTJA_EXTINCTION"}
 end

@@ -540,8 +540,8 @@ function ENT:Init()
 		self.CanEat = true
 	end
 
-	if self.OnInit2 then
-		self:OnInit2()
+	if self.OnInit then
+		self:OnInit()
 	end
 
 	if self.VJ_AVP_K_Xenomorph && GetConVar("vj_avp_kseries_ally"):GetBool() then

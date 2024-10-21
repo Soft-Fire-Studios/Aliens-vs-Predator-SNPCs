@@ -80,7 +80,7 @@ local sdTailMiss = {
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	if VJ_AVP_QueenExists(self) then
 		self:Remove()
 		if game.SinglePlayer() then

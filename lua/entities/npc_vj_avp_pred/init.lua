@@ -819,8 +819,8 @@ function ENT:Init()
 	self.AlertedIdle = toSeq(self,"predator_claws_ai_idle")
 	self.AttackIdle = toSeq(self,"predator_claws_idle_aim")
 
-	if self.OnInit2 then
-		self:OnInit2()
+	if self.OnInit then
+		self:OnInit()
 	end
 
     for attName, var in pairs(self.FootData) do

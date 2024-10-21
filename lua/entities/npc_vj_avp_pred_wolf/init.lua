@@ -12,7 +12,7 @@ ENT.ArmorColor = Vector(0.725,0.745,0.7)
 
 ENT.AttackDamageMultiplier = 1.35
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	if GetConVar("vj_avp_bosstheme_p"):GetBool() then
 		self.HasSoundTrack = true
 		self.SoundTbl_SoundTrack = {"cpthazama/avp/music/boss/Annihilation.mp3"}

@@ -35,7 +35,7 @@ ENT.StandingBounds = Vector(16,16,85)
 ENT.CrawlingBounds = Vector(16,16,85)
 ENT.CanBlock = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	-- self.CurrentSet = 2
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true

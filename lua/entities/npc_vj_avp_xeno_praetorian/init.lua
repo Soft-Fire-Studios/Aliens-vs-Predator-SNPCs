@@ -58,7 +58,7 @@ function ENT:MultipleRangeAttacks()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	-- self.CurrentSet = 2
 	if GetConVar("vj_avp_bosstheme_a"):GetBool() then
 		self.HasSoundTrack = true

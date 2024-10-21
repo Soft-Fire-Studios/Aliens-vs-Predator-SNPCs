@@ -15,7 +15,7 @@ ENT.SummonClasses = {
 	"npc_vj_avp_kxeno_ridged",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
-	self.BaseClass.OnInit2(self)
+function ENT:OnInit()
+	self.BaseClass.OnInit(self)
 	self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
 end

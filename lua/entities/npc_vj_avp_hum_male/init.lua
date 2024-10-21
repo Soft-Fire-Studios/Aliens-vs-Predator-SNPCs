@@ -756,8 +756,8 @@ end
 local toAct = VJ.SequenceToActivity
 --
 function ENT:Init()
-	if self.OnInit2 then
-		self:OnInit2()
+	if self.OnInit then
+		self:OnInit()
 	end
 
 	self.SprintT = 0

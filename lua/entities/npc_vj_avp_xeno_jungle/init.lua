@@ -10,7 +10,7 @@ ENT.StartHealth = 60
 
 ENT.CanSpit = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	self.SoundTbl_Alert = {
 		"cpthazama/avp/xeno/jungle alien/junglealien_hiss_long1.ogg",
 		"cpthazama/avp/xeno/jungle alien/junglealien_hiss_long2.ogg",

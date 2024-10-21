@@ -51,7 +51,7 @@ ENT.CrawlingBounds = Vector(16,16,125)
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	print("2nd init")
 	self.FootData = {
 		["lfoot"] = {Range=20.5,OnGround=true},

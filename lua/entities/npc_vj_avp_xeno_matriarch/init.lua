@@ -19,7 +19,7 @@ ENT.StandingBounds = Vector(25,25,200)
 ENT.CrawlingBounds = Vector(25,25,200)
 ENT.CanBlock = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	if VJ_AVP_MatriarchExists(self) then
 		self:Remove()
 		if game.SinglePlayer() then
