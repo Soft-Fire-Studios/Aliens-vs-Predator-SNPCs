@@ -2989,36 +2989,51 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 			if !IsValid(attacker) then
 				attacker = dmginfo:GetInflictor()
 			end
-			self.SpecialBlockAnimTime = CurTime() +1
-			self.IsBlocking = false
-			self.AI_IsBlocking = false
-		else
-			dmginfo:SetDamage(0)
-			if IsValid(attacker) && attacker.OnAttackBlocked then
-				attacker:OnAttackBlocked(self)
-			end
-
-			sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",dmginfo:GetDamagePosition(),70)
-			local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
-			self.BlockAnimTime = CurTime() +animTime
-			if IsValid(attacker) && attacker:IsPlayer() then
-				attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
-				local impact = math.random(5,10)
-				local ang = attacker:EyeAngles()
-				ang.p = ang.p +math.random(-impact,impact)
-				ang.y = ang.y +math.random(-impact,impact)
-				attacker:SetEyeAngles(ang)
-			end
-			local effectData = EffectData()
-			effectData:SetOrigin(dmginfo:GetDamagePosition())
-			effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
-			effectData:SetMagnitude(3)
-			effectData:SetScale(1)
-			util.Effect("ElectricSpark", effectData)
-			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
-				self.AI_IsBlocking = false
+			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+			if IsValid(attacker) && isBigDmg then
+				local attackerLookDir = attacker:GetAimVector()
+				local dotForward = attackerLookDir:Dot(self:GetForward())
+				local dotRight = attackerLookDir:Dot(self:GetRight())
+				if dotForward > 0.5 then -- Hit from the front
+					self:PlayAnimation("predator_claws_guard_block_broken_back",true,false,false)
+				elseif dotForward < -0.5 then -- Hit from the back
+					self:PlayAnimation("predator_claws_guard_block_broken",true,false,false)
+				elseif dotRight > 0.5 then -- Hit from the left
+					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_bl",true,false,false)
+				elseif dotRight < -0.5 then -- Hit from the right
+					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_br",true,false,false)
+				end
+				self.SpecialBlockAnimTime = CurTime() +1
 				self.IsBlocking = false
-				self:HeavyAttackCode()
+				self.AI_IsBlocking = false
+			else
+				dmginfo:SetDamage(0)
+				if IsValid(attacker) && attacker.OnAttackBlocked then
+					attacker:OnAttackBlocked(self)
+				end
+
+				sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",dmginfo:GetDamagePosition(),70)
+				local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
+				self.BlockAnimTime = CurTime() +animTime
+				if IsValid(attacker) && attacker:IsPlayer() then
+					attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+					local impact = math.random(5,10)
+					local ang = attacker:EyeAngles()
+					ang.p = ang.p +math.random(-impact,impact)
+					ang.y = ang.y +math.random(-impact,impact)
+					attacker:SetEyeAngles(ang)
+				end
+				local effectData = EffectData()
+				effectData:SetOrigin(dmginfo:GetDamagePosition())
+				effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
+				effectData:SetMagnitude(3)
+				effectData:SetScale(1)
+				util.Effect("ElectricSpark", effectData)
+				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+					self.AI_IsBlocking = false
+					self.IsBlocking = false
+					self:HeavyAttackCode()
+				end
 			end
 		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
 			self.IsBlocking = false
