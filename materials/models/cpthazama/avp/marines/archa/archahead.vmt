@@ -1,0 +1,13 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/archa/archahead_col"
+	"$bumpmap"					"models/cpthazama/avp/marines/archa/archahead_norms"
+	"$phongexponenttexture"		"models/cpthazama/avp/marines/archa/archahead_spec"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "4"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+	"$phongalbedotint" 			 "1"
+}

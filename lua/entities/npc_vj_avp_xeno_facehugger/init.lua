@@ -108,7 +108,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Init()
+local table_insert = table.insert
+--
+function ENT:CustomOnInitialize()
 	self.IsLatched = false
 	self.LatchVictim = nil
 	self.Carrier = nil
@@ -125,6 +127,9 @@ function ENT:Init()
 
 	if self.VJ_AVP_K_Xenomorph then
 		self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
+		if GetConVar("vj_avp_kseries_ally"):GetBool() then
+			table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

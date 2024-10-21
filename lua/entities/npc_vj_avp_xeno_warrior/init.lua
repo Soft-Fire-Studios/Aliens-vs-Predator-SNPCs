@@ -499,6 +499,7 @@ ENT.HitGroups = {
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defStandingBounds = Vector(13,13,72)
 local defCrawlingBounds = Vector(13,13,34)
+local table_insert = table.insert
 --
 function ENT:Init()
 	print("test")
@@ -528,6 +529,8 @@ function ENT:Init()
 	self.AI_BlockTime = 0
 	self.SpecialBlockAnimTime = 0
 	self.NextKnockdownT = 0
+	self.IsCrawler = false
+	self.CanDodge = VJ.AnimExists(self,"dodge_left")
 
 	if !self.VJ_AVP_XenomorphLarge then
 		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
@@ -539,6 +542,10 @@ function ENT:Init()
 
 	if self.OnInit2 then
 		self:OnInit2()
+	end
+
+	if self.VJ_AVP_K_Xenomorph && GetConVar("vj_avp_kseries_ally"):GetBool() then
+		table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
 	end
 
     for attName, var in pairs(self.FootData) do
@@ -1095,34 +1102,63 @@ function ENT:OnKeyPressed(ply,key)
 	elseif key == KEY_R then
 		self.DistractT = self.DistractT or 0
 		if CurTime() < self.DistractT or self:IsBusy() then return end
-		local tr = util.TraceHull({
-			start = self:EyePos(),
-			endpos = self:EyePos() +ply:GetAimVector() *1200,
-			filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
-			mins = Vector(-10,-10,-10),
-			maxs = Vector(10,10,10)
-		})
-		if tr.Hit && IsValid(tr.Entity) then
-			local ent = tr.Entity
-			if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
+		self.DistractT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg") +5
+		VJ.CreateSound(self,self.DistractionSound or "cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg",65)
+
+		for _,ent in pairs(ents.FindInSphere(self:GetPos(),1200)) do
+			if ent:IsNPC() && self:CheckRelationship(ent) == D_HT then
 				self:DistractionCode(ent)
 			end
 		end
+		-- local tr = util.TraceHull({
+		-- 	start = self:EyePos(),
+		-- 	endpos = self:EyePos() +ply:GetAimVector() *1200,
+		-- 	filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
+		-- 	mins = Vector(-10,-10,-10),
+		-- 	maxs = Vector(10,10,10)
+		-- })
+		-- if tr.Hit && IsValid(tr.Entity) then
+		-- 	local ent = tr.Entity
+		-- 	if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+		-- 		self:DistractionCode(ent)
+		-- 	end
+		-- end
     end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DistractionCode(ent)
-	VJ.STOPSOUND(self.CurrentSpeechSound)
-	VJ.STOPSOUND(self.CurrentIdleSound)
 	local soundPos = self:GetPos() +VectorRand() *300
-	self.DistractT = CurTime() +SoundDuration("cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg") +5
-	VJ.CreateSound(self,self.DistractionSound or "cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg",65)
+	local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
+	local possibleNodes = {}
+	for _,node in pairs(nodegraph) do
+		if node.type == 2 && self:GetPos():Distance(node.pos) < 400 then
+			table_insert(possibleNodes,node.pos)
+		end
+	end
+	if #possibleNodes > 0 then
+		soundPos = VJ.PICK(possibleNodes)
+	end
 	if ent:IsNPC() then
 		if ent.IsVJBaseSNPC && !ent:IsBusy() && !ent.Alerted then
 			ent:SetLastPosition(soundPos)
-			ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x) x.CanShootWhenMoving = true end)
-			if ent.OnHearDistraction then
-				ent:OnHearDistraction(self,soundPos)
+			ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+				x.CanShootWhenMoving = true
+				if ent.OnDistracted then
+					x.RunCode_OnFinish = function()
+						timer.Simple(0.01, function()
+							if IsValid(ent) && !ent:IsBusy() then
+								ent:OnDistracted(2)
+							end
+						end)
+					end
+				end
+			end)
+
+			if ent.OnDistracted then
+				ent:OnDistracted(1)
 			else
 				ent:OnInvestigate(ent)
 				ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
@@ -1187,6 +1223,7 @@ local vecZ50 = Vector(0, 0, -50)
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
+	sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",ent:GetPos() +ent:OBBCenter(),70)
 	local _,dir = self:VJ_ACT_PLAYACTIVITY("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
 	self.BlockAttackT = CurTime() +(dir *1.4)
 end
@@ -1575,6 +1612,8 @@ function ENT:GetFatalityOffset(ent)
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.02
 	elseif ent.VJ_AVP_Predator then
 		offset = (self:OBBMaxs().y +ent:OBBMaxs().y) *1.5
+	elseif ent.VJ_AVP_Marine then
+		offset = 0
 	end
 	return offset
 end
@@ -1588,10 +1627,7 @@ function ENT:CustomAttack(ent,visible)
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 	local curTime = CurTime()
-	local gib = self.Gibbed
-	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
-		return
-	end
+	if self.IsCrawler then return end
 	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
 	if !self.CanBlock then
 		doingBlock = false
@@ -2292,8 +2328,9 @@ function ENT:OnThinkActive()
 	self:SetSprinting(self:IsMoving() && sprinting)
 	self:SetPoseParameter("standing", Lerp(FrameTime() *10,self:GetPoseParameter("standing"),curSet -1))
 
-	local gib = self.Gibbed
-	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+	-- local gib = self.Gibbed
+	-- if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+	if self.IsCrawler then
 		if curTime > self.NextGibbedFXTime then
 			self.NextGibbedFXTime = curTime +math.Rand(0.1,0.5)
 	
@@ -2721,12 +2758,19 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:StopMoving()
 	end
 
+	if !self.IsCrawler && self.CanDodge && !self:IsBusy() && math.random(1,8) == 1 then
+		self:VJ_ACT_PLAYACTIVITY({"dodge_left","dodge_right"},true,false,true)
+	end
+
 	local decap = self.HitGroups[hitgroup]
 	if decap then
 		if decap.Dead then return end
 		decap.HP = decap.HP -dmginfo:GetDamage()
 		if decap.HP <= 0 then
 			decap.Dead = true
+			if hitgroup == HITGROUP_LEFTLEG or hitgroup == HITGROUP_RIGHTLEG or hitgroup == HITGROUP_LEFTARM or hitgroup == HITGROUP_RIGHTARM then
+				self.IsCrawler = true
+			end
 			if decap.OnDecap then
 				decap.OnDecap(self,dmginfo,hitgroup)
 			end

@@ -24,11 +24,20 @@ ENT.CallForHelp = false
 ENT.HasDeathCorpse = true
 ENT.DeathCorpseEntityClass = "prop_vj_animatable"
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Init()
+local table_insert = table.insert
+--
+function ENT:CustomOnInitialize()
 	self.Opened = false
 
 	self:SetAngles(Angle(0,math.random(0,360),0))
 	self:AddFlags(FL_NOTARGET)
+
+	if self.VJ_AVP_K_Xenomorph then
+		self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
+		if GetConVar("vj_avp_kseries_ally"):GetBool() then
+			table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)

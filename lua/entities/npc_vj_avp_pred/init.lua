@@ -1752,21 +1752,34 @@ function ENT:DistractionCode(ent)
 		VJ.CreateSound(self,self.SoundTbl_Laugh,90)
 		self.DistractT = CurTime() +5
 	else
+		if ent.VJ_AVP_Xenomorph then return end
 		local soundPos = ent:GetPos() +VectorRand() *600
 		local findPos = self:FindNodesNearPoint(soundPos,12,768,256)
 		if findPos then
 			soundPos = VJ.PICK(findPos)
 		end
 		local soundF = VJ.PICK(self.SoundTbl_Distract)
-		self.DistractT = CurTime() +SoundDuration(soundF) +5
+		self.DistractT = CurTime() +10
 		sound.Play(soundF,soundPos,72)
 		VJ.EmitSound(self,soundF,65)
 		if ent:IsNPC() then
 			if ent.IsVJBaseSNPC && !ent:IsBusy() && !ent.Alerted then
 				ent:SetLastPosition(soundPos)
-				ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x) x.CanShootWhenMoving = true end)
-				if ent.OnHearDistraction then
-					ent:OnHearDistraction(self,soundPos)
+				ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+					x.CanShootWhenMoving = true
+					if ent.OnDistracted then
+						x.RunCode_OnFinish = function()
+							timer.Simple(0.01, function()
+								if IsValid(ent) && !ent:IsBusy() then
+									ent:OnDistracted(2)
+								end
+							end)
+						end
+					end
+				end)
+
+				if ent.OnDistracted then
+					ent:OnDistracted(1)
 				else
 					ent:OnInvestigate(v)
 					ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
@@ -2976,44 +2989,36 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 			if !IsValid(attacker) then
 				attacker = dmginfo:GetInflictor()
 			end
-			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
-			if IsValid(attacker) && isBigDmg then
-				local attackerLookDir = attacker:GetAimVector()
-				local dotForward = attackerLookDir:Dot(self:GetForward())
-				local dotRight = attackerLookDir:Dot(self:GetRight())
-				if dotForward > 0.5 then -- Hit from the front
-					self:PlayAnimation("predator_claws_guard_block_broken_back",true,false,false)
-				elseif dotForward < -0.5 then -- Hit from the back
-					self:PlayAnimation("predator_claws_guard_block_broken",true,false,false)
-				elseif dotRight > 0.5 then -- Hit from the left
-					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_bl",true,false,false)
-				elseif dotRight < -0.5 then -- Hit from the right
-					self:PlayAnimation("predator_claws_flinch_lfoot_head_medium_br",true,false,false)
-				end
-				self.SpecialBlockAnimTime = CurTime() +1
-				self.IsBlocking = false
+			self.SpecialBlockAnimTime = CurTime() +1
+			self.IsBlocking = false
+			self.AI_IsBlocking = false
+		else
+			dmginfo:SetDamage(0)
+			if IsValid(attacker) && attacker.OnAttackBlocked then
+				attacker:OnAttackBlocked(self)
+			end
+
+			sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",dmginfo:GetDamagePosition(),70)
+			local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
+			self.BlockAnimTime = CurTime() +animTime
+			if IsValid(attacker) && attacker:IsPlayer() then
+				attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
+				local impact = math.random(5,10)
+				local ang = attacker:EyeAngles()
+				ang.p = ang.p +math.random(-impact,impact)
+				ang.y = ang.y +math.random(-impact,impact)
+				attacker:SetEyeAngles(ang)
+			end
+			local effectData = EffectData()
+			effectData:SetOrigin(dmginfo:GetDamagePosition())
+			effectData:SetNormal(dmginfo:GetDamageForce():GetNormalized())
+			effectData:SetMagnitude(3)
+			effectData:SetScale(1)
+			util.Effect("ElectricSpark", effectData)
+			if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
 				self.AI_IsBlocking = false
-			else
-				dmginfo:SetDamage(0)
-				if IsValid(attacker) && attacker.OnAttackBlocked then
-					attacker:OnAttackBlocked(self)
-				end
-				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
-					self.AI_IsBlocking = false
-					self.IsBlocking = false
-					self:HeavyAttackCode()
-				else
-					local _,animTime = self:PlayAnimation({"predator_claws_guard_block_left","predator_claws_guard_block_right"},true,false,false,0,{AlwaysUseGesture=true})
-					self.BlockAnimTime = CurTime() +animTime
-					if IsValid(attacker) && attacker:IsPlayer() then
-						attacker:ViewPunch(Angle(-15,math.random(-3,3),math.random(-3,3)))
-						local impact = math.random(5,10)
-						local ang = attacker:EyeAngles()
-						ang.p = ang.p +math.random(-impact,impact)
-						ang.y = ang.y +math.random(-impact,impact)
-						attacker:SetEyeAngles(ang)
-					end
-				end
+				self.IsBlocking = false
+				self:HeavyAttackCode()
 			end
 		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
 			self.IsBlocking = false
@@ -3025,6 +3030,7 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
+	sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",ent:GetPos() +ent:OBBCenter(),70)
 	self.AttackSide = self.AttackSide or "left"
 	local _,dir = self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
 	self.BlockAttackT = CurTime() +(dir *1.4)

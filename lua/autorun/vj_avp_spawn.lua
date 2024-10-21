@@ -26,6 +26,7 @@ if VJExists == true then
 	VJ.AddConVar("vj_avp_bosstheme_p",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_bosstheme_m",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddConVar("vj_avp_pred_info",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+	VJ.AddConVar("vj_avp_kseries_ally",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 	VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 	VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 	VJ.AddClientConVar("vj_avp_hud_predinfo", 1, "Enable Predator HUD info display?")
@@ -125,11 +126,12 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Thomas","npc_vj_avp_hum_youngwhite",wepMarines,vCat_M)
 	VJ.AddNPC_HUMAN("Martinez","npc_vj_avp_hum_hispanic",wepMarines,vCat_M)
 	-- VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",wepMarines,vCat_M)
-	-- VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{"weapon_vj_avp_pistol"},vCat_M)
+	-- VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{},vCat_M)
+	VJ.AddNPC_HUMAN("Archaeologist","npc_vj_avp_hum_archa",{},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_flamethrower","weapon_vj_avp_scopedrifle"},vCat_M)
 	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle"},vCat_M)
-	-- VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
+	VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
 
 	-- VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",wepMarines,vCat_M)
 	VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",wepMarines,vCat_M)
@@ -901,6 +903,18 @@ if VJExists == true then
 	if CLIENT then
 		hook.Add("PopulateToolMenu", "VJ_ADDTOMENU_AVP", function()
 			spawnmenu.AddToolMenuOption("DrVrej", "SNPC Configures", "Aliens vs Predator", "Aliens vs Predator", "", "", function(Panel)
+				-- local vj_icon = vgui.Create("DImage")
+				-- vj_icon:SetSize(512,60)
+				-- vj_icon:SetImage("vgui/avp/spacer.png")
+				-- Panel:AddPanel(vj_icon)
+
+				-- local vj_button = vgui.Create("DButton")
+				-- vj_button:SetSize(512,30)
+				-- vj_button:SetText("Open Aliens vs Predator Configurations")
+				-- vj_button.DoClick = function(vj_button)
+				-- 	RunConsoleCommand("vj.avp.menu")
+				-- end
+				-- Panel:AddPanel(vj_button)
 				local vj_icon = vgui.Create("DImage")
 				vj_icon:SetSize(512,60)
 				vj_icon:SetImage("vgui/avp/spacer.png")
@@ -923,6 +937,8 @@ if VJExists == true then
 				Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"})
 				Panel:AddControl("Checkbox", {Label = "Enable Xenomorph Stealth", Command = "vj_avp_xenostealth"})
 				Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."})
+				Panel:AddControl("Checkbox", {Label = "Successful K-Series Experiment", Command = "vj_avp_kseries_ally"})
+				Panel:AddControl("Label", {Text = "Note: This will make K-Series Xenomorphs friendly to Weyland-Yutani forces."})
 
 				local vj_icon = vgui.Create("DImage")
 				vj_icon:SetSize(512,130)
@@ -956,6 +972,8 @@ if VJExists == true then
 	VJ_AVP_HALOS.KXenomorphs = {}
 	VJ_AVP_HALOS.Predators = {}
 	VJ_AVP_HALOS.Tech = {}
+	VJ_AVP_HALOS.Equipment = {}
+	VJ_AVP_HALOS.Links = {}
 	VJ_AVP_HALOS.Other = {}
 	VJ_AVP_HALOS.Survival = {}
 	VJ_AVP_HALOS.Hunt = {}

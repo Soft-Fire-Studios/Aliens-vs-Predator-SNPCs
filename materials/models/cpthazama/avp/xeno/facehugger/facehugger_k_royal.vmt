@@ -2,14 +2,16 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/facehugger/facehugger_k_royal_col"
 	"$bumpmap"					"models/cpthazama/avp/xeno/facehugger/facehugger_norms"
-	// "$phongexponenttexture"		"vj_base/exponent"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$nodecal" 					"1"
 
 	"$phong"                    "1"
-	"$phongboost"               "2"
+	"$phongboost"               "10"
 	"$phongexponent"            "20"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$envmapfresnel"            "1"

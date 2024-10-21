@@ -36,6 +36,7 @@ SWEP.PrintName					= "ZX-76 Shotgun"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_shotgun.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_shotgun.mdl"
 SWEP.HoldType 					= "ar2"
+SWEP.IsShotgun 					= true
 SWEP.Spawnable					= true
 SWEP.AdminSpawnable				= false
 

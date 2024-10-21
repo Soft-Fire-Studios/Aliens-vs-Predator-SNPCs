@@ -2,15 +2,17 @@
 {
 	"$basetexture" 				"models/cpthazama/avp/xeno/predalien/dreads_k_colour"
 	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/dreads_normal"
-	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/dreads_spec"
+	"$phongexponenttexture"		"vj_base/exponent"
 
     "$color2" 					"[2 2 2]"
     "$nodecal" 					"1"
 
 	"$phong"                    "1"
-	"$phongboost"               "2"
+	"$phongboost"               "10"
 	"$phongexponent"            "20"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+    "$phongalbedotint"          "1"
+    "$phongalbedoboost"         "30"
 	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
 
 	"$envmapfresnel"            "1"

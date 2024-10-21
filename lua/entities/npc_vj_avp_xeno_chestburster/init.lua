@@ -97,7 +97,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:Init()
+local table_insert = table.insert
+--
+function ENT:CustomOnInitialize()
 	self:SetCollisionBounds(Vector(4,4,6),Vector(-4,-4,0))
 	sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",self:GetPos(),72)
 	VJ.CreateSound(self,"cpthazama/avp/xeno/chestburster/chestburster_scream_0" .. math.random(1,3) .. ".ogg",80)
@@ -124,6 +126,13 @@ function ENT:Init()
 	self.GrowT = CurTime() +60
 	self.DidGrow = false
 	self:SetModelScale(2.5,60)
+
+	if self.VJ_AVP_K_Xenomorph then
+		self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
+		if GetConVar("vj_avp_kseries_ally"):GetBool() then
+			table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
+		end
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInput(key,activator,caller,data)

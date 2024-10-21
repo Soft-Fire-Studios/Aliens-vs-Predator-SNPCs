@@ -5,7 +5,9 @@
 	// "$phongexponenttexture"		"models/cpthazama/avp/xeno/runner/jungle_alien_dome_spec"
 
     "$nodecal" 					"1"
-    // "$translucent" 					"1"
+    "$nocull" 					"1"
+    "$color2" 					"[0.4 0.4 0.4]"
+    "$blendtintbybasealpha" 	"1"
 
 	"$phong"                    "1"
 	"$phongboost"               "2"
@@ -19,7 +21,7 @@
 	"$envmaptint" 				 "[0.1 0.1 0.1]"
 
 	"$DEM_TintScale" 			"[1 1 1]"
-	"$DEM_Multiplier" 			"0.45"
+	"$DEM_Multiplier" 			"0.65"
 
 	"Proxies" 
 	{

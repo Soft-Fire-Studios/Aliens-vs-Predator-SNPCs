@@ -119,6 +119,9 @@ function ENT:DoFatality(ent,inFront)
 		ent:SetLocalVelocity(Vector(0,0,0))
 		self:SetMoveType(MOVETYPE_FLY)
 		ent:SetMoveType(MOVETYPE_FLY)
+		if IsValid(ent.VJ_TheController) then
+			VJ_AVP_CSound(ent.VJ_TheController,"cpthazama/avp/shared/grapple/grapple_sting_0" .. math.random(1,5) .. ".ogg")
+		end
 		if self.OnHit then
 			self:OnHit({ent})
 		end

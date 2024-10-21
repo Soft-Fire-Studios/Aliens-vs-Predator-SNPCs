@@ -766,6 +766,9 @@ function ENT:Init()
 	self.Ping_ClosestDist = 0
 	self.Ping_NextPingT = CurTime() +1
 	self.NextHealT = CurTime() +1
+	if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
+		self.Behavior = VJ_BEHAVIOR_PASSIVE
+	end
 
     for attName, var in pairs(self.FootData) do
         var.AttID = self:LookupAttachment(attName)
@@ -881,6 +884,19 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnDistracted(layer)
+	self:StopAllSounds()
+	if layer == 1 then
+		if #self.SoundTbl_DistractionSuccess > 0 then
+			VJ.CreateSound(self,self.SoundTbl_DistractionSuccess,75)
+		else
+			self:PlaySoundSystem(#self.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
+		end
+	elseif layer == 2 then
+		VJ.CreateSound(self,self.SoundTbl_InvestigateComplete,75)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1005,6 +1021,7 @@ function ENT:TranslateActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAnimationTranslations(hType)
+	local wep = self:GetActiveWeapon()
 	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
 	if hType == "pistol" then
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "ohwa_pistol_idle")
@@ -1025,13 +1042,25 @@ function ENT:SetAnimationTranslations(hType)
 
 		self.PoseParameterLooking_Names = {pitch={"pp_ohw_pitch"}, yaw={"pp_ohw_yaw"}, roll={}}
 	elseif hType == "crossbow" then
-		// Smartgun
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "smartgun_a_idle")
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "smartgun_a_shoot_loop"
+
+		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "smartgun_light_attack")
+		
+		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "smartgun_n_idle")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "smartgun_a_idle")
+		
+		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "smartgun_run")
+		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "smartgun_run")
+		
+		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "smartgun_run")
+		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "smartgun_run")
 
 		self.PoseParameterLooking_Names = {pitch={"pp_smartgun_pitch"}, yaw={"pp_smartgun_yaw"}, roll={}}
 	else
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= ACT_HL2MP_IDLE_AR2
-		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
-		self.AnimTbl_WeaponReload 										= "vjges_THWA_Stand_reload"
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= wep.IsShotgun && ACT_HL2MP_GESTURE_RANGE_ATTACK_SHOTGUN or ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
+		self.AnimTbl_WeaponReload 										= wep.IsShotgun && "vjges_shotgun_reload" or "vjges_THWA_Stand_reload"
 		
 		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "thwa_melee_light_attack")
 		
