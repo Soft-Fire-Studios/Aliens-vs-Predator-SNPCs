@@ -128,8 +128,8 @@ function SWEP:Init()
 
 	self.PrimaryLoopSoundT = 0
 
-	if self.OnInit2 then
-		self:OnInit2()
+	if self.OnInit then
+		self:OnInit()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

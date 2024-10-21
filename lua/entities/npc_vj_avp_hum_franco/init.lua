@@ -11,7 +11,7 @@ ENT.VO = 2
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.FriendsWithAllPlayerAllies = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	local vest = math.random(1,4) == 1 && 1 or 0
 	self:SetBodygroup(self:FindBodygroupByName("vest"),vest)
 	if vest == 0 then

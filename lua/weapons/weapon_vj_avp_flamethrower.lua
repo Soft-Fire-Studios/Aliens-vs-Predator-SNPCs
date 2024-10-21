@@ -88,7 +88,7 @@ function SWEP:AddVars()
 	self:NetworkVar("Entity", 0, "FlameAtt")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit2()
+function SWEP:OnInit()
 	if CLIENT then return end
 	local pos = self:GetPos()
 	pos = pos +self:GetUp() *18 +self:GetRight() *10

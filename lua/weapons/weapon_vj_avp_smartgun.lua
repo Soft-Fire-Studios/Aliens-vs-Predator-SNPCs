@@ -98,7 +98,7 @@ else
 	end)
 end
 --
-function SWEP:OnInit2()
+function SWEP:OnInit()
 	self.LastTarget = NULL
 	self.LastTargetT = 0
 

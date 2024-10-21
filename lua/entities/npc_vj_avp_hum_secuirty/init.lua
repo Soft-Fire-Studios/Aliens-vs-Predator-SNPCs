@@ -16,7 +16,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/security.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	self.SoundTbl_LostEnemy = {}
 	self.SoundTbl_Alert = {}
 	self.SoundTbl_SeeBody = {

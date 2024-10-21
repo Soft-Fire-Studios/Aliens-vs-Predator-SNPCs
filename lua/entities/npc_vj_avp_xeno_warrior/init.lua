@@ -537,8 +537,8 @@ function ENT:Init()
 		self.CanEat = true
 	end
 
-	if self.OnInit2 then
-		self:OnInit2()
+	if self.OnInit then
+		self:OnInit()
 	end
 
     for attName, var in pairs(self.FootData) do

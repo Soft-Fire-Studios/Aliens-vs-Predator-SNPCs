@@ -7,7 +7,7 @@ include("shared.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/k_runner.mdl"}
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	self.VJ_NPC_Class = {"CLASS_XENOMORPH_KSERIES"}
 	self.GeneralSoundPitch1 = 110
 	self.GeneralSoundPitch2 = 115

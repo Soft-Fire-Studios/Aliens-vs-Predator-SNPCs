@@ -19,7 +19,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/tequila.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnInit2()
+function ENT:OnInit()
 	self:SetBodygroup(self:FindBodygroupByName("vest"),1)
 	self.SoundTbl_LostEnemy = {}
 	self.SoundTbl_Alert = {

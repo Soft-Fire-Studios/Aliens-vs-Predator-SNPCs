@@ -85,7 +85,7 @@ else
 	end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnInit2()
+function SWEP:OnInit()
 	if SERVER then
 		self.HighlightT = 0
 		self.HighlightEnts = {}
