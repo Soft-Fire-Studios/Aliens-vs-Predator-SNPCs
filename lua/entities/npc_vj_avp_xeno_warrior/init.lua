@@ -676,7 +676,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 	end
 
-	function controlEnt:CustomOnStopControlling()
+	function controlEnt:OnStopControlling()
 		net.Start("VJ_AVP_Xeno_Client")
 			net.WriteBool(true)
 			net.WriteEntity(self)

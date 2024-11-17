@@ -40,7 +40,7 @@ ENT.EntitiesToSpawn = {
 	},
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnEntitySpawn(ent, spawnKey, spawnTbl, initSpawn)
+function ENT:OnSpawnEntity(ent, spawnKey, spawnTbl, initSpawn)
 	local wep = GetConVar("gmod_npcweapon"):GetString()
 	if wep != "" then
 		SafeRemoveEntity(ent:GetActiveWeapon())

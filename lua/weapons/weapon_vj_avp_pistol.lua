@@ -70,13 +70,12 @@ function SWEP:OnThink2()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnSecondaryAttack()
-	return CurTime() > self.NextBurstFireT
+function SWEP:OnSecondaryAttack()
+	return CurTime() < self.NextBurstFireT
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnSecondaryAttack()
+function SWEP:OnSecondaryAttack2()
 	if CurTime() < self.NextBurstFireT then return end
-	local owner = self:GetOwner()
 	local oldDelay = self.Primary.Delay
 	local oldCone = self.Primary.Cone
 	local oldDamage = self.Primary.Damage

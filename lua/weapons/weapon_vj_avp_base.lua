@@ -98,7 +98,7 @@ function SWEP:SetupDataTables()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnDeploy()
+function SWEP:OnDeploy()
 	if SERVER then
 		local snd = VJ.PICK(self.SoundTbl_Equip)
 		if snd != false then
@@ -178,29 +178,31 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_Clamp = math.Clamp
 --
-function SWEP:CustomOnPrimaryAttack_AfterShoot()
-	if self.OnShoot then
-		self:OnShoot()
-	end
-
-	if self.Primary.UsesLoopedSound then
-		self.PrimaryLoopSoundT = CurTime() +0.1
-		if math.random(1,7) == 1 && self.PrimaryLoop:IsPlaying() && #self.PrimarySound > 1 then
-			self.PrimaryLoop:Stop()
-			self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound), VJ_RecipientFilter)
-			self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
-			self.PrimaryLoop:Play()
+function SWEP:OnPrimaryAttack(status, statusData)
+	if status == "PostFire" then
+		if self.OnShoot then
+			self:OnShoot()
 		end
+	
+		if self.Primary.UsesLoopedSound then
+			self.PrimaryLoopSoundT = CurTime() +0.1
+			if math.random(1,7) == 1 && self.PrimaryLoop:IsPlaying() && #self.PrimarySound > 1 then
+				self.PrimaryLoop:Stop()
+				self.PrimaryLoop = CreateSound(self, VJ.PICK(self.PrimarySound), VJ_RecipientFilter)
+				self.PrimaryLoop:SetSoundLevel(self.Primary.SoundLevel or 75)
+				self.PrimaryLoop:Play()
+			end
+		end
+	
+		if CLIENT then return end
+	
+		self:SetLastFire(CurTime())
+	
+		if math.random(1,2) == 1 then
+			self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
+		end
+		self.CoolDownT = CurTime() +(self:GetOverHeat() *6)
 	end
-
-	if CLIENT then return end
-
-	self:SetLastFire(CurTime())
-
-	if math.random(1,2) == 1 then
-		self:SetOverHeat(math_Clamp(self:GetOverHeat() +0.008,0,1))
-	end
-	self.CoolDownT = CurTime() +(self:GetOverHeat() *6)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:IsBusy()
@@ -480,12 +482,14 @@ function SWEP:MeleeAttack(owner)
 	self:SetNextSecondaryFire(CurTime() +animTime)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnReload()
-	if self.OnReload then
-		self:OnReload()
-	end
-	if self:GetZoomed() == true then
-		self:SetZoomed(false)
+function SWEP:OnReload(status)
+	if status == "Start" then
+		if self.OnReload then
+			self:OnReload()
+		end
+		if self:GetZoomed() == true then
+			self:SetZoomed(false)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -497,7 +501,7 @@ function SWEP:GetViewModelAdjustPosition()
 	return self.ViewModelAdjust.Pos, self.ViewModelAdjust.Ang
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnSecondaryAttack()
+function SWEP:OnSecondaryAttack()
 	return self.UsesZoom
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -557,7 +561,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:SecondaryAttack()
 	if !self:CanSecondaryAttack() or self.Reloading then return end
-	if self:CustomOnSecondaryAttack() == false then return end
+	if self:OnSecondaryAttack() == true then return end
 	
 	local owner = self:GetOwner()
 	if owner:IsPlayer() && owner:KeyDown(IN_USE) && !IsValid(owner.VJ_AVP_Flare) then
@@ -578,8 +582,8 @@ function SWEP:SecondaryAttack()
 	
 	self:SetNextSecondaryFire(CurTime() +(self.Secondary.Delay == false && animTime or self.Secondary.Delay))
 
-	if self.OnSecondaryAttack then
-		self:OnSecondaryAttack(anim,animTime)
+	if self.OnSecondaryAttack2 then
+		self:OnSecondaryAttack2(anim,animTime)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -594,15 +598,14 @@ function SWEP:Reload()
 	if !IsValid(owner) or !owner:IsPlayer() or !owner:Alive() or owner:GetAmmoCount(self.Primary.Ammo) == 0 or self.Reloading or CurTime() < self.NextReloadT then return end // or !owner:KeyDown(IN_RELOAD)
 	if self:Clip1() < self.Primary.ClipSize then
 		self.Reloading = true
-		self:CustomOnReload()
+		self:OnReload("Start")
 		if SERVER && self.HasReloadSound == true then owner:EmitSound(VJ.PICK(self.ReloadSound), 50, math.random(90, 100)) end
 		-- Handle clip
 		timer.Simple(self.Reload_TimeUntilAmmoIsSet, function()
-			if IsValid(self) && self:CustomOnReload_Finish() != false then
+			if IsValid(self) && self:OnReload("Finish") != true then
 				local ammoUsed = math.Clamp(self.Primary.ClipSize - self:Clip1(), 0, owner:GetAmmoCount(self:GetPrimaryAmmoType())) -- Amount of ammo that it will use (Take from the reserve)
 				owner:RemoveAmmo(ammoUsed, self.Primary.Ammo)
 				self:SetClip1(self:Clip1() + ammoUsed)
-				self:CustomOnReload_Finish()
 			end
 		end)
 		-- Handle animation
@@ -634,20 +637,20 @@ function SWEP:Zoom(override)
 	self.DelayZoom = CurTime() +IRONSIGHT_TIME
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnDeploy()
+function SWEP:OnDeploy()
 	local owner = self:GetOwner()
 	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
 		owner:SprintDisable()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnEquip(owner)
+function SWEP:OnEquip(owner)
 	if SERVER && IsValid(owner) && owner:IsPlayer() && self.DisableSprint then
 		owner:SprintDisable()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnHolster()
+function SWEP:OnHolster(newWep)
 	VJ.STOPSOUND(self.PrimaryLoop)
 	local owner = self:GetOwner()
 	if SERVER && IsValid(owner) && owner:IsPlayer() then
@@ -827,7 +830,7 @@ if CLIENT then
 		if !IsValid(self) then return end
 		
 		local noDraw = false
-		if !self:CustomOnDrawWorldModel() or self:GetNW2Bool("VJ_WorldModel_Invisible") == true or self.WorldModel_Invisible == true then noDraw = true end
+		if !self:OnDrawWorldModel() or self:GetNW2Bool("VJ_WorldModel_Invisible") == true or self.WorldModel_Invisible == true then noDraw = true end
 		
 		if self.WorldModel_NoShadow == true then
 			self:DrawShadow(false)

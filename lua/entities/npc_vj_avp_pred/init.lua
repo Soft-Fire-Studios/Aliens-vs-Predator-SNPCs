@@ -614,7 +614,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		end
 	end
 
-	function controlEnt:CustomOnStopControlling()
+	function controlEnt:OnStopControlling()
 		net.Start("VJ_AVP_Predator_Client")
 			net.WriteBool(true)
 			net.WriteEntity(npc)

@@ -158,7 +158,7 @@ function SWEP:PostDrawViewModel(vm,weapon,ply)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnDrawWorldModel()
+function SWEP:OnDrawWorldModel()
 	local owner = self:GetOwner()
 	if !IsValid(owner) then return end
 

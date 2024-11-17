@@ -191,7 +191,7 @@ function SWEP:OnInit()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:CustomOnPrimaryAttack_BulletCallback(attacker, tr, dmginfo)
+function SWEP:OnPrimaryAttack_BulletCallback(attacker, tr, dmginfo)
 	dmginfo:SetDamageType(bit.bor(DMG_BULLET,DMG_SNIPER))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -233,7 +233,7 @@ function SWEP:OnThink2(owner)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function SWEP:CustomOnSecondaryAttack()
+-- function SWEP:OnSecondaryAttack()
 -- 	local owner = self:GetOwner()
 -- 	VJ.EmitSound(self, "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_grenade_fire_04.ogg", 85)
 
@@ -252,5 +252,4 @@ end
 -- 	end
 
 -- 	owner:ViewPunch(Angle(-self.Primary.Recoil *15, 0, 0))
--- 	return true
 -- end
