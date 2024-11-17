@@ -695,6 +695,7 @@ function ENT:GiveBirth()
 					SpawnControllerObject:SetControlledNPC(chestburster)
 					SpawnControllerObject:Spawn()
 					SpawnControllerObject:StartControlling()
+					print(cont,"evolved into",chestburster)
 				end
 			end
 		end)

@@ -228,7 +228,7 @@ function ENT:CustomAttackCheck_RangeAttack()
 	return self.Turret_HasLOS
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomRangeAttackCode()	
+function ENT:CustomRangeAttackCode()
 	local startpos = self:GetAttachment(self:LookupAttachment("muzzle")).Pos
 	local ent = self:GetEnemy()
 	local bSpread = 150

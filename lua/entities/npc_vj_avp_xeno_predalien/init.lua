@@ -34,6 +34,8 @@ ENT.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT
 ENT.StandingBounds = Vector(16,16,85)
 ENT.CrawlingBounds = Vector(16,16,85)
 ENT.CanBlock = false
+ENT.CanSpit = true
+ENT.RangeAttackAnimationStopMovement = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2
@@ -91,10 +93,13 @@ function ENT:OnInit()
 		["lfoot"] = {Range=24,OnGround=true},
 		["rfoot"] = {Range=24,OnGround=true}
 	}
+
+	self.AnimTbl_RangeAttack = {"vjges_" .. ACT_GESTURE_RANGE_ATTACK1}
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
-	self.CanFlinch = 0
+	self.CanFlinch = 1
+	self.AnimTbl_Flinch = {"vjges_Predalien_Hybrid_light_flinch_left","vjges_Predalien_Hybrid_light_flinch_right"}
 
 	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
 
@@ -157,7 +162,7 @@ function ENT:SelectMovementActivity(act)
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
-			act = ACT_WALK
+			return ACT_WALK
 		end
 		return ACT_RUN
 	end
@@ -212,6 +217,12 @@ local sdTailMiss = {
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_5.ogg",
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
 }
+local doorEnts = {
+	prop_door = true,
+	prop_door_rotating = true,
+	func_door = true,
+	func_door_rotating = true,
+}
 --
 function ENT:OnInput2(key)
 	if key == "hybrid_heavyattack" then
@@ -222,6 +233,35 @@ function ENT:OnInput2(key)
 		VJ.EmitSound(self,"cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",80)
 		ParticleEffect("AntlionFX_UnBurrow",self:GetPos() +self:GetForward() *45,Angle())
 		util.ScreenShake(self:GetPos(),16,200,2,1500)
+		for _,v in pairs(ents.FindInSphere(self:GetPos(),self.AttackDamageDistance)) do
+			if self:Visible(v) && doorEnts[v:GetClass()] then
+				local door = ents.Create("prop_physics")
+				door:SetModel(v:GetModel())
+				door:SetPos(v:GetPos())
+				door:SetAngles(v:GetAngles())
+				door:SetSkin(v:GetSkin())
+				door:SetColor(v:GetColor())
+				door:SetMaterial(v:GetMaterial())
+				for i = 0, v:GetNumBodyGroups() - 1 do
+					door:SetBodygroup(i, v:GetBodygroup(i))
+				end
+				door:Spawn()
+				door:Activate()
+				local dir = (door:GetPos() -self:GetPos()):GetNormalized()
+				local phys = door:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:ApplyForceCenter(dir *1500)
+				end
+				timer.Simple(5,function()
+					if IsValid(door) then
+						door:SetSolid(SOLID_NONE)
+						door:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+					end
+				end)
+				SafeRemoveEntityDelayed(door,30)
+				v:Remove()
+			end
+		end
 	elseif key == "hybrid_slampre" then
 		VJ.CreateSound(self,"cpthazama/avp/xeno/alien queen/alien_queen_breathe_in_02.ogg",75,80)
 	elseif key == "hybrid_slam" then
@@ -237,13 +277,13 @@ function ENT:CustomAttack(ent,visible)
 	local isCrawling = self.CurrentSet == 1
 
 	if IsValid(cont) then
-		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
+		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_WALK) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
-		elseif cont:KeyDown(IN_ATTACK2) && !cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
+		elseif cont:KeyDown(IN_WALK) && cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 			self:AttackCode(isCrawling,5)
-		elseif cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_SPEED) && !self:IsBusy() then
+		elseif cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_WALK) && cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling,4)
-		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
+		elseif !cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_WALK) && cont:KeyDown(IN_JUMP) && !self:IsBusy() then
 			self:LongJumpCode()
 		end
 		return
@@ -279,7 +319,9 @@ function ENT:DoLeapAttack()
 		-- self:SetGroundEntity(NULL)
 		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
 		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *2000
-		self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+		-- self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+		-- self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+		self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, 2000))
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)

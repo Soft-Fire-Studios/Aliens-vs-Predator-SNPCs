@@ -336,6 +336,17 @@ function ENT:DoRoyalTransformation(subClass)
 			end})
 		end})
 		undo.ReplaceEntity(self,xeno)
+		local cont = self.VJ_TheController
+		timer.Simple(0.12,function()
+			if IsValid(cont) && IsValid(xeno) then
+				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				SpawnControllerObject.VJCE_Player = cont
+				SpawnControllerObject:SetControlledNPC(xeno)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+				print(cont,"evolved into",xeno)
+			end
+		end)
 		self:Remove()
 		return
 	end

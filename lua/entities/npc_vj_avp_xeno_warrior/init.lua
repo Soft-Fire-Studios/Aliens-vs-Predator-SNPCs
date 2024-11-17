@@ -1498,7 +1498,7 @@ function ENT:OnInput(key,activator,caller,data)
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
-			local att = self:GetAttachment(self:LookupAttachment("eyes"))
+			local att = self:GetAttachment(self:LookupAttachment("spit") > 0 && self:LookupAttachment("spit") or self:LookupAttachment("eyes"))
 			local targetPos = (self.EnemyData && !self:Visible(ent) && self.EnemyData.LastVisiblePos) or ent:GetPos() +ent:OBBCenter()
 			local targetAng = (targetPos -att.Pos):Angle()
 			local ang = self:GetAngles()
@@ -2553,7 +2553,7 @@ function ENT:OnThinkActive()
 		self.LastEnemyDistance = self:VJ_GetNearestPointToEntityDistance(ent)
 	end
 
-	if !IsValid(ent) && !self.Alerted && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
+	if (IsValid(self.VJ_TheController) or !IsValid(self.VJ_TheController) && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
 		if self.VJ_AVP_XenomorphID == "praetorian" then
 			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 			VJ.STOPSOUND(self.CurrentSpeechSound)
@@ -2581,6 +2581,17 @@ function ENT:OnThinkActive()
 				xeno.NextSpecialEggCheckT = CurTime() +dur +5
 				xeno:SetModelScale(1,dur -1)
 				undo.ReplaceEntity(self,xeno)
+				local cont = self.VJ_TheController
+				timer.Simple(0.12,function()
+					if IsValid(cont) && IsValid(xeno) then
+						local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+						SpawnControllerObject.VJCE_Player = cont
+						SpawnControllerObject:SetControlledNPC(xeno)
+						SpawnControllerObject:Spawn()
+						SpawnControllerObject:StartControlling()
+						print(cont,"evolved into",xeno)
+					end
+				end)
 				self:Remove()
 			end})
 		else
@@ -2607,6 +2618,17 @@ function ENT:OnThinkActive()
 						end})
 					end})
 					undo.ReplaceEntity(self,xeno)
+					local cont = self.VJ_TheController
+					timer.Simple(0.12,function()
+						if IsValid(cont) && IsValid(xeno) then
+							local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+							SpawnControllerObject.VJCE_Player = cont
+							SpawnControllerObject:SetControlledNPC(xeno)
+							SpawnControllerObject:Spawn()
+							SpawnControllerObject:StartControlling()
+							print(cont,"evolved into",xeno)
+						end
+					end)
 					self:Remove()
 				end})
 			end
