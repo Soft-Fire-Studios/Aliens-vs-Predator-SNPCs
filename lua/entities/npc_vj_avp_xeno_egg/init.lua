@@ -65,7 +65,7 @@ function ENT:Open()
 				facehugger:Spawn()
 				facehugger:Activate()
 				facehugger:SetOwner(self)
-				facehugger:VJ_DoSetEnemy(self:GetEnemy(),true)
+				facehugger:ForceSetEnemy(self:GetEnemy(),true)
 				if royal then
 					facehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 					facehugger:SetGroundEntity(NULL)

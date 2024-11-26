@@ -573,7 +573,7 @@ function ENT:OnThinkActive()
 				self.StalkingAITime = CurTime() +1.25
 				if dist <= 900 then
 					self:VJ_TASK_FACE_X("TASK_FACE_ENEMY")
-					self:VJ_DoSetEnemy(ent)
+					self:ForceSetEnemy(ent)
 					if self:IsMoving() then
 						self:StopMoving()
 						self:ClearGoal()

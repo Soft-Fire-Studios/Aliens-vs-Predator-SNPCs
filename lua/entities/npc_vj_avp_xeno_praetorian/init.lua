@@ -279,7 +279,7 @@ function ENT:DoSummon()
 					xeno:Spawn()
 					xeno:Activate()
 					xeno.VJ_NPC_Class = self.VJ_NPC_Class
-					if !self.VJ_IsBeingControlled then xeno:VJ_DoSetEnemy(self:GetEnemy(),true) end
+					if !self.VJ_IsBeingControlled then xeno:ForceSetEnemy(self:GetEnemy(),true) end
 					table.insert(self.Summons,xeno)
 				end
 			end
@@ -323,7 +323,7 @@ function ENT:DoRoyalTransformation(subClass)
 		xeno.VJ_NPC_Class = self.VJ_NPC_Class
 		xeno:Spawn()
 		xeno:Activate()
-		xeno:VJ_DoSetEnemy(self:GetEnemy(),true)
+		xeno:ForceSetEnemy(self:GetEnemy(),true)
 		xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then xeno:SetState() return end
