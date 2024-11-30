@@ -722,7 +722,7 @@ function ENT:Think()
 						local closestPlayer = NULL
 						local closestDist = 999999
 						for _,v2 in pairs(player.GetAll()) do
-							if v2:Alive() then
+							if v2:Alive() && !v2.VJTag_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
 								local dist = v2:GetPos():Distance(v:GetPos())
 								if dist < closestDist then
 									closestPlayer = v2

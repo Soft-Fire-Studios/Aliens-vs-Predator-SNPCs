@@ -38,7 +38,7 @@ function ENT:Initialize()
 	bullseye:SetPos(self:GetPos())
 	bullseye:SetAngles(self:GetAngles())
 	bullseye:SetParent(self)
-	bullseye.VJ_NPC_Class = "CLASS_PREDATOR"
+	bullseye.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"}
 	bullseye:Spawn()
 	bullseye:Activate()
 	bullseye:Fire("SetParentAttachment", "engine")

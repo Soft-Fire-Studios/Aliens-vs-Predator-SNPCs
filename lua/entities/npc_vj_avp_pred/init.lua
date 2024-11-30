@@ -788,6 +788,8 @@ function ENT:Init()
 	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
 	self.LastSVVisionMode = 0
 	self.NextFindStalkPos = 0
+	self.StalkEnemyTime = 0
+	self.LastEnemyAllyCount = 0
 	self.NextCloakT = CurTime() +1.5
 	self.SprintT = 0
 	self.NextSprintT = 0
@@ -847,7 +849,7 @@ function ENT:Init()
 				mins = self:OBBMins(),
 				maxs = self:OBBMaxs()
 			})
-			if self.SpawnedUsingMutator or tr.HitSky then
+			if tr.HitSky then
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
 				self.DisableFindEnemy = true
@@ -1797,7 +1799,7 @@ function ENT:OnFacehugged(facehugger,facehuggerProp,corpse)
 	corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomBeforeApplyRelationship(v)
+function ENT:HandlePerceivedRelationship(v)
 	if self:GetCloaked() then
 		if self:GetBeam() then
 			return
@@ -1810,8 +1812,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 			calcMult = calcMult *1.6
 		end
 		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
-			self:AddEntityRelationship(v, D_NU, 10)
-			return false
+			return D_NU
 		end
 		if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
 			if v:HasEnemyMemory(self) then
@@ -1822,8 +1823,32 @@ function ENT:CustomBeforeApplyRelationship(v)
 			if v:GetEnemy() == self then
 				v:SetEnemy(nil)
 			end
-			self:AddEntityRelationship(v, D_NU, 10)
-			return false
+			return D_NU
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnMaintainRelationships(ent, entFri, dist)
+	if !entFri && ent == self:GetEnemy() && !ent.VJ_AVP_Predator && !ent.VJ_AVP_Xenomorph then
+		local count = 0
+		for _, v in ipairs(ents.FindInSphere(ent:GetPos(), 800)) do
+			if (ent:IsNPC() && (ent.IsVJBaseSNPC && ent:CheckRelationship(v) == D_LI or !ent.IsVJBaseSNPC && ent:Disposition(v) == D_LI) or ent:IsPlayer() && (v:IsPlayer() or v:IsNPC() && v:Disposition(ent) == D_LI)) && v:Visible(ent) then
+				count = count + 1
+				if count > 3 then break end
+			end
+		end
+		self.LastEnemyAllyCount = count
+		if count >= 3 then
+			self.StalkEnemyTime = CurTime() + math.Rand(6,15)
+			-- Entity(1):ChatPrint("My enemy has too many friends, stalking!")
+		else
+			if math.random(1,(self:GetCloaked() or dist > 600) && 1 or 3) == 1 then
+				self.StalkEnemyTime = CurTime() + math.Rand(6,15)
+				if dist > 600 && !self:IsBusy() && !self:GetCloaked() then
+					self:Camo(true)
+				end
+				-- Entity(1):ChatPrint("Choosing to play it safe by stalking!")
+			end
 		end
 	end
 end
@@ -2340,6 +2365,19 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:FindNodePos(pos,min,max,upVis,upVisEnt)
+	local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
+	local closestNodes = {}
+	for _,v in ipairs(nodegraph) do
+		local dist = v.pos:Distance(self:GetPos())
+		if dist <= (max or self.SightDistance) && dist >= (min or 0) then
+			if (upVis && upVisEnt) && !upVisEnt:VisibleVec(v.pos +Vector(0,0,upVis)) then continue end
+			table.insert(closestNodes,v.pos)
+		end
+	end
+	return VJ.PICK(closestNodes)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnThinkActive()
 	if self.Dead then return end
 	if self.CountdownTimer then
@@ -2702,34 +2740,57 @@ function ENT:OnThinkActive()
 				else
 					self:SetVisionMode(1)
 				end
-				if !enemy.VJ_AVP_Predator && (enemy:IsPlayer() or enemy:IsNPC() && enemy:GetEnemy() != self) && dist > 700 && !self:IsBusy() then
+				if !enemy.VJ_AVP_Predator && (enemy:IsPlayer() or enemy:IsNPC() && enemy:GetEnemy() != self) && dist > 600 && !self:IsBusy() && (self.StalkEnemyTime > curTime or self.StalkEnemyTime <= curTime && math.random(1,1) == (self.NextFindStalkPos > curTime && 0 or 15)) then
 					self.DisableChasingEnemy = true
 					if curTime > self.NextFindStalkPos then
-						local vis = self:Visible(enemy)
-						local vsched = vj_ai_schedule.New("vj_goto_lastpos")
-						if vis then
-							vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 3000)
-						else
-							vsched:EngTask("TASK_GET_PATH_TO_ENEMY_LOS", 0)
-						end
-						vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
-						vsched.HasMovement = true
-						if vis && math.random(1,2) == 1 then
-							-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
-							self.Cur_Walk = ACT_WALK
-							self.Cur_Run = ACT_WALK
-							vsched.MoveType = 0
-							vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
-						else
-							-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
+						local nodePos = math.random(1,3) == 1 && self:FindNodePos(enemy:GetPos(),768,2048,math.random(1,3) == 1 && 24,enemy) or self:FindNodePos(self:GetPos(),512,768)
+						if !nodePos then
+							-- Entity(1):ChatPrint("No nodes found, default code running!")
+							local vsched = vj_ai_schedule.New("vj_goto_lastpos")
+							vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 400)
+							vsched:EngTask("TASK_RUN_PATH", 0)
+							vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
+							vsched.ResetOnFail = true
+							vsched.CanBeInterrupted = true
+							self:StartSchedule(schedIdleWander)
 							self.Cur_Walk = ACT_RUN
 							self.Cur_Run = ACT_RUN
-							vsched.MoveType = 1
+						else
+							-- Entity(1):ChatPrint("Going to vantage point to wait out the enemy!")
+							self:SetLastPosition(nodePos)
+							self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+							self.Cur_Walk = ACT_RUN
+							self.Cur_Run = ACT_RUN
 						end
-						self:StartSchedule(vsched)
-						self.NextFindStalkPos = curTime +math.Rand(5,vis && 20 or 7)
+						self.NextFindStalkPos = curTime +math.Rand(5,15)
 					end
+					-- if curTime > self.NextFindStalkPos then
+					-- 	local vis = self:Visible(enemy)
+					-- 	local vsched = vj_ai_schedule.New("vj_goto_lastpos")
+					-- 	if vis then
+					-- 		vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 3000)
+					-- 	else
+					-- 		vsched:EngTask("TASK_GET_PATH_TO_ENEMY_LOS", 0)
+					-- 	end
+					-- 	vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
+					-- 	vsched.HasMovement = true
+					-- 	if vis && math.random(1,2) == 1 then
+					-- 		-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Walk))
+					-- 		self.Cur_Walk = ACT_WALK
+					-- 		self.Cur_Run = ACT_WALK
+					-- 		vsched.MoveType = 0
+					-- 		vsched.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
+					-- 	else
+					-- 		-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
+					-- 		self.Cur_Walk = ACT_RUN
+					-- 		self.Cur_Run = ACT_RUN
+					-- 		vsched.MoveType = 1
+					-- 	end
+					-- 	self:StartSchedule(vsched)
+					-- 	self.NextFindStalkPos = curTime +math.Rand(5,vis && 20 or 7)
+					-- end
 				else
+					-- Entity(1):ChatPrint("Chasing enemy! " .. (self.StalkEnemyTime > curTime && "Stalk time greater than curTime" or  "Stalk time less than curTime"))
 					self.DisableChasingEnemy = false
 					self.Cur_Walk = nil
 					self.Cur_Run = nil

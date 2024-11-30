@@ -890,7 +890,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomBeforeApplyRelationship(v)
+function ENT:HandlePerceivedRelationship(v)
 	local darkness = self.DarknessLevel
 	if darkness && darkness <= 0.065 && !self:IsMoving() then
 		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator && v:GetVisionMode() == 2 then
@@ -903,8 +903,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 			if v:GetEnemy() == self then
 				v:SetEnemy(nil)
 			end
-			self:AddEntityRelationship(v, D_NU, 10)
-			return false
+			return D_NU
 		end
 	end
 end

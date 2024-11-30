@@ -294,7 +294,7 @@ if CLIENT then
 				DrawText(svWave,"VJFont_AVP_MarineSmall",-37.6 -svWaveSpace,svHeight -0.6)
 				svHeight = -16.8
 				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)
-				DrawText("ALIENS REMAINING","VJFont_AVP_MarineSmall",-36,svHeight -0.6)
+				DrawText(survival.VJ_AVP_PredatorSurvivalSpawner && "YAUTJA REMAINING" or "ALIENS REMAINING","VJFont_AVP_MarineSmall",-36,svHeight -0.6)
 				DrawText(svRemain,"VJFont_AVP_MarineSmall",-37.6 -svRemainSpace,svHeight -0.6)
 				svHeight = -14.4
 				DrawIcon(matHUD_Block,-39,svHeight,5,2,r,g,b,a)

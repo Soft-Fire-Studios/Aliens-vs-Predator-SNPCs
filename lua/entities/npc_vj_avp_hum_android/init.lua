@@ -113,7 +113,7 @@ function ENT:OnInit()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomBeforeApplyRelationship(v)
+function ENT:HandlePerceivedRelationship(v)
 	if self:GetCloaked() then
 		local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(self:GetSprinting() && 3 or 1))
 		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
@@ -123,8 +123,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 			calcMult = calcMult *1.6
 		end
 		if v:Visible(self) && v:GetPos():Distance(self:GetPos()) <= (300 *calcMult) then
-			self:AddEntityRelationship(v, D_NU, 10)
-			return false
+			return D_NU
 		end
 		if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
 			if v:HasEnemyMemory(self) then
@@ -133,8 +132,7 @@ function ENT:CustomBeforeApplyRelationship(v)
 			if v:GetEnemy() == self then
 				v:SetEnemy(nil)
 			end
-			self:AddEntityRelationship(v, D_NU, 10)
-			return false
+			return D_NU
 		end
 	end
 end

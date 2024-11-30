@@ -293,8 +293,8 @@ if CLIENT then
 			local vm = ply:GetViewModel()
 			if IsValid(vm) then
 				vm:SetSkin(self.VJ_AVP_Predator_IsDark && 1 or 0)
-				if self:GetVisionMode() == 1 then
-					vm:SetBodygroup(1,self:GetCloaked() && 2 or 1)
+				if self:GetVisionMode() == 1 && self:GetCloaked() then
+					vm:SetBodygroup(1,2)
 				else
 					vm:SetBodygroup(1,0)
 				end
