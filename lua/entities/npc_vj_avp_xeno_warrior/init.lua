@@ -2896,7 +2896,7 @@ function ENT:SelectMovementActivity(act)
 		return ACT_WALK_RELAXED
 	end
 	if act == ACT_WALK then
-		return standing && ((!moveRandom && self.Alerted == true) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+		return standing && ((!moveRandom && self.Alerted) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
 	elseif act == ACT_RUN then
 		if self.NextSprintT < curTime && self.AI_IsSprinting then
 			return standing && ACT_MP_SPRINT or ACT_SPRINT
