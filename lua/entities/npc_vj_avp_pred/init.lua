@@ -1801,13 +1801,10 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:HandlePerceivedRelationship(v)
 	if self:GetCloaked() then
-		if self:GetBeam() then
+		if self:GetBeam() or v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
 			return
 		end
 		local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(self:GetSprinting() && 3 or 1))
-		if v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
-			return
-		end
 		if v.EntityClass == AVP_ENTITYCLASS_ANDROID then
 			calcMult = calcMult *1.6
 		end
@@ -1817,8 +1814,6 @@ function ENT:HandlePerceivedRelationship(v)
 		if v:GetPos():Distance(self:GetPos()) > (500 *calcMult) then
 			if v:HasEnemyMemory(self) then
 				v:ClearEnemyMemory(self)
-				-- v:MarkEnemyAsEluded(self)
-				-- v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
 			end
 			if v:GetEnemy() == self then
 				v:SetEnemy(nil)
