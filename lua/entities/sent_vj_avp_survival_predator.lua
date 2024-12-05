@@ -750,10 +750,9 @@ function ENT:Think()
 			npc:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
 			npc:DrawShadow(false)
 			npc.AnimMovementType = wave > 3 && math.random(1,2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
-			npc.FindEnemy_UseSphere = true
 			npc.FindEnemy_CanSeeThroughWalls = true
-			npc.SightAngle = 180
-			npc:SetMaxLookDistance(16000)
+			npc.SightAngle = 360
+			npc.SightDistance = 16000
 			table.insert(self.Entities,npc)
 			if boss then
 				table.insert(self.Bosses,npc)

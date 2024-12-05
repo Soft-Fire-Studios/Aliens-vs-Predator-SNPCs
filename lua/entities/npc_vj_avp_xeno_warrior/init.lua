@@ -502,7 +502,6 @@ local defCrawlingBounds = Vector(13,13,34)
 local table_insert = table.insert
 --
 function ENT:Init()
-	print("test")
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.LastSet = 0

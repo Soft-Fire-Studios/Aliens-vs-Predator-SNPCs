@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/misc/sentry_gun.mdl"}
 ENT.StartHealth = 350
 ENT.SightDistance = 4000
-ENT.SightAngle = 70
+ENT.SightAngle = 140
 ENT.MovementType = VJ_MOVETYPE_STATIONARY
 ENT.CanTurnWhileStationary = false
 

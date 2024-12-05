@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/egg.mdl"}
 ENT.StartHealth = 45
 ENT.SightDistance = 250
-ENT.SightAngle = 180
+ENT.SightAngle = 360
 ENT.MovementType = VJ_MOVETYPE_STATIONARY
 ENT.CanTurnWhileStationary = false
 
