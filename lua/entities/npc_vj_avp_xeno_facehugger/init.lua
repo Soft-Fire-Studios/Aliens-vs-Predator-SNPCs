@@ -143,7 +143,7 @@ function ENT:OnInput(key,activator,caller,data)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnMeleeAttack_Miss()
-	self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+	self:PlayAnim("facehugger_jump_land",true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
@@ -152,7 +152,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 	if !ent.VJ_AVP_Xenomorph && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
 		local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 		if ent.VJ_AVP_Predator && counter then
-			self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+			self:PlayAnim("facehugger_jump_land",true,false,false)
 			return false
 		end
 		local eyeAttach = ent:LookupAttachment("eyes")
@@ -353,7 +353,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			end
 		end
 	else
-		self:VJ_ACT_PLAYACTIVITY("facehugger_jump_land",true,false,false)
+		self:PlayAnim("facehugger_jump_land",true,false,false)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -463,7 +463,7 @@ end
 function ENT:OnMaintainRelationships(ent, entFri, entDist)
 	if entFri && ent.VJ_AVP_XenomorphCarrier && !self.Carrier && entDist <= 500 && CurTime() > self.NextCarrierT && ent:GetFacehuggerCount() < 9 then
 		self:SetTarget(ent)
-		self:VJ_TASK_GOTO_TARGET("TASK_RUN_PATH")
+		self:SCHEDULE_GOTO_TARGET("TASK_RUN_PATH")
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -572,7 +572,7 @@ function ENT:OnThinkActive()
 			if !ent:Visible(self) && dist < 2500 && dist > 200 then
 				self.StalkingAITime = CurTime() +1.25
 				if dist <= 900 then
-					self:VJ_TASK_FACE_X("TASK_FACE_ENEMY")
+					self:SCHEDULE_FACE("TASK_FACE_ENEMY")
 					self:ForceSetEnemy(ent)
 					if self:IsMoving() then
 						self:StopMoving()

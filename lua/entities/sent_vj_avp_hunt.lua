@@ -747,7 +747,7 @@ function ENT:Think()
 					if math.random(1,3) == 1 && !pred:IsBusy() && IsValid(pred:GetEnemy()) && pred.NearestPointToEnemyDistance > 1000 then
 						if self.ExtractionPoint then
 							pred:SetLastPosition(self.ExtractionPoint +VectorRand() *math.Rand(0,512))
-							pred:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+							pred:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 								x.CanShootWhenMoving = true
 								x.ConstantlyFaceEnemy = true
 							end)
@@ -767,7 +767,7 @@ function ENT:Think()
 								end
 								if IsValid(closestPack) then
 									pred:SetLastPosition(closestPack:GetPos() +VectorRand() *math.Rand(0,512))
-									pred:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+									pred:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 										x.CanShootWhenMoving = true
 										x.ConstantlyFaceEnemy = true
 									end)
@@ -783,7 +783,7 @@ function ENT:Think()
 									local pos = self:FindNodesNearPoint(VJ.PICK(human:GetPos()),4,768)
 									if pos then
 										pred:SetLastPosition(VJ.PICK(pos))
-										pred:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+										pred:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 											x.CanShootWhenMoving = true
 											x.ConstantlyFaceEnemy = true
 										end)
@@ -816,14 +816,14 @@ function ENT:Think()
 							end
 							if !doObjective && IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
 								v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512,512),math.random(-512,512),0))
-								v:VJ_TASK_GOTO_LASTPOS(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
+								v:SCHEDULE_GOTO_POSITION(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
 									x.CanShootWhenMoving = true
 									x.ConstantlyFaceEnemy = true
 								end)
 							elseif doObjective or !IsValid(closestPlayer) then
 								if self.ExtractionPoint then
 									v:SetLastPosition(self.ExtractionPoint)
-									v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+									v:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 										x.CanShootWhenMoving = true
 										x.ConstantlyFaceEnemy = true
 									end)
@@ -848,7 +848,7 @@ function ENT:Think()
 												closestPack:Use(v)
 											else
 												v:SetLastPosition(closestPack:GetPos())
-												v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+												v:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 													x.CanShootWhenMoving = true
 													x.ConstantlyFaceEnemy = true
 												end)

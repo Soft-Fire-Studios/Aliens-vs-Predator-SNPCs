@@ -132,7 +132,7 @@ function ENT:DoFatality(ent,inFront)
 			local anim = tbl.Kill
 			anim = VJ.PICK(anim)
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
-				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
+				ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
 					-- if int then return end
 					if ent.ResetFatality then
 						ent:ResetFatality()
@@ -148,7 +148,7 @@ function ENT:DoFatality(ent,inFront)
 					end
 				end})
 			end
-			self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
+			self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
 				-- if int then return end
 				self:SetState()
 				self:ResetFatality()
@@ -172,23 +172,23 @@ function ENT:DoFatality(ent,inFront)
 				ent:OnFatality(self,inFront,counter,fType)
 			end
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Grab] then
-				ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Grab],true,false,true)
+				ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[tbl.Grab],true,false,true)
 			end
-			self:VJ_ACT_PLAYACTIVITY(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
+			self:PlayAnim(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
 				-- if int then return end
 				if IsValid(ent) then
 					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
-						ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
+						ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
 					end
 				end
 				if tbl.Lift then
-					self:VJ_ACT_PLAYACTIVITY(tbl.Lift,true,false,true,0,{OnFinish=function(int)
+					self:PlayAnim(tbl.Lift,true,false,true,0,{OnFinish=function(int)
 						-- if int then return end
 						local anim = counter && tbl.Counter or tbl.Kill
 						anim = VJ.PICK(anim)
 						if IsValid(ent) then
 							if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
-								ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
+								ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
 									-- if int then return end
 									if ent.ResetFatality then
 										ent:ResetFatality()
@@ -206,7 +206,7 @@ function ENT:DoFatality(ent,inFront)
 								end})
 							end
 						end
-						self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
+						self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
 							-- if int then return end
 							self:SetState()
 							self:ResetFatality()
@@ -232,7 +232,7 @@ function ENT:DoFatality(ent,inFront)
 					anim = VJ.PICK(anim)
 					if IsValid(ent) then
 						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
-							ent:VJ_ACT_PLAYACTIVITY(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
+							ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
 								-- if int then return end
 								if ent.ResetFatality then
 									ent:ResetFatality()
@@ -250,7 +250,7 @@ function ENT:DoFatality(ent,inFront)
 							end})
 						end
 					end
-					self:VJ_ACT_PLAYACTIVITY(anim,true,false,true,0,{OnFinish=function(int)
+					self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
 						-- if int then return end
 						self:SetState()
 						self:ResetFatality()

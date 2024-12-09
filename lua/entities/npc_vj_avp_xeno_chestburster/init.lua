@@ -114,7 +114,7 @@ function ENT:CustomOnInitialize()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	timer.Simple(0,function()
 		if IsValid(self) then
-			self:VJ_ACT_PLAYACTIVITY("burst",true,false,false,0,{OnFinish=function(i)
+			self:PlayAnim("burst",true,false,false,0,{OnFinish=function(i)
 				if i then return end
 				self:SetState()
 			end})
@@ -144,17 +144,17 @@ function ENT:OnInput(key,activator,caller,data)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:VJ_TASK_COVER_FROM_ENEMY(moveType, customFunc)
+function ENT:SCHEDULE_COVER_ENEMY(moveType, customFunc)
 	if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then self:AA_IdleWander() return end
 	moveType = moveType or "TASK_RUN_PATH"
-	local schedCoverFromEnemy = vj_ai_schedule.New("vj_cover_from_enemy")
+	local schedCoverFromEnemy = vj_ai_schedule.New("SCHEDULE_COVER_ENEMY")
 	schedCoverFromEnemy:EngTask("TASK_SET_ROUTE_SEARCH_TIME", 2)
 	schedCoverFromEnemy:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2500)
 	schedCoverFromEnemy:EngTask(moveType or "TASK_RUN_PATH", 0)
 	schedCoverFromEnemy:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
 	schedCoverFromEnemy.RunCode_OnFail = function()
 		//print("Cover from enemy failed!")
-		local schedFailCoverFromEnemy = vj_ai_schedule.New("vj_cover_from_enemy_fail")
+		local schedFailCoverFromEnemy = vj_ai_schedule.New("SCHEDULE_COVER_ENEMY_FAIL")
 		schedFailCoverFromEnemy:EngTask("TASK_SET_ROUTE_SEARCH_TIME", 2)
 		schedFailCoverFromEnemy:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 1500)
 		schedFailCoverFromEnemy:EngTask(moveType or "TASK_RUN_PATH", 0)
@@ -182,8 +182,8 @@ function ENT:OnThinkActive()
 	self:SetHP(self:Health())
 	self:SetGroundAngle()
 
-	if !IsValid(self.VJ_TheController) && !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "vj_cover_from_enemy") then
-		self:VJ_TASK_COVER_FROM_ENEMY("TASK_RUN_PATH")
+	if !IsValid(self.VJ_TheController) && !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "SCHEDULE_COVER_ENEMY") then
+		self:SCHEDULE_COVER_ENEMY("TASK_RUN_PATH")
 	end
 
 	local remainingTime = self.GrowT -CurTime()
@@ -198,7 +198,7 @@ function ENT:OnThinkActive()
 		ent:Activate()
 		ent:SetModelScale(0.75)
 		ent:SetModelScale(1,1)
-		ent:VJ_ACT_PLAYACTIVITY(animClass[class] or "climb_stop",true,false,false)
+		ent:PlayAnim(animClass[class] or "climb_stop",true,false,false)
 		local cont = self.VJ_TheController
 		undo.ReplaceEntity(self,ent)
 		self:Remove()

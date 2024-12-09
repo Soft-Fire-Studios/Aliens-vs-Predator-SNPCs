@@ -47,7 +47,7 @@ function ENT:TranslateActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Open()
-	self:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false)
+	self:PlayAnim(ACT_ARM,true,false,false)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/egg/egg_open_0" .. math.random(1,3) .. ".ogg",75)
 	timer.Simple(0.5,function()
 		if IsValid(self) then
@@ -85,7 +85,7 @@ function ENT:Open()
 							facehugger:SetNoDraw(false)
 						end
 					end)
-					facehugger:VJ_ACT_PLAYACTIVITY(ACT_ARM,true,false,false,0,{OnFinish=function(i,anim)
+					facehugger:PlayAnim(ACT_ARM,true,false,false,0,{OnFinish=function(i,anim)
 						if i then return end
 						facehugger:SetPos(facehugger:GetBonePosition(2))
 						facehugger:SetState()

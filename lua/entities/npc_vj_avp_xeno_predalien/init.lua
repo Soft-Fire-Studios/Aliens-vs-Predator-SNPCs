@@ -116,7 +116,7 @@ function ENT:OnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
-		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_lava_angry_roar",true,false,false)
+		self:PlayAnim("Predalien_Hybrid_lava_angry_roar",true,false,false)
 		self:PlaySound("cpthazama/avp/xeno/predalien/scream3.ogg",90)
 		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
 	end
@@ -126,26 +126,26 @@ function ENT:OnCallForHelp(ally)
 	if self:IsBusy() then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
-	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_lava_angry_roar",true,false,false)
+	self:PlayAnim("Predalien_Hybrid_lava_angry_roar",true,false,false)
 	self:PlaySound("cpthazama/avp/xeno/predalien/scream3.ogg",90)
 	util.ScreenShake(self:EyePos(),16,200,4,1000,true)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
-	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_swipe_" .. (self.AttackSide == "right" && "R" or "L") .. "_countered",true,false,false)
+	self:PlayAnim("Predalien_Hybrid_swipe_" .. (self.AttackSide == "right" && "R" or "L") .. "_countered",true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoKnockdownAnimation(dmgDir)
 	if math.random(1,5) == 1 then
-		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_hit_by_mine_to_vulnerable",true,false,false,0,{OnFinish=function(interrupted)
+		self:PlayAnim("Predalien_Hybrid_hit_by_mine_to_vulnerable",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
-			self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_getup",true,false,false,0,{OnFinish=function(interrupted)
+			self:PlayAnim("Predalien_Hybrid_getup",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then return end
 				self:SetState()
 			end})
 		end})
 	else
-		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_hit_by_mine",true,false,false,0,{OnFinish=function(interrupted)
+		self:PlayAnim("Predalien_Hybrid_hit_by_mine",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()
 		end})
@@ -314,7 +314,7 @@ function ENT:DoLeapAttack()
 	VJ.CreateSound(self,"cpthazama/avp/xeno/predalien/Predalien_Leap.ogg",90)
 	-- VJ.CreateSound(self,self.SoundTbl_Alert,90)
 
-	self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_telegraph",true,false,true,0,{OnFinish=function(interrupted)
+	self:PlayAnim("Predalien_Hybrid_leap_attack_telegraph",true,false,true,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		-- self:SetGroundEntity(NULL)
 		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
@@ -325,7 +325,7 @@ function ENT:DoLeapAttack()
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)
-		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_leap_attack_leap_to_grapple",true,false,false,0,{OnFinish=function(interrupted)
+		self:PlayAnim("Predalien_Hybrid_leap_attack_leap_to_grapple",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self.AttackDamage = 180
 			self.AttackDamageDistance = 140
@@ -348,7 +348,7 @@ function ENT:DoLeapAttack()
 				VJ.STOPSOUND(self.CurrentIdleSound)
 				VJ.CreateSound(self,self.SoundTbl_Pain,90)
 			end
-			self:VJ_ACT_PLAYACTIVITY((#dmgcode <= 0 && tr.HitWorld) && "Predalien_Hybrid_leap_attack_hit_wall" or "Predalien_Hybrid_leap_attack_miss",true,false,false,0,{OnFinish=function(interrupted)
+			self:PlayAnim((#dmgcode <= 0 && tr.HitWorld) && "Predalien_Hybrid_leap_attack_hit_wall" or "Predalien_Hybrid_leap_attack_miss",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then return end
 				self:SetState()
 			end})
@@ -363,18 +363,18 @@ function ENT:AttackCode(isCrawling,forceAttack)
 		self.AttackType = 2
 		self.AttackSide = self.AttackSide == "right" && "left" or "right"
 		self:PlaySound(self.SoundTbl_Attack,75)
-		self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_step",true,false,true,0,{OnFinish=function(interrupted)
+		self:PlayAnim("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_step",true,false,true,0,{OnFinish=function(interrupted)
 			if interrupted or self.InFatality then return end -- Means we hit something
 			self.AttackDamage = 40
 			self.AttackDamageDistance = 140
 			self.AttackDamageType = DMG_SLASH
 			VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
-			self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_step_hit_or_miss",true,false,true)
+			self:PlayAnim("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_step_hit_or_miss",true,false,true)
 		end})
 	else
 		if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 			self.AttackType = 5
-			self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_heavy_attack_pound_fists",true,false,true)
+			self:PlayAnim("Predalien_Hybrid_heavy_attack_pound_fists",true,false,true)
 		elseif forceAttack == 4 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
 			self.AttackType = 5
 			self:DoLeapAttack()
@@ -382,13 +382,13 @@ function ENT:AttackCode(isCrawling,forceAttack)
 			self.AttackType = 1
 			self.AttackSide = self.AttackSide == "right" && "left" or "right"
 			self:PlaySound(self.SoundTbl_Attack,75)
-			self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_claw_swipe_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
+			self:PlayAnim("Predalien_Hybrid_claw_swipe_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 				if interrupted or self.InFatality then return end -- Means we hit something
 				self.AttackDamage = 40
 				self.AttackDamageDistance = 140
 				self.AttackDamageType = DMG_SLASH
 				VJ.EmitSound(self,#self:RunDamageCode() > 0 && sdClawFlesh or sdClawMiss,75)
-				self:VJ_ACT_PLAYACTIVITY("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_hit_or_miss",true,false,true)
+				self:PlayAnim("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_hit_or_miss",true,false,true)
 			end})
 		end
 	end
@@ -465,7 +465,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 		end
 	end
 	self:FaceCertainPosition(self.LongJumpPos,1)
-	self:VJ_ACT_PLAYACTIVITY(anim,true,false,false)
+	self:PlayAnim(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vec0 = Vector(0,0,0)

@@ -86,7 +86,7 @@ function ENT:Think()
 		for _,v in ipairs(ents.FindInSphere(self:GetPos(),1000)) do
 			if v:IsNPC() && v != linkedObj && v.VJ_AVP_Marine && !IsValid(v:GetEnemy()) && linkedObj:CheckRelationship(v) == D_LI && self:Visible(v) then
 				v:SetLastPosition(self:GetPos() +self:GetForward() *35)
-				v:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH", function(x)
+				v:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH", function(x)
 					x.CanShootWhenMoving = true
 					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
 					x.RunCode_OnFinish = function()
@@ -94,15 +94,15 @@ function ENT:Think()
 							if IsValid(self) && IsValid(v) && IsValid(linkedObj) && v:BusyWithActivity() == false then
 								self.NextRequestRestartT = CurTime() +math.random(30,45)
 								-- v:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-								v:VJ_ACT_PLAYACTIVITY("vjseq_sentry_gun_into",true,false,false,0,{OnFinish=function(int1)
+								v:PlayAnim("vjseq_sentry_gun_into",true,false,false,0,{OnFinish=function(int1)
 									if int1 then return end
-									v:VJ_ACT_PLAYACTIVITY("vjseq_sentry_gun_loop",true,false,false,0,{OnFinish=function(int2)
+									v:PlayAnim("vjseq_sentry_gun_loop",true,false,false,0,{OnFinish=function(int2)
 										if int2 then return end
 										if linkedObj.OnDeviceEffected then
 											linkedObj:OnDeviceEffected(self,self:GetOn() && 2 or 1)
 											self:SetOn(true)
 										end
-										v:VJ_ACT_PLAYACTIVITY("vjseq_sentry_gun_outof",true,false,false)
+										v:PlayAnim("vjseq_sentry_gun_outof",true,false,false)
 										-- v:SetState()
 									end})
 								end})

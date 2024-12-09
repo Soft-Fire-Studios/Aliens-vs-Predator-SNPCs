@@ -960,7 +960,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
-	local anim,animDur = self:VJ_ACT_PLAYACTIVITY(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	local anim,animDur = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	if extraOptions && extraOptions.AlwaysUseGesture && !extraOptions.DisableChaseFix then
 		self.NextChaseTime = 0
 	end
@@ -1307,7 +1307,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:SetAngles(dmgAng)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- local dmgDir = self:GetDamageDirection(dmginfo)
-		local _,dur = self:VJ_ACT_PLAYACTIVITY("ohwa_big_flinch_back",true,false,false,0,{OnFinish=function(interrupted)
+		local _,dur = self:PlayAnim("ohwa_big_flinch_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()
 		end})
@@ -1477,7 +1477,7 @@ function ENT:StartMovement(cont, Dir, Rot)
 			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
 		end
 		self:SetLastPosition(finalPos)
-		self:VJ_TASK_GOTO_LASTPOS(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
 				x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
 				x.CanShootWhenMoving = true

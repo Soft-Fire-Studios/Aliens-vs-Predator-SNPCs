@@ -363,11 +363,11 @@ if VJExists == true then
 							if self:Visible(closestEnt) && math.random(1,3) == 1 && perDist <= 0.2 then
 								self:StopMoving()
 								self:SetTarget(closestEnt)
-								self:VJ_TASK_FACE_X("TASK_FACE_TARGET")
+								self:SCHEDULE_FACE("TASK_FACE_TARGET")
 								self.NextInvestigationMove = CurTime() +0.3
 							elseif self.IsFollowing == false && math.random(1,15) == 1 && perDist <= 0.35 then
 								self:SetLastPosition(closestEnt:GetPos())
-								self:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH")
+								self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH")
 								self.NextInvestigationMove = CurTime() +10
 							end
 							self:OnInvestigate(v)

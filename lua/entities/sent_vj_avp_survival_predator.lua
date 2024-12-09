@@ -685,7 +685,7 @@ function ENT:Think()
 						end
 						if IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
 							v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512,512),math.random(-512,512),0))
-							v:VJ_TASK_GOTO_LASTPOS(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
+							v:SCHEDULE_GOTO_POSITION(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
 								x.CanShootWhenMoving = true
 								x.ConstantlyFaceEnemy = true
 							end)

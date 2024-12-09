@@ -233,14 +233,14 @@ function ENT:DoSummon()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
-	self:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+	self:PlayAnim("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then self:SetState() return end
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 		VJ.CreateSound(self,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
 
 		self:Allies_CallHelp(8000)
-		self:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+		self:PlayAnim("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 			local enemyEnts = {}
 			for _,v in pairs(ents.GetAll()) do
 				if (v:IsNPC() && (v.VJ_NPC_Class != nil && !VJ_HasValue(v.VJ_NPC_Class,self.VJ_NPC_Class[1] or "CLASS_XENOMORPH") or v.VJ_NPC_Class == nil)) or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS && v:Alive()) then
@@ -325,12 +325,12 @@ function ENT:DoRoyalTransformation(subClass)
 		xeno:Activate()
 		xeno:ForceSetEnemy(self:GetEnemy(),true)
 		xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-		xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+		xeno:PlayAnim("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then xeno:SetState() return end
 			VJ.STOPSOUND(xeno.CurrentSpeechSound)
 			VJ.STOPSOUND(xeno.CurrentIdleSound)
 			VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110,125)
-			xeno:VJ_ACT_PLAYACTIVITY("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+			xeno:PlayAnim("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then xeno:SetState() return end
 				xeno:SetState()
 			end})

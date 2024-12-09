@@ -335,7 +335,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
-	local anim,animDur = self:VJ_ACT_PLAYACTIVITY(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	local anim,animDur = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	local vm = self:GetViewModel()
 	if vm then
 		if extraOptions && extraOptions.VMAnim then
@@ -365,7 +365,7 @@ local ANIM_TYPE_GESTURE = VJ.ANIM_TYPE_GESTURE
 local string_sub = string.sub
 local table_concat = table.concat
 --
-function ENT:VJ_ACT_PLAYACTIVITY(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
+function ENT:PlayAnim(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
 	animation = VJ.PICK(animation)
 	if animation == false then return ACT_INVALID, 0, ANIM_TYPE_NONE end
 	
@@ -683,7 +683,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
 						npc:OnWeaponAttack()
 						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
-						npc:VJ_ACT_PLAYACTIVITY(npc.CurrentWeaponAnimation, false, 2, false)
+						npc:PlayAnim(npc.CurrentWeaponAnimation, false, 2, false)
 						npc.DoingWeaponAttack = true
 						npc.DoingWeaponAttack_Standing = true
 					end
@@ -697,7 +697,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			if npc.CurrentAttackAnimationTime < CurTime() && curTime > npc.NextChaseTime && npc.IsVJBaseSNPC_Tank != true then
 				-- Turning
 				if !npc:IsMoving() && canTurn && npc.MovementType != VJ_MOVETYPE_PHYSICS && ((npc.IsVJBaseSNPC_Human && npc:GetWeaponState() != VJ.NPC_WEP_STATE_RELOADING) or (!npc.IsVJBaseSNPC_Human)) then
-					npc:VJ_TASK_IDLE_STAND()
+					npc:SCHEDULE_IDLE_STAND()
 					if self.VJC_NPC_CanTurn == true then
 						local turnData = npc.TurnData
 						if turnData.Target != self.VJCE_Bullseye then
@@ -1278,7 +1278,7 @@ function ENT:CustomAttack(ent,vis)
 					self.NextRCMoveT = self.NextRCMoveT or 0
 					self:SetLastPosition(RC:GetPos() +RC:GetForward() *50)
 					if CurTime() > self.NextRCMoveT then
-						self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x)
+						self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
 							x.CanShootWhenMoving = true
 							x.ConstantlyFaceEnemyVisible = true
 						end)
@@ -1767,7 +1767,7 @@ function ENT:DistractionCode(ent)
 		if ent:IsNPC() then
 			if ent.IsVJBaseSNPC && !ent:IsBusy() && !ent.Alerted then
 				ent:SetLastPosition(soundPos)
-				ent:VJ_TASK_GOTO_LASTPOS("TASK_WALK_PATH",function(x)
+				ent:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH",function(x)
 					x.CanShootWhenMoving = true
 					if ent.OnDistracted then
 						x.RunCode_OnFinish = function()
@@ -2687,7 +2687,7 @@ function ENT:OnThinkActive()
 					local pos = VJ.PICK(closestNodes)
 					if pos then
 						self:SetLastPosition(pos)
-						self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+						self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH")
 						-- VJ.DEBUG_TempEnt(pos, self:GetAngles(), Color(255,0,0), 5)
 						self.NextLookForHidingSpotT = curTime +(self:GetPathTimeToGoal() or 10)
 					end
@@ -2741,7 +2741,7 @@ function ENT:OnThinkActive()
 						local nodePos = math.random(1,3) == 1 && self:FindNodePos(enemy:GetPos(),768,2048,math.random(1,3) == 1 && 24,enemy) or self:FindNodePos(self:GetPos(),512,768)
 						if !nodePos then
 							-- Entity(1):ChatPrint("No nodes found, default code running!")
-							local vsched = vj_ai_schedule.New("vj_goto_lastpos")
+							local vsched = vj_ai_schedule.New("SCHEDULE_GOTO_POSITION")
 							vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 400)
 							vsched:EngTask("TASK_RUN_PATH", 0)
 							vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
@@ -2753,7 +2753,7 @@ function ENT:OnThinkActive()
 						else
 							-- Entity(1):ChatPrint("Going to vantage point to wait out the enemy!")
 							self:SetLastPosition(nodePos)
-							self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+							self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH")
 							self.Cur_Walk = ACT_RUN
 							self.Cur_Run = ACT_RUN
 						end
@@ -2761,7 +2761,7 @@ function ENT:OnThinkActive()
 					end
 					-- if curTime > self.NextFindStalkPos then
 					-- 	local vis = self:Visible(enemy)
-					-- 	local vsched = vj_ai_schedule.New("vj_goto_lastpos")
+					-- 	local vsched = vj_ai_schedule.New("SCHEDULE_GOTO_POSITION")
 					-- 	if vis then
 					-- 		vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 3000)
 					-- 	else
@@ -3341,7 +3341,7 @@ function ENT:StartMovement(Dir, Rot)
 			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
 		end
 		self:SetLastPosition(finalPos)
-		self:VJ_TASK_GOTO_LASTPOS(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
 				x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
 				x.CanShootWhenMoving = true

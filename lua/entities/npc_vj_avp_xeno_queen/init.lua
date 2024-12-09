@@ -205,10 +205,10 @@ function ENT:OnThink2()
 				if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
 					v:Follow(self)
 					v:SetLastPosition(self:GetPos() +self:GetForward() *math.random(200,200) +self:GetRight() *math.random(-200,200))
-					v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+					v:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH")
 				end
 			end
-			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
+			self:PlayAnim("Alien_Queen_eggsack_exit",true,false,false)
 			self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE
 			self:SetState()
@@ -219,7 +219,7 @@ function ENT:OnThink2()
 		if self:IsBusy() then return end
 		if curTime > self.ChargeT then
 			self:SetMaxYawSpeed(self.TurningSpeed)
-			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
+			self:PlayAnim("Alien_Queen_charge_into_idle",true,false,false)
 			self.InCharge = false
 			self.HasRangeAttack = true
 			return
@@ -235,16 +235,16 @@ function ENT:OnThink2()
 			maxs = self:OBBMaxs() *0.85,
 		})
 		self:SetLastPosition(tr.HitPos +tr.HitNormal *300)
-		self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.NPC_FACE_ENEMY} end)
+		self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.NPC_FACE_ENEMY} end)
 		if self:OnGround() then
 			self:SetVelocity(self:GetMovementVelocity() *1)
 		end
 		if tr.Hit then
 			if tr.HitWorld then
-				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide_injured",true,false,false)
+				self:PlayAnim("Alien_Queen_charge_collide_injured",true,false,false)
 				self:OnCollision(tr.HitEntity,3)
 			else
-				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_collide",true,false,false)
+				self:PlayAnim("Alien_Queen_charge_collide",true,false,false)
 				self:OnCollision(tr.HitEntity,2)
 			end
 			-- VJ.DEBUG_TempEnt(tr.HitPos, self:GetAngles(), Color(255,0,0), 5)
@@ -254,7 +254,7 @@ function ENT:OnThink2()
 		end
 		for _,v in pairs(ents.FindInSphere(self:GetPos(),200)) do
 			if (v:IsNPC() or v:IsPlayer() or v:IsNextBot()) && self:CheckRelationship(v) == D_HT then
-				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_into_idle",true,false,false)
+				self:PlayAnim("Alien_Queen_charge_into_idle",true,false,false)
 				self:OnCollision(v,1)
 				self.InCharge = false
 				return
@@ -270,12 +270,12 @@ function ENT:OnThink2()
 		-- })
 		-- VJ.DEBUG_TempEnt(trMove.HitPos, self:GetAngles(), Color(0,247,255), 5)
 		-- self:SetLastPosition(trMove.HitPos +trMove.HitNormal *10)
-		-- self:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+		-- self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH")
 		return
 	end
 	if !IsValid(cont) && !self.InBirth && curTime > self.NextLookForBirthT && !self.Alerted && !self.SpawnedUsingMutator then
 		if !self:IsBusy() && !self:IsMoving() then
-			local vsched = vj_ai_schedule.New("vj_idle_wander")
+			local vsched = vj_ai_schedule.New("SCHEDULE_IDLE_WANDER")
 			vsched:EngTask("TASK_GET_PATH_TO_RANDOM_NODE", 2000)
 			vsched:EngTask("TASK_WAIT_FOR_MOVEMENT", 0)
 			vsched.HasMovement = true
@@ -316,7 +316,7 @@ function ENT:OnThink2()
 			-- eggsack:SetNW2Bool("AVP.Xenomorph",true)
 			self:DeleteOnRemove(eggsack)
 			self.EggSack = eggsack
-			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_enter",true,false,false)
+			self:PlayAnim("Alien_Queen_eggsack_enter",true,false,false)
 			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},120)
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE_RELAXED
 			self.NextSpawnEggT = curTime +5
@@ -328,7 +328,7 @@ function ENT:OnThink2()
 			end
 		else
 			if IsValid(cont) && cont:KeyDown(IN_JUMP) then
-				self:VJ_ACT_PLAYACTIVITY("Alien_Queen_eggsack_exit",true,false,false)
+				self:PlayAnim("Alien_Queen_eggsack_exit",true,false,false)
 				self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
 				self.InBirth = false
 				self.AnimTranslations[ACT_IDLE] = ACT_IDLE
@@ -337,7 +337,7 @@ function ENT:OnThink2()
 					if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
 						v:Follow(self)
 						v:SetLastPosition(self:GetPos() +self:GetForward() *math.random(200,200) +self:GetRight() *math.random(-200,200))
-						v:VJ_TASK_GOTO_LASTPOS("TASK_RUN_PATH")
+						v:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH")
 					end
 				end
 				SafeRemoveEntity(self.EggSack)
@@ -405,7 +405,7 @@ function ENT:OnThink2()
 							end
 						end
 						v:SetLastPosition(node)
-						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 							x.CanShootWhenMoving = true
 						end)
@@ -432,7 +432,7 @@ function ENT:OnThink2()
 							end
 						end
 						v:SetLastPosition(node)
-						v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 							x.CanShootWhenMoving = true
 						end)
@@ -463,7 +463,7 @@ function ENT:OnThink2()
 								end
 							end
 							v:SetLastPosition(node)
-							v:VJ_TASK_GOTO_LASTPOS((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+							v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 								x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
 								x.CanShootWhenMoving = true
 							end)
@@ -718,9 +718,9 @@ function ENT:AttackCode(charge)
 		self.AttackType = 2
 		self.AttackSide = self.AttackSide == "right" && "left" or "right"
 		self:PlaySound(self.SoundTbl_Attack,75)
-		local _,dur = self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
+		local _,dur = self:PlayAnim("Alien_Queen_claw_swipe_" .. self.AttackSide,true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
 			if interrupted or self.InFatality then return end -- Means we hit something
-			self:VJ_ACT_PLAYACTIVITY("Alien_Queen_claw_swipe_" .. self.AttackSide .. "_return",true,false,true,0,{AlwaysUseGesture=true})
+			self:PlayAnim("Alien_Queen_claw_swipe_" .. self.AttackSide .. "_return",true,false,true,0,{AlwaysUseGesture=true})
 			self.NextChaseTime = 0
 		end})
 		timer.Simple(dur *0.6,function()
@@ -735,7 +735,7 @@ function ENT:AttackCode(charge)
 	else
 		if !self.InCharge then
 			self.InCharge = true
-			local _,dur = self:VJ_ACT_PLAYACTIVITY("Alien_Queen_charge_build_up",true,false,true)
+			local _,dur = self:PlayAnim("Alien_Queen_charge_build_up",true,false,true)
 			self.ChargeT = CurTime() +dur +5
 		end
 		// Alien_Queen_charge_build_up
@@ -805,7 +805,7 @@ function ENT:OnAlert(ent)
 	if math.random(1,2) == 1 && !self:IsBusy() then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
-		self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
+		self:PlayAnim("Alien_Queen_fidget_roar",true,false,false)
 		self:PlaySound("cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110)
 		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
 	end
@@ -815,7 +815,7 @@ function ENT:OnCallForHelp(ally)
 	if self:IsBusy() then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
-	self:VJ_ACT_PLAYACTIVITY("Alien_Queen_fidget_roar",true,false,false)
+	self:PlayAnim("Alien_Queen_fidget_roar",true,false,false)
 	self:PlaySound("cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110)
 	util.ScreenShake(self:EyePos(),16,200,4,1000,true)
 end
