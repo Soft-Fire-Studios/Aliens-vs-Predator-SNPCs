@@ -3159,7 +3159,7 @@ function ENT:UpdatePoseParamTracking(resetPoses)
 		return
 	end
 	
-	self:OnUpdatePoseParamTracking(newPitch, newYaw, newRoll)
+	//self:OnUpdatePoseParamTracking(newPitch, newYaw, newRoll)
 	
 	local names = self.PoseParameterLooking_Names
 	for x = 1, #names.pitch do
