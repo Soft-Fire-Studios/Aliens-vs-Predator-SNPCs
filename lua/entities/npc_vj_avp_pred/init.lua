@@ -356,242 +356,6 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	return anim,animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local varGes = "vjges_"
-local varSeq = "vjseq_"
-local ANIM_TYPE_NONE = VJ.ANIM_TYPE_NONE
-local ANIM_TYPE_ACTIVITY = VJ.ANIM_TYPE_ACTIVITY
-local ANIM_TYPE_SEQUENCE = VJ.ANIM_TYPE_SEQUENCE
-local ANIM_TYPE_GESTURE = VJ.ANIM_TYPE_GESTURE
-local string_sub = string.sub
-local table_concat = table.concat
---
-function ENT:PlayAnim(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
-	animation = VJ.PICK(animation)
-	if animation == false then return ACT_INVALID, 0, ANIM_TYPE_NONE end
-	
-	stopActivities = stopActivities or false
-	if stopActivitiesTime == nil then -- If user didn't put anything, then default it to 0
-		stopActivitiesTime = 0 -- Set this value to false to let the base calculate the time
-	end
-	faceEnemy = faceEnemy or false -- Should it face the enemy while playing this animation?
-	animDelay = tonumber(animDelay) or 0 -- How much time until it starts playing the animation (seconds)
-	extraOptions = extraOptions or {}
-		local finalPlayBackRate = extraOptions.PlayBackRate or self.AnimationPlaybackRate -- How fast should the animation play?
-		local gesturePlaybackRate = extraOptions.GesturePlayBackRate or 0.5
-	local isGesture = false
-	local isSequence = false
-	local isString = isstring(animation)
-	
-	-- Handle "vjges_" and "vjseq_"
-	if isString then
-		local finalString; -- Only define a table if we need to!
-		local posCur = 1
-		for i = 1, #animation do
-			local posStartGes, posEndGes = string_find(animation, varGes, posCur) -- Check for "vjges_"
-			local posStartSeq, posEndSeq = string_find(animation, varSeq, posCur) -- Check for "vjges_"
-			if !posStartGes && !posStartSeq then -- No ges or seq was found, end the loop!
-				if finalString then
-					finalString[#finalString + 1] = string_sub(animation, posCur)
-				end
-				break
-			end
-			if !finalString then finalString = {} end -- Found a match, create table if needed
-			if posStartGes then
-				isGesture = true
-				finalString[i] = string_sub(animation, posCur, posStartGes - 1)
-				posCur = posEndGes + 1
-			end
-			if posStartSeq then
-				isSequence = true
-				finalString[i] = string_sub(animation, posCur, posStartSeq - 1)
-				posCur = posEndSeq + 1
-			end
-		end
-		if finalString then
-			animation = table_concat(finalString)
-		end
-		-- If animation is -1 then it's probably an activity, so turn it into an activity
-		-- EX: "vjges_"..ACT_MELEE_ATTACK1
-		if isGesture && !isSequence && self:LookupSequence(animation) == -1 then
-			animation = tonumber(animation)
-			isString = false
-		end
-	end
-	
-	if extraOptions.AlwaysUseGesture == true then isGesture = true end -- Must play as a gesture
-	if extraOptions.AlwaysUseSequence == true then -- Must play as a sequence
-		//isGesture = false -- Leave this alone to allow gesture-sequences to play even when "AlwaysUseSequence" is true!
-		isSequence = true
-		if isnumber(animation) then -- If it's an activity, then convert it to a string
-			animation = self:GetSequenceName(self:SelectWeightedSequence(animation))
-		end
-	elseif isString && !isSequence then -- Only for regular & gesture strings
-		-- If it can be played as an activity, then convert it!
-		local result = self:GetSequenceActivity(self:LookupSequence(animation))
-		if result == nil or result == -1 then -- Leave it as string
-			isSequence = true
-		else -- Set it as an activity
-			animation = result
-			isString = false
-		end
-	end
-	
-	-- If the given animation doesn't exist, then check to see if it does in the weapon translation list
-	if VJ.AnimExists(self, animation) == false then
-		if !isString then -- If it's an activity then check for possible translation
-			-- If it returns the same activity as "animation", then there isn't even a translation for it so don't play any animation =(
-			if self:TranslateActivity(animation) == animation then
-				return ACT_INVALID, 0, ANIM_TYPE_NONE
-			end
-		else -- No animation =(
-			return ACT_INVALID, 0, ANIM_TYPE_NONE
-		end
-	end
-	
-	local animType = ((isGesture and ANIM_TYPE_GESTURE) or isSequence and ANIM_TYPE_SEQUENCE) or ANIM_TYPE_ACTIVITY -- Find the animation type
-	local seed = CurTime() -- Seed the current animation, used for animation delaying & on complete check
-	self.LastAnimationType = animType
-	self.LastAnimationSeed = seed
-	
-	local function PlayAct()
-		local animTime = self:DecideAnimationLength(animation, false)
-		local doRealAnimTime = true -- Only for activities, recalculate the animTime after the schedule starts to get the real sequence time, if `stopActivitiesTime` is NOT set!
-		
-		if stopActivities then
-			if isbool(stopActivitiesTime) then -- false = Let the base calculate the time
-				stopActivitiesTime = animTime
-			else -- Manually calculated
-				doRealAnimTime = false
-				if !extraOptions.PlayBackRateCalculated then -- Make sure not to calculate the playback rate when it already has!
-					stopActivitiesTime = stopActivitiesTime / self:GetPlaybackRate()
-				end
-				animTime = stopActivitiesTime
-			end
-			
-			self.NextChaseTime = CurTime() + stopActivitiesTime
-			self.NextIdleTime = CurTime() + stopActivitiesTime
-			
-			if stopActivities != "LetAttacks" then
-				self:StopAttacks(true)
-				self.PauseAttacks = true
-				timer.Create("timer_act_stopattacks"..self:EntIndex(), stopActivitiesTime, 1, function() self.PauseAttacks = false end)
-			end
-		end
-		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
-		
-		self.AnimationPlaybackRate = finalPlayBackRate
-		self:SetPlaybackRate(finalPlayBackRate)
-		
-		if isGesture == true then
-			-- If it's an activity gesture AND it's already playing it, then remove it! Fixes same activity gestures bugging out when played right after each other!
-			if !isSequence && self:IsPlayingGesture(animation) then
-				self:RemoveGesture(animation)
-				//self:RemoveAllGestures() -- Disallows the ability to layer multiple gestures!
-			end
-			local gesture = isSequence and self:AddGestureSequence(self:LookupSequence(animation)) or self:AddGesture(animation)
-			//print(gesture)
-			if gesture != -1 then
-				self:SetLayerPriority(gesture, 1) // 2
-				//self:SetLayerWeight(gesture, 1)
-				self:SetLayerPlaybackRate(gesture, gesturePlaybackRate)
-			end
-		else -- Sequences & Activities
-			local schedPlayAct = vj_ai_schedule.New("vj_act_"..animation)
-			
-			-- For humans NPCs, internally the base will set these variables back to true after this function if it's called by weapon attack animations!
-			self.DoingWeaponAttack = false
-			self.DoingWeaponAttack_Standing = false
-			
-			//self:StartEngineTask(ai.GetTaskID("TASK_RESET_ACTIVITY"), 0) //schedPlayAct:EngTask("TASK_RESET_ACTIVITY", 0)
-			//if self.Dead then schedPlayAct:EngTask("TASK_STOP_MOVING", 0) end
-			//self:FrameAdvance(0)
-			self:TaskComplete()
-			self:StopMoving()
-			self:ClearSchedule()
-			self:ClearGoal()
-			
-			if isSequence == true then
-				doRealAnimTime = false -- Sequences already have the correct time
-				local seqID = self:LookupSequence(animation)
-				--
-				-- START: Experimental transition system for sequences
-				local transitionAnim = self:FindTransitionSequence(self:GetSequence(), seqID) -- Find the transition sequence
-				local transitionAnimTime = 0
-				if transitionAnim != -1 && seqID != transitionAnim then -- If it exists AND it's not the same as the animation
-					transitionAnimTime = self:SequenceDuration(transitionAnim) / self.AnimationPlaybackRate
-					schedPlayAct:AddTask("TASK_VJ_PLAY_SEQUENCE", {
-						animation = transitionAnim,
-						playbackRate = finalPlayBackRate,
-						duration = transitionAnimTime
-					})
-				end
-				-- END: Experimental transition system for sequences
-				--
-				schedPlayAct:AddTask("TASK_VJ_PLAY_SEQUENCE", {
-					animation = animation,
-					playbackRate = finalPlayBackRate,
-					duration = animTime
-				})
-				//self:VJ_PlaySequence(animation, finalPlayBackRate, extraOptions.SequenceDuration != false, dur)
-				animTime = animTime + transitionAnimTime -- Adjust the animation time in case we have a transition animation!
-			else -- Only if activity
-				//self:SetActivity(ACT_RESET)
-				schedPlayAct:AddTask("TASK_VJ_PLAY_ACTIVITY", {
-					animation = animation,
-					duration = doRealAnimTime and false or animTime
-				})
-				-- Old engine task animation system
-				/*if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
-					self:ResetIdealActivity(animation)
-					//schedPlayAct:EngTask("TASK_SET_ACTIVITY", animation) -- To avoid AutoMovement stopping the velocity
-				//elseif faceEnemy == true then
-					//schedPlayAct:EngTask("TASK_PLAY_SEQUENCE_FACE_ENEMY", animation)
-				else
-					-- Engine's default animation task
-					-- REQUIRED FOR TASK_PLAY_SEQUENCE: It fixes animations NOT applying walk frames if the previous animation was the same!
-					if self:GetActivity() == animation then
-						self:ResetSequenceInfo()
-						self:SetSaveValue("sequence", 0)
-					end
-					schedPlayAct:EngTask("TASK_PLAY_SEQUENCE", animation)
-				end*/
-			end
-			schedPlayAct.IsPlayActivity = true
-			schedPlayAct.CanBeInterrupted = !stopActivities
-			if (customFunc) then customFunc(schedPlayAct, animation) end
-			self:StartSchedule(schedPlayAct)
-			if doRealAnimTime then
-				animTime = self:SequenceDuration(self:GetIdealSequence())
-			end
-			if faceEnemy == true then
-				self:SetTurnTarget("Enemy", animTime)
-			end
-		end
-		
-		-- If it has a OnFinish function, then set the timer to run it when it finishes!
-		if (extraOptions.OnFinish) then
-			timer.Simple(animTime, function()
-				if IsValid(self) && !self.Dead then
-					extraOptions.OnFinish(self.LastAnimationSeed != seed, animation)
-				end
-			end)
-		end
-		return animTime
-	end
-	
-	-- For delay system
-	if animDelay > 0 then
-		timer.Simple(animDelay, function()
-			if IsValid(self) && self.LastAnimationSeed == seed then
-				PlayAct()
-			end
-		end)
-		return animation, animDelay + self:DecideAnimationLength(animation, false), animType -- Approximation, this may be inaccurate!
-	else
-		return animation, PlayAct(), animType
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ20 = Vector(0, 0, 20)
 --
 function ENT:Controller_Initialize(ply,controlEnt)
@@ -607,6 +371,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	self.AllowMovementJumping = false
 
 	function controlEnt:OnThink()
+		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
+		self.VJCE_NPC:SetArrivalSpeed(9999)
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		if self.VJC_Camera_Mode == 2 then
@@ -723,6 +489,19 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			end
 		end
 		self:NextThink(curTime)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateNavGoal(ent,goal)
+	if ent.EntityClass == AVP_ENTITYCLASS_SENTRYGUN then
+		local RC = ent.RC
+		if IsValid(RC) then
+			if self:GetPos():Distance(RC:GetPos()) <= 80 && !self:IsBusy() then
+				self:DestroyConsole(RC)
+				return
+			end
+			return RC:GetPos() +RC:GetForward() *50
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1272,22 +1051,22 @@ function ENT:CustomAttack(ent,vis)
 				return
 			end
 			if ent.EntityClass == AVP_ENTITYCLASS_SENTRYGUN then
-				local RC = ent.RC
-				local RCDist = self:GetPos():Distance(RC:GetPos())
-				if IsValid(RC) then
-					self.NextRCMoveT = self.NextRCMoveT or 0
-					self:SetLastPosition(RC:GetPos() +RC:GetForward() *50)
-					if CurTime() > self.NextRCMoveT then
-						self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
-							x.CanShootWhenMoving = true
-							x.ConstantlyFaceEnemyVisible = true
-						end)
-						self.NextRCMoveT = CurTime() +6
-					end
-					if RCDist <= 80 && RCDist < ent:GetPos():Distance(self:GetPos()) && !self:IsBusy() then
-						self:DestroyConsole(RC)
-					end
-				end
+				-- local RC = ent.RC
+				-- local RCDist = self:GetPos():Distance(RC:GetPos())
+				-- if IsValid(RC) then
+				-- 	self.NextRCMoveT = self.NextRCMoveT or 0
+				-- 	self:SetLastPosition(RC:GetPos() +RC:GetForward() *50)
+				-- 	if CurTime() > self.NextRCMoveT then
+				-- 		self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)
+				-- 			x.CanShootWhenMoving = true
+				-- 			x.ConstantlyFaceEnemyVisible = true
+				-- 		end)
+				-- 		self.NextRCMoveT = CurTime() +6
+				-- 	end
+				-- 	if RCDist <= 80 && RCDist < ent:GetPos():Distance(self:GetPos()) && !self:IsBusy() then
+				-- 		self:DestroyConsole(RC)
+				-- 	end
+				-- end
 				return
 			end
 			if dist <= self.AttackDistance && !self:IsBusy() && !doingBlock && vis then
