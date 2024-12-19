@@ -11,21 +11,14 @@ ENT.Category		= "Projectiles"
 if !SERVER then return end
 
 ENT.Model = {"models/cpthazama/avp/predators/equipment/spear.mdl"}
-
-ENT.CollideCodeWithoutRemoving = true
-ENT.RemoveOnHit = false
--- ENT.MoveType = MOVETYPE_FLY
+ENT.ProjectileType = VJ.PROJ_TYPE_GRAVITY
+ENT.CollisionBehavior = VJ.PROJ_COLLISION_PERSIST
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:CustomOnInitializeBeforePhys()
--- 	self:PhysicsInitSphere(1, "plastic")
--- end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomPhysicsObjectOnInitialize(phys)
-	phys:SetMass(0.1)
-	phys:EnableGravity(true)
-	phys:EnableDrag(false)
-	phys:EnableCollisions(true)
-	phys:SetBuoyancyRatio(0)
+function ENT:InitPhys()
+	local phys = self:GetPhysicsObject()
+	if IsValid(phys) then
+		phys:EnableCollisions(true)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
@@ -36,7 +29,6 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 
 		self.DirectDamage = dmg
 		self.DirectDamageType = dmgtype
-		-- self.RemoveOnHit = true
 	elseif aType == 2 then -- Radius
 		self.DoesContactDamage = false
 		self.DoesDirectDamage = false
@@ -48,7 +40,6 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 		self.RadiusDamageType = dmgtype
 		self.RadiusDamageForce = force or 100
 		self.RadiusDamageDisableVisibilityCheck = !realistic
-		-- self.RemoveOnHit = true
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -97,7 +88,7 @@ function ENT:OnThink()
 	return true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnPhysicsCollide(data, phys)
+function ENT:OnCollision(data, phys)
 	if data.HitEntity == Entity(0) or data.HitWorld then
 		phys:EnableGravity(false)
 		phys:EnableCollisions(false)
@@ -126,7 +117,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defAngle = Angle(0, 0, 0)
 --
-function ENT:DeathEffects(data, phys)
+function ENT:OnDestroy(data, phys)
 	if self.OnDeath then
 		self:OnDeath(data, defAngle, data.HitPos)
 	end

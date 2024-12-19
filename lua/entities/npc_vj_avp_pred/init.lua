@@ -1156,7 +1156,7 @@ function ENT:FirePlasmaCaster()
 			proj:SetNoDraw(true)
 			proj:Spawn()
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
-			proj.DecalTbl_DeathDecals = {"Scorch"}
+			proj.CollisionDecals = {"Scorch"}
 			proj.OnDeath = function(projEnt,data, defAng, HitPos)
 				ParticleEffect(amount <= 20 && "vj_avp_predator_plasma_impact_light" or "vj_avp_predator_plasma_impact",HitPos,defAng)
 				sound.Play("cpthazama/avp/weapons/predator/plasma_caster/plasma_bolt_explosion_0" .. math.random(1,5) .. ".ogg",HitPos,90)
@@ -1723,14 +1723,14 @@ function ENT:OnInput(key,activator,caller,data)
 			proj:Spawn()
 			proj:SetTagOwner(self)
 			self:DeleteOnRemove(proj)
-			proj.RemoveOnHit = false
+			proj.CollisionBehavior = VJ.PROJ_COLLISION_PERSIST
 			proj.Predator = self
 			proj:SetNW2Bool("AVP.IsTech",true)
 			proj.VJ_AVP_IsTech = true
 			proj:DrawShadow(true)
 			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
-			proj.DecalTbl_DeathDecals = {"Scorch"}
+			proj.CollisionDecals = {"Scorch"}
 			proj.OnThink = function(projEnt)
 				if !IsValid(projEnt.Predator) && !projEnt.Dead then
 					projEnt:Remove()
@@ -1753,17 +1753,16 @@ function ENT:OnInput(key,activator,caller,data)
 								data.HitNormal = hitNr
 								local phys = projEnt:GetPhysicsObject()
 								projEnt.Dead = true
-								projEnt:DoDamageCode(data, phys)
+								projEnt:DealDamage(data, phys)
 								if projEnt.ShakeWorldOnDeath == true then util.ScreenShake(projEnt:GetPos() +projEnt:GetUp() *10, projEnt.ShakeWorldOnDeathAmplitude or 16, projEnt.ShakeWorldOnDeathFrequency or 200, projEnt.ShakeWorldOnDeathDuration or 1, projEnt.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
-								projEnt:SetDeathVariablesTrue(data, phys, true)
-								projEnt:Remove()
+								projEnt:Destroy(data, phys)
 							end
 						end)
 						break
 					end
 				end
 			end
-			proj.CustomOnPhysicsCollide = function(projEnt,data,phys)
+			proj.OnCollision = function(projEnt,data,phys)
 				if projEnt.HasLanded then return end
 
 				phys:EnableMotion(false)

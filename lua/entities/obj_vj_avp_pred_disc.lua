@@ -13,19 +13,13 @@ if !SERVER then return end
 ENT.Model = {"models/cpthazama/avp/predators/equipment/battledisc.mdl"}
 
 ENT.Speed = 1200
-ENT.CollideCodeWithoutRemoving = true
-ENT.RemoveOnHit = false
+ENT.CollisionBehavior = VJ.PROJ_COLLISION_PERSIST
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:CustomOnInitializeBeforePhys()
--- 	self:PhysicsInitSphere(1, "plastic")
--- end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomPhysicsObjectOnInitialize(phys)
-	phys:SetMass(1)
-	phys:EnableGravity(false)
-	phys:EnableDrag(false)
-	phys:EnableCollisions(true)
-	phys:SetBuoyancyRatio(0)
+function ENT:InitPhys()
+	local phys = self:GetPhysicsObject()
+	if IsValid(phys) then
+		phys:EnableCollisions(true)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
@@ -36,7 +30,6 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 
 		self.DirectDamage = dmg
 		self.DirectDamageType = dmgtype
-		-- self.RemoveOnHit = true
 	elseif aType == 2 then -- Radius
 		self.DoesContactDamage = false
 		self.DoesDirectDamage = false
@@ -48,7 +41,6 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 		self.RadiusDamageType = dmgtype
 		self.RadiusDamageForce = force or 100
 		self.RadiusDamageDisableVisibilityCheck = !realistic
-		-- self.RemoveOnHit = true
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -146,7 +138,7 @@ function ENT:Touch(ent)
 		HitDistance = 0,
 		HitWorld = ent:IsWorld(),
 	}
-	self:DoDamageCode(data, self:GetPhysicsObject())
+	self:DealDamage(data, self:GetPhysicsObject())
 	if VJ.IsProp(ent) then
 		local phys = ent:GetPhysicsObject()
 		if IsValid(phys) then
@@ -155,7 +147,7 @@ function ENT:Touch(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnPhysicsCollide(data, phys)
+function ENT:OnCollision(data, phys)
 	if data.HitEntity == Entity(0) or data.HitWorld then
 		self.HitT = CurTime() +(self.ReturnTo && 0.05 or 0.15)
 		self.HitDir = data.HitNormal +Vector(math.Rand(-0.3,0.3),math.Rand(-0.3,0.3),math.Rand(-0.3,0.3))
@@ -177,7 +169,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defAngle = Angle(0, 0, 0)
 --
-function ENT:DeathEffects(data, phys)
+function ENT:OnDestroy(data, phys)
 	if self.OnDeath then
 		self:OnDeath(data, defAngle, data.HitPos)
 	end
@@ -198,37 +190,34 @@ end
 function ENT:PhysicsCollide(data, phys)
 	if self.Dead then return end
 	//self.Dead = true
-	if self:CustomOnPhysicsCollide(data, phys) != false then
-		if self.RemoveOnHit == true then
+	if self:OnCollision(data, phys) != false then
+		local colBehavior = self.CollisionBehavior
+		if !colBehavior then return end
+		if colBehavior == VJ.PROJ_COLLISION_REMOVE then
 			self.Dead = true
-			-- self:DoDamageCode(data, phys)
-			self:OnCollideSoundCode()
-			if self.PaintDecalOnDeath == true && VJ.PICK(self.DecalTbl_DeathDecals) != false && self.AlreadyPaintedDeathDecal == false then
-				self.AlreadyPaintedDeathDecal = true
-				util.Decal(VJ.PICK(self.DecalTbl_DeathDecals), data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
+			-- self:DealDamage(data, phys)
+			self:PlaySound("OnCollide")
+			if !self.PaintedFinalDecal then
+				local decals = VJ.PICK(self.CollisionDecals)
+				if decals then
+					self.PaintedFinalDecal = true
+					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
+				end
 			end
 			if self.ShakeWorldOnDeath == true then util.ScreenShake(data.HitPos, self.ShakeWorldOnDeathAmplitude or 16, self.ShakeWorldOnDeathFrequency or 200, self.ShakeWorldOnDeathDuration or 1, self.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
-			self:SetDeathVariablesTrue(data, phys, true)
-			if self.DelayedRemove > 0 then
-				self:SetNoDraw(true)
-				self:SetMoveType(MOVETYPE_NONE)
-				self:AddSolidFlags(FSOLID_NOT_SOLID)
-				self:SetLocalVelocity(defVec)
-				SafeRemoveEntityDelayed(self, self.DelayedRemove)
-				self:OnRemove()
-			else
-				self:Remove()
+			self:Destroy(data, phys)
+		elseif colBehavior == VJ.PROJ_COLLISION_PERSIST then
+			if CurTime() < self.NextCollideWithoutRemoveT then return end
+			-- self:DealDamage(data, phys)
+			self:PlaySound("OnCollide")
+			if !self.PaintedFinalDecal then
+				local decals = VJ.PICK(self.CollisionDecals)
+				if decals then
+					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
+				end
 			end
-		end
-		
-		if self.CollideCodeWithoutRemoving == true && CurTime() > self.NextCollideWithoutRemoveT then
-			-- self:DoDamageCode(data, phys)
-			self:OnCollideSoundCode()
-			if self.PaintDecalOnCollide == true && VJ.PICK(self.DecalTbl_OnCollideDecals) != false && self.AlreadyPaintedDeathDecal == false then
-				util.Decal(VJ.PICK(self.DecalTbl_OnCollideDecals), data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
-			end
-			self:CustomOnCollideWithoutRemove(data, phys)
-			self.NextCollideWithoutRemoveT = CurTime() + math.Rand(self.NextCollideWithoutRemove.a, self.NextCollideWithoutRemove.b)
+			self:OnCollisionPersist(data, phys)
+			self.NextCollideWithoutRemoveT = CurTime() + 1
 		end
 	end
 end

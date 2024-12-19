@@ -1511,7 +1511,7 @@ function ENT:OnInput(key,activator,caller,data)
 				proj:SetAttackType(2,20 *mult,DMG_ACID,150,10,true)
 				proj:SetNoDraw(true)
 				proj:Spawn()
-				proj.DecalTbl_DeathDecals = {"VJ_AVP_BloodXenomorph"}
+				proj.CollisionDecals = {"VJ_AVP_BloodXenomorph"}
 				proj.OnThink = function(projEnt)
 					projEnt.LastHeight = projEnt.LastHeight or projEnt:GetPos().z
 					if projEnt.LastHeight < projEnt:GetPos().z then

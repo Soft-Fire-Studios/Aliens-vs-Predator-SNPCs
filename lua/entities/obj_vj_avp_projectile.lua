@@ -14,20 +14,14 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if !SERVER then return end
 
-ENT.Model = {"models/spitball_large.mdl"}
+ENT.Model = "models/spitball_large.mdl"
 
--- ENT.MoveType = MOVETYPE_FLY
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:CustomOnInitializeBeforePhys()
--- 	self:PhysicsInitSphere(1, "plastic")
--- end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomPhysicsObjectOnInitialize(phys)
-	phys:SetMass(1)
-	phys:EnableGravity(false)
-	phys:EnableDrag(false)
-	phys:EnableCollisions(true)
-	phys:SetBuoyancyRatio(0)
+function ENT:InitPhys()
+	local phys = self:GetPhysicsObject()
+	if IsValid(phys) then
+		phys:EnableCollisions(true)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
@@ -38,7 +32,7 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 
 		self.DirectDamage = dmg
 		self.DirectDamageType = dmgtype
-		self.RemoveOnHit = true
+		self.CollisionBehavior = VJ.PROJ_COLLISION_REMOVE
 	elseif aType == 2 then -- Radius
 		self.DoesContactDamage = false
 		self.DoesDirectDamage = false
@@ -50,7 +44,7 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 		self.RadiusDamageType = dmgtype
 		self.RadiusDamageForce = force or 100
 		self.RadiusDamageDisableVisibilityCheck = !realistic
-		self.RemoveOnHit = true
+		self.CollisionBehavior = VJ.PROJ_COLLISION_REMOVE
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -86,7 +80,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defAngle = Angle(0, 0, 0)
 --
-function ENT:DeathEffects(data, phys)
+function ENT:OnDestroy(data, phys)
 	if self.OnDeath then
 		self:OnDeath(data, defAngle, data.HitPos)
 	end
