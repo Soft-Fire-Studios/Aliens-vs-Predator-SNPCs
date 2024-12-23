@@ -335,7 +335,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
-	local anim,animDur = self:PlayAnim(animation,true,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	local anim,animDur = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	local vm = self:GetViewModel()
 	if vm then
 		if extraOptions && extraOptions.VMAnim then
