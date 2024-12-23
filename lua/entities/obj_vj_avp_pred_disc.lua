@@ -207,7 +207,7 @@ function ENT:PhysicsCollide(data, phys)
 			if self.ShakeWorldOnDeath == true then util.ScreenShake(data.HitPos, self.ShakeWorldOnDeathAmplitude or 16, self.ShakeWorldOnDeathFrequency or 200, self.ShakeWorldOnDeathDuration or 1, self.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
 			self:Destroy(data, phys)
 		elseif colBehavior == VJ.PROJ_COLLISION_PERSIST then
-			if CurTime() < self.NextCollideWithoutRemoveT then return end
+			if CurTime() < self.NextPersistCollisionT then return end
 			-- self:DealDamage(data, phys)
 			self:PlaySound("OnCollide")
 			if !self.PaintedFinalDecal then
@@ -217,7 +217,7 @@ function ENT:PhysicsCollide(data, phys)
 				end
 			end
 			self:OnCollisionPersist(data, phys)
-			self.NextCollideWithoutRemoveT = CurTime() + 1
+			self.NextPersistCollisionT = CurTime() + 1
 		end
 	end
 end
