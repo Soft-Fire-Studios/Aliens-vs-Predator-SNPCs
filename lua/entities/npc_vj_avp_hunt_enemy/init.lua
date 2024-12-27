@@ -53,11 +53,6 @@ function ENT:Init()
 	self:SetSurroundingBoundsType(BOUNDS_COLLISION)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:GetSightDirection()
-    local att = self:LookupAttachment("eyes")
-    return att != 0 && self:GetAttachment(att).Ang:Forward() or self:GetForward()
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnGrenadeAttack(status, grenade, customEnt, landDir, landingPos)
 	if status == "Throw" then
 		return (landingPos - grenade:GetPos()) + (self:GetUp()*200 + self:GetForward()*500 + self:GetRight()*math.Rand(-20, 20))
