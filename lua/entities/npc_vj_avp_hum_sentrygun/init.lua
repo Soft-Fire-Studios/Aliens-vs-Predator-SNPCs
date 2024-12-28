@@ -253,7 +253,7 @@ function ENT:CustomRangeAttackCode()
 		end)
 	end
 	
-	VJ.EmitSound(self,sdFiring,90,self:VJ_DecideSoundPitch(98,105))
+	VJ.EmitSound(self,sdFiring,90,math.random(98,105))
 
 	ParticleEffectAttach("vj_avp_muzzle_lmg_main",PATTACH_POINT_FOLLOW,self,1)
 	

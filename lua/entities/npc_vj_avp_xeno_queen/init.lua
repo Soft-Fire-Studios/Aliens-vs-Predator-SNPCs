@@ -325,7 +325,7 @@ function ENT:OnThink2()
 			self.NextCommandXenosT = curTime +math.random(5,10)
 			for _,v in pairs(VJ_AVP_XENOS) do
 				if IsValid(v) && v:CheckRelationship(self) == D_LI && v.FollowData && v.FollowData.Ent == self then
-					v:FollowReset()
+					v:ResetFollowBehavior()
 				end
 			end
 		else

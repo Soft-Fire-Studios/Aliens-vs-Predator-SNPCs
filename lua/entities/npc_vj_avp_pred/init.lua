@@ -530,7 +530,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 					playbackRate = customPlaybackRate or false,
 					duration = animTime
 				})
-				//self:VJ_PlaySequence(animation, playbackRate, extraOptions.SequenceDuration != false, dur)
+				//self:PlaySequence(animation, playbackRate, extraOptions.SequenceDuration != false, dur)
 				animTime = animTime + transitionAnimTime -- Adjust the animation time in case we have a transition animation!
 			else -- Only if activity
 				//self:SetActivity(ACT_RESET)
@@ -2999,10 +2999,10 @@ function ENT:FootStep(pos,name)
 		mat = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[mat] then
-		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
-		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self.OnStep then
 		self:OnStep(pos,name)

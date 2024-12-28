@@ -927,11 +927,11 @@ function ENT:FootStep(pos,name)
 	end
 	if tr.Hit && tbl[matType] then
 		local snd = VJ.PICK(tbl[matType])
-		sound.Play(snd,pos,self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		sound.Play(snd,pos,self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 		VJ.EmitSound(self,snd,10)
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
-		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:VJ_DecideSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
 	end
 	if self.OnStep then
 		self:OnStep(pos,name)
@@ -1494,7 +1494,7 @@ function ENT:OnInput(key,activator,caller,data)
 		local ent = self:GetEnemy()
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
-		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:VJ_DecideSoundPitch(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:GetSoundPitch(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
@@ -2550,7 +2550,7 @@ function ENT:OnThinkActive()
 		end
 	end
 	if IsValid(ent) then
-		self.LastEnemyDistance = self:VJ_GetNearestPointToEntityDistance(ent)
+		self.LastEnemyDistance = self:FindNearestDistance(ent)
 	end
 
 	if (IsValid(self.VJ_TheController) or !IsValid(self.VJ_TheController) && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
@@ -3349,7 +3349,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 					playbackRate = customPlaybackRate or false,
 					duration = animTime
 				})
-				//self:VJ_PlaySequence(animation, playbackRate, extraOptions.SequenceDuration != false, dur)
+				//self:PlaySequence(animation, playbackRate, extraOptions.SequenceDuration != false, dur)
 				animTime = animTime + transitionAnimTime -- Adjust the animation time in case we have a transition animation!
 			else -- Only if activity
 				//self:SetActivity(ACT_RESET)
