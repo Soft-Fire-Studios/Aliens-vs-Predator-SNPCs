@@ -217,6 +217,8 @@ function ENT:OnThink2()
 	end
 	if !self.InBirth && self.InCharge then
 		if self:IsBusy() then return end
+		self:SetMoveVelocity(self:GetMoveVelocity() *1.25)
+		self:SetArrivalSpeed(9999)
 		if curTime > self.ChargeT then
 			self:SetMaxYawSpeed(self.TurningSpeed)
 			self:PlayAnim("Alien_Queen_charge_into_idle",true,false,false)

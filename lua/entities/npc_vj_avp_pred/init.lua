@@ -1999,7 +1999,7 @@ function ENT:OnInput(key,activator,caller,data)
 				end
 			end
 			proj.OnCollision = function(projEnt,data,phys)
-				if projEnt.HasLanded then return end
+				if projEnt.HasLanded or data.HitEntity:IsNPC() then return end
 
 				phys:EnableMotion(false)
 				phys:EnableGravity(false)
