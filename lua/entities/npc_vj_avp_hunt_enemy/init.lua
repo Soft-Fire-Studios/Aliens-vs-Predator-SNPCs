@@ -8,10 +8,10 @@ include("shared.lua")
 ENT.Model = {"models/player/guerilla.mdl","models/player/phoenix.mdl","models/player/leet.mdl"}
 ENT.StartHealth = 50
 ENT.SightDistance = 3200
-ENT.UsePlayerModelMovement = true
+ENT.UsePoseParameterMovement = true
 ENT.NextProcessTime = 2
 
-ENT.BloodColor = "Red"
+ENT.BloodColor = VJ.BLOOD_COLOR_RED
 
 ENT.VJ_NPC_Class = {"CLASS_AVP_HUNT_ENEMY"}
 

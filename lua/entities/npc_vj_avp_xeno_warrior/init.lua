@@ -16,7 +16,7 @@ ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = "Yellow" -- The blood type, this will determine what it should use (decal, particle, etc.)
+ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
 ENT.CustomBlood_Pool = {"vj_avp_bloodpool_xeno"}
@@ -1353,7 +1353,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 	self.LongJumpAttacking = atk
 	self.JumpT = 0
 	local anim = "jump_fwd"
-	self:FaceCertainPosition(self.LongJumpPos,1)
+	self:SetTurnTarget(self.LongJumpPos, 1)
 	self:PlayAnim(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3294,7 +3294,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			if lockAnim != "LetAttacks" then
 				self:StopAttacks(true)
 				self.PauseAttacks = true
-				timer.Create("timer_act_stopattacks"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
+				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
 		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!

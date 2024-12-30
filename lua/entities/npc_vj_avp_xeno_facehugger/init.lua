@@ -10,7 +10,7 @@ ENT.StartHealth = 15
 ENT.HullType = HULL_TINY
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = "Yellow"
+ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
@@ -119,7 +119,7 @@ function ENT:CustomOnInitialize()
 	self.StalkingAITime = 0
 
 	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
-	self:SetImpactEnergyScale(0)
+	self:SetPhysicsDamageScale(0)
 
 	if self.VJ_AVP_XenomorphFacehuggerRoyal then
 		self:SetSkin(1)

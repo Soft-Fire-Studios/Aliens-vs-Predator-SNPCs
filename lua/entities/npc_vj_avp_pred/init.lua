@@ -10,7 +10,7 @@ ENT.Model = {"models/cpthazama/avp/predators/youngblood.mdl"} -- Model(s) to spa
 ENT.StartHealth = 450
 ENT.HullType = HULL_HUMAN
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = "Green" -- The blood type, this will determine what it should use (decal, particle, etc.)
+ENT.BloodColor = VJ.BLOOD_COLOR_GREEN -- The blood type, this will determine what it should use (decal, particle, etc.)
 ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodPredator"}
 ENT.CustomBlood_Pool = {"vj_avp_bloodpool_predator"}
@@ -475,7 +475,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			if lockAnim != "LetAttacks" then
 				self:StopAttacks(true)
 				self.PauseAttacks = true
-				timer.Create("timer_act_stopattacks"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
+				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
 		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
@@ -604,7 +604,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
-	self.AllowMovementJumping = false
+	self.CanMoveJump = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
@@ -622,7 +622,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(npc)
 			net.WriteEntity(ply)
 		net.Send(ply)
-		npc.AllowMovementJumping = true
+		npc.CanMoveJump = true
 	end
 
 	function controlEnt:Think()
@@ -1737,7 +1737,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 			anim = atk && atkAnim or "predator_" .. animSetType .. "_jump_short"
 		end
 	end
-	self:FaceCertainPosition(self.LongJumpPos,1)
+	self:SetTurnTarget(self.LongJumpPos, 1)
 	self:PlayAnimation(anim,true,false,false)
 	self.PredatorLandingPos = nil
 end

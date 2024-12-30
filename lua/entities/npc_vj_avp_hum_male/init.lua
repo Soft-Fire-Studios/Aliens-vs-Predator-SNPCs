@@ -20,15 +20,15 @@ ENT.FootData = {
     ["rfoot"] = {Range = 9.36, OnGround = true},
 }
 
-ENT.BloodColor = "Red"
+ENT.BloodColor = VJ.BLOOD_COLOR_RED
 
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
 
-ENT.UsePlayerModelMovement = true
+ENT.UsePoseParameterMovement = true
 ENT.HasMeleeAttack = true
 ENT.TimeUntilMeleeAttackDamage = 0.25
-ENT.CanCrouchOnWeaponAttack = false
+ENT.Weapon_CanCrouchAttack = false
 ENT.Weapon_AimTurnDiff = 0.74
 
 local moveslikejaggerfuckingkms = 21378944
@@ -990,12 +990,12 @@ function ENT:TranslateActivity(act)
 	end
 
 	if act == ACT_IDLE then
-		if self.NoWeapon_UseScaredBehavior_Active == true then
+		if self.Weapon_UnarmedBehavior_Active == true then
 			return ACT_COWER
 		elseif self.Alerted && self:GetWeaponState() != VJ.NPC_WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
 			return ACT_IDLE_ANGRY
 		end
-	elseif act == ACT_RUN && self.NoWeapon_UseScaredBehavior_Active == true && !self.VJ_IsBeingControlled then
+	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active == true && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
 	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanFireWhileMoving == true && IsValid(self:GetEnemy()) then
 		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
@@ -1613,7 +1613,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			if lockAnim != "LetAttacks" then
 				self:StopAttacks(true)
 				self.PauseAttacks = true
-				timer.Create("timer_act_stopattacks"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
+				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
 		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!

@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.StartHealth = 700
 ENT.Gender = 1
 
-ENT.BloodColor = "White"
+ENT.BloodColor = VJ.BLOOD_COLOR_WHITE
 
 ENT.VJ_NPC_Class = {"CLASS_WEYLAND_YUTANI"}
 

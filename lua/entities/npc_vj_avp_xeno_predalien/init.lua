@@ -464,7 +464,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 			anim = "Predalien_Hybrid_jump_short"
 		end
 	end
-	self:FaceCertainPosition(self.LongJumpPos,1)
+	self:SetTurnTarget(self.LongJumpPos, 1)
 	self:PlayAnim(anim,true,false,false)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ ENT.SightAngle = 360
 ENT.MovementType = VJ_MOVETYPE_STATIONARY
 ENT.CanTurnWhileStationary = false
 
-ENT.BloodColor = "Yellow"
+ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
 ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
 ENT.HasBloodPool = false
