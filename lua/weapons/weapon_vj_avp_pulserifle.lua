@@ -64,7 +64,7 @@ function SWEP:OnReload()
 	-- self:DoViewPunch(1.8,Angle(2,-1,1))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function SWEP:OnSecondaryAttack(anim,animTime)
+function SWEP:OnSecondaryAttack2(anim,animTime)
 	local owner = self:GetOwner()
 	VJ.EmitSound(self, "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_grenade_fire_04.ogg", 85)
 

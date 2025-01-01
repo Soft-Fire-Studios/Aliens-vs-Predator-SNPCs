@@ -566,6 +566,7 @@ function SWEP:SecondaryAttack()
 	local owner = self:GetOwner()
 	if owner:IsPlayer() && owner:KeyDown(IN_USE) && !IsValid(owner.VJ_AVP_Flare) then
 		self:ThrowFlare(owner)
+		self:SetNextSecondaryFire(CurTime() +1)
 		return
 	end
 
