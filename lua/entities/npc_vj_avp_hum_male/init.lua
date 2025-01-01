@@ -731,7 +731,7 @@ function ENT:MarineInitialize(gender)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAlert(ent)
-	if #self.SoundTbl_Surprised > 0 && self:FindNearestDistance(ent,true) <= 250 then
+	if #self.SoundTbl_Surprised > 0 && self:GetNearestDistance(ent,true) <= 250 then
 		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
 		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
 		return

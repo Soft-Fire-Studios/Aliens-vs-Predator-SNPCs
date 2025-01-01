@@ -2550,7 +2550,7 @@ function ENT:OnThinkActive()
 		end
 	end
 	if IsValid(ent) then
-		self.LastEnemyDistance = self:FindNearestDistance(ent)
+		self.LastEnemyDistance = self:GetNearestDistance(ent)
 	end
 
 	if (IsValid(self.VJ_TheController) or !IsValid(self.VJ_TheController) && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
@@ -2941,7 +2941,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local colorYellow = VJ.Color2Byte(Color(255, 221, 35))
 --
-function ENT:SetUpGibesOnDeath(dmginfo, hitgroup)
+function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 	if self.VJ_AVP_XenomorphLarge then return false end
 
 	self.HasDeathSounds = false
@@ -2961,12 +2961,8 @@ function ENT:SetUpGibesOnDeath(dmginfo, hitgroup)
 	VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = self:GetPos(), Class = self.VJ_NPC_Class})
 	
 	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", BloodDecal="VJ_HLR_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
-	return true
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomGibOnDeathSounds(dmginfo, hitgroup)
-	VJ.EmitSound(self, "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg", 90)
-	return false
+	self:PlaySoundSystem("Gib", "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg")
+	return true, {AllowSound = false}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnPlayCreateSound(sdData, sdFile)
