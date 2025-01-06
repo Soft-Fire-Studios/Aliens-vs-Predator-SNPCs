@@ -2584,7 +2584,7 @@ function ENT:OnThinkActive()
 				local cont = self.VJ_TheController
 				timer.Simple(0.12,function()
 					if IsValid(cont) && IsValid(xeno) then
-						local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+						local SpawnControllerObject = ents.Create("obj_vj_controller")
 						SpawnControllerObject.VJCE_Player = cont
 						SpawnControllerObject:SetControlledNPC(xeno)
 						SpawnControllerObject:Spawn()
@@ -2621,7 +2621,7 @@ function ENT:OnThinkActive()
 					local cont = self.VJ_TheController
 					timer.Simple(0.12,function()
 						if IsValid(cont) && IsValid(xeno) then
-							local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+							local SpawnControllerObject = ents.Create("obj_vj_controller")
 							SpawnControllerObject.VJCE_Player = cont
 							SpawnControllerObject:SetControlledNPC(xeno)
 							SpawnControllerObject:Spawn()

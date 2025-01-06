@@ -690,7 +690,7 @@ function ENT:GiveBirth()
 			if IsValid(chestburster) then
 				chestburster.GodMode = false
 				if IsValid(cont) then
-					local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+					local SpawnControllerObject = ents.Create("obj_vj_controller")
 					SpawnControllerObject.VJCE_Player = cont
 					SpawnControllerObject:SetControlledNPC(chestburster)
 					SpawnControllerObject:Spawn()

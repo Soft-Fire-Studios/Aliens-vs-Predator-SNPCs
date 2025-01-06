@@ -204,7 +204,7 @@ function ENT:OnThinkActive()
 		self:Remove()
 		timer.Simple(0.12,function()
 			if IsValid(cont) && IsValid(ent) then
-				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				local SpawnControllerObject = ents.Create("obj_vj_controller")
 				SpawnControllerObject.VJCE_Player = cont
 				SpawnControllerObject:SetControlledNPC(ent)
 				SpawnControllerObject:Spawn()

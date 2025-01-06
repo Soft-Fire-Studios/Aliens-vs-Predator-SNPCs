@@ -121,7 +121,7 @@ if CLIENT then
 			if !IsValid(ply) or IsValid(ply) && ply:GetNW2Bool("AVP_DiedInSurvival",false) then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
-				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_IsControllingNPC) then
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_IsControllingNPC) then
 					if !VJ_HasValue(VJ_AVP_HALOS.Survival,v) then
 						table_insert(VJ_AVP_HALOS.Survival,v)
 					end
@@ -235,7 +235,7 @@ function ENT:SpawnBot(count,respawn)
 				randOffset.z = 8
 				if !preds then
 					if self.VJ_PlayerBots then
-						local bot = ents.Create("npc_vj_test_humanply")
+						local bot = ents.Create("npc_vj_test_player")
 						self:SetProperPos(bot,spawnPoint +randOffset)
 						bot:SetAngles(Angle(0,AngleRand().y,0))
 						bot.WeaponInventory_AntiArmorList = {}
@@ -243,7 +243,7 @@ function ENT:SpawnBot(count,respawn)
 						bot:Spawn()
 						bot:Activate()
 						bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
-						-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_humanply"].Weapons))
+						-- bot:Give(VJ.PICK(list.Get("NPC")["npc_vj_test_player"].Weapons))
 						bot:Give(VJ.PICK({
 							"weapon_vj_avp_pulserifle",
 							"weapon_vj_avp_pulserifle",
@@ -393,7 +393,7 @@ function ENT:Initialize()
 				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
 				Predator.PlayerFriendly = true
 				Predator.FriendsWithAllPlayerAllies = true
-				local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+				local SpawnControllerObject = ents.Create("obj_vj_controller")
 				SpawnControllerObject.VJCE_Player = v
 				SpawnControllerObject:SetControlledNPC(chestburster)
 				SpawnControllerObject:Spawn()
@@ -413,7 +413,7 @@ function ENT:Initialize()
 		-- 		Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
 		-- 		Predator.PlayerFriendly = true
 		-- 		Predator.FriendsWithAllPlayerAllies = true
-		-- 		local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+		-- 		local SpawnControllerObject = ents.Create("obj_vj_controller")
 		-- 		SpawnControllerObject.VJCE_Player = ply
 		-- 		SpawnControllerObject:SetControlledNPC(Predator)
 		-- 		SpawnControllerObject:Spawn()
@@ -570,7 +570,7 @@ function ENT:RespawnPlayerAsAI(ply)
 		xeno = VJ.PICK(self.Entities)
 	end
 	if IsValid(xeno) && !xeno.VJ_IsBeingControlled then
-		local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+		local SpawnControllerObject = ents.Create("obj_vj_controller")
 		SpawnControllerObject.VJCE_Player = ply
 		SpawnControllerObject:SetControlledNPC(xeno)
 		SpawnControllerObject:Spawn()

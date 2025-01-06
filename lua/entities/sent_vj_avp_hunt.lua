@@ -101,7 +101,7 @@ if CLIENT then
 					local closestEnt = NULL
 					local closestDist = 999999
 					for _,v in ents.Iterator() do
-						if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v.VJ_IsControllingNPC) then
+						if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && !v.VJ_IsControllingNPC) then
 							local dist = v:GetPos():Distance(ply:GetPos())
 							if dist < closestDist then
 								closestEnt = v
@@ -172,7 +172,7 @@ if CLIENT then
 			if !IsValid(ply) or IsValid(ply) && ply.VJ_IsControllingNPC then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
-				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJ_IsControllingNPC) then
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJ_IsControllingNPC) then
 					if !VJ_HasValue(VJ_AVP_HALOS.Hunt,v) then
 						table_insert(VJ_AVP_HALOS.Hunt,v)
 					end
@@ -244,13 +244,13 @@ function ENT:SpawnBot(count,respawn)
 			else
 				local randOffset = VectorRand() *math.Rand(0,128)
 				randOffset.z = 8
-				local bot = ents.Create("npc_vj_test_humanply")
+				local bot = ents.Create("npc_vj_test_player")
 				-- bot:SetPos(spawnPoint +randOffset)
 				self:SetProperPos(bot,spawnPoint +randOffset)
 				bot:SetAngles(Angle(0,AngleRand().y,0))
 				bot.WeaponInventory_AntiArmorList = {}
 				bot.WeaponInventory_MeleeList = {"weapon_vj_glock17","weapon_vj_357"}
-				bot.EntitiesToNoCollide = {"npc_vj_test_humanply"}
+				bot.EntitiesToNoCollide = {"npc_vj_test_player"}
 				bot:Spawn()
 				bot:Activate()
 				bot.VJ_AVP_HuntBot = true
@@ -452,7 +452,7 @@ function ENT:Initialize()
 		if !IsValid(self) then return end
 		if debugPlayAsPredator then
 			local ply = VJ.PICK(plys)
-			local SpawnControllerObject = ents.Create("obj_vj_npccontroller")
+			local SpawnControllerObject = ents.Create("obj_vj_controller")
 			SpawnControllerObject.VJCE_Player = ply
 			SpawnControllerObject:SetControlledNPC(pred)
 			SpawnControllerObject:Spawn()
