@@ -7,7 +7,7 @@ include("shared.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/ravager.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
 ENT.StartHealth = 1600
-ENT.VJTag_ID_Boss = true
+ENT.VJ_ID_Boss = true
 ENT.HullType = HULL_LARGE
 
 ENT.VJC_Data = {
@@ -153,7 +153,7 @@ end
 -- 			phys:ApplyForceCenter(self:GetForward() *1000 +self:GetUp() *250)
 -- 		end
 -- 	else
--- 		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJTag_ID_Boss or ent.IsVJBaseSNPC_Tank) then
+-- 		if ent.MovementType != VJ_MOVETYPE_STATIONARY && (!ent.VJ_ID_Boss or ent.IsVJBaseSNPC_Tank) then
 -- 			ent:SetGroundEntity(NULL)
 -- 			ent:SetVelocity(self:MeleeAttackKnockbackVelocity(ent))
 -- 		end

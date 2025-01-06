@@ -384,7 +384,7 @@ if VJExists == true then
 
 		hook.Add("Think","VJ_AVP_HUD_Setup",function()
 			for _,ply in player.Iterator() do
-				if ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJTag_IsControllingNPC && ply:Alive() && !GetConVar("ai_ignoreplayers"):GetBool() && ply:GetInfoNum("vj_avp_hud_ping",1) == 1 then
+				if ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJ_IsControllingNPC && ply:Alive() && !GetConVar("ai_ignoreplayers"):GetBool() && ply:GetInfoNum("vj_avp_hud_ping",1) == 1 then
 					VJ_AVP_MotionTracker(ply)
 				end
 			end
@@ -738,7 +738,7 @@ if VJExists == true then
 		end)
 
 		hook.Add("PlayerBindPress","VJ.AVP.BindPressFix",function(ply,bind,pressed)
-			if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_NPC then
+			if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_NPC then
 				if bind == "invprev" or bind == "invnext" then
 					return true
 				end
@@ -749,7 +749,7 @@ if VJExists == true then
 			local ply = LocalPlayer()
 			if IsValid(ply) then
 				local possessing = ply.VJCE_NPC
-				if ply.VJTag_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) && possessing.VJ_AVP_ViewModelData then
+				if ply.VJ_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) && possessing.VJ_AVP_ViewModelData then
 					local att = vm:LookupAttachment("pov")
 					local data = possessing.VJ_AVP_ViewModelData
 					local pos2 = data.origin
@@ -793,7 +793,7 @@ if VJExists == true then
 		
 		hook.Add("PreDrawViewModel","VJ_AVP_ViewModel",function(vm,ply)
 			local possessing = ply.VJCE_NPC
-			if ply.VJTag_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) then
+			if ply.VJ_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) then
 				if !IsValid(possessing:GetVM()) or ply.VJC_Camera_Mode != 2 then
 					return true
 				end
@@ -1252,7 +1252,7 @@ if VJExists == true then
 			local dmgFinal = dmgMax
 			local hitEnts = {}
 			for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and VJ.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, extraOptions.UseConeDegree or 90, {AllEntities=true})) or ents.FindInSphere(startPos, dmgRadius)) do
-				if (v.IsVJBaseBullseye && v.VJ_IsBeingControlled) or v.VJTag_IsControllingNPC then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
+				if (v.IsVJBaseBullseye && v.VJ_IsBeingControlled) or v.VJ_IsControllingNPC then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
 				local nearestPos = startPos == attacker:GetPos() && attacker:GetNearestPositions(v) or v:NearestPoint(startPos) -- From the enemy position to the given position
 				-- local nearestPos = v:NearestPoint(startPos) -- From the enemy position to the given position
 				if realisticRadius != false then -- Decrease damage from the nearest point all the way to the enemy point then clamp it!
@@ -1336,7 +1336,7 @@ if VJExists == true then
 								maxs = Vector(4,4,4)
 							})
 							local mat = tr.MatType
-							if (isCombine && ent.IsVJBaseSNPC_Human && ent.VJTag_ID_Police != true) or (isCombine && !ent.IsVJBaseSNPC_Human) or ent.VJTag_ID_Vehicle == true or (mat == MAT_METAL or mat == MAT_GLASS) then
+							if (isCombine && ent.IsVJBaseSNPC_Human && ent.VJ_ID_Police != true) or (isCombine && !ent.IsVJBaseSNPC_Human) or ent.VJ_ID_Vehicle == true or (mat == MAT_METAL or mat == MAT_GLASS) then
 								ent:SetNW2Bool("AVP.IsTech",true)
 								ent.VJ_AVP_IsTech = true
 							end

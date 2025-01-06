@@ -181,7 +181,7 @@ if CLIENT then
 
 	net.Receive("VJ.AVP.PlayerHUDDamage",function(len,pl)
 		local ply = LocalPlayer()
-		if ply.VJTag_IsControllingNPC or !ply.VJTag_IsControllingNPC && GetConVar("vj_avp_hud"):GetInt() == 1 then
+		if ply.VJ_IsControllingNPC or !ply.VJ_IsControllingNPC && GetConVar("vj_avp_hud"):GetInt() == 1 then
 			local time = CurTime() +math.Rand(3,5)
 			local dmg = net.ReadInt(16)
 			local count = math.random(1,3) // 1
@@ -189,7 +189,7 @@ if CLIENT then
 			-- if dmg > 75 then
 			-- 	count = 3
 			-- end
-			if !ply.VJTag_IsControllingNPC then
+			if !ply.VJ_IsControllingNPC then
 				ply.VJ_AVP_DamageSplatter = ply.VJ_AVP_DamageSplatter or {}
 				for i = 1,count do
 					ply.VJ_AVP_DamageSplatter[#ply.VJ_AVP_DamageSplatter +1] = {Remain=time,Init=time}
@@ -207,7 +207,7 @@ if CLIENT then
 	hook.Add("HUDPaint","VJ_AVP_Marine_HUD",function()
 		local ply = LocalPlayer()
 		local ent
-		if ply.VJTag_IsControllingNPC == true then
+		if ply.VJ_IsControllingNPC == true then
 			local npc = ply.VJCE_NPC
 			if npc.VJ_AVP_Marine && !npc.VJ_AVP_Civilian then
 				ent = npc

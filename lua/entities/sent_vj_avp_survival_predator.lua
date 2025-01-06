@@ -118,7 +118,7 @@ if CLIENT then
 			if !IsValid(ply) or IsValid(ply) && ply:GetNW2Bool("AVP_DiedInSurvival",false) then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
-				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJTag_IsControllingNPC) then
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_IsControllingNPC) then
 					if !VJ_HasValue(VJ_AVP_HALOS.Survival,v) then
 						table_insert(VJ_AVP_HALOS.Survival,v)
 					end
@@ -675,7 +675,7 @@ function ENT:Think()
 						local closestPlayer = NULL
 						local closestDist = 999999
 						for _,v2 in pairs(player.GetAll()) do
-							if v2:Alive() && !v2.VJTag_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
+							if v2:Alive() && !v2.VJ_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
 								local dist = v2:GetPos():Distance(v:GetPos())
 								if dist < closestDist then
 									closestPlayer = v2

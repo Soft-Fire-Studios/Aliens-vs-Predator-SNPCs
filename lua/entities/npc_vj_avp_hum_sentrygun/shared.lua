@@ -7,7 +7,7 @@ ENT.Purpose 		= "Spawn it and fight with it!"
 ENT.Instructions 	= "Click on the spawnicon to spawn it."
 ENT.Category		= ""
 
-ENT.VJTag_ID_Turret = true
+ENT.VJ_ID_Turret = true
 ENT.VJ_AVP_IsTech = true
 ENT.EntityClass = AVP_ENTITYCLASS_SENTRYGUN
 

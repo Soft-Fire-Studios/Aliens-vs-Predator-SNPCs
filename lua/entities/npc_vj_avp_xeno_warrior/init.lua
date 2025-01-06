@@ -575,7 +575,7 @@ function ENT:Init()
 	self:SetSurroundingBounds(Vector(collisionMin.x * 1.8, collisionMin.y * 1.8, collisionMin.z * 1.2), Vector(collisionMax.x * 1.8, collisionMax.y * 1.8, collisionMax.z * 1.2))
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
             if cent.VJCE_NPC == self then
                 cent.VJCE_NPC:OnKeyPressed(ply,button)
@@ -690,10 +690,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		local npc = self.VJCE_NPC
 		local camera = self.VJCE_Camera
 		if (!camera:IsValid()) then self:StopControlling() return end
-		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJTag_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
-		if ply.VJTag_IsControllingNPC != true then return end
+		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
+		if ply.VJ_IsControllingNPC != true then return end
 		local curTime = CurTime()
-		if ply.VJTag_IsControllingNPC && IsValid(npc) then
+		if ply.VJ_IsControllingNPC && IsValid(npc) then
 			local npcWeapon = npc:GetActiveWeapon()
 			self.VJC_NPC_LastPos = npc:GetPos()
 			ply:SetPos(self.VJC_NPC_LastPos + vecZ20) -- Set the player's location
@@ -2695,7 +2695,7 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 			if !IsValid(attacker) then
 				attacker = dmginfo:GetInflictor()
 			end
-			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJTag_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
+			local isBigDmg = (dmginfo:GetDamage() > (attacker.VJ_ID_Boss && 40 or 65) or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE)
 			if IsValid(attacker) && isBigDmg then
 				local attackerLookDir = attacker:GetAimVector()
 				local dotForward = attackerLookDir:Dot(self:GetForward())
@@ -2800,7 +2800,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if self.CanBeKnockedDown && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJTag_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJTag_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if self.CanBeKnockedDown && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0

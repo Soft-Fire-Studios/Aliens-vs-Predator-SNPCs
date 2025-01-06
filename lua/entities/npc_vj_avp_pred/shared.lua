@@ -51,7 +51,7 @@ function ENT:SetupDataTables()
 end
 
 hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
-	if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+	if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 		local cent = ply.VJ_TheControllerEntity
 		local npc = cent.VJCE_NPC
 		if npc.VJ_AVP_NPC then
@@ -766,7 +766,7 @@ if CLIENT then
 					else
 						targetName = target:GetClass()
 					end
-					if (target.IsVJBaseSNPC_Tank or target.VJTag_ID_Vehicle) then
+					if (target.IsVJBaseSNPC_Tank or target.VJ_ID_Vehicle) then
 						targetIcon = matHUD_Target_Icon_Veh
 						targetAddLen = 4
 					elseif (target:GetNW2Bool("AVP.IsTech",false) or target.VJ_AVP_IsTech) && target.IsVJBaseSNPC_Human then

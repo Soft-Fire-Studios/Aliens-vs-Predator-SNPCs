@@ -777,7 +777,7 @@ function ENT:Init()
 	self.AnimTbl_ScaredBehaviorMovement = {toAct(self,"nwn_Panic_run_fwd_look_fwd")}
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJTag_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
             if cent.VJCE_NPC == self then
                 cent.VJCE_NPC:OnKeyPressed(ply,button)

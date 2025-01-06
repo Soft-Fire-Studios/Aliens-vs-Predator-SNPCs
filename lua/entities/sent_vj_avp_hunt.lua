@@ -93,7 +93,7 @@ if CLIENT then
 		hook.Add("HUDPaint",self,function(self)
 			local ply = LocalPlayer()
 			if !IsValid(ply) then return end
-			if ply.VJTag_IsControllingNPC then
+			if ply.VJ_IsControllingNPC then
 				if ply.VJ_AVP_PredatorNextNoiseT < CurTime() then
 					ply.VJ_AVP_PredatorNoiseT = CurTime() +5
 					ply.VJ_AVP_PredatorNextNoiseT = CurTime() +30
@@ -101,7 +101,7 @@ if CLIENT then
 					local closestEnt = NULL
 					local closestDist = 999999
 					for _,v in ents.Iterator() do
-						if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v.VJTag_IsControllingNPC) then
+						if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && !v.VJ_IsControllingNPC) then
 							local dist = v:GetPos():Distance(ply:GetPos())
 							if dist < closestDist then
 								closestEnt = v
@@ -142,7 +142,7 @@ if CLIENT then
 
 		hook.Add("CalcView",self,function(self,ply,pos,ang,fov,nearZ,farZ)
 			if !IsValid(ply) then return end
-			if ply.VJTag_IsControllingNPC then return end
+			if ply.VJ_IsControllingNPC then return end
 			if ply:Alive() then return end
 			
 			local tgt = ply:GetObserverTarget()
@@ -169,10 +169,10 @@ if CLIENT then
 
 		hook.Add("PreDrawHalos",self,function(self)
 			local ply = LocalPlayer()
-			if !IsValid(ply) or IsValid(ply) && ply.VJTag_IsControllingNPC then return end
+			if !IsValid(ply) or IsValid(ply) && ply.VJ_IsControllingNPC then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
-				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJTag_IsControllingNPC) then
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_humanply") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJ_IsControllingNPC) then
 					if !VJ_HasValue(VJ_AVP_HALOS.Hunt,v) then
 						table_insert(VJ_AVP_HALOS.Hunt,v)
 					end
@@ -204,7 +204,7 @@ if CLIENT then
 					if ply.StartedEndingTrack then
 						PlayTrack(ply,trackRushEnd)
 					elseif !ply.DidIntroTrack then
-						PlayTrack(ply,(ply.VJTag_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator) && trackStartPred or trackStartHuman)
+						PlayTrack(ply,(ply.VJ_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator) && trackStartPred or trackStartHuman)
 						ply.DidIntroTrack = true
 					else
 						PlayTrack(ply,VJ_PICK(self.Tracks))
@@ -711,7 +711,7 @@ end
 function ENT:GetHumans()
 	local humans = {}
 	for _,v in pairs(player.GetAll()) do
-		if v:Alive() && !v.VJTag_IsControllingNPC then
+		if v:Alive() && !v.VJ_IsControllingNPC then
 			table.insert(humans,v)
 		end
 	end
@@ -802,7 +802,7 @@ function ENT:Think()
 							local closestPlayer = NULL
 							local closestDist = 999999
 							for _,v2 in pairs(player.GetAll()) do
-								if v2:Alive() && !v2.VJTag_IsControllingNPC then
+								if v2:Alive() && !v2.VJ_IsControllingNPC then
 									local dist = v2:GetPos():Distance(v:GetPos())
 									if dist < closestDist then
 										closestPlayer = v2
