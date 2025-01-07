@@ -665,7 +665,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			end
 	
 			local bullseyePos = self.VJCE_Bullseye:GetPos()
-			if ply:GetInfoNum("vj_npc_cont_devents", 0) == 1 then
+			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
 				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
@@ -1392,7 +1392,7 @@ function ENT:FirePlasmaCaster()
 			proj:SetNoDraw(true)
 			proj:Spawn()
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
-			proj.CollisionDecals = {"Scorch"}
+			proj.CollisionDecal = {"Scorch"}
 			proj.OnDeath = function(projEnt,data, defAng, HitPos)
 				ParticleEffect(amount <= 20 && "vj_avp_predator_plasma_impact_light" or "vj_avp_predator_plasma_impact",HitPos,defAng)
 				sound.Play("cpthazama/avp/weapons/predator/plasma_caster/plasma_bolt_explosion_0" .. math.random(1,5) .. ".ogg",HitPos,90)
@@ -1966,7 +1966,7 @@ function ENT:OnInput(key,activator,caller,data)
 			proj:DrawShadow(true)
 			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
-			proj.CollisionDecals = {"Scorch"}
+			proj.CollisionDecal = {"Scorch"}
 			proj.OnThink = function(projEnt)
 				if !IsValid(projEnt.Predator) && !projEnt.Dead then
 					projEnt:Remove()

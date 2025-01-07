@@ -198,7 +198,7 @@ function ENT:PhysicsCollide(data, phys)
 			-- self:DealDamage(data, phys)
 			self:PlaySound("OnCollide")
 			if !self.PaintedFinalDecal then
-				local decals = VJ.PICK(self.CollisionDecals)
+				local decals = VJ.PICK(self.CollisionDecal)
 				if decals then
 					self.PaintedFinalDecal = true
 					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
@@ -211,7 +211,7 @@ function ENT:PhysicsCollide(data, phys)
 			-- self:DealDamage(data, phys)
 			self:PlaySound("OnCollide")
 			if !self.PaintedFinalDecal then
-				local decals = VJ.PICK(self.CollisionDecals)
+				local decals = VJ.PICK(self.CollisionDecal)
 				if decals then
 					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
 				end

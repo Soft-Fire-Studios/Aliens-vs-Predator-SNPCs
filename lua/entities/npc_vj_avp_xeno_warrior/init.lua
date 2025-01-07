@@ -725,7 +725,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			end
 	
 			local bullseyePos = self.VJCE_Bullseye:GetPos()
-			if ply:GetInfoNum("vj_npc_cont_devents", 0) == 1 then
+			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
 				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
@@ -1511,7 +1511,7 @@ function ENT:OnInput(key,activator,caller,data)
 				proj:SetAttackType(2,20 *mult,DMG_ACID,150,10,true)
 				proj:SetNoDraw(true)
 				proj:Spawn()
-				proj.CollisionDecals = {"VJ_AVP_BloodXenomorph"}
+				proj.CollisionDecal = {"VJ_AVP_BloodXenomorph"}
 				proj.OnThink = function(projEnt)
 					projEnt.LastHeight = projEnt.LastHeight or projEnt:GetPos().z
 					if projEnt.LastHeight < projEnt:GetPos().z then
@@ -2960,7 +2960,7 @@ function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 
 	VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = self:GetPos(), Class = self.VJ_NPC_Class})
 	
-	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", BloodDecal="VJ_HLR_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
+	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", CollisionDecal="VJ_HLR_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
 	self:PlaySoundSystem("Gib", "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg")
 	return true, {AllowSound = false}
 end
@@ -3081,7 +3081,7 @@ function ENT:StartMovement(cont, Dir, Rot)
 	local ply = cont.VJCE_Player
 	if self:GetState() != VJ_STATE_NONE then return end
 
-	local DEBUG = ply:GetInfoNum("vj_npc_cont_devents", 0) == 1
+	local DEBUG = ply:GetInfoNum("vj_npc_cont_debug", 0) == 1
 	local plyAimVec = Dir
 	plyAimVec.z = 0
 	plyAimVec:Rotate(Rot)

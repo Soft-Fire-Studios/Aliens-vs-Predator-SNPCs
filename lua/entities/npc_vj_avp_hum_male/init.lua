@@ -1445,7 +1445,7 @@ function ENT:StartMovement(cont, Dir, Rot)
 	local ply = cont.VJCE_Player
 	if self:GetState() != VJ_STATE_NONE then return end
 
-	local DEBUG = ply:GetInfoNum("vj_npc_cont_devents", 0) == 1
+	local DEBUG = ply:GetInfoNum("vj_npc_cont_debug", 0) == 1
 	local plyAimVec = Dir
 	plyAimVec.z = 0
 	plyAimVec:Rotate(Rot)
