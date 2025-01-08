@@ -17,11 +17,7 @@ ENT.Spawnable = true
 ENT.AdminOnly = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
-	language.Add("obj_vj_avp_flare", "Flare")
-	killicon.Add("obj_vj_avp_flare","HUD/killicons/default",Color(255,80,0,255))
-
-	language.Add("#obj_vj_avp_flare", "Flare")
-	killicon.Add("#obj_vj_avp_flare","HUD/killicons/default",Color(255,80,0,255))
+	VJ.AddKillIcon("obj_vj_avp_flare", ENT.PrintName, VJ.KILLICON_PROJECTILE)
 	
 	function ENT:Draw()
 		self:DrawModel()
@@ -32,9 +28,6 @@ if !SERVER then return end
 
 ENT.FuseTime = 15
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local colorRed = Color(255, 0, 0)
-local colorTrailRed = Color(155, 0, 0, 150)
---
 function ENT:Initialize()
 	self:SetModel("models/props_junk/flare.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)

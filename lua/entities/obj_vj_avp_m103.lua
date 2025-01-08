@@ -19,12 +19,7 @@ ENT.AdminOnly = false
 ENT.VJ_ID_Danger = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
-	local Name = "M103 HE Grenade"
-	local LangName = "obj_vj_avp_m103"
-	language.Add(LangName, Name)
-	killicon.Add(LangName,"HUD/killicons/default",Color(255,80,0,255))
-	language.Add("#"..LangName, Name)
-	killicon.Add("#"..LangName,"HUD/killicons/default",Color(255,80,0,255))
+	VJ.AddKillIcon("obj_vj_avp_m103", ENT.PrintName, VJ.KILLICON_PROJECTILE)
 end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if !SERVER then return end
