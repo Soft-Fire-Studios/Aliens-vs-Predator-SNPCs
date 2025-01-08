@@ -66,7 +66,7 @@ function ENT:Init()
 	self.Loop:ChangePitch(math.random(90,110))
 	self.NextSndT = CurTime() +SoundDuration(snd)
 
-	util.SpriteTrail(self,0,Color(255,55,55),true,80,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
+	util.SpriteTrail(self,0,Color(255,55,55),true,80,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/trail.vmt")
 
 	SafeRemoveEntityDelayed(self,15)
 end

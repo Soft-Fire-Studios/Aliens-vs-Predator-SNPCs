@@ -1964,7 +1964,7 @@ function ENT:OnInput(key,activator,caller,data)
 			proj:SetNW2Bool("AVP.IsTech",true)
 			proj.VJ_AVP_IsTech = true
 			proj:DrawShadow(true)
-			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/vj_trial1.vmt")
+			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/trail.vmt")
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
 			proj.CollisionDecal = {"Scorch"}
 			proj.OnThink = function(projEnt)

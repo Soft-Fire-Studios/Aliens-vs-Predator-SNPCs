@@ -20,7 +20,7 @@ function ENT:SetupDataTables()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
-	local mat = Material("vj_base/sprites/vj_trial1")
+	local mat = Material("vj_base/sprites/trail")
 	local colOn = Color(0,255,0,255)
 	local colOff = Color(255,0,0,255)
 	function ENT:Draw()
