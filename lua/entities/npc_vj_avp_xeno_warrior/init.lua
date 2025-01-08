@@ -2746,7 +2746,7 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 				dmginfo:SetDamage(dmginfo:GetDamage() <= (bulletReq *0.5) && 1 or math_Clamp(dmginfo:GetDamage() *self.BulletDamageReduction,1,bulletReq))
 			end
 			if self.VJ_AVP_XenomorphRavager then
-				if self.HasSounds == true && self.HasImpactSounds == true then
+				if self.HasSounds && self.HasImpactSounds then
 					VJ.EmitSound(self, "vj_base/impact/armor"..math.random(1, 10)..".wav", 60)
 				end
 				-- if math.random(1, 3) == 1 then
