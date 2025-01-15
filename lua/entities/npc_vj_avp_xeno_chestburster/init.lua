@@ -11,9 +11,9 @@ ENT.HullType = HULL_TINY
 ENT.FindEnemy_CanSeeThroughWalls = true
 ENT.Behavior = VJ_BEHAVIOR_NEUTRAL
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW -- The blood type, this will determine what it should use (decal, particle, etc.)
-ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
-ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
+ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
+ENT.BloodParticle = {"vj_avp_blood_xeno"}
+ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
 
 ENT.HasMeleeAttack = true

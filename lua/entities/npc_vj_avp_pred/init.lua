@@ -10,10 +10,10 @@ ENT.Model = {"models/cpthazama/avp/predators/youngblood.mdl"} -- Model(s) to spa
 ENT.StartHealth = 450
 ENT.HullType = HULL_HUMAN
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = VJ.BLOOD_COLOR_GREEN -- The blood type, this will determine what it should use (decal, particle, etc.)
-ENT.CustomBlood_Particle = {"vj_avp_blood_predator"}
-ENT.CustomBlood_Decal = {"VJ_AVP_BloodPredator"}
-ENT.CustomBlood_Pool = {"vj_avp_bloodpool_predator"}
+ENT.BloodColor = VJ.BLOOD_COLOR_GREEN
+ENT.BloodParticle = {"vj_avp_blood_predator"}
+ENT.BloodDecal = {"VJ_AVP_BloodPredator"}
+ENT.BloodPool = {"vj_avp_bloodpool_predator"}
 ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"} -- NPCs with the same class with be allied to each other
 
 -- Example scenario:
@@ -604,7 +604,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
-	self.CanMoveJump = false
+	self.JumpVars.Enabled = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
@@ -622,7 +622,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(npc)
 			net.WriteEntity(ply)
 		net.Send(ply)
-		npc.CanMoveJump = true
+		npc.JumpVars.Enabled = true
 	end
 
 	function controlEnt:Think()
@@ -3182,7 +3182,7 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 				local bone = self:GetBonePosition(i)
 				if bone then
 					local particle = ents.Create("info_particle_system")
-					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetKeyValue("effect_name", VJ.PICK(self.BloodParticle))
 					particle:SetPos(bone +VectorRand() *15)
 					particle:Spawn()
 					particle:Activate()

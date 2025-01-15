@@ -1356,7 +1356,7 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 				local bone = self:GetBonePosition(i)
 				if bone then
 					local particle = ents.Create("info_particle_system")
-					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetKeyValue("effect_name", VJ.PICK(self.BloodParticle))
 					particle:SetPos(bone +VectorRand() *15)
 					particle:Spawn()
 					particle:Activate()

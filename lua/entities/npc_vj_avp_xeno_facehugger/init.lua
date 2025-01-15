@@ -11,8 +11,8 @@ ENT.HullType = HULL_TINY
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
-ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
-ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
+ENT.BloodParticle = {"vj_avp_blood_xeno"}
+ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
 ENT.MeleeAttackDamage = 5
@@ -220,7 +220,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
 				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_jungle" or "npc_vj_avp_xeno_jungle")
 			end
-			corpse.BloodData = {Color = ent.BloodColor, Particle = VJ.PICK(ent.CustomBlood_Particle), Decal = ent.CustomBlood_Decal}
+			corpse.BloodData = {Color = ent.BloodColor, Particle = VJ.PICK(ent.BloodParticle), Decal = ent.BloodDecal}
 
 			VJ.CreateSound(self,self.SoundTbl_MeleeAttackGrapple,70)
 			self.LatchVictim = ent

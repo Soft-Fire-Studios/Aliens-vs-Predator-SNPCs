@@ -16,10 +16,10 @@ ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
 ENT.FindEnemy_CanSeeThroughWalls = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
-ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW -- The blood type, this will determine what it should use (decal, particle, etc.)
-ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
-ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
-ENT.CustomBlood_Pool = {"vj_avp_bloodpool_xeno"}
+ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
+ENT.BloodParticle = {"vj_avp_blood_xeno"}
+ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
+ENT.BloodPool = {"vj_avp_bloodpool_xeno"}
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
 
 ENT.HasMeleeAttack = false
@@ -2341,15 +2341,15 @@ function ENT:OnThinkActive()
 			local trNormalP = tr.HitPos +tr.HitNormal
 			local trNormalN = tr.HitPos -tr.HitNormal
 			-- local particle = ents.Create("info_particle_system")
-			-- particle:SetKeyValue("effect_name",VJ.PICK(self.CustomBlood_Particle))
+			-- particle:SetKeyValue("effect_name",VJ.PICK(self.BloodParticle))
 			-- particle:SetPos(trNormalP)
 			-- particle:Spawn()
 			-- particle:Activate()
 			-- particle:Fire("Start")
 			-- particle:Fire("Kill","",0.1)
-			util.Decal(VJ.PICK(self.CustomBlood_Decal), trNormalP, trNormalN, self)
+			util.Decal(VJ.PICK(self.BloodDecal), trNormalP, trNormalN, self)
 			for _ = 1, 2 do
-				if math.random(1, 2) == 1 then util.Decal(VJ.PICK(self.CustomBlood_Decal), trNormalP + Vector(math.random(-25, 25), math.random(-25, 25), 0), trNormalN, self) end
+				if math.random(1, 2) == 1 then util.Decal(VJ.PICK(self.BloodDecal), trNormalP + Vector(math.random(-25, 25), math.random(-25, 25), 0), trNormalN, self) end
 			end
 		end
 	else
@@ -2856,7 +2856,7 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 				local bone = self:GetBonePosition(i)
 				if bone then
 					local particle = ents.Create("info_particle_system")
-					particle:SetKeyValue("effect_name", VJ.PICK(self.CustomBlood_Particle))
+					particle:SetKeyValue("effect_name", VJ.PICK(self.BloodParticle))
 					particle:SetPos(bone +VectorRand() *15)
 					particle:Spawn()
 					particle:Activate()

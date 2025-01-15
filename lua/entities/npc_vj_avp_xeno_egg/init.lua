@@ -13,8 +13,8 @@ ENT.MovementType = VJ_MOVETYPE_STATIONARY
 ENT.CanTurnWhileStationary = false
 
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
-ENT.CustomBlood_Particle = {"vj_avp_blood_xeno"}
-ENT.CustomBlood_Decal = {"VJ_AVP_BloodXenomorph"}
+ENT.BloodParticle = {"vj_avp_blood_xeno"}
+ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
 ENT.HasBloodPool = false
 ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
