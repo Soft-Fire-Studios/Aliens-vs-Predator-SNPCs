@@ -7,7 +7,7 @@
 ------------------ Addon Information ------------------
 local PublicAddonName = "Aliens vs Predator SNPCs"
 local AddonName = "Aliens vs Predator"
-local AddonType = "SNPC"
+local AddonType = "NPC"
 local AutorunFile = "autorun/vj_avp_spawn.lua"
 -------------------------------------------------------
 local VJExists = file.Exists("lua/autorun/vj_base_autorun.lua","GAME")
