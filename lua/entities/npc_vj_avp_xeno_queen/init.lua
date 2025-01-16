@@ -635,7 +635,7 @@ end
 function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
 		local snd = "cpthazama/avp/xeno/alien queen/queen_breath_2.wav"
-		VJ_CreateSound(self,snd,72)
+		VJ.CreateSound(self,snd,72)
 		self.NextBreathT = CurTime() +SoundDuration(snd)
 	end
 end

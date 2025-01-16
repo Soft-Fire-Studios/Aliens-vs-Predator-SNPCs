@@ -49,7 +49,7 @@ function ENT:SetAttackType(aType,dmg,dmgtype,radius,force,realistic)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AddSound(snd,lvl,pit)
-	local cSnd = VJ_CreateSound(self,VJ_PICK(snd) or snd,lvl or 70,pit or 100)
+	local cSnd = VJ.CreateSound(self,VJ.PICK(snd) or snd,lvl or 70,pit or 100)
 	table.insert(self.DeleteSounds,cSnd)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

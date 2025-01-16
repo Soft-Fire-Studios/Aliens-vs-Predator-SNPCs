@@ -201,7 +201,7 @@ function ENT:Camo(set)
 					x:SetEnemy(NULL)
 					x:ClearEnemyMemory()
 				end
-				if VJ_HasValue(self.NPCTbl_Combine,x:GetClass()) or VJ_HasValue(self.NPCTbl_Resistance,x:GetClass()) then
+				if VJ.HasValue(self.NPCTbl_Combine,x:GetClass()) or VJ.HasValue(self.NPCTbl_Resistance,x:GetClass()) then
 					x:VJ_SetSchedule(SCHED_RUN_RANDOM)
 					x:SetEnemy(NULL)
 					x:ClearEnemyMemory()

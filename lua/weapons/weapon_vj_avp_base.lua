@@ -26,7 +26,7 @@ SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_main"}
 SWEP.PrimaryEffects_SpawnShells = false
 SWEP.Primary.TracerType = "VJ_AVP_Trace"
 SWEP.PrimaryEffects_ShellType = "ShellEject" -- Pistol = "ShellEject" | Rifle = "RifleShellEject" | Shotgun = "ShotgunShellEject"
-SWEP.Primary.SoundPitch	= VJ_Set(100, 100)
+SWEP.Primary.SoundPitch	= VJ.SET(100, 100)
 
 SWEP.NPC_TimeUntilFire = 0
 SWEP.NPC_NextPrimaryFire = 1.5

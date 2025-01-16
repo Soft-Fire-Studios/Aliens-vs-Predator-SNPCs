@@ -173,7 +173,7 @@ if CLIENT then
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
 				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && ply:Alive() && !v.VJ_IsControllingNPC) then
-					if !VJ_HasValue(VJ_AVP_HALOS.Hunt,v) then
+					if !VJ.HasValue(VJ_AVP_HALOS.Hunt,v) then
 						table_insert(VJ_AVP_HALOS.Hunt,v)
 					end
 				end
@@ -207,7 +207,7 @@ if CLIENT then
 						PlayTrack(ply,(ply.VJ_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator) && trackStartPred or trackStartHuman)
 						ply.DidIntroTrack = true
 					else
-						PlayTrack(ply,VJ_PICK(self.Tracks))
+						PlayTrack(ply,VJ.PICK(self.Tracks))
 					end
 				end
 			else
@@ -529,12 +529,12 @@ function ENT:Initialize()
 
 	hook.Add("OnNPCKilled",self,function(self,npc,attacker,inflictor)
 		if !IsValid(npc) then return end
-		if VJ_HasValue(self.Entities,npc) then
+		if VJ.HasValue(self.Entities,npc) then
 			if self.Predator == npc then
 				self:EndGame(GM_END_PRED_KILLED)
 			end
 			table.RemoveByValue(self.Entities,npc)
-		elseif VJ_HasValue(self.Bots,npc) then
+		elseif VJ.HasValue(self.Bots,npc) then
 			table.RemoveByValue(self.Bots,npc)
 			self.BotsToRespawn = self.BotsToRespawn +1
 		end
@@ -689,7 +689,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RespawnNPC(ent) // WHAT IS THIS USED FOR???????????????
 	if !IsValid(ent) then return end
-	if !VJ_HasValue(self.Entities,ent) then return end
+	if !VJ.HasValue(self.Entities,ent) then return end
 	local spawnPoint = self:FindSpawnPoint(1)
 	if spawnPoint == false then
 		return

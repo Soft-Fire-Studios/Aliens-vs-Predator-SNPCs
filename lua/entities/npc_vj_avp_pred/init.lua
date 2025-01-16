@@ -786,7 +786,7 @@ function ENT:DoCountdownAttack()
 		sound.EmitHint(SOUND_DANGER, self:GetPos(), 600, 30, self)
 	end)
 	Do(13,function()
-		VJ_STOPSOUND(self.SuicideStartFX)
+		VJ.STOPSOUND(self.SuicideStartFX)
 		self.SuicideFX = VJ.CreateSound(self,"cpthazama/avp/predator/Suicide.ogg",90)
 	end)
 end
@@ -1156,7 +1156,7 @@ end
 function ENT:FireSpearGun()
 	if self.InFatality or self.DoingFatality then return end
 	if !self.CanAttack or CurTime() < self.NextSpearGunFireT or self:GetSprinting() or self:GetEnergy() < 10 then return end
-	self.AttackIdleTime = CurTime() +VJ_GetSequenceDuration(self,"predator_speargun_fire") +5
+	self.AttackIdleTime = CurTime() +VJ.AnimDuration(self,"predator_speargun_fire") +5
 	self:PlayAnimation("vjges_predator_speargun_fire",true,false,true,0,{AlwaysUseGesture=true})
 	self.NextSpearGunFireT = CurTime() +1
 	self.NextChaseTime = 0
@@ -1576,9 +1576,9 @@ function ENT:AttackCode()
 			miss = hit
 		end
 		self.TotalBasicAttacks = self.TotalBasicAttacks +1
-		local attackTime = CurTime() +VJ_GetSequenceDuration(self,start)
+		local attackTime = CurTime() +VJ.AnimDuration(self,start)
 		self.AttackDamageType = DMG_SLASH
-		self.AttackIdleTime = CurTime() +attackTime +VJ_GetSequenceDuration(self,hit) +VJ_GetSequenceDuration(self,miss) +1
+		self.AttackIdleTime = CurTime() +attackTime +VJ.AnimDuration(self,hit) +VJ.AnimDuration(self,miss) +1
 		self:PlayAnimation(start,true,false,true,0,{AlwaysUseGesture=true,GesturePlayBackRate=1,OnFinish=function(interrupted)
 			if self.LastSequence != start then return end
 			local hitEnts = self:RunDamageCode()
@@ -1597,7 +1597,7 @@ function ENT:AttackCode()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RunDamageCode(mult)
-	local mult = mult or 1
+	mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
@@ -2365,7 +2365,7 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 						sound.Play("AVP.Predator.NuclearExplosionFX",ent:GetPos())
 						VJ.ApplyRadiusDamage(fakeNPC,fakeNPC,ent:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
 						SafeRemoveEntity(fakeNPC)
-						VJ_STOPSOUND(ent.NuclearLoopFX)
+						VJ.STOPSOUND(ent.NuclearLoopFX)
 						hook.Remove("Think",ent)
 					end
 				end)
@@ -3028,7 +3028,7 @@ function ENT:Camo(set)
 					x:SetEnemy(NULL)
 					x:ClearEnemyMemory()
 				end
-				if VJ_HasValue(self.NPCTbl_Combine,x:GetClass()) or VJ_HasValue(self.NPCTbl_Resistance,x:GetClass()) then
+				if VJ.HasValue(self.NPCTbl_Combine,x:GetClass()) or VJ.HasValue(self.NPCTbl_Resistance,x:GetClass()) then
 					x:VJ_SetSchedule(SCHED_RUN_RANDOM)
 					x:SetEnemy(NULL)
 					x:ClearEnemyMemory()
@@ -3220,7 +3220,7 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 	end
 	local sndName = VJ.PICK(sndTbl)
-	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
 	end
@@ -3230,13 +3230,13 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
-	VJ_STOPSOUND(self.CurrentVoiceLine)
-	VJ_STOPSOUND(self.NuclearLoopFX)
-	VJ_STOPSOUND(self.SuicideStartFX)
-	VJ_STOPSOUND(self.SuicideFX)
+	VJ.STOPSOUND(self.CurrentVoiceLine)
+	VJ.STOPSOUND(self.NuclearLoopFX)
+	VJ.STOPSOUND(self.SuicideStartFX)
+	VJ.STOPSOUND(self.SuicideFX)
 	if self.DeleteSounds then
 		for _,v in pairs(self.DeleteSounds) do
-			VJ_STOPSOUND(v)
+			VJ.STOPSOUND(v)
 		end
 	end
 	if IsValid(self.FatalityEnt) then

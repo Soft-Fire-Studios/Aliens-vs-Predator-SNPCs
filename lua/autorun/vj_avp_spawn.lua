@@ -304,7 +304,6 @@ if VJExists == true then
 			local zPosition = origin.z
 			local entities = ents.FindInSphere(origin, radius)
 			local result = {}
-			local VJ_IsProp = VJ.IsProp
 
 			for _, ent in pairs(entities) do
 				if ent == self then continue end
@@ -1278,7 +1277,7 @@ if VJExists == true then
 							dmgInfo:SetDamagePosition(nearestPos)
 							local force = baseForce or math_clamp(dmgFinal, 5, 35)
 							local forceUp = extraOptions.UpForce or false
-							if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
+							if VJ_IsProp(v) or v:GetClass() == "prop_ragdoll" then
 								local phys = v:GetPhysicsObject()
 								if IsValid(phys) then
 									if forceUp == false then forceUp = force / 9.4 end

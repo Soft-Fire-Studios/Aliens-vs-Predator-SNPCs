@@ -124,10 +124,10 @@ function ENT:Breathe()
 	if CurTime() > (self.NextBreathT or 0) then
 		local snd = "cpthazama/avp/xeno/alien queen/alien_queen_breathe_in_0" .. math.random(1,3) .. ".ogg"
 		local sndB = "cpthazama/avp/xeno/alien queen/alien_queen_breathe_out_0" .. math.random(1,3) .. ".ogg"
-		VJ_CreateSound(self,snd,65,84)
+		VJ.CreateSound(self,snd,65,84)
 		timer.Simple(1.5,function()
 			if IsValid(self) then
-				VJ_CreateSound(self,sndB,65,84)
+				VJ.CreateSound(self,sndB,65,84)
 			end
 		end)
 		self.NextBreathT = CurTime() +2.8

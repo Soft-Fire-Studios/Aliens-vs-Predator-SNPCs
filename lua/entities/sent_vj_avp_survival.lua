@@ -122,10 +122,10 @@ if CLIENT then
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
 				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_IsControllingNPC) then
-					if !VJ_HasValue(VJ_AVP_HALOS.Survival,v) then
+					if !VJ.HasValue(VJ_AVP_HALOS.Survival,v) then
 						table_insert(VJ_AVP_HALOS.Survival,v)
 					end
-					-- if IsValid(v:GetActiveWeapon()) && !VJ_HasValue(VJ_AVP_HALOS.Survival,v:GetActiveWeapon()) then
+					-- if IsValid(v:GetActiveWeapon()) && !VJ.HasValue(VJ_AVP_HALOS.Survival,v:GetActiveWeapon()) then
 					-- 	table_insert(VJ_AVP_HALOS.Survival,v:GetActiveWeapon())
 					-- end
 				end
@@ -168,11 +168,11 @@ if CLIENT then
 				end
 				if specialRound then
 					if !ply.BossTrack or ply.BossTrack && ply.BossTrackT < CurTime() then
-						PlayTrack(ply,self:GetWave() >= 30 && queenTrack or VJ_PICK(self.BossTracks),2)
+						PlayTrack(ply,self:GetWave() >= 30 && queenTrack or VJ.PICK(self.BossTracks),2)
 					end
 				else
 					if !ply.MutatorTrack or ply.MutatorTrack && ply.MutatorTrackT < CurTime() then
-						PlayTrack(ply,VJ_PICK(self.Tracks),1)
+						PlayTrack(ply,VJ.PICK(self.Tracks),1)
 					end
 				end
 			else
@@ -225,7 +225,7 @@ function ENT:SpawnBot(count,respawn)
 	for i = 1,count do
 		timer.Simple(i *0.1,function()
 			if !IsValid(self) then return end
-			local pos = VJ_PICK(plys):GetPos()
+			local pos = VJ.PICK(plys):GetPos()
 			pos = pos +VectorRand() *math.Rand(0,1024)
 			local spawnPoint = VJ_Nodegraph:GetNearestNode(pos,2).pos
 			if spawnPoint == nil then
@@ -459,9 +459,9 @@ function ENT:Initialize()
 
 	hook.Add("OnNPCKilled",self,function(self,npc,attacker,inflictor)
 		if !IsValid(npc) then return end
-		if VJ_HasValue(self.Entities,npc) then
+		if VJ.HasValue(self.Entities,npc) then
 			table.RemoveByValue(self.Entities,npc)
-			if VJ_HasValue(self.Bosses,npc) then
+			if VJ.HasValue(self.Bosses,npc) then
 				self.BossKillsLeft = self.BossKillsLeft -1
 				table.RemoveByValue(self.Bosses,npc)
 			end
@@ -473,7 +473,7 @@ function ENT:Initialize()
 				self.HasKilledQueen = true
 			end
 			self:CheckNextRoundAvailability()
-		elseif VJ_HasValue(self.Bots,npc) then
+		elseif VJ.HasValue(self.Bots,npc) then
 			table.RemoveByValue(self.Bots,npc)
 			self.BotsToRespawn = self.BotsToRespawn +1
 		end
@@ -665,7 +665,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RespawnNPC(ent) // WHAT IS THIS USED FOR???????????????
 	if !IsValid(ent) then return end
-	if !VJ_HasValue(self.Entities,ent) then return end
+	if !VJ.HasValue(self.Entities,ent) then return end
 	local spawnPoint = self:FindSpawnPoint(1)
 	if spawnPoint == false then
 		return
@@ -768,7 +768,7 @@ function ENT:Think()
 				end
 			end
 		end
-		self:SetPos(VJ_PICK(player.GetAll()):GetPos())
+		self:SetPos(VJ.PICK(player.GetAll()):GetPos())
 		if self.KillsLeft <= 0 or totalNPCs >= self.KillsLeft or totalNPCs >= self.CurrentMaxNPCs or self:GetWaveSwitching() then
 			self.NextSpawnAttemptT = curTime + math.Rand(1,3)
 			return

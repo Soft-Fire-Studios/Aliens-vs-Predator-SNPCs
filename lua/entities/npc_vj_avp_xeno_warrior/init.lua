@@ -653,7 +653,7 @@ function ENT:CustomOnChangeActivity(act)
 	-- 	self.AnimationBehaviors[act](self)
 	-- end
 	if act == ACT_JUMP then
-		VJ_CreateSound(self,self.SoundTbl_Jump,76)
+		VJ.CreateSound(self,self.SoundTbl_Jump,76)
 	elseif act == ACT_SPRINT then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
 	end
@@ -1179,10 +1179,10 @@ local vecZ50 = Vector(0, 0, -50)
 -- 		end
 -- 		return true
 -- 	elseif status == "BeginEating" then
--- 		self.Cur_Idle = VJ_SequenceToActivity(self, "ai_eat_corpse")
+-- 		self.Cur_Idle = VJ.SequenceToActivity(self, "ai_eat_corpse")
 -- 		return select(2, self:PlayAnim("ai_eat_corpse_start", true, false))
 -- 	elseif status == "Eat" then
--- 		VJ_EmitSound(self, "cpthazama/avp/xeno/alien/special/flesh eat/flesh_eat_0"..math.random(1, 7)..".ogg", 65)
+-- 		VJ.EmitSound(self, "cpthazama/avp/xeno/alien/special/flesh eat/flesh_eat_0"..math.random(1, 7)..".ogg", 65)
 -- 		-- Health changes
 -- 		local food = self.EatingData.Ent
 -- 		local damage = 1 -- How much damage food will receive
@@ -1193,11 +1193,11 @@ local vecZ50 = Vector(0, 0, -50)
 -- 		local bloodData = food.BloodData
 -- 		if bloodData then
 -- 			local bloodPos = food:GetPos() + food:OBBCenter()
--- 			local bloodParticle = VJ_PICK(bloodData.Particle)
+-- 			local bloodParticle = VJ.PICK(bloodData.Particle)
 -- 			if bloodParticle then
 -- 				ParticleEffect(bloodParticle, bloodPos, self:GetAngles())
 -- 			end
--- 			local bloodDecal = VJ_PICK(bloodData.Decal)
+-- 			local bloodDecal = VJ.PICK(bloodData.Decal)
 -- 			if bloodDecal then
 -- 				local tr = util.TraceLine({start = bloodPos, endpos = bloodPos + vecZ50, filter = {food, self}})
 -- 				util.Decal(bloodDecal, tr.HitPos + tr.HitNormal + Vector(math.random(-45, 45), math.random(-45, 45), 0), tr.HitPos - tr.HitNormal, food)
@@ -2046,7 +2046,7 @@ end
 function ENT:Gibs()
 	local bloodeffect = EffectData()
 	bloodeffect:SetOrigin(self:GetPos() +self:OBBCenter())
-	bloodeffect:SetColor(VJ_Color2Byte(Color(255,221,35)))
+	bloodeffect:SetColor(VJ.Color2Byte(Color(255,221,35)))
 	bloodeffect:SetScale(300)
 	util.Effect("VJ_Blood1",bloodeffect)
 
@@ -2161,7 +2161,6 @@ function ENT:StalkingAI(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local VJ_HasValue = VJ.HasValue
 local debugUseSurfaceClimbing = false
 --
 function ENT:OnThinkActive()
@@ -2419,7 +2418,7 @@ function ENT:OnThinkActive()
 				self.SprintT = self.SprintT -0.25
 			end
 		end
-		self.IsUsingFaceAnimation = VJ_HasValue(self.FaceEnemyMovements,moveAct)
+		self.IsUsingFaceAnimation = VJ.HasValue(self.FaceEnemyMovements,moveAct)
 		if self.AlwaysStand && self.CanStand && self.CurrentSet == 1 then
 			self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
 			self.CurrentSet = 2
@@ -2978,11 +2977,11 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 	end
-	local sndName = VJ_PICK(sndTbl)
+	local sndName = VJ.PICK(sndTbl)
 	if self.BreathLoop then
 		self.BreathLoop:ChangeVolume(0.1)
 	end
-	local snd = VJ_CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
 	end
@@ -2993,11 +2992,11 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()
-	VJ_STOPSOUND(self.CurrentVoiceLine)
-	VJ_STOPSOUND(self.BreathLoop)
+	VJ.STOPSOUND(self.CurrentVoiceLine)
+	VJ.STOPSOUND(self.BreathLoop)
 	if self.DeleteSounds then
 		for _,v in pairs(self.DeleteSounds) do
-			VJ_STOPSOUND(v)
+			VJ.STOPSOUND(v)
 		end
 	end
 	if self.WhenRemoved then
