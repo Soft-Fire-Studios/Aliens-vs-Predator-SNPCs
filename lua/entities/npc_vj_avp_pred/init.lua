@@ -850,7 +850,7 @@ function ENT:Init()
 			-- if game.SinglePlayer() then
 			-- 	ply = Entity(1)
 			-- end
-			-- if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_npccontroller" then
+			-- if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_controller" then
 			-- 	local SpawnControllerObject = ents.Create("obj_vj_controller")
 			-- 	SpawnControllerObject.VJCE_Player = ply
 			-- 	SpawnControllerObject:SetControlledNPC(self)

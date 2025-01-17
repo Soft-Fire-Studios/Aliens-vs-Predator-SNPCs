@@ -13,7 +13,7 @@ ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Information		= "Projectile, usually used for NPCs & Weapons"
 ENT.Category		= "VJ Base"
 
-ENT.Spawnable = true
+ENT.Spawnable = false
 ENT.AdminOnly = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
