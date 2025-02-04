@@ -228,7 +228,7 @@ function ENT:OnThink2()
 		end
 		self.HasRangeAttack = false
 		self:SetMaxYawSpeed(2)
-		self:FaceCertainEntity(ent,true)
+		self:SetTurnTarget("Enemy")
 		local tr = util.TraceHull({
 			start = self:GetPos() +self:OBBCenter(),
 			endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *175,
