@@ -13,7 +13,7 @@ ENT.MovementType = VJ_MOVETYPE_STATIONARY
 ENT.CanTurnWhileStationary = false
 
 ENT.HasMeleeAttack = false
-ENT.HasAllies = false
+ENT.CanAlly = false
 ENT.DisableMakingSelfEnemyToNPCs = true
 ENT.DisableFindEnemy = true
 ENT.DisableWandering = true

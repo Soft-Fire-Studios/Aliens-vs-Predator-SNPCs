@@ -237,9 +237,9 @@ function ENT:OnThink2()
 			maxs = self:OBBMaxs() *0.85,
 		})
 		self:SetLastPosition(tr.HitPos +tr.HitNormal *300)
-		self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.NPC_FACE_ENEMY} end)
+		self:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x) x:EngTask("TASK_FACE_ENEMY", 0) x.FaceData = {Type = VJ.FACE_ENEMY} end)
 		if self:OnGround() then
-			self:SetVelocity(self:GetMovementVelocity() *1)
+			self:SetVelocity(VJ.GetMoveVelocity(self) *1)
 		end
 		if tr.Hit then
 			if tr.HitWorld then
@@ -408,7 +408,7 @@ function ENT:OnThink2()
 						end
 						v:SetLastPosition(node)
 						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
+							x.FaceData = {Type = VJ.FACE_ENEMY_VISIBLE}
 							x.CanShootWhenMoving = true
 						end)
 					end
@@ -435,7 +435,7 @@ function ENT:OnThink2()
 						end
 						v:SetLastPosition(node)
 						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-							x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
+							x.FaceData = {Type = VJ.FACE_ENEMY_VISIBLE}
 							x.CanShootWhenMoving = true
 						end)
 					end
@@ -466,7 +466,7 @@ function ENT:OnThink2()
 							end
 							v:SetLastPosition(node)
 							v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-								x.FaceData = {Type = VJ.NPC_FACE_ENEMY_VISIBLE}
+								x.FaceData = {Type = VJ.FACE_ENEMY_VISIBLE}
 								x.CanShootWhenMoving = true
 							end)
 						end

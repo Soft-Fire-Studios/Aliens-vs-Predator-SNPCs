@@ -389,7 +389,7 @@ ENT.HitGroups = {
 				self:SetHealth(0)
 				self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
 				self:StopAttacks(true)
-				self.CurrentAttackAnimationTime = 0	
+				self.AttackAnimTime = 0	
 				self:StopMoving()
 				self:CapabilitiesRemove(CAP_MOVE_JUMP)
 			end
@@ -407,7 +407,7 @@ ENT.HitGroups = {
 				self:SetHealth(0)
 				self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
 				self:StopAttacks(true)
-				self.CurrentAttackAnimationTime = 0	
+				self.AttackAnimTime = 0	
 				self:StopMoving()
 				self:CapabilitiesRemove(CAP_MOVE_JUMP)
 			end
@@ -422,7 +422,7 @@ ENT.HitGroups = {
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.LeftLeg = true
 			self:StopAttacks(true)
-			self.CurrentAttackAnimationTime = 0	
+			self.AttackAnimTime = 0	
 			self:StopMoving()
 			self:CapabilitiesRemove(CAP_MOVE_JUMP)
 		end,
@@ -436,7 +436,7 @@ ENT.HitGroups = {
 			self.Gibbed = self.Gibbed or {}
 			self.Gibbed.RightLeg = true
 			self:StopAttacks(true)
-			self.CurrentAttackAnimationTime = 0	
+			self.AttackAnimTime = 0	
 			self:StopMoving()
 			self:CapabilitiesRemove(CAP_MOVE_JUMP)
 		end,
@@ -738,14 +738,14 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	
 			-- Weapon attack
 			if npc.IsVJBaseSNPC_Human == true then
-				if IsValid(npcWeapon) && !npc:IsMoving() && npcWeapon.IsVJBaseWeapon == true && ply:KeyDown(IN_ATTACK2) && npc.AttackType == VJ.ATTACK_TYPE_NONE && npc.PauseAttacks == false && npc:GetWeaponState() == VJ.NPC_WEP_STATE_READY then
+				if IsValid(npcWeapon) && !npc:IsMoving() && npcWeapon.IsVJBaseWeapon == true && ply:KeyDown(IN_ATTACK2) && npc.AttackType == VJ.ATTACK_TYPE_NONE && npc.PauseAttacks == false && npc:GetWeaponState() == VJ.WEP_STATE_READY then
 					//npc:SetAngles(Angle(0,math.ApproachAngle(npc:GetAngles().y,ply:GetAimVector():Angle().y,100),0))
 					npc:SetTurnTarget(bullseyePos, 0.2)
 					canTurn = false
-					if VJ.IsCurrentAnimation(npc, npc:TranslateActivity(npc.CurrentWeaponAnimation)) == false && VJ.IsCurrentAnimation(npc, npc.AnimTbl_WeaponAttack) == false then
+					if VJ.IsCurrentAnim(npc, npc:TranslateActivity(npc.WeaponAttackAnim)) == false && VJ.IsCurrentAnim(npc, npc.AnimTbl_WeaponAttack) == false then
 						npc:OnWeaponAttack()
-						npc.CurrentWeaponAnimation = VJ.PICK(npc.AnimTbl_WeaponAttack)
-						npc:PlayAnim(npc.CurrentWeaponAnimation, false, 2, false)
+						npc.WeaponAttackAnim = VJ.PICK(npc.AnimTbl_WeaponAttack)
+						npc:PlayAnim(npc.WeaponAttackAnim, false, 2, false)
 						npc.DoingWeaponAttack = true
 						npc.DoingWeaponAttack_Standing = true
 					end
@@ -756,9 +756,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				end
 			end
 			
-			if npc.CurrentAttackAnimationTime < CurTime() && curTime > npc.NextChaseTime && npc.IsVJBaseSNPC_Tank != true then
+			if npc.AttackAnimTime < CurTime() && curTime > npc.NextChaseTime && npc.IsVJBaseSNPC_Tank != true then
 				-- Turning
-				if !npc:IsMoving() && canTurn && npc.MovementType != VJ_MOVETYPE_PHYSICS && ((npc.IsVJBaseSNPC_Human && npc:GetWeaponState() != VJ.NPC_WEP_STATE_RELOADING) or (!npc.IsVJBaseSNPC_Human)) then
+				if !npc:IsMoving() && canTurn && npc.MovementType != VJ_MOVETYPE_PHYSICS && ((npc.IsVJBaseSNPC_Human && npc:GetWeaponState() != VJ.WEP_STATE_RELOADING) or (!npc.IsVJBaseSNPC_Human)) then
 					npc:SCHEDULE_IDLE_STAND()
 					if self.VJC_NPC_CanTurn == true then
 						local turnData = npc.TurnData
@@ -954,8 +954,6 @@ function ENT:CheckRelationship(ent)
 	if ent:Health() > 0 && self:Disposition(ent) != D_LI then
 		local isPly = ent:IsPlayer()
 		if isPly && VJ_CVAR_IGNOREPLAYERS then return D_NU end
-		if VJ.HasValue(self.VJ_AddCertainEntityAsFriendly, ent) then return D_LI end
-		if VJ.HasValue(self.VJ_AddCertainEntityAsEnemy, ent) then return D_HT end
 		local entDisp = ent.Disposition and ent:Disposition(self)
 		if !self.SpawnedUsingMutator && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.075 then
 			return D_NU
@@ -1704,7 +1702,7 @@ function ENT:CustomAttack(ent,visible)
 				self:SetLastPosition(moveCheck)
 				self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH",function(x)
 					x:EngTask("TASK_FACE_ENEMY",0)
-					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+					x.FaceData = {Type = VJ.FACE_ENEMY}
 				end)
 				self.MoveAroundRandomlyT = curTime +self:GetPathTimeToGoal() +math.Rand(1,2.5)
 				self.NextMoveRandomlyT = self.MoveAroundRandomlyT +math.random(3,8)
@@ -1727,7 +1725,7 @@ function ENT:RangeAttackProjSpawnPos(projectile)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRangeAttack_AfterStartTimer()
-	if self.LastAnimationType == VJ.ANIM_TYPE_GESTURE then
+	if self.LastAnimType == VJ.ANIM_TYPE_GESTURE then
 		self.NextChaseTime = 0
 	end
 end
@@ -2156,7 +2154,7 @@ function ENT:StalkingAI(ent)
 		self.StalkingAITime = CurTime() +2
 		-- self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH",function(x)
 		-- 	x:EngTask("TASK_FACE_ENEMY",0)
-		-- 	x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+		-- 	x.FaceData = {Type = VJ.FACE_ENEMY}
 		-- end)
 	end
 end
@@ -2549,7 +2547,7 @@ function ENT:OnThinkActive()
 		end
 	end
 	if IsValid(ent) then
-		self.LastEnemyDistance = self:GetNearestDistance(ent)
+		self.LastEnemyDistance = VJ.GetNearestDistance(self, ent)
 	end
 
 	if (IsValid(self.VJ_TheController) or !IsValid(self.VJ_TheController) && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
@@ -2964,7 +2962,7 @@ function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 	return true, {AllowSound = false}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnPlayCreateSound(sdData, sdFile)
+function ENT:OnCreateSound(sdData, sdFile)
 	if self.BreathLoop then
 		self.BreathLoop:ChangeVolume(0.1)
 		self.CurrentVoiceLineTime = CurTime() +SoundDuration(sdFile) *1.5
@@ -3116,11 +3114,11 @@ function ENT:StartMovement(cont, Dir, Rot)
 		self:SetLastPosition(finalPos)
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
-				x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+				x.FaceData = {Type = VJ.FACE_ENEMY}
 				x.CanShootWhenMoving = true
 			else
 				if cont.VJC_BullseyeTracking then
-					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+					x.FaceData = {Type = VJ.FACE_ENEMY}
 				else
 					x:EngTask("TASK_FACE_LASTPOSITION", 0)
 				end
@@ -3258,16 +3256,16 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	
 	local animType = ((isGesture and ANIM_TYPE_GESTURE) or isSequence and ANIM_TYPE_SEQUENCE) or ANIM_TYPE_ACTIVITY -- Find the animation type
 	local seed = CurTime() -- Seed the current animation, used for animation delaying & on complete check
-	self.LastAnimationType = animType
-	self.LastAnimationSeed = seed
+	self.LastAnimType = animType
+	self.LastAnimSeed = seed
 	
 	local function PlayAct()
-		local originalPlaybackRate = self.TruePlaybackRate
+		local originalPlaybackRate = self.AnimPlaybackRate
 		local customPlaybackRate = extraOptions.PlayBackRate
 		local playbackRate = customPlaybackRate or originalPlaybackRate
-		self:SetPlaybackRate(playbackRate) -- Call this to change "self.TruePlaybackRate" so "DecideAnimationLength" can be calculated correctly
+		self:SetPlaybackRate(playbackRate) -- Call this to change "self.AnimPlaybackRate" so "DecideAnimationLength" can be calculated correctly
 		local animTime = self:DecideAnimationLength(animation, false)
-		self.TruePlaybackRate = originalPlaybackRate -- Change it back to the true rate
+		self.AnimPlaybackRate = originalPlaybackRate -- Change it back to the true rate
 		local doRealAnimTime = true -- Only for activities, recalculate the animTime after the schedule starts to get the real sequence time, if `lockAnimTime` is NOT set!
 		
 		if lockAnim then
@@ -3292,7 +3290,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
-		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
+		self.LastAnimSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
 		
 		if isGesture then
 			-- If it's an activity gesture AND it's already playing it, then remove it! Fixes same activity gestures bugging out when played right after each other!
@@ -3386,7 +3384,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 		if (extraOptions.OnFinish) then
 			timer.Simple(animTime, function()
 				if IsValid(self) && !self.Dead then
-					extraOptions.OnFinish(self.LastAnimationSeed != seed, animation)
+					extraOptions.OnFinish(self.LastAnimSeed != seed, animation)
 				end
 			end)
 		end
@@ -3396,7 +3394,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	-- For delay system
 	if animDelay > 0 then
 		timer.Simple(animDelay, function()
-			if IsValid(self) && self.LastAnimationSeed == seed then
+			if IsValid(self) && self.LastAnimSeed == seed then
 				PlayAct()
 			end
 		end)

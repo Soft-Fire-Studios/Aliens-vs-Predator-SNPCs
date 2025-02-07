@@ -74,7 +74,7 @@ function ENT:OnInit()
 					self:SetHealth(0)
 					self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
 					self:StopAttacks(true)
-					self.CurrentAttackAnimationTime = 0	
+					self.AttackAnimTime = 0	
 					self:StopMoving()
 					self:CapabilitiesRemove(CAP_MOVE_JUMP)
 				end
@@ -91,7 +91,7 @@ function ENT:OnInit()
 					self:SetHealth(0)
 					self:TakeDamage(100,dmginfo:GetAttacker(),dmginfo:GetInflictor())
 					self:StopAttacks(true)
-					self.CurrentAttackAnimationTime = 0	
+					self.AttackAnimTime = 0	
 					self:StopMoving()
 					self:CapabilitiesRemove(CAP_MOVE_JUMP)
 				end
@@ -105,7 +105,7 @@ function ENT:OnInit()
 				self.Gibbed = self.Gibbed or {}
 				self.Gibbed.LeftLeg = true
 				self:StopAttacks(true)
-				self.CurrentAttackAnimationTime = 0	
+				self.AttackAnimTime = 0	
 				self:StopMoving()
 				self:CapabilitiesRemove(CAP_MOVE_JUMP)
 			end,
@@ -118,7 +118,7 @@ function ENT:OnInit()
 				self.Gibbed = self.Gibbed or {}
 				self.Gibbed.RightLeg = true
 				self:StopAttacks(true)
-				self.CurrentAttackAnimationTime = 0	
+				self.AttackAnimTime = 0	
 				self:StopMoving()
 				self:CapabilitiesRemove(CAP_MOVE_JUMP)
 			end,

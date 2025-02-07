@@ -80,7 +80,7 @@ local IsProp = VJ.IsProp
 function SWEP:OnShoot()
 	local owner = self:GetOwner()
 	sound.EmitHint(SOUND_DANGER, owner:GetPos() +owner:GetAimVector() *(self.Primary.AccurateRange /2), self.Primary.AccurateRange *2, 0.2, owner)
-	VJ.ApplyRadiusDamage(owner,self,(owner:GetPos() +(self:GetForward() *owner:OBBMaxs().y)),self.Primary.AccurateRange,self.Primary.Damage,DMG_BURN,true,false,{UseCone=true,UseConeDegree=self.Primary.Cone,UseConeDirection=owner:GetAimVector()}, function(ent) if !ent:IsOnFire() && (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() or IsProp(ent)) then ent:Ignite(10) end end)
+	VJ.ApplyRadiusDamage(owner,self,(owner:GetPos() +(self:GetForward() *owner:OBBMaxs().y)),self.Primary.AccurateRange,self.Primary.Damage,DMG_BURN,true,false,{UseConeDegree=self.Primary.Cone,UseConeDirection=owner:GetAimVector()}, function(ent) if !ent:IsOnFire() && (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() or IsProp(ent)) then ent:Ignite(10) end end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:AddVars()

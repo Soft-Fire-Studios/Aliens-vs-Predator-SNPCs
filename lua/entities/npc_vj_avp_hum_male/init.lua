@@ -731,7 +731,7 @@ function ENT:MarineInitialize(gender)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAlert(ent)
-	if #self.SoundTbl_Surprised > 0 && self:GetNearestDistance(ent,true) <= 250 then
+	if #self.SoundTbl_Surprised > 0 && VJ.GetNearestDistance(self, ent, true) <= 250 then
 		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
 		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
 		return
@@ -1044,7 +1044,7 @@ function ENT:TranslateActivity(act)
 	if act == ACT_IDLE then
 		if self.Weapon_UnarmedBehavior_Active == true then
 			return ACT_COWER
-		elseif self.Alerted && self:GetWeaponState() != VJ.NPC_WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
+		elseif self.Alerted && self:GetWeaponState() != VJ.WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
 			return ACT_IDLE_ANGRY
 		end
 	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active == true && !self.VJ_IsBeingControlled then
@@ -1533,11 +1533,11 @@ function ENT:StartMovement(cont, Dir, Rot)
 		self:SetLastPosition(finalPos)
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
-				x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+				x.FaceData = {Type = VJ.FACE_ENEMY}
 				x.CanShootWhenMoving = true
 			else
 				if cont.VJC_BullseyeTracking then
-					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+					x.FaceData = {Type = VJ.FACE_ENEMY}
 				else
 					x:EngTask("TASK_FACE_LASTPOSITION", 0)
 				end
@@ -1634,16 +1634,16 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	
 	local animType = ((isGesture and ANIM_TYPE_GESTURE) or isSequence and ANIM_TYPE_SEQUENCE) or ANIM_TYPE_ACTIVITY -- Find the animation type
 	local seed = CurTime() -- Seed the current animation, used for animation delaying & on complete check
-	self.LastAnimationType = animType
-	self.LastAnimationSeed = seed
+	self.LastAnimType = animType
+	self.LastAnimSeed = seed
 	
 	local function PlayAct()
-		local originalPlaybackRate = self.TruePlaybackRate
+		local originalPlaybackRate = self.AnimPlaybackRate
 		local customPlaybackRate = extraOptions.PlayBackRate
 		local playbackRate = customPlaybackRate or originalPlaybackRate
-		self:SetPlaybackRate(playbackRate) -- Call this to change "self.TruePlaybackRate" so "DecideAnimationLength" can be calculated correctly
+		self:SetPlaybackRate(playbackRate) -- Call this to change "self.AnimPlaybackRate" so "DecideAnimationLength" can be calculated correctly
 		local animTime = self:DecideAnimationLength(animation, false)
-		self.TruePlaybackRate = originalPlaybackRate -- Change it back to the true rate
+		self.AnimPlaybackRate = originalPlaybackRate -- Change it back to the true rate
 		local doRealAnimTime = true -- Only for activities, recalculate the animTime after the schedule starts to get the real sequence time, if `lockAnimTime` is NOT set!
 		
 		if lockAnim then
@@ -1668,7 +1668,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
-		self.LastAnimationSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
+		self.LastAnimSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
 		
 		if isGesture then
 			-- If it's an activity gesture AND it's already playing it, then remove it! Fixes same activity gestures bugging out when played right after each other!
@@ -1762,7 +1762,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 		if (extraOptions.OnFinish) then
 			timer.Simple(animTime, function()
 				if IsValid(self) && !self.Dead then
-					extraOptions.OnFinish(self.LastAnimationSeed != seed, animation)
+					extraOptions.OnFinish(self.LastAnimSeed != seed, animation)
 				end
 			end)
 		end
@@ -1772,7 +1772,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	-- For delay system
 	if animDelay > 0 then
 		timer.Simple(animDelay, function()
-			if IsValid(self) && self.LastAnimationSeed == seed then
+			if IsValid(self) && self.LastAnimSeed == seed then
 				PlayAct()
 			end
 		end)

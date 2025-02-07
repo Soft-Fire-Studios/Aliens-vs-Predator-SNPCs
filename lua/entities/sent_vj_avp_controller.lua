@@ -88,7 +88,7 @@ function ENT:Think()
 				v:SetLastPosition(self:GetPos() +self:GetForward() *35)
 				v:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH", function(x)
 					x.CanShootWhenMoving = true
-					x.FaceData = {Type = VJ.NPC_FACE_ENEMY}
+					x.FaceData = {Type = VJ.FACE_ENEMY}
 					x.RunCode_OnFinish = function()
 						timer.Simple(0.01, function()
 							if IsValid(self) && IsValid(v) && IsValid(linkedObj) && v:BusyWithActivity() == false then

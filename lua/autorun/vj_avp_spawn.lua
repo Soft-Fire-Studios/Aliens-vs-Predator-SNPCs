@@ -1249,9 +1249,9 @@ if VJExists == true then
 				local baseForce = extraOptions.Force or false
 			local dmgFinal = dmgMax
 			local hitEnts = {}
-			for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and VJ.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, extraOptions.UseConeDegree or 90, {AllEntities=true})) or ents.FindInSphere(startPos, dmgRadius)) do
+			for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and ents.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, math.cos(math.rad(extraOptions.UseConeDegree or 90)))) or ents.FindInSphere(startPos, dmgRadius)) do
 				if (v.IsVJBaseBullseye && v.VJ_IsBeingControlled) or v.VJ_IsControllingNPC then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
-				local nearestPos = startPos == attacker:GetPos() && attacker:GetNearestPositions(v) or v:NearestPoint(startPos) -- From the enemy position to the given position
+				local nearestPos = startPos == attacker:GetPos() && VJ.GetNearestPositions(attacker, v) or v:NearestPoint(startPos) -- From the enemy position to the given position
 				-- local nearestPos = v:NearestPoint(startPos) -- From the enemy position to the given position
 				if realisticRadius != false then -- Decrease damage from the nearest point all the way to the enemy point then clamp it!
 					dmgFinal = math_clamp(dmgFinal * ((dmgRadius - startPos:Distance(nearestPos)) + 150) / dmgRadius, dmgMax / 2, dmgFinal)

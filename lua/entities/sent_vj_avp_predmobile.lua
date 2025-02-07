@@ -51,7 +51,7 @@ function ENT:Think()
 	self:NextThink(CurTime())
 
 	if IsValid(self:GetOwner()) && !self.Init then
-		table.insert(self:GetOwner().VJ_AddCertainEntityAsFriendly, self)
+		self:GetOwner():SetRelationshipMemory(self, VJ.MEM_OVERRIDE_DISPOSITION, D_LI)
 		self.Init = true
 	end
 	return true
