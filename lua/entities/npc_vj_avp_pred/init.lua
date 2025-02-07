@@ -497,8 +497,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			local schedule = vj_ai_schedule.New("PlayAnim_"..animation)
 			
 			-- For humans NPCs, internally the base will set these variables back to true after this function if it's called by weapon attack animations!
-			self.DoingWeaponAttack = false
-			self.DoingWeaponAttack_Standing = false
+			self.WeaponAttackState = VJ.WEP_ATTACK_STATE_NONE
 			
 			//self:StartEngineTask(ai.GetTaskID("TASK_RESET_ACTIVITY"), 0) //schedule:EngTask("TASK_RESET_ACTIVITY", 0)
 			//if self.Dead then schedule:EngTask("TASK_STOP_MOVING", 0) end
@@ -688,13 +687,11 @@ function ENT:Controller_Initialize(ply,controlEnt)
 						npc:OnWeaponAttack()
 						npc.WeaponAttackAnim = VJ.PICK(npc.AnimTbl_WeaponAttack)
 						npc:PlayAnim(npc.WeaponAttackAnim, false, 2, false)
-						npc.DoingWeaponAttack = true
-						npc.DoingWeaponAttack_Standing = true
+						npc.WeaponAttackState = VJ.WEP_ATTACK_STATE_FIRE_STAND
 					end
 				end
 				if !ply:KeyDown(IN_ATTACK2) then
-					npc.DoingWeaponAttack = false
-					npc.DoingWeaponAttack_Standing = false
+					npc.WeaponAttackState = VJ.WEP_ATTACK_STATE_NONE
 				end
 			end
 			

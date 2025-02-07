@@ -1053,8 +1053,11 @@ function ENT:TranslateActivity(act)
 		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then
-				self.DoingWeaponAttack = true
-				self.DoingWeaponAttack_Standing = false
+				if self.EnemyData.IsVisible then
+					self.WeaponAttackState = VJ.WEP_ATTACK_STATE_FIRE
+				else -- Not visible but keep aiming
+					self.WeaponAttackState = VJ.WEP_ATTACK_STATE_AIM_MOVE
+				end
 				return anim
 			end
 		end
@@ -1687,8 +1690,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			local schedule = vj_ai_schedule.New("PlayAnim_"..animation)
 			
 			-- For humans NPCs, internally the base will set these variables back to true after this function if it's called by weapon attack animations!
-			self.DoingWeaponAttack = false
-			self.DoingWeaponAttack_Standing = false
+			self.WeaponAttackState = VJ.WEP_ATTACK_STATE_NONE
 			
 			//self:StartEngineTask(ai.GetTaskID("TASK_RESET_ACTIVITY"), 0) //schedule:EngTask("TASK_RESET_ACTIVITY", 0)
 			//if self.Dead then schedule:EngTask("TASK_STOP_MOVING", 0) end
