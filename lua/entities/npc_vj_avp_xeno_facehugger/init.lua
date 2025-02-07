@@ -54,6 +54,11 @@ ENT.SoundTbl_Idle = {
 	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal3.ogg",
 	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal4.ogg",
 	"cpthazama/avp/xeno/facehugger/vocals/fhg_idle_vocal5.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_1.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_2.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_3.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_4.ogg",
+	"cpthazama/avp/xeno/facehugger/foley/fhg_tailwhip_5.ogg",
 }
 ENT.SoundTbl_Alert = {
 	"cpthazama/avp/xeno/facehugger/idle_0.wav",
@@ -131,6 +136,72 @@ function ENT:CustomOnInitialize()
 			table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
 		end
 	end
+
+	hook.Add("PlayerButtonDown", self, function(self, ply, button)
+		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+			local cent = ply.VJ_TheControllerEntity
+            if cent.VJCE_NPC == self then
+                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            end
+        end
+    end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnKeyPressed(ply,key)
+	if key == KEY_SPACE && !self:IsBusy() then
+		local ply = self.VJ_TheController
+		if self:GetNavType() != NAV_GROUND then return end
+
+		local moving = self:IsMoving()
+		local moveDir, moveAng = self:GetMovementDirection()
+		local ang = ply:EyeAngles()
+		ang:RotateAroundAxis(ang:Up(), moveAng.y)
+		self:SetGroundEntity(NULL)
+		self:StopCurrentSchedule()
+		local jumpPos
+		if moving then
+			jumpPos = self:GetPos() +ang:Forward() *1 +ang:Up() *1
+		else
+			jumpPos = self:GetPos() +ang:Up() *1
+		end
+		local trajectory = VJ.CalculateTrajectory(self,nil,"CurveOld",self:GetPos(),jumpPos,moving && 400 or 350)
+		self:ForceMoveJump(trajectory)
+		self:StopAllSounds()
+		VJ.CreateSound(self,self.SoundTbl_BeforeMeleeAttack,70)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetMovementDirection()
+	local ply = self.VJ_TheController
+	if !IsValid(ply) then return end
+
+	local key_forward = ply:KeyDown(IN_FORWARD)
+	local key_back = ply:KeyDown(IN_BACK)
+	local key_left = ply:KeyDown(IN_MOVELEFT)
+	local key_right = ply:KeyDown(IN_MOVERIGHT)
+
+	local rot = Angle()
+	if key_forward then
+		if key_left then
+			rot = Angle(0,45,0)
+		elseif key_right then
+			rot = Angle(0,-45,0)
+		end
+	elseif key_back then
+		if key_left then
+			rot = Angle(0,135,0)
+		elseif key_right then
+			rot = Angle(0,-135,0)
+		else
+			rot = Angle(0,180,0)
+		end
+	elseif key_left then
+		rot = Angle(0,90,0)
+	elseif key_right then
+		rot = Angle(0,-90,0)
+	end
+
+	return rot:Forward(), rot
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInput(key,activator,caller,data)

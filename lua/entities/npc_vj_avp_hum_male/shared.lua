@@ -207,7 +207,7 @@ if CLIENT then
 	hook.Add("HUDPaint","VJ_AVP_Marine_HUD",function()
 		local ply = LocalPlayer()
 		local ent
-		if ply.VJ_IsControllingNPC == true then
+		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) then
 			local npc = ply.VJCE_NPC
 			if npc.VJ_AVP_Marine && !npc.VJ_AVP_Civilian then
 				ent = npc

@@ -943,7 +943,59 @@ function ENT:OnKeyPressed(ply,key)
 			return
 		end
 		self:ToggleFlashlight(!self.FlashlightStatus)
+	elseif key == KEY_SPACE && !self:IsBusy() then
+		local ply = self.VJ_TheController
+		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
+
+		local moving = self:IsMoving()
+		local moveDir, moveAng = self:GetMovementDirection()
+		local ang = ply:EyeAngles()
+		ang:RotateAroundAxis(ang:Up(), moveAng.y)
+		self:SetGroundEntity(NULL)
+		self:StopCurrentSchedule()
+		local jumpPos
+		if moving then
+			jumpPos = self:GetPos() +ang:Forward() *1 +ang:Up() *1
+		else
+			jumpPos = self:GetPos() +ang:Up() *1
+		end
+		local trajectory = VJ.CalculateTrajectory(self,nil,"CurveOld",self:GetPos(),jumpPos,moving && 300 or 250)
+		self:ForceMoveJump(trajectory)
+		self:StopAllSounds()
     end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetMovementDirection()
+	local ply = self.VJ_TheController
+	if !IsValid(ply) then return end
+
+	local key_forward = ply:KeyDown(IN_FORWARD)
+	local key_back = ply:KeyDown(IN_BACK)
+	local key_left = ply:KeyDown(IN_MOVELEFT)
+	local key_right = ply:KeyDown(IN_MOVERIGHT)
+
+	local rot = Angle()
+	if key_forward then
+		if key_left then
+			rot = Angle(0,45,0)
+		elseif key_right then
+			rot = Angle(0,-45,0)
+		end
+	elseif key_back then
+		if key_left then
+			rot = Angle(0,135,0)
+		elseif key_right then
+			rot = Angle(0,-135,0)
+		else
+			rot = Angle(0,180,0)
+		end
+	elseif key_left then
+		rot = Angle(0,90,0)
+	elseif key_right then
+		rot = Angle(0,-90,0)
+	end
+
+	return rot:Forward(), rot
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()

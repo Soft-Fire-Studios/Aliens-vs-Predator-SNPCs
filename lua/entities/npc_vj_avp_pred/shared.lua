@@ -266,6 +266,7 @@ if CLIENT then
 				ent.Mat_cloakfactor = ply.VJCE_NPC.Mat_cloakfactor
 				ent.CloakColorTint = ply.VJCE_NPC.CloakColorTint
 			end
+			-- print(ent.Mat_cloakfactor,ent)
 			mat:SetVector("$cloakcolortint",self.CloakColorTint)
 			mat:SetFloat(self.Result,ent.Mat_cloakfactor)
 

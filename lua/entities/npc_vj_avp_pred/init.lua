@@ -622,7 +622,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(npc)
 			net.WriteEntity(ply)
 		net.Send(ply)
-		npc.JumpVars.Enabled = true
+		if IsValid(npc) then
+			npc.JumpVars.Enabled = true
+		end
 	end
 
 	function controlEnt:Think()

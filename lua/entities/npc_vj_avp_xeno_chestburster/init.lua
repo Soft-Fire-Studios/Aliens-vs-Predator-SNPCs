@@ -133,6 +133,37 @@ function ENT:CustomOnInitialize()
 			table_insert(self.VJ_NPC_Class,"CLASS_WEYLAND_YUTANI")
 		end
 	end
+
+	hook.Add("PlayerButtonDown", self, function(self, ply, button)
+		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
+			local cent = ply.VJ_TheControllerEntity
+            if cent.VJCE_NPC == self then
+                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            end
+        end
+    end)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnKeyPressed(ply,key)
+	if key == KEY_SPACE && !self:IsBusy() then
+		local ply = self.VJ_TheController
+		if self:GetNavType() != NAV_GROUND then return end
+
+		local moving = self:IsMoving()
+		local moveDir, moveAng = self:GetMovementDirection()
+		local ang = ply:EyeAngles()
+		ang:RotateAroundAxis(ang:Up(), moveAng.y)
+		self:SetGroundEntity(NULL)
+		self:StopCurrentSchedule()
+		local jumpPos
+		if moving then
+			jumpPos = self:GetPos() +ang:Forward() *1 +ang:Up() *1
+		else
+			jumpPos = self:GetPos() +ang:Up() *1
+		end
+		local trajectory = VJ.CalculateTrajectory(self,nil,"CurveOld",self:GetPos(),jumpPos,moving && 400 or 350)
+		self:ForceMoveJump(trajectory)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInput(key,activator,caller,data)
