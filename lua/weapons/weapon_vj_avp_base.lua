@@ -158,8 +158,8 @@ function SWEP:PlayViewAnimation(anim,viewPunch)
 	local owner = self:GetOwner()
 	local animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 	self:SendWeaponAnim(anim)
-	self.NextIdleT = CurTime() + animTime
-	self.NextReloadT = CurTime() + animTime
+	self.PLY_NextIdleAnimT = CurTime() + animTime
+	self.PLY_NextReloadT = CurTime() + animTime
 	if viewPunch then
 		self:DoViewPunch(viewPunch)
 	end
@@ -298,7 +298,7 @@ function SWEP:OnThink()
 			self.AppliedMovementAnimation = false
 			self.AnimTbl_Idle = {ACT_VM_MISSCENTER2}
 			if !self:IsBusy() then
-				self.NextIdleT = 0
+				self.PLY_NextIdleAnimT = 0
 			end
 			self.SprintDelayT = CurTime() +(SPRINT_TIME *0.7)
 			if self:GetZoomed() == true then
@@ -318,7 +318,7 @@ function SWEP:OnThink()
 				self.AnimTbl_Idle = {ACT_VM_IDLE}
 			end
 			if !self:IsBusy() then
-				self.NextIdleT = 0
+				self.PLY_NextIdleAnimT = 0
 			end
 			self.SprintDelayT = CurTime() +(SPRINT_TIME *0.7)
 		end
@@ -328,7 +328,7 @@ function SWEP:OnThink()
 				self.AppliedMovementAnimation = true
 				self.AnimTbl_Idle = {ACT_VM_MISSCENTER}
 				if !self:IsBusy() then
-					self.NextIdleT = 0
+					self.PLY_NextIdleAnimT = 0
 				end
 			end
 			if vm:GetSequenceActivity(vm:GetSequence()) == ACT_VM_MISSCENTER then
@@ -341,7 +341,7 @@ function SWEP:OnThink()
 				self.AppliedMovementAnimation = false
 				self.AnimTbl_Idle = {ACT_VM_IDLE}
 				if !self:IsBusy() then
-					self.NextIdleT = 0
+					self.PLY_NextIdleAnimT = 0
 				end
 			end
 			vm:SetPlaybackRate(1)
@@ -460,8 +460,8 @@ function SWEP:MeleeAttack(owner)
 	local animTime = VJ.AnimDuration(owner:GetViewModel(),anim)
 	self:SendWeaponAnim(anim)
 	self:PlayPlayerAnimation(ACT_GMOD_GESTURE_MELEE_SHOVE_2HAND)
-	self.NextIdleT = CurTime() +animTime
-	self.NextReloadT = CurTime() +animTime
+	self.PLY_NextIdleAnimT = CurTime() +animTime
+	self.PLY_NextReloadT = CurTime() +animTime
 
 	if SERVER then
 		timer.Simple(0.1,function()
@@ -534,8 +534,8 @@ function SWEP:ThrowFlare(owner)
 		animTime = VJ.AnimDuration(owner:GetViewModel(),anim)
 		self:SendWeaponAnim(anim)
 		self:PlayPlayerAnimation(ACT_GMOD_GESTURE_ITEM_THROW)
-		self.NextIdleT = CurTime() +animTime
-		self.NextReloadT = CurTime() +animTime
+		self.PLY_NextIdleAnimT = CurTime() +animTime
+		self.PLY_NextReloadT = CurTime() +animTime
 	end
 	timer.Simple(0.3,function()
 		if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
@@ -577,8 +577,8 @@ function SWEP:SecondaryAttack()
 	if anim then
 		animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 		self:SendWeaponAnim(anim)
-		self.NextIdleT = CurTime() + animTime
-		self.NextReloadT = CurTime() + animTime
+		self.PLY_NextIdleAnimT = CurTime() + animTime
+		self.PLY_NextReloadT = CurTime() + animTime
 	end
 	
 	self:SetNextSecondaryFire(CurTime() +(self.Secondary.Delay == false && animTime or self.Secondary.Delay))
@@ -596,7 +596,7 @@ function SWEP:Reload()
 	if !IsValid(self) then return end
 	local owner = self:GetOwner()
 	if self:CanReload() == false then return end
-	if !IsValid(owner) or !owner:IsPlayer() or !owner:Alive() or owner:GetAmmoCount(self.Primary.Ammo) == 0 or self.Reloading or CurTime() < self.NextReloadT then return end // or !owner:KeyDown(IN_RELOAD)
+	if !IsValid(owner) or !owner:IsPlayer() or !owner:Alive() or owner:GetAmmoCount(self.Primary.Ammo) == 0 or self.Reloading or CurTime() < self.PLY_NextReloadT then return end // or !owner:KeyDown(IN_RELOAD)
 	if self:Clip1() < self.Primary.ClipSize then
 		self.Reloading = true
 		self:OnReload("Start")
@@ -614,7 +614,7 @@ function SWEP:Reload()
 		local anim = VJ.PICK(self.AnimTbl_Reload)
 		local animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 		self:SendWeaponAnim(anim)
-		self.NextIdleT = CurTime() + animTime
+		self.PLY_NextIdleAnimT = CurTime() + animTime
 		timer.Simple(animTime, function()
 			if IsValid(self) then
 				self.Reloading = false

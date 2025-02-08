@@ -37,7 +37,7 @@ end
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
-	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
+	return self.BaseClass.IsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ResetFatality()

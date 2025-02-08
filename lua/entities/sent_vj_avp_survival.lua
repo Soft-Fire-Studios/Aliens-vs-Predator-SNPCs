@@ -286,7 +286,6 @@ function ENT:SpawnBot(count,respawn)
 					bot:Spawn()
 					bot:Activate()
 					bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-					bot.PlayerFriendly = true
 					bot.FriendsWithAllPlayerAllies = true
 					bot:SetNW2Int("AVP_Score",0)
 					self:DeleteOnRemove(bot)
@@ -391,7 +390,6 @@ function ENT:Initialize()
 				Predator:Activate()
 				Predator:SetOwner(v)
 				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-				Predator.PlayerFriendly = true
 				Predator.FriendsWithAllPlayerAllies = true
 				local SpawnControllerObject = ents.Create("obj_vj_controller")
 				SpawnControllerObject.VJCE_Player = v
@@ -411,7 +409,6 @@ function ENT:Initialize()
 		-- 		Predator:Activate()
 		-- 		Predator:SetOwner(ply)
 		-- 		Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-		-- 		Predator.PlayerFriendly = true
 		-- 		Predator.FriendsWithAllPlayerAllies = true
 		-- 		local SpawnControllerObject = ents.Create("obj_vj_controller")
 		-- 		SpawnControllerObject.VJCE_Player = ply

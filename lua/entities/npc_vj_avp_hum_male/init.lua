@@ -1618,11 +1618,11 @@ function ENT:StartMovement(cont, Dir, Rot)
 		self:SetLastPosition(finalPos)
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
-				x.FaceData = {Type = VJ.FACE_ENEMY}
+				x.TurnData = {Type = VJ.FACE_ENEMY}
 				x.CanShootWhenMoving = true
 			else
 				if cont.VJC_BullseyeTracking then
-					x.FaceData = {Type = VJ.FACE_ENEMY}
+					x.TurnData = {Type = VJ.FACE_ENEMY}
 				else
 					x:EngTask("TASK_FACE_LASTPOSITION", 0)
 				end
@@ -1750,7 +1750,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			if lockAnim != "LetAttacks" then
 				self:StopAttacks(true)
 				self.PauseAttacks = true
-				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
+				timer.Create("attack_pause_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
 		self.LastAnimSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!

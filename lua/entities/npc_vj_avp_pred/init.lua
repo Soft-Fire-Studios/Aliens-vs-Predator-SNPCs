@@ -475,7 +475,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			if lockAnim != "LetAttacks" then
 				self:StopAttacks(true)
 				self.PauseAttacks = true
-				timer.Create("timer_pauseattacks_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
+				timer.Create("attack_pause_reset"..self:EntIndex(), lockAnimTime, 1, function() self.PauseAttacks = false end)
 			end
 		end
 		self.LastAnimSeed = seed -- We need to set it again because self:StopAttacks() above will reset it when it calls to chase enemy!
@@ -896,7 +896,7 @@ function ENT:Init()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
-	return self:BusyWithActivity() or self:IsBusyWithBehavior() or self.ActivatedSelfDestruct
+	return self.BaseClass.IsBusy(self) or self.ActivatedSelfDestruct
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ChangeEquipment(equip)
@@ -2787,7 +2787,7 @@ function ENT:OnThinkActive()
 					-- 		self.Cur_Walk = ACT_WALK
 					-- 		self.Cur_Run = ACT_WALK
 					-- 		vsched.MoveType = 0
-					-- 		vsched.FaceData = {Type = VJ.FACE_ENEMY_VISIBLE}
+					-- 		vsched.TurnData = {Type = VJ.FACE_ENEMY_VISIBLE}
 					-- 	else
 					-- 		-- self:SetMovementActivity(VJ.PICK(self.AnimTbl_Run))
 					-- 		self.Cur_Walk = ACT_RUN
@@ -3356,11 +3356,11 @@ function ENT:StartMovement(Dir, Rot)
 		self:SetLastPosition(finalPos)
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
-				x.FaceData = {Type = VJ.FACE_ENEMY}
+				x.TurnData = {Type = VJ.FACE_ENEMY}
 				x.CanShootWhenMoving = true
 			else
 				if cont.VJC_BullseyeTracking then
-					x.FaceData = {Type = VJ.FACE_ENEMY}
+					x.TurnData = {Type = VJ.FACE_ENEMY}
 				else
 					x:EngTask("TASK_FACE_LASTPOSITION", 0)
 				end

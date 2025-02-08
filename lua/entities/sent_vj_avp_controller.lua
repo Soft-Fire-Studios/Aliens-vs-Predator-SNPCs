@@ -88,10 +88,10 @@ function ENT:Think()
 				v:SetLastPosition(self:GetPos() +self:GetForward() *35)
 				v:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH", function(x)
 					x.CanShootWhenMoving = true
-					x.FaceData = {Type = VJ.FACE_ENEMY}
+					x.TurnData = {Type = VJ.FACE_ENEMY}
 					x.RunCode_OnFinish = function()
 						timer.Simple(0.01, function()
-							if IsValid(self) && IsValid(v) && IsValid(linkedObj) && v:BusyWithActivity() == false then
+							if IsValid(self) && IsValid(v) && IsValid(linkedObj) && v:IsBusy("Activities") == false then
 								self.NextRequestRestartT = CurTime() +math.random(30,45)
 								-- v:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 								v:PlayAnim("vjseq_sentry_gun_into",true,false,false,0,{OnFinish=function(int1)
