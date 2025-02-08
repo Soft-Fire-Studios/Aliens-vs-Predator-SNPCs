@@ -25,7 +25,7 @@ ENT.BloodColor = VJ.BLOOD_COLOR_RED
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
 
-ENT.UsePoseParameterMovement = true
+-- ENT.UsePoseParameterMovement = true
 ENT.HasMeleeAttack = true
 ENT.TimeUntilMeleeAttackDamage = 0.25
 ENT.Weapon_CanCrouchAttack = false
