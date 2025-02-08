@@ -111,7 +111,7 @@ if VJExists == true then
 		"weapon_vj_avp_shotgun","weapon_vj_avp_shotgun","weapon_vj_avp_shotgun",
 		"weapon_vj_avp_scopedrifle",
 		"weapon_vj_avp_flamethrower",
-		-- "weapon_vj_avp_smartgun",
+		"weapon_vj_avp_smartgun",
 		-- "weapon_vj_avp_pistol",
 	}
 
@@ -131,7 +131,7 @@ if VJExists == true then
 	VJ.AddNPC_HUMAN("Archaeologist","npc_vj_avp_hum_archa",{},vCat_M)
 	VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
 	VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_flamethrower","weapon_vj_avp_scopedrifle"},vCat_M)
-	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle"},vCat_M)
+	VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_smartgun"},vCat_M)
 	VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
 
 	-- VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",wepMarines,vCat_M)
@@ -160,6 +160,14 @@ if VJExists == true then
 	function AVP.Dist(dist) -- AVP source code uses the metric system, im lazy as shit so we'll do this on the go
 		return math_round((dist *16) *3.281)
 	end
+
+	AVP_ANIM_ITSOK = ACT_BARNACLE_HIT
+	AVP_ANIM_NOPROBLEM = ACT_BARNACLE_PULL
+	AVP_ANIM_OHSHIT = ACT_BARNACLE_CHOMP
+	AVP_ANIM_WHATSTHAT = ACT_BARNACLE_CHEW
+	AVP_ANIM_FIDGET = ACT_VM_IDLE
+	AVP_ANIM_STIMPACK = ACT_VM_PULLBACK
+	AVP_ANIM_COUNTERED = ACT_GESTURE_MELEE_ATTACK1
 
     AVP_ALLEGIANCE_ENEMY = 1
     AVP_ALLEGIANCE_FRIEND = 3

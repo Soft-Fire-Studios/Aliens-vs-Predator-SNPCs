@@ -101,7 +101,7 @@ function ENT:SynthInitialize()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
-	self:SetBodygroup(self:FindBodygroupByName("mask"),self.AllowCloaking && 2 or 1)
+	self:SetBodygroup(self:FindBodygroupByName("mask"),1)
 	self.HasFallen = false
 	self.NextCloakT = 0
 

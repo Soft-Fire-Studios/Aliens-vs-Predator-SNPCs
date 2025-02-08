@@ -10,11 +10,15 @@ ENT.VO = 1
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_WEYLAND_YUTANI"}
 ENT.FriendsWithAllPlayerAllies = true
+ENT.Weapon_NoSpawnMenu = true
+
+ENT.HasFlashlight = false
+ENT.HasMotionTracker = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/archa.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ColonistInitialize()
-
+	
 end

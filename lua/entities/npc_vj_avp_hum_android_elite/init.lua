@@ -7,3 +7,7 @@ include("shared.lua")
 -----------------------------------------------*/
 ENT.StartHealth = 500
 ENT.AllowCloaking = true
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GenderInit(gender)
+	return "models/cpthazama/avp/marines/android_elite.mdl"
+end

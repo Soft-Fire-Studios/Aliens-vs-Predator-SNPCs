@@ -42,7 +42,7 @@
 		}
 		"EfxEmissive"
 		{
-			"index" 		7
+			"index" 		6
 			"color" 		$emissiveTint
 			"brightness" 	0.5
 			"emissivetexture" $emissiveTexture

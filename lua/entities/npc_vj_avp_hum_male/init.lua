@@ -16,8 +16,8 @@ ENT.VJC_Data = {
 }
 
 ENT.FootData = {
-    ["lfoot"] = {Range = 9.36, OnGround = true},
-    ["rfoot"] = {Range = 9.36, OnGround = true},
+    ["lfoot"] = {Range = 7.3, OnGround = true},
+    ["rfoot"] = {Range = 7.3, OnGround = true},
 }
 
 ENT.BloodColor = VJ.BLOOD_COLOR_RED
@@ -885,7 +885,11 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
 		self.VJCE_NPC:SetArrivalSpeed(9999)
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
+		if self.VJCE_NPC.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
+			self.VJC_BullseyeTracking = false
+		else
+			self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1024,22 +1028,28 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
-	if self.Moveset == 1 then
-		if act == ACT_RUN then
-			act = ACT_WALK
+	-- if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
+	-- 	if act == ACT_IDLE && self.Alerted then
+	-- 		return ACT_COWER
+	-- 	end
+	-- else
+		if self.Moveset == 1 then
+			if act == ACT_RUN then
+				act = ACT_WALK
+			end
+		elseif self.Moveset == 2 then
+			if act == ACT_RUN then
+				return self.AnimationTranslations[ACT_SPRINT] or ACT_RUN
+			end
+			if act == ACT_WALK then
+				act = ACT_RUN
+			end
+		elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
+			if act == ACT_WALK then
+				act = ACT_RUN
+			end
 		end
-	elseif self.Moveset == 2 then
-		if act == ACT_RUN then
-			return ACT_SPRINT
-		end
-		if act == ACT_WALK then
-			act = ACT_RUN
-		end
-	elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
-		if act == ACT_WALK then
-			act = ACT_RUN
-		end
-	end
+	-- end
 
 	if act == ACT_IDLE then
 		if self.Weapon_UnarmedBehavior_Active == true then
@@ -1079,56 +1089,128 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAnimationTranslations(hType)
 	local wep = self:GetActiveWeapon()
-	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
+	if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
+		self.AnimModelSet = VJ.ANIM_SET_NONE
+	end
+	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "civilian_nwa_Alert_idle01"),toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
+	
+	if hType == nil then return end
 	if hType == "pistol" then
+		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "ohwa_alert_idle_1")
+		
+		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "ohwn_Walk")
+		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "ohwa_Walk")
+		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "ohwn_Run")
+		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "ohwa_Run")
+		self.AnimationTranslations[ACT_SPRINT] 							= toAct(self, "ohwn_sprint")
+
+		self.AnimationTranslations[ACT_JUMP] 							= toAct(self, "ohwa_jump_into")
+		self.AnimationTranslations[ACT_GLIDE] 							= toAct(self, "ohwa_falling")
+
+		self.AnimationTranslations[ACT_TURN_LEFT] 						= toAct(self, "OHWA_turn_90_left")
+		self.AnimationTranslations[ACT_TURN_RIGHT] 						= toAct(self, "OHWA_turn_90_right")
+
+		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "ohwa_melee_light_attack")
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "ohwa_pistol_idle")
 		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_ohwa_pistol_shoot"
 		self.AnimTbl_WeaponReload 										= "vjges_ohwa_pistol_reload"
 
-		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "ohwa_melee_light_attack")
-		
-		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "ohwa_pistol_idle")
-		-- self.AnimationTranslations[ACT_IDLE_ANGRY] 						= {toAct(self, "ohwa_alert_idle_1"),toAct(self, "ohwa_alert_panic"),toAct(self, "ohwa_alert_watchfulA")}
-		
-		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "ohwn_Walk")
-		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "OHWA_Walk")
-		
-		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "ohwn_Run")
-		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "ohwa_Run_fwd_Look_fwd")
+		self.AnimationTranslations[AVP_ANIM_STIMPACK] 					= toAct(self, "ohwa_pistol_stim")
+		self.AnimationTranslations[AVP_ANIM_COUNTERED] 					= toAct(self, "ohwa_melee_light_attack_countered")
+		self.AnimationTranslations[AVP_ANIM_ITSOK] 						= toAct(self, "ohwa_its_ok")
+		self.AnimationTranslations[AVP_ANIM_NOPROBLEM] 					= toAct(self, "ohwa_no_problem")
+		self.AnimationTranslations[AVP_ANIM_OHSHIT] 					= toAct(self, "ohwn_oh_shit")
+		self.AnimationTranslations[AVP_ANIM_WHATSTHAT] 					= {
+																			toAct(self, "ohwn_fidget_buttscratcher"),
+																			toAct(self, "ohwn_fidget_inspect_pistol"),
+																			toAct(self, "ohwn_fidget_neckroll"),
+																			toAct(self, "ohwn_fidget_sneeze"),
+																			toAct(self, "ohwn_fidget_sweat"),
+																			toAct(self, "ohwn_fidget_whats_that"),
+																			toAct(self, "ohwn_fidget_yawn"),
+																		}
+		self.AnimationTranslations[AVP_ANIM_FIDGET] 					= toAct(self, "ohwn_reaction_whats_that")
 
 		self.PoseParameterLooking_Names = {pitch={"pp_ohw_pitch"}, yaw={"pp_ohw_yaw"}, roll={}}
 	elseif hType == "crossbow" then
-		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "smartgun_a_idle")
-		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "smartgun_a_shoot_loop"
+		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "smartgun_n_idle")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "smartgun_alert_watchfulA")
+		
+		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "smartgun_n_Walk")
+		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "smartgun_run")
+		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "smartgun_n_Run")
+		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "smartgun_run")
+		-- self.AnimationTranslations[ACT_SPRINT] 							= toAct(self, "smartgun_n_sprint")
+
+		self.AnimationTranslations[ACT_JUMP] 							= toAct(self, "smartgun_jump_into")
+		self.AnimationTranslations[ACT_GLIDE] 							= toAct(self, "smartgun_falling")
+
+		self.AnimationTranslations[ACT_TURN_LEFT] 						= toAct(self, "smartgun_n_idle_turn_left_90")
+		self.AnimationTranslations[ACT_TURN_RIGHT] 						= toAct(self, "smartgun_n_idle_turn_right_90")
 
 		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "smartgun_light_attack")
-		
-		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "smartgun_n_idle")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "smartgun_a_idle")
-		
-		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "smartgun_run")
-		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "smartgun_run")
-		
-		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "smartgun_run")
-		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "smartgun_run")
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "smartgun_a_idle")
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= "vjges_smartgun_a_shoot_loop"
+		self.AnimTbl_WeaponReload 										= "vjges_smartgun_run_A_reload"
+
+		self.AnimationTranslations[AVP_ANIM_STIMPACK] 					= toAct(self, "smartgun_a_idle_aim_stim")
+		self.AnimationTranslations[AVP_ANIM_COUNTERED] 					= toAct(self, "smartgun_light_attack_countered")
+		self.AnimationTranslations[AVP_ANIM_ITSOK] 						= toAct(self, "smartgun_alert_its_ok")
+		self.AnimationTranslations[AVP_ANIM_NOPROBLEM] 					= toAct(self, "smartgun_alert_no_problem")
+		self.AnimationTranslations[AVP_ANIM_OHSHIT] 					= toAct(self, "smartgun_oh_shit_watchful")
+		self.AnimationTranslations[AVP_ANIM_WHATSTHAT] 					= {
+																			toAct(self, "smartgun_fidget_lookingA"),
+																			toAct(self, "smartgun_fidget_lookingB"),
+																			toAct(self, "smartgun_fidget_lookingC"),
+																			toAct(self, "smartgun_fidget_neckroll"),
+																			toAct(self, "smartgun_fidget_sweat"),
+																			toAct(self, "smartgun_fidget_whats_that"),
+																		}
+		self.AnimationTranslations[AVP_ANIM_FIDGET] 					= toAct(self, "smartgun_whats_that")
 
 		self.PoseParameterLooking_Names = {pitch={"pp_smartgun_pitch"}, yaw={"pp_smartgun_yaw"}, roll={}}
 	else
-		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= ACT_HL2MP_IDLE_AR2
-		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= wep.IsShotgun && ACT_HL2MP_GESTURE_RANGE_ATTACK_SHOTGUN or ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2
-		self.AnimTbl_WeaponReload 										= wep.IsShotgun && "vjges_shotgun_reload" or "vjges_THWA_Stand_reload"
+		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "idleA_thwn")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "thwa_alert_idle_1")
 		
+		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "thwn_Walk")
+		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "thwa_Walk")
+		self.AnimationTranslations[ACT_RUN] 							= toAct(self, "thwn_Run")
+		self.AnimationTranslations[ACT_RUN_AIM] 						= toAct(self, "thwa_Run")
+		-- self.AnimationTranslations[ACT_SPRINT] 							= toAct(self, "thwn_sprint")
+
+		self.AnimationTranslations[ACT_JUMP] 							= toAct(self, "thwa_jump_into")
+		self.AnimationTranslations[ACT_GLIDE] 							= toAct(self, "thwa_falling")
+
+		self.AnimationTranslations[ACT_TURN_LEFT] 						= toAct(self, "thwA_Stand_Turn_Left_90")
+		self.AnimationTranslations[ACT_TURN_RIGHT] 						= toAct(self, "thwA_Stand_Turn_Right_90")
+
 		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "thwa_melee_light_attack")
-		
-		self.AnimationTranslations[ACT_IDLE] 							= ACT_HL2MP_SWIM_IDLE_AR2
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= ACT_HL2MP_IDLE_AR2
-		
-		self.AnimationTranslations[ACT_WALK] 							= ACT_HL2MP_WALK_AR2
-		self.AnimationTranslations[ACT_WALK_AIM] 						= ACT_HL2MP_RUN_AR2
-		
-		self.AnimationTranslations[ACT_RUN] 							= ACT_HL2MP_WALK_CROUCH_AR2
-		self.AnimationTranslations[ACT_RUN_AIM] 						= ACT_HL2MP_RUN_AR2
+		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "idleA_thwa")
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= wep.IsShotgun && "vjges_shotgun_shoot" or "vjges_thwa_shoot"
+		self.AnimTbl_WeaponReload 										= wep.IsShotgun && "vjges_shotgun_reload" or "vjges_thwa_Stand_reload"
+
+		self.AnimationTranslations[AVP_ANIM_STIMPACK] 					= toAct(self, "thwa_stim")
+		self.AnimationTranslations[AVP_ANIM_COUNTERED] 					= toAct(self, "melee_countered_thwa")
+		self.AnimationTranslations[AVP_ANIM_ITSOK] 						= toAct(self, "thwa_its_ok")
+		self.AnimationTranslations[AVP_ANIM_NOPROBLEM] 					= toAct(self, "thwa_no_problem")
+		self.AnimationTranslations[AVP_ANIM_OHSHIT] 					= toAct(self, "thwn_oh_shit")
+		self.AnimationTranslations[AVP_ANIM_WHATSTHAT] 					= {
+																			toAct(self, "thwn_fidget_adjust_armour"),
+																			toAct(self, "thwn_fidget_adjust_light_thwn"),
+																			toAct(self, "thwn_fidget_buttscratcher_thwn"),
+																			toAct(self, "thwn_fidget_inspect_rifle_thwn"),
+																			toAct(self, "thwn_fidget_neck_roll"),
+																			toAct(self, "thwn_fidget_neck_rub"),
+																			toAct(self, "thwn_fidget_neck_stretch"),
+																			toAct(self, "thwn_fidget_sneeze_thwn"),
+																			toAct(self, "thwn_fidget_swat_insect_thwn"),
+																			toAct(self, "thwn_fidget_sweat_thwn"),
+																			toAct(self, "thwn_fidget_whats_that_thwn"),
+																			toAct(self, "thwn_fidget_yawn"),
+																		}
+		self.AnimationTranslations[AVP_ANIM_FIDGET] 					= toAct(self, "thwn_whats_that")
 
 		self.PoseParameterLooking_Names = {pitch={"pp_thw_pitch"}, yaw={"pp_thw_yaw"}, roll={}}
 	end
