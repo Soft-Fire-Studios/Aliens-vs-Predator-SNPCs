@@ -10,7 +10,7 @@ ENT.StartHealth = 1600
 ENT.VJ_ID_Boss = true
 ENT.HullType = HULL_LARGE
 
-ENT.VJC_Data = {
+ENT.ControllerVars = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",

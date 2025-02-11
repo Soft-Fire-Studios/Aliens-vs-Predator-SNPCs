@@ -20,7 +20,7 @@ ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.BloodParticle = {"vj_avp_blood_xeno"}
 ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
 ENT.BloodPool = {"vj_avp_bloodpool_xeno"}
-ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
+ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
 ENT.HasMeleeAttack = false
 
@@ -35,7 +35,7 @@ ENT.JumpVars = {
 	MaxDistance = 1000, -- Maximum distance between Start and End
 }
 
-ENT.VJC_Data = {
+ENT.ControllerVars = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
@@ -1481,7 +1481,7 @@ function ENT:OnInput(key,activator,caller,data)
 			-- end
 		end
 	elseif key == "step" then
-		self:FootStepSoundCode()
+		self:PlayFootstepSound()
 	elseif key == "spit_vo" then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
@@ -1588,10 +1588,10 @@ function ENT:RunDamageCode(mult)
 	function(ent)
 		self:CustomOnMeleeAttack_AfterChecks(ent, false)
 		local isProp = VJ.IsProp(ent)
-		if isProp && self.AttackProps then
+		if isProp && (self.PropInteraction == true or self.PropInteraction == "OnlyDamage") then
 			local phys = ent:GetPhysicsObject()
 			local selfPhys = self:GetPhysicsObject()
-			if IsValid(phys) && IsValid(selfPhys) && (selfPhys:GetSurfaceArea() *self.PropAP_MaxSize) >= phys:GetSurfaceArea() then
+			if IsValid(phys) && IsValid(selfPhys) && (selfPhys:GetSurfaceArea() *self.PropInteraction_MaxScale) >= phys:GetSurfaceArea() then
 				phys:EnableMotion(true)
 				phys:Wake()
 				phys:ApplyForceCenter(self:GetPos() +self:GetForward() *(phys:GetMass() *700) +self:GetUp() *(phys:GetMass() *200))
@@ -2377,7 +2377,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
 				end
 				self.RangeAttackAnimationStopMovement = false
-				self.VJC_Data.ThirdP_Offset = Vector(0, 0, -35)
+				self.ControllerVars.ThirdP_Offset = Vector(0, 0, -35)
 				-- print("standing")
 			else -- We're changing from standing to crawling
 				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
@@ -2392,7 +2392,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 				end
 				self.RangeAttackAnimationStopMovement = true
-				self.VJC_Data.ThirdP_Offset = Vector(0, 0, 0)
+				self.ControllerVars.ThirdP_Offset = Vector(0, 0, 0)
 				-- print("crawling")
 			end
 		end
@@ -3044,24 +3044,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
+		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		elseif gerta_lef then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		elseif gerta_rig then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		else
 			self:StopMoving(!self.VJ_AVP_XenomorphLarge)
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

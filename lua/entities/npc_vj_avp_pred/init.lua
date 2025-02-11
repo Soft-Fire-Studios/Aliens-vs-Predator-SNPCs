@@ -14,7 +14,7 @@ ENT.BloodColor = VJ.BLOOD_COLOR_GREEN
 ENT.BloodParticle = {"vj_avp_blood_predator"}
 ENT.BloodDecal = {"VJ_AVP_BloodPredator"}
 ENT.BloodPool = {"vj_avp_bloodpool_predator"}
-ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"} -- NPCs with the same class with be allied to each other
+ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"}
 
 -- Example scenario:
 --      [A]       <- Apex
@@ -38,9 +38,9 @@ ENT.HasMeleeAttack = false
 ENT.PoseParameterLooking_InvertYaw = true
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.HasExtraMeleeAttackSounds = true -- Set to true to use the extra melee attack sounds
-ENT.DisableFootStepSoundTimer = true -- If set to true, it will disable the time system for the footstep sound code, allowing you to use other ways like model events
+ENT.DisableFootStepSoundTimer = true
 
-ENT.VJC_Data = {
+ENT.ControllerVars = {
     CameraMode = 2, -- Sets the default camera mode | 1 = Third Person, 2 = First Person
     ThirdP_Offset = Vector(0, 0, -35), -- The offset for the controller when the camera is in third person
     FirstP_Bone = "Bip01 Head", -- If left empty, the base will attempt to calculate a position for first person
@@ -3287,24 +3287,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
+		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		elseif gerta_lef then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
-			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
+			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		elseif gerta_rig then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
-			self:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
+			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

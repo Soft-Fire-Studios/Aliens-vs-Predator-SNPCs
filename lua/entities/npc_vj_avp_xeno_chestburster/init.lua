@@ -14,7 +14,7 @@ ENT.Behavior = VJ_BEHAVIOR_NEUTRAL
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.BloodParticle = {"vj_avp_blood_xeno"}
 ENT.BloodDecal = {"VJ_AVP_BloodXenomorph"}
-ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"} -- NPCs with the same class with be allied to each other
+ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
 ENT.HasMeleeAttack = true
 ENT.MeleeAttackDamage = 5
@@ -23,7 +23,7 @@ ENT.MeleeAttackDistance = 15
 ENT.MeleeAttackDamageDistance = 60
 ENT.TimeUntilMeleeAttackDamage = false
 
-ENT.VJC_Data = {
+ENT.ControllerVars = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 10),
     FirstP_Bone = "Head",
@@ -168,7 +168,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInput(key,activator,caller,data)
 	if key == "step" then
-		self:FootStepSoundCode()
+		self:PlayFootstepSound()
 	end
 	if key == "bite" then
 		self:MeleeAttackCode()

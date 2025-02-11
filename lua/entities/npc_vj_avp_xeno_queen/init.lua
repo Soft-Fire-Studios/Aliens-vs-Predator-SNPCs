@@ -10,7 +10,7 @@ ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
 ENT.VJ_ID_Boss = true
 
-ENT.VJC_Data = {
+ENT.ControllerVars = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 20),
     FirstP_Bone = "head",
@@ -93,10 +93,9 @@ function ENT:OnInit()
 		return
 	end
 
-	self.AttackProps = true
-	self.PushProps = true
+	self.PropInteraction = true
 	self.HasRangeAttack = true
-	self.PropAP_MaxSize = 1.65
+	self.PropInteraction_MaxScale = 1.65
 	self.FootStepSoundLevel = 75
 	self.FootStepPitch1 = 60
 	self.FootStepPitch2 = 70
@@ -773,21 +772,21 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.VJC_Data.TurnAngle = self.VJC_Data.TurnAngle or defAng
+		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 			end
 		elseif gerta_lef then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		elseif gerta_rig then
-			self.VJC_Data.TurnAngle = LerpAngle(FT, self.VJC_Data.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.VJC_Data.TurnAngle)
+			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
 		else
 			if !self.InCharge then
 				self:StopMoving(false)

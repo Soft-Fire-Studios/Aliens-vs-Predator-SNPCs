@@ -32,10 +32,9 @@ function ENT:OnInit()
 		return
 	end
 
-	self.AttackProps = true
-	self.PushProps = true
+	self.PropInteraction = true
 	self.HasRangeAttack = true
-	self.PropAP_MaxSize = 1.65
+	self.PropInteraction_MaxScale = 1.65
 	self.FootStepSoundLevel = 75
 	self.FootStepPitch1 = 60
 	self.FootStepPitch2 = 70
