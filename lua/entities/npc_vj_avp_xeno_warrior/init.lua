@@ -6,7 +6,7 @@ include("vj_base/extensions/avp_fatality_module.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"}
 ENT.StartHealth = 140
 ENT.HasHealthRegeneration = true
 ENT.HealthRegenerationAmount = 1
@@ -29,13 +29,13 @@ ENT.HasMeleeAttack = false
 --     /   \
 --    /     [S]   <- Start
 --  [E]           <- End
-ENT.JumpVars = {
-	MaxRise = 375, -- How high it can jump up ((S -> A) AND (S -> E))
-	MaxDrop = 700, -- How low it can jump down (E -> S)
-	MaxDistance = 1000, -- Maximum distance between Start and End
+ENT.JumpParameters = {
+	MaxRise = 375,
+	MaxDrop = 700,
+	MaxDistance = 1000,
 }
 
-ENT.ControllerVars = {
+ENT.ControllerParameters = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
@@ -2377,7 +2377,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
 				end
 				self.RangeAttackAnimationStopMovement = false
-				self.ControllerVars.ThirdP_Offset = Vector(0, 0, -35)
+				self.ControllerParameters.ThirdP_Offset = Vector(0, 0, -35)
 				-- print("standing")
 			else -- We're changing from standing to crawling
 				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
@@ -2392,7 +2392,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 				end
 				self.RangeAttackAnimationStopMovement = true
-				self.ControllerVars.ThirdP_Offset = Vector(0, 0, 0)
+				self.ControllerParameters.ThirdP_Offset = Vector(0, 0, 0)
 				-- print("crawling")
 			end
 		end
@@ -3044,24 +3044,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
+		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		elseif gerta_lef then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		else
 			self:StopMoving(!self.VJ_AVP_XenomorphLarge)
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
@@ -3148,7 +3148,7 @@ function ENT:UpdatePoseParamTracking(resetPoses)
 		if self.PoseParameterLooking_InvertYaw == true then newYaw = -newYaw end
 		newRoll = math_angDif(eneAng.z, myAng.z)
 		if self.PoseParameterLooking_InvertRoll == true then newRoll = -newRoll end
-	elseif !self.PoseParameterLooking_CanReset then -- Should it reset its pose parameters if there is no enemies?
+	elseif !self.PoseParameterLooking_CanReset then
 		return
 	end
 	

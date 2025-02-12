@@ -5,7 +5,7 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/queen_hag.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/xeno/queen_hag.mdl"}
 ENT.StartHealth = 6000
 ENT.HullType = HULL_LARGE
 

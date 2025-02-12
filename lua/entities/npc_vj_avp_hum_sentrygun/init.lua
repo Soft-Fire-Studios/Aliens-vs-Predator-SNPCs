@@ -17,7 +17,7 @@ ENT.PoseParameterLooking_InvertYaw = true
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.FriendsWithAllPlayerAllies = true
-ENT.AlertedToIdleTime = VJ.SET(2.5, 2.5)
+ENT.AlertToIdleDelay = VJ.SET(2.5, 2.5)
 ENT.HasMeleeAttack = false
 
 ENT.HasRangeAttack = true

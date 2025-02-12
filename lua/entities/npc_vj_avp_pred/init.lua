@@ -6,7 +6,7 @@ include("vj_base/extensions/avp_fatality_module.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/predators/youngblood.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/predators/youngblood.mdl"}
 ENT.StartHealth = 450
 ENT.HullType = HULL_HUMAN
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,10 +21,10 @@ ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"}
 --     /   \
 --    /     [S]   <- Start
 --  [E]           <- End
-ENT.JumpVars = {
-	MaxRise = 800, -- How high it can jump up ((S -> A) AND (S -> E))
-	MaxDrop = 1400, -- How low it can jump down (E -> S)
-	MaxDistance = 750, -- Maximum distance between Start and End
+ENT.JumpParameters = {
+	MaxRise = 800,
+	MaxDrop = 1400,
+	MaxDistance = 750,
 }
 
 ENT.FootData = {
@@ -37,15 +37,15 @@ ENT.HasMeleeAttack = false
 
 ENT.PoseParameterLooking_InvertYaw = true
 ENT.PoseParameterLooking_InvertPitch = true
-ENT.HasExtraMeleeAttackSounds = true -- Set to true to use the extra melee attack sounds
+ENT.HasExtraMeleeAttackSounds = true
 ENT.DisableFootStepSoundTimer = true
 
-ENT.ControllerVars = {
-    CameraMode = 2, -- Sets the default camera mode | 1 = Third Person, 2 = First Person
-    ThirdP_Offset = Vector(0, 0, -35), -- The offset for the controller when the camera is in third person
-    FirstP_Bone = "Bip01 Head", -- If left empty, the base will attempt to calculate a position for first person
-    FirstP_Offset = Vector(0, 0, 0), -- The offset for the controller when the camera is in first person
-    -- FirstP_Offset = Vector(10, 0, 3), -- The offset for the controller when the camera is in first person
+ENT.ControllerParameters = {
+    CameraMode = 2,
+    ThirdP_Offset = Vector(0, 0, -35),
+    FirstP_Bone = "Bip01 Head",
+    FirstP_Offset = Vector(0, 0, 0),
+    -- FirstP_Offset = Vector(10, 0, 3),
     FirstP_CameraBoneAng = 1,
     VJC_FP_CameraBoneAng_Offset = 0
 }
@@ -603,7 +603,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
-	self.JumpVars.Enabled = false
+	self.JumpParameters.Enabled = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
@@ -622,7 +622,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(ply)
 		net.Send(ply)
 		if IsValid(npc) then
-			npc.JumpVars.Enabled = true
+			npc.JumpParameters.Enabled = true
 		end
 	end
 
@@ -3287,24 +3287,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
+		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		elseif gerta_lef then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
-			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
+			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
-			self:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
+			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

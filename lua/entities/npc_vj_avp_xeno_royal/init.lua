@@ -5,12 +5,12 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/royal_spitter.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/xeno/royal_spitter.mdl"}
 ENT.StartHealth = 800
 ENT.VJ_ID_Boss = true
 ENT.HullType = HULL_LARGE
 
-ENT.ControllerVars = {
+ENT.ControllerParameters = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",

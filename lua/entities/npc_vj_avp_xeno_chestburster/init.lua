@@ -5,7 +5,7 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/chestburster.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/xeno/chestburster.mdl"}
 ENT.StartHealth = 25
 ENT.HullType = HULL_TINY
 ENT.FindEnemy_CanSeeThroughWalls = true
@@ -23,7 +23,7 @@ ENT.MeleeAttackDistance = 15
 ENT.MeleeAttackDamageDistance = 60
 ENT.TimeUntilMeleeAttackDamage = false
 
-ENT.ControllerVars = {
+ENT.ControllerParameters = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 10),
     FirstP_Bone = "Head",
@@ -171,7 +171,7 @@ function ENT:OnInput(key,activator,caller,data)
 		self:PlayFootstepSound()
 	end
 	if key == "bite" then
-		self:MeleeAttackCode()
+		self:ExecuteMeleeAttack()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

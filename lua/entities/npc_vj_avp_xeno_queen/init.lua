@@ -5,12 +5,12 @@ include("shared.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
-ENT.Model = {"models/cpthazama/avp/xeno/queen.mdl"} -- Model(s) to spawn with | Picks a random one if it's a table
+ENT.Model = {"models/cpthazama/avp/xeno/queen.mdl"}
 ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
 ENT.VJ_ID_Boss = true
 
-ENT.ControllerVars = {
+ENT.ControllerParameters = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 20),
     FirstP_Bone = "head",
@@ -772,21 +772,21 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerVars.TurnAngle = self.ControllerVars.TurnAngle or defAng
+		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 			end
 		elseif gerta_lef then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerVars.TurnAngle = LerpAngle(FT, self.ControllerVars.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.ControllerVars.TurnAngle)
+			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
 		else
 			if !self.InCharge then
 				self:StopMoving(false)
