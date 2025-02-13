@@ -81,7 +81,7 @@ function ENT:OnInit()
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
 
-	self.CanFlinch = 1
+	self.CanFlinch = true
 	self.FlinchChance = 45
 	self.NextFlinchTime = 8
 	self.AnimTbl_Flinch = {"Alien_Queen_charge_collide_injured"}

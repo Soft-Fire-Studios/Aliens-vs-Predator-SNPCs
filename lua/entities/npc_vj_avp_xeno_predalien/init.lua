@@ -10,7 +10,7 @@ ENT.StartHealth = 1500
 ENT.VJ_ID_Boss = true
 ENT.HullType = HULL_LARGE
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
@@ -98,7 +98,7 @@ function ENT:OnInit()
 	
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
-	self.CanFlinch = 1
+	self.CanFlinch = true
 	self.AnimTbl_Flinch = {"vjges_Predalien_Hybrid_light_flinch_left","vjges_Predalien_Hybrid_light_flinch_right"}
 
 	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}

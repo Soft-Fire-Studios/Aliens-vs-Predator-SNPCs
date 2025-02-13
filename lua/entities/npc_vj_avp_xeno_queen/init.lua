@@ -10,7 +10,7 @@ ENT.StartHealth = 3000
 ENT.HullType = HULL_LARGE
 ENT.VJ_ID_Boss = true
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 20),
     FirstP_Bone = "head",
@@ -140,7 +140,7 @@ function ENT:OnInit()
 	self.AnimTbl_Fatalities = nil
 	self.AnimTbl_FatalitiesResponse = nil
 
-	self.CanFlinch = 1
+	self.CanFlinch = true
 	self.FlinchChance = 30
 	self.NextFlinchTime = 8
 	self.AnimTbl_Flinch = {"Alien_Queen_charge_collide_injured"}
@@ -772,21 +772,21 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
+		self.ControllerParams.TurnAngle = self.ControllerParams.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 			end
 		elseif gerta_lef then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		else
 			if !self.InCharge then
 				self:StopMoving(false)

@@ -29,13 +29,13 @@ ENT.HasMeleeAttack = false
 --     /   \
 --    /     [S]   <- Start
 --  [E]           <- End
-ENT.JumpParameters = {
+ENT.JumpParams = {
 	MaxRise = 375,
 	MaxDrop = 700,
 	MaxDistance = 1000,
 }
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
@@ -60,7 +60,7 @@ ENT.NextRangeAttackTime = 6
 ENT.NextRangeAttackTime_DoRand = 12
 ENT.DisableDefaultRangeAttackCode = true
 
-ENT.CanFlinch = 1
+ENT.CanFlinch = true
 ENT.FlinchChance = 12
 ENT.NextFlinchTime = 1.75
 ENT.AnimTbl_FlinchCrouch = {"flinch_fwd_left","flinch_fwd_right","flinch_back_left","flinch_back_right"}
@@ -852,12 +852,12 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
 					timer.Simple(i *0.05,function()
 						if IsValid(v) && v:Health() > 0 then
 							local oldBleeds = v.Bleeds
-							local oldCallForBackUpOnDamage = v.CallForBackUpOnDamage
-							local oldHideOnUnknownDamage = v.HideOnUnknownDamage
+							local oldDamageAllyResponse = v.DamageAllyResponse
+							local oldIdleDamageResponse = v.DamageResponse
 							if v.IsVJBaseSNPC then
 								v.Bleeds = false
-								v.CallForBackUpOnDamage = false
-								v.HideOnUnknownDamage = false
+								v.DamageAllyResponse = false
+								v.DamageResponse = "OnlySearch"
 							end
 							local dmgEnt = IsValid(self) && self or v
 							local dmginfo = DamageInfo()
@@ -873,8 +873,8 @@ function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
 							end
 							if v.IsVJBaseSNPC then
 								v.Bleeds = oldBleeds
-								v.CallForBackUpOnDamage = oldCallForBackUpOnDamage
-								v.HideOnUnknownDamage = oldHideOnUnknownDamage
+								v.DamageAllyResponse = oldDamageAllyResponse
+								v.DamageResponse = oldIdleDamageResponse
 							end
 						else
 							timer.Remove(tName)
@@ -2377,7 +2377,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
 				end
 				self.RangeAttackAnimationStopMovement = false
-				self.ControllerParameters.ThirdP_Offset = Vector(0, 0, -35)
+				self.ControllerParams.ThirdP_Offset = Vector(0, 0, -35)
 				-- print("standing")
 			else -- We're changing from standing to crawling
 				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
@@ -2392,7 +2392,7 @@ function ENT:OnThinkActive()
 					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 				end
 				self.RangeAttackAnimationStopMovement = true
-				self.ControllerParameters.ThirdP_Offset = Vector(0, 0, 0)
+				self.ControllerParams.ThirdP_Offset = Vector(0, 0, 0)
 				-- print("crawling")
 			end
 		end
@@ -2818,7 +2818,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		self:DoKnockdownAnimation(dmgDir)
-		self.NextCallForBackUpOnDamageT = CurTime() +1
+		self.NextDamageAllyResponseT = CurTime() +1
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3044,24 +3044,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
+		self.ControllerParams.TurnAngle = self.ControllerParams.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		elseif gerta_lef then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angY90)
+			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angYN90)
+			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		else
 			self:StopMoving(!self.VJ_AVP_XenomorphLarge)
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

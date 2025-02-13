@@ -9,7 +9,7 @@ ENT.Gender = 1
 ENT.VO = 1
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
-ENT.FriendsWithAllPlayerAllies = true
+ENT.AlliedWithPlayerAllies = true
 
 ENT.GeneralSoundPitch1 = 115
 ENT.GeneralSoundPitch2 = 120

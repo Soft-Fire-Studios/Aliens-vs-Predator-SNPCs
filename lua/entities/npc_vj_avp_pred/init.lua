@@ -21,7 +21,7 @@ ENT.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"}
 --     /   \
 --    /     [S]   <- Start
 --  [E]           <- End
-ENT.JumpParameters = {
+ENT.JumpParams = {
 	MaxRise = 800,
 	MaxDrop = 1400,
 	MaxDistance = 750,
@@ -40,7 +40,7 @@ ENT.PoseParameterLooking_InvertPitch = true
 ENT.HasExtraMeleeAttackSounds = true
 ENT.DisableFootStepSoundTimer = true
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, -35),
     FirstP_Bone = "Bip01 Head",
@@ -603,7 +603,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
-	self.JumpParameters.Enabled = false
+	self.JumpParams.Enabled = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
@@ -622,7 +622,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(ply)
 		net.Send(ply)
 		if IsValid(npc) then
-			npc.JumpParameters.Enabled = true
+			npc.JumpParams.Enabled = true
 		end
 	end
 
@@ -3149,7 +3149,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 			return
 		end
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-		-- self.CanFlinch = 0
+		-- self.CanFlinch = false
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		-- self.Flinching = true
 		local _,dir = self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
@@ -3160,10 +3160,10 @@ function ENT:OnBleed(dmginfo,hitgroup)
 			end
 			self:SetState()
 			-- self.Flinching = false
-			-- self.CanFlinch = 1
+			-- self.CanFlinch = true
 		end})
 		self.NextKnockdownT = CurTime() +(dir *0.5)
-		self.NextCallForBackUpOnDamageT = CurTime() +1
+		self.NextDamageAllyResponseT = CurTime() +1
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3287,24 +3287,24 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local aimVector = ply:GetAimVector()
 		local FT = FrameTime() *(self.TurningSpeed *2.25)
 
-		self.ControllerParameters.TurnAngle = self.ControllerParameters.TurnAngle or defAng
+		self.ControllerParams.TurnAngle = self.ControllerParams.TurnAngle or defAng
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
-				self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
+				self:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 			end
 		elseif ply:KeyDown(IN_BACK) then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
+			self:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		elseif gerta_lef then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angY90)
-			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angY90)
+			self:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		elseif gerta_rig then
-			self.ControllerParameters.TurnAngle = LerpAngle(FT, self.ControllerParameters.TurnAngle, angYN90)
-			self:StartMovement(aimVector, self.ControllerParameters.TurnAngle)
+			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angYN90)
+			self:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		else
 			self:StopMoving()
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then

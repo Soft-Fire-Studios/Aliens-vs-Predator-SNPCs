@@ -23,7 +23,7 @@ ENT.MeleeAttackDistance = 15
 ENT.MeleeAttackDamageDistance = 60
 ENT.TimeUntilMeleeAttackDamage = false
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0, 10),
     FirstP_Bone = "Head",

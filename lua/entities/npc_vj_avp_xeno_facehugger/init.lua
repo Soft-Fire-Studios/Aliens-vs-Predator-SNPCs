@@ -26,7 +26,7 @@ ENT.MeleeAttackExtraTimers = {0.8, 1, 1.2, 1.4}
 ENT.HasDeathAnimation = true
 ENT.AnimTbl_Death = {"facehugger_death"}
 
-ENT.ControllerParameters = {
+ENT.ControllerParams = {
     CameraMode = 2,
     ThirdP_Offset = Vector(0, 0,-15),
     FirstP_Bone = "body",

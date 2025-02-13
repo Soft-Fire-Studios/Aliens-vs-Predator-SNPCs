@@ -267,7 +267,7 @@ function ENT:SpawnBot(count,respawn)
 						self:SetProperPos(bot,spawnPoint +randOffset)
 						bot:SetAngles(Angle(0,AngleRand().y,0))
 						bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
-						bot.FriendsWithAllPlayerAllies = true
+						bot.AlliedWithPlayerAllies = true
 						bot.StartHealth = 100
 						bot.HasHealthRegeneration = false
 						bot:Spawn()
@@ -286,7 +286,7 @@ function ENT:SpawnBot(count,respawn)
 					bot:Spawn()
 					bot:Activate()
 					bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-					bot.FriendsWithAllPlayerAllies = true
+					bot.AlliedWithPlayerAllies = true
 					bot:SetNW2Int("AVP_Score",0)
 					self:DeleteOnRemove(bot)
 					debugMessage("Bot - ",i,"Successfully spawned!")
@@ -390,7 +390,7 @@ function ENT:Initialize()
 				Predator:Activate()
 				Predator:SetOwner(v)
 				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-				Predator.FriendsWithAllPlayerAllies = true
+				Predator.AlliedWithPlayerAllies = true
 				local SpawnControllerObject = ents.Create("obj_vj_controller")
 				SpawnControllerObject.VJCE_Player = v
 				SpawnControllerObject:SetControlledNPC(chestburster)
@@ -409,7 +409,7 @@ function ENT:Initialize()
 		-- 		Predator:Activate()
 		-- 		Predator:SetOwner(ply)
 		-- 		Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
-		-- 		Predator.FriendsWithAllPlayerAllies = true
+		-- 		Predator.AlliedWithPlayerAllies = true
 		-- 		local SpawnControllerObject = ents.Create("obj_vj_controller")
 		-- 		SpawnControllerObject.VJCE_Player = ply
 		-- 		SpawnControllerObject:SetControlledNPC(Predator)

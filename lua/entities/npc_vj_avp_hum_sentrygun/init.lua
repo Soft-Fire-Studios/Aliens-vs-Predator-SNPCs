@@ -16,13 +16,13 @@ ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
-ENT.FriendsWithAllPlayerAllies = true
+ENT.AlliedWithPlayerAllies = true
 ENT.AlertToIdleDelay = VJ.SET(2.5, 2.5)
 ENT.HasMeleeAttack = false
 
 ENT.HasRangeAttack = true
 ENT.DisableDefaultRangeAttackCode = true
-ENT.DisableRangeAttackAnimation = true
+ENT.AnimTbl_RangeAttack = false
 ENT.RangeDistance = 4000
 ENT.RangeToMeleeDistance = 1
 ENT.RangeAttackAngleRadius = 75
@@ -30,7 +30,7 @@ ENT.TimeUntilRangeAttackProjectileRelease = 0
 ENT.NextRangeAttackTime = 0
 ENT.NextAnyAttackTime_Range = 0.01
 
-ENT.Medic_CanBeHealed = false
+ENT.VJ_ID_Healable = false
 
 ENT.SoundTbl_Impact = {"ambient/energy/spark1.wav","ambient/energy/spark2.wav","ambient/energy/spark3.wav","ambient/energy/spark4.wav"}
 ENT.SoundTbl_Death = {"cpthazama/avp/weapons/sentry guns/sentry_gun_destroyed_01.ogg"}

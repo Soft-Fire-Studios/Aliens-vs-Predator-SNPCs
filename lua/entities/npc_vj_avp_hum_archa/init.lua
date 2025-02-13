@@ -9,7 +9,7 @@ ENT.Gender = 1
 ENT.VO = 1
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_WEYLAND_YUTANI"}
-ENT.FriendsWithAllPlayerAllies = true
+ENT.AlliedWithPlayerAllies = true
 ENT.Weapon_NoSpawnMenu = true
 
 ENT.HasFlashlight = false

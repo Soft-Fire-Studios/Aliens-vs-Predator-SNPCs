@@ -387,7 +387,7 @@ function SWEP:DealDamage(v)
 		if v.IsVJBaseSNPC && v.CanFlinch then
 			oldFlinch = v.CanFlinch
 			oldFlinchChance = v.FlinchChance
-			v.CanFlinch = 1
+			v.CanFlinch = true
 			v.FlinchChance = 1
 		end
 	end
