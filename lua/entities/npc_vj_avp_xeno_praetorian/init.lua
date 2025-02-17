@@ -21,7 +21,7 @@ ENT.ControllerParams = {
 ENT.RangeAttackAnimationStopMovement = false
 
 ENT.HasBreath = true
-ENT.FootStepSoundLevel = 82
+ENT.FootstepSoundLevel = 82
 
 ENT.CanScreamForHelp = false
 ENT.SummonClasses = {
@@ -118,8 +118,7 @@ function ENT:OnInit()
 		["lhand"] = {Range=8.5,OnGround=true},
 		["rhand"] = {Range=8.5,OnGround=true}
 	}
-	self.FootStepPitch1 = 60
-	self.FootStepPitch2 = 65
+	self.FootstepSoundPitch = VJ.SET(60, 70)
 	self.NextSummonT = CurTime() +3
 	-- self.NextSummonT = CurTime() +60
 	-- timer.Simple(0,function()

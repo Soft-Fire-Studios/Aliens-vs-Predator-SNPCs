@@ -19,9 +19,8 @@ ENT.ControllerParams = {
 }
 
 ENT.HasBreath = true
-ENT.FootStepSoundLevel = 82
-ENT.FootStepPitch1 = 75
-ENT.FootStepPitch2 = 85
+ENT.FootstepSoundLevel = 82
+ENT.FootstepSoundPitch = VJ.SET(75, 85)
 
 ENT.AttackDamageMultiplier = 1.2
 ENT.CanSpit = false

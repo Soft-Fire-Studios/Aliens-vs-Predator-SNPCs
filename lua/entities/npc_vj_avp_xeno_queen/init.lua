@@ -96,9 +96,8 @@ function ENT:OnInit()
 	self.PropInteraction = true
 	self.HasRangeAttack = true
 	self.PropInteraction_MaxScale = 1.65
-	self.FootStepSoundLevel = 75
-	self.FootStepPitch1 = 60
-	self.FootStepPitch2 = 70
+	self.FootstepSoundLevel = 75
+	self.FootstepSoundPitch = VJ.SET(60, 70)
 	self.SoundTbl_FootSteps = {
 		[MAT_CONCRETE] = {
 			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_01.ogg",
@@ -142,7 +141,7 @@ function ENT:OnInit()
 
 	self.CanFlinch = true
 	self.FlinchChance = 30
-	self.NextFlinchTime = 8
+	self.FlinchCooldown = 8
 	self.AnimTbl_Flinch = {"Alien_Queen_charge_collide_injured"}
 	self.AnimTbl_FlinchCrouch = {"Alien_Queen_charge_collide_injured"}
 	self.AnimTbl_FlinchStand = {"Alien_Queen_charge_collide_injured"}

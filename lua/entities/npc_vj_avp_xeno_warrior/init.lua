@@ -14,7 +14,7 @@ ENT.HealthRegenerationDelay = VJ.SET(0.5,0.5)
 ENT.HullType = HULL_HUMAN
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
-ENT.FindEnemy_CanSeeThroughWalls = true
+ENT.EnemyXRayDetection = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.BloodParticle = {"vj_avp_blood_xeno"}
@@ -53,16 +53,15 @@ ENT.FootData = {
 ENT.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 ENT.RangeAttackAnimationFaceEnemy = false
 ENT.RangeAttackAnimationStopMovement = true
-ENT.RangeDistance = 2300
-ENT.RangeToMeleeDistance = 400
+ENT.RangeAttackMaxDistance = 2300
+ENT.RangeAttackMinDistance = 400
 ENT.TimeUntilRangeAttackProjectileRelease = false
-ENT.NextRangeAttackTime = 6
-ENT.NextRangeAttackTime_DoRand = 12
+ENT.NextRangeAttackTime = VJ.SET(6, 12)
 ENT.DisableDefaultRangeAttackCode = true
 
 ENT.CanFlinch = true
 ENT.FlinchChance = 12
-ENT.NextFlinchTime = 1.75
+ENT.FlinchCooldown = 1.75
 ENT.AnimTbl_FlinchCrouch = {"flinch_fwd_left","flinch_fwd_right","flinch_back_left","flinch_back_right"}
 ENT.AnimTbl_FlinchStand = {"standing_flinch_back_left","standing_flinch_back_right","standing_flinch_fwd_left","standing_flinch_fwd_right"}
 
@@ -136,7 +135,7 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["v_alien_tailstab_head_front_grapple"] = "v_alien_tailstab_head_front_grapple_victim",
 }
 
-ENT.FootStepSoundLevel = 60
+ENT.FootstepSoundLevel = 60
 ENT.SoundTbl_FootSteps = {
 	[MAT_CONCRETE] = {
 		"cpthazama/avp/xeno/alien/footsteps/new_oct_09/fs_alien_stone_walk_01.ogg",
@@ -925,11 +924,11 @@ function ENT:FootStep(pos,name)
 	end
 	if tr.Hit && tbl[matType] then
 		local snd = VJ.PICK(tbl[matType])
-		sound.Play(snd,pos,self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		sound.Play(snd,pos,self.FootstepSoundLevel,self:GetSoundPitch(self.FootstepSoundPitch))
 		VJ.EmitSound(self,snd,10)
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
-		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootstepSoundLevel,self:GetSoundPitch(self.FootstepSoundPitch))
 	end
 	if self.OnStep then
 		self:OnStep(pos,name)
@@ -1490,7 +1489,7 @@ function ENT:OnInput(key,activator,caller,data)
 		local ent = self:GetEnemy()
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
-		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:GetSoundPitch(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:GetSoundPitch(VJ.SET(self.GeneralSoundPitch1, self.GeneralSoundPitch2)))
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1

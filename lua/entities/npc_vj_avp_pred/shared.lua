@@ -789,7 +789,7 @@ if CLIENT then
 					local data = Entity(1).VJ_AVP_PredatorHUD_TargetData
 					if data then
 						targetMelee = data.HasMelee && math_Clamp(math_ceil(data.MeleeDistance /50),1,5) or 0
-						targetRange = data.HasRange && math_Clamp(math_ceil(data.RangeDistance /350),1,5) or 0
+						targetRange = data.HasRange && math_Clamp(math_ceil(data.RangeAttackMaxDistance /350),1,5) or 0
 						if target.VJ_AVP_Predator then
 							targetRange = 5
 						end

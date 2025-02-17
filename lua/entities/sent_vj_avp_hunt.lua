@@ -433,7 +433,7 @@ function ENT:Initialize()
 	pred:SetPos(spawn.Pos)
 	pred:SetAngles(spawn.Ang)
 	pred.SpawnedUsingMutator = true
-	-- pred.FindEnemy_CanSeeThroughWalls = true
+	-- pred.EnemyXRayDetection = true
 	-- pred.SightAngle = 360
 	-- pred.SightDistance = 30000
 	pred.DisableWandering = true

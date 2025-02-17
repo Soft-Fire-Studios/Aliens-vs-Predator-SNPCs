@@ -18,7 +18,7 @@ ENT.ControllerParams = {
     FirstP_ShrinkBone = false
 }
 
-ENT.FootStepSoundLevel = 82
+ENT.FootstepSoundLevel = 82
 
 ENT.AlwaysStand = true
 ENT.AnimTranslations = {

@@ -875,7 +875,7 @@ function ENT:Think()
 			npc:DrawShadow(false)
 			npc.AnimMovementType = wave > 3 && math.random(1,2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
 			if self.AlwaysAlerted then
-				npc.FindEnemy_CanSeeThroughWalls = true
+				npc.EnemyXRayDetection = true
 				npc.SightAngle = 360
 			end
 			if wave <= 5 then

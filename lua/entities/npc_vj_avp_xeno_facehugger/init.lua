@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/facehugger.mdl"}
 ENT.StartHealth = 15
 ENT.HullType = HULL_TINY
-ENT.FindEnemy_CanSeeThroughWalls = true
+ENT.EnemyXRayDetection = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
 ENT.BloodParticle = {"vj_avp_blood_xeno"}
@@ -35,9 +35,9 @@ ENT.ControllerParams = {
 }
 
 ENT.GeneralSoundPitch1 = 100
-ENT.FootStepSoundLevel = 40
-ENT.FootStepTimeWalk = 0.2
-ENT.FootStepTimeRun = 0.1
+ENT.FootstepSoundLevel = 40
+ENT.FootstepTimerWalk = 0.2
+ENT.FootstepTimerRun = 0.1
 
 ENT.SoundTbl_FootStep = {
 	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch1.ogg",
@@ -300,7 +300,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			self.BirthT = CurTime() +30
 			self:SetOwner(ent)
 			self:AddFlags(FL_NOTARGET)
-			self.DisableFindEnemy = true
+			self.EnemyDetection = false
 			self.DisableSelectSchedule = true
 			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 			self:SetNavType(NAV_NONE)
@@ -392,7 +392,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 						ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 						ent:SetEnemy(nil)
 						ent.HasSounds = false
-						ent.DisableFindEnemy = true
+						ent.EnemyDetection = false
 					end
 					local wep = ent:GetActiveWeapon()
 					if IsValid(wep) then

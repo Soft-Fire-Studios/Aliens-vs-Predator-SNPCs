@@ -404,12 +404,12 @@ if VJExists == true then
 				data.HasMelee = true
 				data.MeleeDistance = 50
 				data.HasRange = true
-				data.RangeDistance = 4000
+				data.RangeAttackMaxDistance = 4000
 			elseif target.IsVJBaseSNPC_Creature then
 				data.HasMelee = (target.HasMeleeAttack or target.HasLeapAttack)
 				data.MeleeDistance = target.AttackDistance or target.MeleeAttackDistance
 				data.HasRange = (target.CanSpit or target.HasRangeAttack)
-				data.RangeDistance = target.SpitAttackDistance or (target.RangeDistance or target.RangeAttackDistance)
+				data.RangeAttackMaxDistance = target.SpitAttackDistance or (target.RangeAttackMaxDistance or target.RangeAttackDistance)
 				if target.AttackDistance then
 					data.HasMelee = true
 				end
@@ -417,7 +417,7 @@ if VJExists == true then
 					data.HasRange = true
 				end
 				if target.HasLeapAttack then
-					data.MeleeDistance = target.LeapDistance
+					data.MeleeDistance = target.LeapAttackMaxDistance
 				end
 			elseif target.IsVJBaseSNPC_Human then
 				local wep = target:GetActiveWeapon()
@@ -425,22 +425,22 @@ if VJExists == true then
 				data.MeleeDistance = target.MeleeAttackDistance
 				data.HasRange = IsValid(wep)
 				if IsValid(wep) && wep.IsVJBaseWeapon then
-					data.RangeDistance = target.Weapon_FiringDistanceFar *wep.NPC_FiringDistanceScale
+					data.RangeAttackMaxDistance = target.Weapon_MaxDistance *wep.NPC_FiringDistanceScale
 				else
-					data.RangeDistance = target.Weapon_FiringDistanceFar
+					data.RangeAttackMaxDistance = target.Weapon_MaxDistance
 				end
 			elseif target:IsPlayer() then
 				local wep = target:GetActiveWeapon()
 				data.HasMelee = true
 				data.MeleeDistance = 50
 				data.HasRange = IsValid(wep)
-				data.RangeDistance = IsValid(wep) && (wep:GetHoldType() == "shotgun" && 200 or 1000) or 0
+				data.RangeAttackMaxDistance = IsValid(wep) && (wep:GetHoldType() == "shotgun" && 200 or 1000) or 0
 			elseif target:IsNPC() then
 				local wep = target:GetActiveWeapon()
 				data.HasMelee = VJ.AnimExists(target,ACT_MELEE_ATTACK1)
 				data.MeleeDistance = 50
 				data.HasRange = IsValid(target:GetActiveWeapon()) or VJ.AnimExists(target,ACT_RANGE_ATTACK1)
-				data.RangeDistance = IsValid(wep) && 1536 or 1024
+				data.RangeAttackMaxDistance = IsValid(wep) && 1536 or 1024
 			end
 
 			net.Start("VJ.AVP.PredatorHUD.Info")

@@ -17,14 +17,14 @@ ENT.PoseParameterLooking_InvertYaw = true
 
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.AlliedWithPlayerAllies = true
-ENT.AlertToIdleDelay = VJ.SET(2.5, 2.5)
+ENT.AlertTimeout = VJ.SET(2.5, 2.5)
 ENT.HasMeleeAttack = false
 
 ENT.HasRangeAttack = true
 ENT.DisableDefaultRangeAttackCode = true
 ENT.AnimTbl_RangeAttack = false
-ENT.RangeDistance = 4000
-ENT.RangeToMeleeDistance = 1
+ENT.RangeAttackMaxDistance = 4000
+ENT.RangeAttackMinDistance = 1
 ENT.RangeAttackAngleRadius = 75
 ENT.TimeUntilRangeAttackProjectileRelease = 0
 ENT.NextRangeAttackTime = 0
@@ -118,8 +118,7 @@ function ENT:OnDeviceEffected(rc,efType)
 		end
 		rc:SetSkin(0)
 		self:RemoveFlags(FL_NOTARGET)
-		self.DisableFindEnemy = false
-		self.DisableMakingSelfEnemyToNPCs = false
+		self.EnemyDetection = true
 		self.turret_idlesd:Play()
 	elseif efType == 2 or efType == 3 then -- Turned off/drained
 		if IsValid(self.Spotlight) then
@@ -130,8 +129,7 @@ function ENT:OnDeviceEffected(rc,efType)
 		end
 		rc:SetSkin(1)
 		self:AddFlags(FL_NOTARGET)
-		self.DisableFindEnemy = true
-		self.DisableMakingSelfEnemyToNPCs = true
+		self.EnemyDetection = false
 		VJ.STOPSOUND(self.turret_idlesd)
 	elseif efType == 4 then -- Destroyed
 		local fx = EffectData()
@@ -180,7 +178,7 @@ function ENT:OnThinkActive()
 		self.PoseParameterLooking_CanReset = true
 	end
 
-	if self.DisableFindEnemy then
+	if !self.EnemyDetection then
 		self.HasPoseParameterLooking = true
 		self.PoseParameterLooking_CanReset = true
 		self:SetEnemy(nil)

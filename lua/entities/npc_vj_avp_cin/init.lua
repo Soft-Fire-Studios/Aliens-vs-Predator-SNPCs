@@ -14,12 +14,11 @@ ENT.CanTurnWhileStationary = false
 
 ENT.HasMeleeAttack = false
 ENT.CanAlly = false
-ENT.DisableMakingSelfEnemyToNPCs = true
-ENT.DisableFindEnemy = true
+ENT.EnemyDetection = false
 ENT.DisableWandering = true
 ENT.DisableChasingEnemy = true
+ENT.EnemyTouchDetection = false
 ENT.DamageResponse = "OnlyMove"
-ENT.DisableTouchFindEnemy = true
 ENT.GodMode = true
 ENT.Bleeds = false
 ENT.Behavior = VJ_BEHAVIOR_PASSIVE_NATURE

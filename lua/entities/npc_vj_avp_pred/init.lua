@@ -31,7 +31,7 @@ ENT.FootData = {
     ["lfoot"] = {Range = 9.53, OnGround = true, AttID = nil},
     ["rfoot"] = {Range = 9.53, OnGround = true, AttID = nil},
 }
-ENT.FootStepSoundLevel = 62
+ENT.FootstepSoundLevel = 62
 
 ENT.HasMeleeAttack = false
 
@@ -866,7 +866,7 @@ function ENT:Init()
 			if tr.HitSky then
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
-				self.DisableFindEnemy = true
+				self.EnemyDetection = false
 				local predmobile = ents.Create("sent_vj_avp_predmobile")
 				predmobile:SetPos(self:GetPos())
 				predmobile:SetAngles(self:GetAngles())
@@ -876,7 +876,7 @@ function ENT:Init()
 				self.PredShip = predmobile
 				self:DeleteOnRemove(predmobile)
 				self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
-					self.DisableFindEnemy = false
+					self.EnemyDetection = true
 					self:SetState()
 					self:RemoveFlags(FL_NOTARGET)
 					SafeRemoveEntity(predmobile)
@@ -2998,10 +2998,10 @@ function ENT:FootStep(pos,name)
 		mat = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[mat] then
-		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootstepSoundLevel or 65),self:GetSoundPitch(self.FootstepSoundPitch))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
-		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootstepSoundLevel,self:GetSoundPitch(self.FootstepSoundPitch))
 	end
 	if self.OnStep then
 		self:OnStep(pos,name)

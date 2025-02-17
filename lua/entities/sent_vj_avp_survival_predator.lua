@@ -749,7 +749,7 @@ function ENT:Think()
 			npc:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))
 			npc:DrawShadow(false)
 			npc.AnimMovementType = wave > 3 && math.random(1,2) or wave > 5 && math.random(1,3) or wave > 7 && 3 or 1
-			npc.FindEnemy_CanSeeThroughWalls = true
+			npc.EnemyXRayDetection = true
 			npc.SightAngle = 360
 			npc.SightDistance = 16000
 			table.insert(self.Entities,npc)

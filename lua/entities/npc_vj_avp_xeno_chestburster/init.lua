@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/chestburster.mdl"}
 ENT.StartHealth = 25
 ENT.HullType = HULL_TINY
-ENT.FindEnemy_CanSeeThroughWalls = true
+ENT.EnemyXRayDetection = true
 ENT.Behavior = VJ_BEHAVIOR_NEUTRAL
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
@@ -33,10 +33,10 @@ ENT.ControllerParams = {
 
 ENT.GeneralSoundPitch1 = 100
 ENT.HasExtraMeleeAttackSounds = true
-ENT.FootStepSoundLevel = 38
-ENT.FootStepPitch = VJ.SET(110, 115)
-ENT.FootStepTimeWalk = 0.2
-ENT.FootStepTimeRun = 0.1
+ENT.FootstepSoundLevel = 38
+ENT.FootstepSoundPitch = VJ.SET(110, 115)
+ENT.FootstepTimerWalk = 0.2
+ENT.FootstepTimerRun = 0.1
 
 ENT.SoundTbl_FootStep = {
 	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch1.ogg",

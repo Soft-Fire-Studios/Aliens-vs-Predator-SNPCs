@@ -1059,7 +1059,7 @@ function ENT:TranslateActivity(act)
 		end
 	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active == true && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
-	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanFireWhileMoving == true && IsValid(self:GetEnemy()) then
+	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanMoveFire == true && IsValid(self:GetEnemy()) then
 		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then
@@ -1420,10 +1420,10 @@ function ENT:FootStep(pos,name)
 		mat = MAT_CONCRETE
 	end
 	if tr.Hit && tbl[mat] then
-		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootStepSoundLevel or 65),self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,VJ.PICK(tbl[mat]),self:GetCloaked() && 55 or (self.FootstepSoundLevel or 65),self:GetSoundPitch(self.FootstepSoundPitch))
 	end
 	if self:WaterLevel() > 0 && self:WaterLevel() < 3 then
-		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootStepSoundLevel,self:GetSoundPitch(self.FootStepPitch1,self.FootStepPitch2))
+		VJ.EmitSound(self,"player/footsteps/wade" .. math.random(1,8) .. ".wav",self.FootstepSoundLevel,self:GetSoundPitch(self.FootstepSoundPitch))
 	end
 	if self.OnStep then
 		self:OnStep(pos,name)
