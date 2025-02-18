@@ -56,8 +56,7 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["neckbite_marine_ohwa_death"] = "neckbite_ohwa_death",
 }
 
-ENT.GeneralSoundPitch1 = 97
-ENT.GeneralSoundPitch2 = 103
+ENT.MainSoundPitch = VJ.SET(97, 103)
 ENT.DisableFootStepSoundTimer = true
 
 ENT.HasFlashlight = true

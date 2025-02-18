@@ -45,8 +45,7 @@ function ENT:OnInit()
 		["lhand"] = {Range=8.5,OnGround=true},
 		["rhand"] = {Range=8.5,OnGround=true}
 	}
-	self.GeneralSoundPitch1 = 115
-	self.GeneralSoundPitch2 = 125
+	self.MainSoundPitch = VJ.SET(115, 125)
 
 	self.Facehuggers = {}
 	self.NextFacehuggerAttackT = 0

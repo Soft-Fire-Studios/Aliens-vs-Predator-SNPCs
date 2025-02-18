@@ -21,8 +21,7 @@ ENT.ControllerParams = {
 ENT.HasBreath = true
 ENT.FootstepSoundLevel = 82
 ENT.FootstepSoundPitch = VJ.SET(75, 85)
-ENT.GeneralSoundPitch1 = 80
-ENT.GeneralSoundPitch2 = 88
+ENT.MainSoundPitch = VJ.SET(80, 88)
 
 ENT.AttackDamageMultiplier = 1.2
 ENT.AlwaysStand = false
@@ -47,8 +46,7 @@ function ENT:OnInit()
 		["lhand"] = {Range=12.5,OnGround=true},
 		["rhand"] = {Range=12.5,OnGround=true}
 	}
-	self.GeneralSoundPitch1 = 115
-	self.GeneralSoundPitch2 = 125
+	self.MainSoundPitch = VJ.SET(115, 125)
 
 	self.HitGroups = {}
 end

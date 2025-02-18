@@ -11,8 +11,7 @@ ENT.VO = 2
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.AlliedWithPlayerAllies = true
 
-ENT.GeneralSoundPitch1 = 109
-ENT.GeneralSoundPitch2 = 113
+ENT.MainSoundPitch = VJ.SET(109, 113)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/youngwhite.mdl"

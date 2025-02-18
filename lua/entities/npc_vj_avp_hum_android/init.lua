@@ -108,8 +108,7 @@ function ENT:OnInit()
 	if self.AllowCloaking then
 		self:SetSkin(1)
 		self:SetBodygroup(self:FindBodygroupByName("armor"),1)
-		self.GeneralSoundPitch1 = 90
-		self.GeneralSoundPitch2 = 95
+		self.MainSoundPitch = VJ.SET(90, 95)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

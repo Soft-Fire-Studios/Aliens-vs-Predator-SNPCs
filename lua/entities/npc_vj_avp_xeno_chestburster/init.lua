@@ -31,7 +31,7 @@ ENT.ControllerParams = {
     FirstP_ShrinkBone = true
 }
 
-ENT.GeneralSoundPitch1 = 100
+ENT.MainSoundPitch = 100
 ENT.HasExtraMeleeAttackSounds = true
 ENT.FootstepSoundLevel = 38
 ENT.FootstepSoundPitch = VJ.SET(110, 115)

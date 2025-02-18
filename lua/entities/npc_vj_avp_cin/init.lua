@@ -23,7 +23,7 @@ ENT.GodMode = true
 ENT.Bleeds = false
 ENT.Behavior = VJ_BEHAVIOR_PASSIVE_NATURE
 
-ENT.GeneralSoundPitch1 = 100
+ENT.MainSoundPitch = 100
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Init()
 	self:AddFlags(FL_NOTARGET)

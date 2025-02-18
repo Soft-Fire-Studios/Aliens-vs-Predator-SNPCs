@@ -34,7 +34,7 @@ ENT.ControllerParams = {
     FirstP_ShrinkBone = false
 }
 
-ENT.GeneralSoundPitch1 = 100
+ENT.MainSoundPitch = 100
 ENT.FootstepSoundLevel = 40
 ENT.FootstepTimerWalk = 0.2
 ENT.FootstepTimerRun = 0.1

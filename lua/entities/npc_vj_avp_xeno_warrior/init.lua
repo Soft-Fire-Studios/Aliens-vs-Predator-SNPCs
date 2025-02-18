@@ -67,7 +67,7 @@ ENT.AnimTbl_FlinchStand = {"standing_flinch_back_left","standing_flinch_back_rig
 
 ENT.DisableFootStepSoundTimer = true
 ENT.HasExtraMeleeAttackSounds = true
-ENT.GeneralSoundPitch1 = 100
+ENT.MainSoundPitch = 100
 
 ENT.AnimTbl_Fatalities = {
 	Alien = {
@@ -1489,7 +1489,7 @@ function ENT:OnInput(key,activator,caller,data)
 		local ent = self:GetEnemy()
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
-		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:GetSoundPitch(VJ.SET(self.GeneralSoundPitch1, self.GeneralSoundPitch2)))
+		VJ.CreateSound(self,self.SoundTbl_RangeAttack,80,self:GetSoundPitch(false))
 		if IsValid(ent) then
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
@@ -1717,7 +1717,7 @@ function ENT:CustomAttack(ent,visible)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:RangeAttackProjSpawnPos(projectile)
+function ENT:RangeAttackProjPos(projectile)
 	return self:GetAttachment(self:LookupAttachment("eyes")).Pos
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2976,7 +2976,7 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 	if self.BreathLoop then
 		self.BreathLoop:ChangeVolume(0.1)
 	end
-	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or self:GetSoundPitch(false))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
 	end

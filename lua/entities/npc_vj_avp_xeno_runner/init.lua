@@ -11,6 +11,5 @@ ENT.StartHealth = 60
 ENT.CanStand = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
-	self.GeneralSoundPitch1 = 110
-	self.GeneralSoundPitch2 = 115
+	self.MainSoundPitch = VJ.SET(110, 115)
 end

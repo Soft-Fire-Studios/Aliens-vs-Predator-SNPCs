@@ -21,8 +21,7 @@ ENT.ControllerParams = {
 ENT.HasBreath = true
 ENT.FootstepSoundLevel = 95
 ENT.FootstepSoundPitch = VJ.SET(60, 68)
-ENT.GeneralSoundPitch1 = 70
-ENT.GeneralSoundPitch2 = 75
+ENT.MainSoundPitch = VJ.SET(70, 75)
 
 ENT.FlinchChance = 60
 
@@ -51,13 +50,11 @@ ENT.CrawlingBounds = Vector(16,16,125)
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
-	print("2nd init")
 	self.FootData = {
 		["lfoot"] = {Range=20.5,OnGround=true},
 		["rfoot"] = {Range=19.5,OnGround=true},
 	}
-	self.GeneralSoundPitch1 = 70
-	self.GeneralSoundPitch2 = 75
+	self.MainSoundPitch = VJ.SET(70, 75)
 
 	self.HitGroups = {}
 	self.SoundTbl_Alert = {

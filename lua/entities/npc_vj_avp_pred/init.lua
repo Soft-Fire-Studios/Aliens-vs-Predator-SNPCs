@@ -53,7 +53,7 @@ ENT.ControllerParams = {
 ENT.HasDeathAnimation = true
 ENT.AnimTbl_Death = {"predator_claws_death_Back_Left","predator_claws_death_Back_Right","predator_claws_death_Front_Left","predator_claws_death_Front_Right"}
 
-ENT.GeneralSoundPitch1 = 100
+ENT.MainSoundPitch = 100
 
 ENT.AnimTbl_Fatalities = {
 	Alien = {
@@ -3219,7 +3219,7 @@ function ENT:PlaySound(sndTbl,level,pitch,setCurSnd)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 	end
 	local sndName = VJ.PICK(sndTbl)
-	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or math.random(self.GeneralSoundPitch1,self.GeneralSoundPitch2))
+	local snd = VJ.CreateSound(self,sndName,level or 75,pitch or self:GetSoundPitch(false))
 	if setCurSnd then
 		self.CurrentVoiceLine = snd
 	end
