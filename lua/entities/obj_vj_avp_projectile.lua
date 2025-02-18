@@ -5,7 +5,6 @@ ENT.Base 			= "obj_vj_projectile_base"
 ENT.PrintName		= "Projectile"
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
-ENT.Category		= "Projectiles"
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Entity",0,"TagOwner")
