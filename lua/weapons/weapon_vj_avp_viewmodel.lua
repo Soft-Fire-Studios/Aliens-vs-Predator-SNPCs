@@ -2,8 +2,6 @@ SWEP.Base 						= "weapon_base"
 SWEP.PrintName					= ""
 SWEP.Author 					= "Cpt. Hazama"
 SWEP.Contact					= ""
-SWEP.Purpose					= ""
-SWEP.Instructions				= ""
 SWEP.RenderGroup 				= RENDERGROUP_OPAQUE
 
 SWEP.SwayScale 					= 0.2

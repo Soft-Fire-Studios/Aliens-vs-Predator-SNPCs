@@ -1,8 +1,6 @@
 SWEP.Base 						= "weapon_vj_base"
 SWEP.Author 					= "Cpt. Hazama"
 SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
-SWEP.Purpose					= "This weapon is made for Players and NPCs"
-SWEP.Instructions				= "Controls are like a regular weapon."
 SWEP.Category					= "VJ Base - Aliens vs Predator"
 
 if CLIENT then

@@ -378,7 +378,7 @@ if VJExists == true then
 							end
 							self:OnInvestigate(v)
 							if self.VJ_AVP_NPC && math.random(1,6) == 1 then
-								self:PlaySoundSystem("InvestigateSound",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
+								self:PlaySoundSystem("Investigate",perDist > 0.8 && self.SoundTbl_MotionTracker_Far or perDist <= 0.8 && perDist > 0.4 && self.SoundTbl_MotionTracker_Mid or self.SoundTbl_MotionTracker_Close)
 							end
 						end
 					end

@@ -26,8 +26,8 @@ ENT.AnimTbl_Medic_GiveHealth = "vjges_gesture_item_drop"
 ENT.AnimTbl_CallForHelp = {"vjges_gesture_signal_group", "vjges_gesture_signal_forward"}
 ENT.AnimTbl_DamageAllyResponse = "vjges_gesture_signal_halt"
 
-ENT.FootstepTimerRun = 0.3
-ENT.FootstepTimerWalk = 0.5
+ENT.FootstepSoundTimerRun = 0.3
+ENT.FootstepSoundTimerWalk = 0.5
 
 ENT.CanFlinch = true
 ENT.FlinchCooldown = 1

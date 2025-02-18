@@ -120,7 +120,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_01/ENTERING_COVER_MAR01_04.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/ENTERING_COVER_MAR01_05.ogg",
 			}
-			self.SoundTbl_OnReceiveOrder = {
+			self.SoundTbl_ReceiveOrder = {
 				"cpthazama/avp/humans/vocals/Male_Marine_01/FLANKING_MAR01_01.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/FLANKING_MAR01_02.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/FLANKING_MAR01_03.ogg",
@@ -143,7 +143,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_01/INVESTIGATE_END_MAR01_03.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/INVESTIGATE_END_MAR01_04.ogg",
 			}
-			self.SoundTbl_OnKilledEnemy = {
+			self.SoundTbl_KilledEnemy = {
 				"cpthazama/avp/humans/vocals/Male_Marine_01/KILLED_THREAT_MAR01_01.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/KILLED_THREAT_MAR01_02.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/KILLED_THREAT_MAR01_03.ogg",
@@ -290,7 +290,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_09.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_02/FLANKING_MAR02_10.ogg",
 			}
-			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_ReceiveOrder = {}
 			self.SoundTbl_DamageByPlayer = {
 				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_01.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_02.ogg",
@@ -301,7 +301,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_02/FRIENDLY_FIRE_MAR02_12.ogg",
 			}
 			self.SoundTbl_InvestigateComplete = {}
-			self.SoundTbl_OnKilledEnemy = {
+			self.SoundTbl_KilledEnemy = {
 				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_06.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_07.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_02/KILLED_THREAT_MAR02_08.ogg",
@@ -448,7 +448,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_04.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/FLANKING_FEM01_05.ogg",
 			}
-			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_ReceiveOrder = {}
 			self.SoundTbl_DamageByPlayer = {
 				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_01.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/FRIENDLY_FIRE_FEM01_02.ogg",
@@ -463,7 +463,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_03.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/INVESTIGATE_END_FEM01_04.ogg",
 			}
-			self.SoundTbl_OnKilledEnemy = {
+			self.SoundTbl_KilledEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_01.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_02.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/KILLED_THREAT_FEM01_03.ogg",
@@ -604,7 +604,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_09.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/FLANKING_FEM02_10.ogg",
 			}
-			self.SoundTbl_OnReceiveOrder = {}
+			self.SoundTbl_ReceiveOrder = {}
 			self.SoundTbl_DamageByPlayer = {
 				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_07.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/FRIENDLY_FIRE_FEM02_08.ogg",
@@ -621,7 +621,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_06.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/INVESTIGATE_END_FEM02_07.ogg",
 			}
-			self.SoundTbl_OnKilledEnemy = {
+			self.SoundTbl_KilledEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_06.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_07.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/KILLED_THREAT_FEM02_08.ogg",
@@ -898,7 +898,7 @@ function ENT:OnDistracted(layer)
 		if #self.SoundTbl_DistractionSuccess > 0 then
 			VJ.CreateSound(self,self.SoundTbl_DistractionSuccess,75)
 		else
-			self:PlaySoundSystem(#self.SoundTbl_Investigate > 0 && "InvestigateSound" or "Alert")
+			self:PlaySoundSystem(#self.SoundTbl_Investigate > 0 && "Investigate" or "Alert")
 		end
 	elseif layer == 2 then
 		VJ.CreateSound(self,self.SoundTbl_InvestigateComplete,75)

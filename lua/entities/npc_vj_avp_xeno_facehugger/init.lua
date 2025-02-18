@@ -36,8 +36,8 @@ ENT.ControllerParams = {
 
 ENT.MainSoundPitch = 100
 ENT.FootstepSoundLevel = 40
-ENT.FootstepTimerWalk = 0.2
-ENT.FootstepTimerRun = 0.1
+ENT.FootstepSoundTimerWalk = 0.2
+ENT.FootstepSoundTimerRun = 0.1
 
 ENT.SoundTbl_FootStep = {
 	"cpthazama/avp/xeno/facehugger/foley/fhg_squelch1.ogg",

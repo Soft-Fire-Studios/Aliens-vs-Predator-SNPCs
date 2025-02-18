@@ -34,10 +34,10 @@ function ENT:SynthInitialize()
 	self.SoundTbl_Suppressing = {
 		"cpthazama/avp/humans/vocals/Android_01/ATTACKING_AND01_04.ogg",
 	}
-	self.SoundTbl_OnReceiveOrder = {}
+	self.SoundTbl_ReceiveOrder = {}
 	self.SoundTbl_DamageByPlayer = {}
 	self.SoundTbl_InvestigateComplete = {}
-	self.SoundTbl_OnKilledEnemy = {
+	self.SoundTbl_KilledEnemy = {
 		"cpthazama/avp/humans/vocals/Android_01/KILLED_THREAT_AND01_04.ogg",
 	}
 	self.SoundTbl_MotionTracker_Far = {}

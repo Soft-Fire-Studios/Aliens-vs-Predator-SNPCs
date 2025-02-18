@@ -5,8 +5,6 @@ ENT.Type 			= "anim"
 ENT.PrintName 		= "RC Controller"
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
-ENT.Purpose 		= ""
-ENT.Instructions 	= ""
 ENT.Category		= "Aliens vs Predator"
 
 ENT.Spawnable = false

@@ -51,10 +51,10 @@ function ENT:OnInit()
 		"cpthazama/avp/humans/vocals/Tequila/ATTACKING_TEQ_10.ogg",
 		"cpthazama/avp/humans/vocals/Tequila/ATTACKING_TEQ_11.ogg",
 	}
-	self.SoundTbl_OnReceiveOrder = {}
+	self.SoundTbl_ReceiveOrder = {}
 	self.SoundTbl_DamageByPlayer = {}
 	self.SoundTbl_InvestigateComplete = {}
-	self.SoundTbl_OnKilledEnemy = {
+	self.SoundTbl_KilledEnemy = {
 		"cpthazama/avp/humans/vocals/Tequila/KILLED_THREAT_TEQ_03.ogg",
 		"cpthazama/avp/humans/vocals/Tequila/KILLED_THREAT_TEQ_04.ogg",
 		"cpthazama/avp/humans/vocals/Tequila/KILLED_THREAT_TEQ_05.ogg",

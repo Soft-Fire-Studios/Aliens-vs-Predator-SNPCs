@@ -26,10 +26,10 @@ function ENT:OnInit()
 	self.SoundTbl_SeeBody = {}
 	self.SoundTbl_DistractionSuccess = {}
 	self.SoundTbl_Suppressing = {}
-	self.SoundTbl_OnReceiveOrder = {}
+	self.SoundTbl_ReceiveOrder = {}
 	self.SoundTbl_DamageByPlayer = {}
 	self.SoundTbl_InvestigateComplete = {}
-	self.SoundTbl_OnKilledEnemy = {}
+	self.SoundTbl_KilledEnemy = {}
 	self.SoundTbl_MotionTracker_Far = {}
 	self.SoundTbl_MotionTracker_Mid = {}
 	self.SoundTbl_MotionTracker_Close = {}

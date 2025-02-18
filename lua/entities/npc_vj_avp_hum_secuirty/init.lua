@@ -37,7 +37,7 @@ function ENT:OnInit()
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/ATTACKING_RED01_02.ogg",
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/ATTACKING_RED01_03.ogg",
 	}
-	self.SoundTbl_OnReceiveOrder = {}
+	self.SoundTbl_ReceiveOrder = {}
 	self.SoundTbl_DamageByPlayer = {}
 	self.SoundTbl_InvestigateComplete = {
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/INVESTIGATE_ARRIVAL_RED01_01.ogg",
@@ -46,7 +46,7 @@ function ENT:OnInit()
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/INVESTIGATE_END_RED01_02.ogg",
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/INVESTIGATE_END_RED01_03.ogg",
 	}
-	self.SoundTbl_OnKilledEnemy = {
+	self.SoundTbl_KilledEnemy = {
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/KILLED_THREAT_RED01_01.ogg",
 		"cpthazama/avp/humans/vocals/Red_Shirt_01/KILLED_THREAT_RED01_02.ogg",
 	}
