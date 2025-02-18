@@ -895,8 +895,10 @@ function ENT:Init()
     end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local orgIsBusy = ENT.IsBusy
+--
 function ENT:IsBusy()
-	return self.BaseClass.IsBusy(self) or self.ActivatedSelfDestruct
+	return orgIsBusy(self) or self.ActivatedSelfDestruct
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ChangeEquipment(equip)

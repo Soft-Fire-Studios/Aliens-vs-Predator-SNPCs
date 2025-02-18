@@ -745,7 +745,7 @@ function ENT:AttackCode(charge)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:WhenRemoved()
-	if !self.Dead then
+	if !self.Dead && self.Eggs then
 		for _, v in ipairs(self.Eggs) do
 			if IsValid(v) then
 				v:Remove()
@@ -758,9 +758,6 @@ local angY45 = Angle(0, 45, 0)
 local angYN45 = Angle(0, -45, 0)
 local angY90 = Angle(0, 90, 0)
 local angYN90 = Angle(0, -90, 0)
-local angY135 = Angle(0, 135, 0)
-local angYN135 = Angle(0, -135, 0)
-local angY180 = Angle(0, 180, 0)
 local defAng = Angle(0, 0, 0)
 --
 function ENT:Controller_Movement(cont, ply, bullseyePos)

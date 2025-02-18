@@ -36,8 +36,10 @@ end
 -- 	return false, inFront
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local orgIsBusy = baseclass.Get(ENT.Base).IsBusy
+--
 function ENT:IsBusy()
-	return self.BaseClass.IsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
+	return orgIsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ResetFatality()
