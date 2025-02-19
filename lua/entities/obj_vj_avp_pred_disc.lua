@@ -115,7 +115,7 @@ function ENT:OnThink()
 		if self.HitT > CurTime() then
 			phys:SetVelocity(self.HitDir *-self.Speed)
 		else
-			phys:SetVelocity(((goalPos -self:GetPos()):GetNormal() *self.Speed))
+			phys:SetVelocity((goalPos -self:GetPos()):GetNormal() * self.Speed)
 		end
 		self:SetAngles(self:GetVelocity():GetNormal():Angle())
 	else

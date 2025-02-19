@@ -1059,10 +1059,10 @@ function ENT:TranslateActivity(act)
 	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active == true && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
 	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanMoveFire == true && IsValid(self:GetEnemy()) then
-		if (self.EnemyData.IsVisible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
+		if (self.EnemyData.Visible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) == true then
-				if self.EnemyData.IsVisible then
+				if self.EnemyData.Visible then
 					self.WeaponAttackState = VJ.WEP_ATTACK_STATE_FIRE
 				else -- Not visible but keep aiming
 					self.WeaponAttackState = VJ.WEP_ATTACK_STATE_AIM_MOVE
@@ -1220,11 +1220,6 @@ function ENT:OnWeaponReload()
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local table_insert = table.insert
-local math_abs = math.abs
-local math_cos = math.cos
-local math_rad = math.rad
---
 function ENT:OnThinkActive()
 	local curTime = CurTime()
 	self.HasPoseParameterLooking = !self.InFatality

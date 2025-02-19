@@ -197,7 +197,7 @@ function ENT:OnThink2()
 	local cont = self.VJ_TheController
 	if self.Alerted && !IsValid(cont) then
 		self.NextLookForBirthT = curTime +60
-		if self.InBirth && self.NearestPointToEnemyDistance <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
+		if self.InBirth && self.EnemyData.DistanceNearest <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
 			self.InBirth = false
 			for _,v in pairs(VJ_AVP_XENOS) do
 				if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
@@ -673,7 +673,7 @@ end
 function ENT:CustomAttack(ent,visible)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.EnemyData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
 
 	if IsValid(cont) then

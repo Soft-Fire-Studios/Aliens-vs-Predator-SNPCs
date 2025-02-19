@@ -24,11 +24,6 @@ ENT.VJ_NPC_Class = {"CLASS_XENOMORPH"}
 
 ENT.HasMeleeAttack = false
 
--- Example scenario:
---      [A]       <- Apex
---     /   \
---    /     [S]   <- Start
---  [E]           <- End
 ENT.JumpParams = {
 	MaxRise = 375,
 	MaxDrop = 700,
@@ -788,7 +783,7 @@ end
 function ENT:OnAlert(ent)
 	if self.VJ_AVP_XenomorphLarge then return end
 	if !self.CanScreamForHelp then return end
-	if math.random(1,10) == 1 && !self:IsBusy() && ent:Visible(self) && self.NearestPointToEnemyDistance > 1000 then
+	if math.random(1,10) == 1 && !self:IsBusy() && ent:Visible(self) && self.EnemyData.DistanceNearest > 1000 then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 		self:PlayAnim("hiss_reaction",true,false,false)
@@ -975,8 +970,8 @@ local colFade = {
 	["Oil"] = Color(52,52,52),
 }
 
-local vecZ30 = Vector(0,0,30)
-local vecZ1 = Vector(0,0,1)
+-- local vecZ30 = Vector(0,0,30)
+-- local vecZ1 = Vector(0,0,1)
 local vec256 = Vector(0,0,-256)
 local math_Clamp = math.Clamp
 --
@@ -1006,7 +1001,6 @@ function ENT:HeadbiteCorpse(ent)
 		local pos = ent:GetAttachment(att).Pos
 		local effect = VJ.PICK(ent.BloodData.Particle)
 		ParticleEffect(effect,pos,Angle())
-		local force = 500
 		local randVec = VectorRand() *48
 		randVec.z = 0
 		local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
@@ -1032,7 +1026,6 @@ function ENT:HeadbiteCorpse(ent)
 				if IsValid(ent) then
 					pos = ent:GetAttachment(att).Pos
 					ParticleEffect(effect,pos,Angle())
-					local force = 500
 					local randVec = VectorRand() *48
 					randVec.z = 0
 					local tr = util.TraceLine({start = pos,endpos = pos +vec256 +randVec,filter = ent})
@@ -1074,7 +1067,7 @@ function ENT:OnKeyPressed(ply,key)
 			-- print(ent,"Has been eaten?",ent.VJ_AVP_CorpseHasBeenEaten)
 			if ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten && !self:IsBusy() then
 				self:HeadbiteCorpse(ent)
-			elseif ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
+			elseif ent:IsNPC() && self.EnemyData.DistanceNearest <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)
 				if canUse then
 					self:DoFatality(ent,inFront)
@@ -1165,7 +1158,7 @@ function ENT:DistractionCode(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local vecZ50 = Vector(0, 0, -50)
+-- local vecZ50 = Vector(0, 0, -50)
 --
 -- function ENT:OnEat(status, statusData)
 -- 	if status == "CheckFood" then
@@ -1618,7 +1611,7 @@ local string_find = string.find
 function ENT:CustomAttack(ent,visible)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.EnemyData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 	local curTime = CurTime()
@@ -1727,8 +1720,6 @@ function ENT:CustomOnRangeAttack_AfterStartTimer()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_Clamp = math.Clamp
---
 function ENT:DoLeapAttack()
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	VJ.STOPSOUND(self.CurrentSpeechSound)
@@ -1736,7 +1727,7 @@ function ENT:DoLeapAttack()
 	VJ.CreateSound(self,self.SoundTbl_Jump,80)
 
 	local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
-	self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+	self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, math_Clamp(self.EnemyData.DistanceNearest,700,2500)))
 	self:PlayAnim("leap_long",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		self.AttackDamageDistance = 140
@@ -2145,8 +2136,8 @@ function ENT:JumpVelocityCode()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:StalkingAI(ent)
-	local dist = self.NearestPointToEnemyDistance
 	local eneData = self.EnemyData
+	local dist = eneData.DistanceNearest
 	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 && eneData && (CurTime() -eneData.LastVisibleTime) > 8 then
 		self.StalkingAITime = CurTime() +2
 		-- self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH",function(x)
@@ -2678,9 +2669,7 @@ function ENT:SetViewModelWeapon(wep,ply)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local bit_band = bit.band
-local math_Clamp = math.Clamp
 --
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnDamaged(dmginfo, hitgroup, status)
 	if status == "PreDamage" then
 		local dmgType = dmginfo:GetDamageType()

@@ -36,10 +36,12 @@ end
 -- 	return false, inFront
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local orgIsBusy = baseclass.Get(ENT.Base).IsBusy
---
 function ENT:IsBusy()
-	return orgIsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
+	-- Idk if this fully works for entities derived from other NPCs
+	if self.Base == "npc_vj_creature_base" or self.Base == "npc_vj_human_base" then
+		return baseclass.Get(self.Base).IsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
+	end
+	return self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ResetFatality()

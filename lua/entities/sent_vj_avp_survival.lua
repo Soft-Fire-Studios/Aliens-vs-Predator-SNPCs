@@ -352,7 +352,7 @@ function ENT:Initialize()
 		if IsValid(self) then
 			self:SetSpecialRound(false)
 			self:SetWaveSwitching(false)
-			self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount,1,self.MaxNPCs)
+			self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount,1,self.MaxNPCs)
 			self:SetWave(self:GetWave() +1)
 			self.KillsLeft = self.IncrementAmount *self:GetWave()
 			for _,v in pairs(player.GetAll()) do
@@ -449,7 +449,7 @@ function ENT:Initialize()
 
 	if self.AllowBots then
 		local maxBots = GetConVar("vj_avp_survival_maxbots"):GetInt()
-		local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math.Clamp((game.MaxPlayers() -#plys) /2,1,4))
+		local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math_Clamp((game.MaxPlayers() -#plys) /2,1,4))
 		self.MaxBots = botCount
 		self:SpawnBot(botCount)
 	end
@@ -511,7 +511,7 @@ function ENT:CheckNextRoundAvailability()
 		end
 
 		if self.AllowBots then
-			local bots = self.Bots
+			//local bots = self.Bots
 			local deadBots = self.BotsToRespawn
 			if deadBots > 0 then
 				self:SpawnBot(deadBots,true)
@@ -536,8 +536,8 @@ function ENT:NextRound()
 		self.MaxBosses = newWave /5
 		self:SetSpecialRound(true)
 		self:SetWaveSwitching(false)
-		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
-		-- self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
+		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		-- self.CurrentMaxNPCs = math_Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
 		self:SetWave(newWave)
 		self.KillsLeft = self.IncrementAmount *newWave
 		self.BossKillsLeft = math_ceil(newWave *0.5)
@@ -550,7 +550,7 @@ function ENT:NextRound()
 	else
 		self:SetSpecialRound(false)
 		self:SetWaveSwitching(false)
-		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
 		self:SetWave(newWave)
 		self.KillsLeft = self.IncrementAmount *newWave
 		for _,v in pairs(player.GetAll()) do
@@ -706,34 +706,32 @@ function ENT:Think()
 	local totalNPCs = self:GetTotalAmount()
 	local curTime = CurTime()
 
-	if !VJ_CVAR_IGNOREPLAYERS then
-		if self.AllowBots then
-			local bots = self.Bots
-			if #bots > 0 && curTime >= self.NextBotsRefreshT then
-				self.NextBotsRefreshT = curTime + math.Rand(2,12)
-				for _,v in pairs(bots) do
-					if IsValid(v) && !v.IsFollowing then
-						if !v:IsInWorld() then
-							self:RespawnEntity(v)
-						end
-						local closestPlayer = NULL
-						local closestDist = 999999
-						for _,v2 in pairs(player.GetAll()) do
-							if v2:Alive() && !v2.VJ_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
-								local dist = v2:GetPos():Distance(v:GetPos())
-								if dist < closestDist then
-									closestPlayer = v2
-									closestDist = dist
-								end
+	if !VJ_CVAR_IGNOREPLAYERS && self.AllowBots then
+		local bots = self.Bots
+		if #bots > 0 && curTime >= self.NextBotsRefreshT then
+			self.NextBotsRefreshT = curTime + math.Rand(2,12)
+			for _,v in pairs(bots) do
+				if IsValid(v) && !v.IsFollowing then
+					if !v:IsInWorld() then
+						self:RespawnEntity(v)
+					end
+					local closestPlayer = NULL
+					local closestDist = 999999
+					for _,v2 in pairs(player.GetAll()) do
+						if v2:Alive() && !v2.VJ_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
+							local dist = v2:GetPos():Distance(v:GetPos())
+							if dist < closestDist then
+								closestPlayer = v2
+								closestDist = dist
 							end
 						end
-						if IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
-							v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512,512),math.random(-512,512),0))
-							v:SCHEDULE_GOTO_POSITION(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
-								x.CanShootWhenMoving = true
-								x.ConstantlyFaceEnemy = true
-							end)
-						end
+					end
+					if IsValid(closestPlayer) && closestDist > (v:Visible(closestPlayer) && 750 or 350) then
+						v:SetLastPosition(closestPlayer:GetPos() + Vector(math.random(-512,512),math.random(-512,512),0))
+						v:SCHEDULE_GOTO_POSITION(closestDist <= 400 && "TASK_WALK_PATH" or "TASK_RUN_PATH",function(x)
+							x.CanShootWhenMoving = true
+							x.ConstantlyFaceEnemy = true
+						end)
 					end
 				end
 			end
@@ -771,7 +769,7 @@ function ENT:Think()
 			return
 		end
 		local totalSpawned = 0
-		local spawnPoint = self:FindSpawnPoint(math.Clamp(self:GetWave(),1,4))
+		local spawnPoint = self:FindSpawnPoint(math_Clamp(self:GetWave(),1,4))
 		if spawnPoint == false then
 			return
 		end
@@ -918,7 +916,7 @@ function ENT:ForceRound(round) -- Developer function to force a specific round |
 	end
 
 	if self.AllowBots then
-		local bots = self.Bots
+		//local bots = self.Bots
 		local deadBots = self.BotsToRespawn
 		if deadBots > 0 then
 			self:SpawnBot(deadBots,true)

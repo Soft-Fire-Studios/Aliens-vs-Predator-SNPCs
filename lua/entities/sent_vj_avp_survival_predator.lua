@@ -354,7 +354,7 @@ function ENT:Initialize()
 		if IsValid(self) then
 			self:SetSpecialRound(false)
 			self:SetWaveSwitching(false)
-			self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount,1,self.MaxNPCs)
+			self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount,1,self.MaxNPCs)
 			self:SetWave(self:GetWave() +1)
 			self.KillsLeft = self.IncrementAmount *self:GetWave()
 			for _,v in pairs(player.GetAll()) do
@@ -370,7 +370,6 @@ function ENT:Initialize()
 		v:SetNW2Bool("AVP_DiedInSurvival",false)
 		v:ChatPrint("Survival will begin in 10 seconds...")
 		-- VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_37.ogg")
-		local cEnt = v.VJ_TheControllerEntity
 
 		if !self.IsPredatorPlayers then
 			v:StripWeapons()
@@ -409,7 +408,7 @@ function ENT:Initialize()
 
 	if self.AllowBots then
 		local maxBots = GetConVar("vj_avp_survival_maxbots"):GetInt()
-		local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math.Clamp((game.MaxPlayers() -#plys) /2,1,4))
+		local botCount = maxBots != 0 && maxBots or (game.SinglePlayer() && 3 or math_Clamp((game.MaxPlayers() -#plys) /2,1,4))
 		self.MaxBots = botCount
 		self:SpawnBot(botCount)
 	end
@@ -468,7 +467,7 @@ function ENT:CheckNextRoundAvailability()
 		end
 
 		if self.AllowBots then
-			local bots = self.Bots
+			//local bots = self.Bots
 			local deadBots = self.BotsToRespawn
 			if deadBots > 0 then
 				self:SpawnBot(deadBots,true)
@@ -492,8 +491,8 @@ function ENT:NextRound()
 		self.MaxBosses = newWave /5
 		self:SetSpecialRound(true)
 		self:SetWaveSwitching(false)
-		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
-		-- self.CurrentMaxNPCs = math.Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
+		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		-- self.CurrentMaxNPCs = math_Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
 		self:SetWave(newWave)
 		self.KillsLeft = self.IncrementAmount *newWave
 		self.BossKillsLeft = math_ceil(newWave *0.5)
@@ -505,7 +504,7 @@ function ENT:NextRound()
 	else
 		self:SetSpecialRound(false)
 		self:SetWaveSwitching(false)
-		self.CurrentMaxNPCs = math.Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
+		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
 		self:SetWave(newWave)
 		self.KillsLeft = self.IncrementAmount *newWave
 		for _,v in pairs(player.GetAll()) do
@@ -726,7 +725,7 @@ function ENT:Think()
 			return
 		end
 		local totalSpawned = 0
-		local spawnPoint = self:FindSpawnPoint(math.Clamp(self:GetWave(),1,4))
+		local spawnPoint = self:FindSpawnPoint(math_Clamp(self:GetWave(),1,4))
 		if spawnPoint == false then
 			return
 		end
@@ -790,7 +789,7 @@ function ENT:ForceRound(round) -- Developer function to force a specific round |
 	end
 
 	if self.AllowBots then
-		local bots = self.Bots
+		//local bots = self.Bots
 		local deadBots = self.BotsToRespawn
 		if deadBots > 0 then
 			self:SpawnBot(deadBots,true)

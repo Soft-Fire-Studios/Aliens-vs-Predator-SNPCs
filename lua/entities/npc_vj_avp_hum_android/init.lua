@@ -172,11 +172,9 @@ function ENT:OnThink2(curTime)
 		-- 	self:Camo(!self:GetCloaked())
 		-- 	self.NextCloakT = curTime +1
 		-- end
-		if IsValid(enemy) && !cont then
-			if !self:GetCloaked() && self:GetState() == VJ_STATE_NONE && curTime > self.NextCloakT && !enemy.VJ_AVP_Xenomorph && math.random(1,30) == 1 then
-				self:Camo(!self:GetCloaked())
-				self.NextCloakT = curTime +1
-			end
+		if IsValid(enemy) && !cont && !self:GetCloaked() && self:GetState() == VJ_STATE_NONE && curTime > self.NextCloakT && !enemy.VJ_AVP_Xenomorph && math.random(1,30) == 1 then
+			self:Camo(!self:GetCloaked())
+			self.NextCloakT = curTime +1
 		end
 	end
 end

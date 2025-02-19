@@ -269,7 +269,7 @@ function ENT:DoSummon()
 				table.insert(closestNodes,node.pos)
 				totalSpawns = totalSpawns +1
 			end
-			for i = 1,5 do
+			for _ = 1,5 do
 				local pos = VJ.PICK(closestNodes)
 				if pos then
 					local xeno = ents.Create(VJ.PICK(self.SummonClasses))

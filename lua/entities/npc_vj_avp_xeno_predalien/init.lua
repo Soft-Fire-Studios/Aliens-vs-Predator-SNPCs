@@ -272,7 +272,7 @@ end
 function ENT:CustomAttack(ent,visible)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.EnemyData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
 
@@ -317,10 +317,10 @@ function ENT:DoLeapAttack()
 	self:PlayAnim("Predalien_Hybrid_leap_attack_telegraph",true,false,true,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		-- self:SetGroundEntity(NULL)
-		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.NearestPointToEnemyDistance,300,2000)) +self:GetUp() *200)
+		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.EnemyData.DistanceNearest,300,2000)) +self:GetUp() *200)
 		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *2000
-		-- self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
-		-- self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, (math_Clamp(self.NearestPointToEnemyDistance,700,2500))))
+		-- self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.EnemyData.DistanceNearest,700,2500))))
+		-- self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, (math_Clamp(self.EnemyData.DistanceNearest,700,2500))))
 		self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, 2000))
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
@@ -442,8 +442,6 @@ function ENT:LongJumpCode(gotoPos,atk)
 		})
 		-- VJ.DEBUG_TempEnt(trSt.HitPos, self:GetAngles(), Color(17,255,0), 5)
 	end
-	local startPos = trSt.HitPos +trSt.HitNormal *4
-	-- VJ.DEBUG_TempEnt(startPos, self:GetAngles(), Color(13,0,255), 5)
 	self.LongJumpPos = trSt.HitPos
 	self.LongJumpAttacking = atk
 	local anim
@@ -491,22 +489,18 @@ function ENT:OnThink2()
 	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_Clamp = math.Clamp
---
 function ENT:JumpVelocityCode()
 	local currentPos = self:GetPos()
 	if self.LongJumpAttacking then
 		local targetPos = self.LongJumpPos +self:GetUp() *20
 		local moveDirection = (targetPos -currentPos):GetNormalized()
 		local moveSpeed = 600
-		local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
 		self:SetLocalVelocity(moveDirection *moveSpeed)
 	else
 		local dist = currentPos:Distance(self.LongJumpPos)
 		local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() or self:OBBCenter() *3)
 		local moveDirection = (targetPos -currentPos):GetNormalized()
-		local moveSpeed = math_Clamp((dist < 250 && 700 or dist *3.5),700,3000)
-		local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
+		local moveSpeed = math_Clamp(dist < 250 && 700 or dist *3.5,700,3000)
 		self:SetLocalVelocity(moveDirection *moveSpeed)
 	end
 end

@@ -270,7 +270,6 @@ function ENT:TranslateActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
-	local dist = self.NearestPointToEnemyDistance
 	local ply = self.VJ_TheController
 	local speargun = self:GetEquipment() == 5
 	if IsValid(ply) then
@@ -287,10 +286,9 @@ function ENT:SelectMovementActivity(act)
 		elseif self.Cur_Run && act == ACT_RUN then
 			return speargun && ACT_HL2MP_RUN_SMG1 or ACT_RUN
 		end
-		if act == ACT_RUN then
-			if dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
-				return speargun && ACT_HL2MP_SWIM_SMG1 or ACT_SPRINT
-			end
+		local dist = self.EnemyData.DistanceNearest
+		if act == ACT_RUN && dist && dist > self.AttackDistance *3 && self.NextSprintT < CurTime() then
+			return speargun && ACT_HL2MP_SWIM_SMG1 or ACT_SPRINT
 		end
 	end
 	return act
@@ -328,8 +326,6 @@ function ENT:CustomOnChangeActivity(newAct)
 	self.LongJumping = false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local string_find = string.find
---
 function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
 	animation = VJ.PICK(animation)
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
@@ -1037,14 +1033,11 @@ function ENT:OnKeyPressed(ply,key)
 				ent:Fire("Use",nil,0,ply,self)
 				return
 			end
-			print(ent,ent:IsNPC(),self.NearestPointToEnemyDistance <= self.AttackDistance,self.CanAttack,!self:IsBusy())
-			if ent:IsNPC() && self.NearestPointToEnemyDistance <= self.AttackDistance then
-				if self.CanAttack && !self:IsBusy() then
-					local canUse, inFront = self:CanUseFatality(ent)
-					if canUse then
-						self:DoFatality(ent,inFront)
-						return
-					end
+			if ent:IsNPC() && self.EnemyData.DistanceNearest <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
+				local canUse, inFront = self:CanUseFatality(ent)
+				if canUse then
+					self:DoFatality(ent,inFront)
+					return
 				end
 			end
 		end
@@ -1073,7 +1066,6 @@ function ENT:OnKeyPressed(ply,key)
 		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
 
 		local moving = self:IsMoving()
-		local moveDir, moveAng = self:GetMovementDirection()
 		local ang = ply:EyeAngles()
 		ang:RotateAroundAxis(ang:Up(), moveAng.y)
 		self:SetGroundEntity(NULL)
@@ -1208,7 +1200,7 @@ function ENT:CustomAttack(ent,vis)
 	if self.InFatality or self.DoingFatality then return end
 	local equipment = self:GetEquipment()
 	local cont = self.VJ_TheController
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.EnemyData.DistanceNearest
 	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
 	if CurTime() < self.SpecialBlockAnimTime or equipment == 5 or self:IsBusy() then
 		doingBlock = false
@@ -1894,7 +1886,7 @@ function ENT:OnInput(key,activator,caller,data)
 			fx:SetMagnitude(2)
 			fx:SetNormal(self:GetUp())
 			util.Effect("ElectricSpark",fx)
-			for i = 1,16 do
+			for _ = 1,16 do
 				util.Effect("GlassImpact",fx)
 			end
 		end
@@ -2065,7 +2057,7 @@ function ENT:OnInput(key,activator,caller,data)
 		self.Disc = disc
 	
 		self:SetBodygroup(self:FindBodygroupByName("equip_disc"),0)
-	elseif key == "disc_extend" then
+	//elseif key == "disc_extend" then
 		
 	elseif key == "disc_throw" then
 		SafeRemoveEntity(self.Disc)
@@ -2169,7 +2161,7 @@ function ENT:OnInput(key,activator,caller,data)
 
 		ship:SetCloaked(true)
 		ship:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
-	elseif key == "cin_predintro_pred_grab" then
+	//elseif key == "cin_predintro_pred_grab" then
 		
 	elseif key == "cin_predintro_pred_land" then
 		VJ.CreateSound(self,self.SoundTbl_Land,75)
@@ -2187,7 +2179,7 @@ function ENT:OnInput(key,activator,caller,data)
 			fx:SetMagnitude(2)
 			fx:SetNormal(self:GetUp())
 			util.Effect("ElectricSpark",fx)
-			for i = 1,16 do
+			for _ = 1,16 do
 				util.Effect("GlassImpact",fx)
 			end
 		end
@@ -2195,7 +2187,7 @@ function ENT:OnInput(key,activator,caller,data)
 		self:PlaySound(self.SoundTbl_Attack,80)
 	elseif key == "cin_predintro_pred_claws" then
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_draw_01.ogg",72)
-	elseif key == "cin_predintro_pred_placement" then
+	//elseif key == "cin_predintro_pred_placement" then
 		-- self:SetPos(self:GetBonePosition(1))
 		-- self:SetAngles(self:GetAngles() +Angle(0,-90,0))
 	elseif key == "console_open" then
@@ -2290,12 +2282,6 @@ function ENT:SetViewModelWeapon(wep,ply)
 	local vm = ply:GetViewModel()
 	if IsValid(vm) then
 		local isScripted = wep:IsScripted()
-
-		local fov = -1
-
-		if isScripted and wep.ViewModelFOV then
-			fov = wep.ViewModelFOV
-		end
 
 		if (self:GetVM() != wep or vm:GetModel() != model) then
 			vm:SetModel(model)
@@ -2451,7 +2437,7 @@ function ENT:OnThinkActive()
 	end
 	self:SetArrivalSpeed(9999)
 	local curTime = CurTime()
-	local dist = self.NearestPointToEnemyDistance
+	local dist = self.EnemyData.DistanceNearest
 	-- local moveAct = self:SelectMovementActivity(dist)
 	local ply = self.VJ_TheController
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
@@ -2588,7 +2574,6 @@ function ENT:OnThinkActive()
 			local targetPos = self.LongJumpPos +self:GetUp() *45
 			local moveDirection = (targetPos -currentPos):GetNormalized()
 			local moveSpeed = 1000
-			local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
 			self:SetLocalVelocity(moveDirection *moveSpeed)
 			if currentPos:Distance(self.LongJumpPos) < 75 then
 				self.LongJumpAttacking = false
@@ -2599,7 +2584,6 @@ function ENT:OnThinkActive()
 			local targetPos = self.LongJumpPos +(dist < 250 && self:OBBCenter() or self:OBBCenter() *3)
 			local moveDirection = (targetPos -currentPos):GetNormalized()
 			local moveSpeed = (dist < 250 && 430 or dist *2)
-			local newPos = currentPos +moveDirection *moveSpeed *FrameTime()
 			self:SetLocalVelocity(moveDirection *moveSpeed)
 		end
 	end

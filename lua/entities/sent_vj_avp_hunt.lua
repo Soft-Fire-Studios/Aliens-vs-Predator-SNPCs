@@ -273,7 +273,6 @@ function ENT:SpawnBot(count,respawn)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local math_ceil = math.ceil
 local GM_END_TIME = 1
 local GM_END_PRED_KILLED = 2
 local GM_END_HUMANS_KILLED = 3
@@ -591,7 +590,7 @@ end
 local math_abs = math.abs
 --
 function ENT:FindSpawnPoint(total,data)
-    local data = data or {}
+    data = data or {}
     local nodeType = data.NodeType or 2
     local nodeZone = data.NodeZone or 3
     local flagData = data.NodeFlags
@@ -744,7 +743,7 @@ function ENT:Think()
 				local pred = self.Predator
 				local bots = self.Bots
 				if IsValid(pred) && !pred.VJ_IsBeingControlled then
-					if math.random(1,3) == 1 && !pred:IsBusy() && IsValid(pred:GetEnemy()) && pred.NearestPointToEnemyDistance > 1000 then
+					if math.random(1,3) == 1 && !pred:IsBusy() && IsValid(pred:GetEnemy()) && pred.EnemyData.DistanceNearest > 1000 then
 						if self.ExtractionPoint then
 							pred:SetLastPosition(self.ExtractionPoint +VectorRand() *math.Rand(0,512))
 							pred:SCHEDULE_GOTO_POSITION("TASK_RUN_PATH",function(x)

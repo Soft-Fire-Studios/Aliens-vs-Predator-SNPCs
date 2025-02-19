@@ -323,7 +323,7 @@ function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
 			end
 			self:DeleteOnRemove(fakeFacehugger)
 			if useBone then
-				local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
+				//local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
 				self:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
 				-- fakeFacehugger:SetAngles(boneAng)
 				fakeFacehugger:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
@@ -458,7 +458,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local math_acos = math.acos
 local math_deg = math.deg
-local math_rad = math.rad
 local math_abs = math.abs
 --
 function ENT:SetGroundAngle()
@@ -630,7 +629,7 @@ function ENT:OnThinkActive()
 	self:SetHP(self:Health())
 	if !self.IsLatched then
 		local ent = self:GetEnemy()
-		local dist = self.NearestPointToEnemyDistance
+		local dist = self.EnemyData.DistanceNearest
 		self:SetGroundAngle()
 
 		self.DisableChasingEnemy = CurTime() < self.StalkingAITime && dist <= 900 && IsValid(ent) && !ent:Visible(self)

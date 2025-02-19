@@ -52,7 +52,7 @@ function ENT:Open()
 	timer.Simple(0.5,function()
 		if IsValid(self) then
 			local royal = self.VJ_AVP_XenomorphEggRoyal
-			for i = 1,(royal && 3 or 1) do
+			for _ = 1, (royal && 3 or 1) do
 				local facehugger
 				if self.VJ_AVP_K_Xenomorph then
 					facehugger = ents.Create(royal && "npc_vj_avp_kxeno_facehugger_queen" or "npc_vj_avp_kxeno_facehugger")
@@ -148,10 +148,8 @@ end
 function ENT:CustomOnRemove()
 	if IsValid(self.Queen) then
 		for _,v in ipairs(self.Queen.Eggs) do
-			if IsValid(v) then
-				if v == self then
-					table.remove(self.Queen.Eggs,_)
-				end
+			if IsValid(v) && v == self then
+				table.remove(self.Queen.Eggs,_)
 			end
 		end
 	end

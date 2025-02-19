@@ -36,8 +36,6 @@ if CLIENT then
 	end
 
 	local halo_Add = halo.Add
-	local table_insert = table.insert
-	local table_remove = table.remove
 	function ENT:Initialize()
 		hook.Add("PreDrawHalos",self,function(self)
 			local linkedObj = self:GetLinkedObject()
@@ -123,14 +121,12 @@ end
 function ENT:Use(ent)
 	if !self:GetActive() then return end
 	local linkedObj = self:GetLinkedObject()
-	if ent:IsPlayer() && IsValid(linkedObj) && ent:Alive() && !IsValid(ent:GetObserverTarget()) then
-		if linkedObj.OnDeviceEffected then
-			ent:ChatPrint(self:GetOn() && "The Sentry Gun has been turned off." or "The Sentry Gun has been turned on.")
-			linkedObj:OnDeviceEffected(self,self:GetOn() && 2 or 1)
-			self:SetOn(!self:GetOn())
-			if !self:GetOn() then
-				self.NextRequestRestartT = CurTime() +math.random(15,30)
-			end
+	if ent:IsPlayer() && IsValid(linkedObj) && ent:Alive() && !IsValid(ent:GetObserverTarget()) && linkedObj.OnDeviceEffected then
+		ent:ChatPrint(self:GetOn() && "The Sentry Gun has been turned off." or "The Sentry Gun has been turned on.")
+		linkedObj:OnDeviceEffected(self,self:GetOn() && 2 or 1)
+		self:SetOn(!self:GetOn())
+		if !self:GetOn() then
+			self.NextRequestRestartT = CurTime() +math.random(15,30)
 		end
 	end
 end
