@@ -1051,17 +1051,17 @@ function ENT:TranslateActivity(act)
 	-- end
 
 	if act == ACT_IDLE then
-		if self.Weapon_UnarmedBehavior_Active == true then
+		if self.Weapon_UnarmedBehavior_Active then
 			return ACT_COWER
 		elseif self.Alerted && self:GetWeaponState() != VJ.WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
 			return ACT_IDLE_ANGRY
 		end
-	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active == true && !self.VJ_IsBeingControlled then
+	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
-	elseif (act == ACT_RUN or act == ACT_WALK) && self.Weapon_CanMoveFire == true && IsValid(self:GetEnemy()) then
-		if (self.EnemyData.Visible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving == true && self:CanFireWeapon(true, false) == true then
+	elseif (act == ACT_RUN or act == ACT_WALK) && self.Alerted then
+		if self.Weapon_CanMoveFire && IsValid(self:GetEnemy()) && (self.EnemyData.Visible or (self.EnemyData.LastVisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving && self:CanFireWeapon(true, false) then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
-			if VJ.AnimExists(self, anim) == true then
+			if VJ.AnimExists(self, anim) then
 				if self.EnemyData.Visible then
 					self.WeaponAttackState = VJ.WEP_ATTACK_STATE_FIRE
 				else -- Not visible but keep aiming
@@ -1069,6 +1069,10 @@ function ENT:TranslateActivity(act)
 				end
 				return anim
 			end
+		end
+		local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AGITATED or ACT_WALK_AGITATED)
+		if VJ.AnimExists(self, anim) then
+			return anim
 		end
 	end
 	
@@ -1079,9 +1083,8 @@ function ENT:TranslateActivity(act)
 				return self:ResolveAnimation(translation)
 			end
 			return translation[math.random(1, #translation)] or act -- "or act" = To make sure it doesn't return nil when the table is empty!
-		else
-			return translation
 		end
+		return translation
 	end
 	return act
 end
