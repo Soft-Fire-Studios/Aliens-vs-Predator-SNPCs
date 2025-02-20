@@ -1067,6 +1067,7 @@ function ENT:OnKeyPressed(ply,key)
 
 		local moving = self:IsMoving()
 		local ang = ply:EyeAngles()
+		local moveDir, moveAng = self:GetMovementDirection()
 		ang:RotateAroundAxis(ang:Up(), moveAng.y)
 		self:SetGroundEntity(NULL)
 		self:StopCurrentSchedule()
