@@ -55,7 +55,6 @@ function ENT:ResetFatality()
 	self:SetState()
 	self:SetMaxYawSpeed(self.TurningSpeed)
 	self.NextFatalityTime = CurTime() +3
-	print(self,"Reset Fatality")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoFatality(ent,inFront)

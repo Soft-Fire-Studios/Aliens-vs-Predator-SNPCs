@@ -1530,7 +1530,6 @@ function ENT:OnInput(key,activator,caller,data)
 					
 					local physVel = VJ.CalculateTrajectory(self,nil,"Curve",proj:GetPos(),i > 1 && targetPos +VectorRand(-135,135) or targetPos +VectorRand(-25,25),30)
 					phys:SetVelocity(physVel)
-					print(physVel)
 				end
 			end
 		end
@@ -2247,7 +2246,7 @@ function ENT:OnThinkActive()
 					self:SetLocalVelocity(Vector(0,0,0))
 					self.IsOnSurface = true
 					self.CurrentSurfaceNormal = forwardTr.HitNormal
-					print("Set to surface movement")
+					//print("Set to surface movement")
 				elseif !forwardTr.Hit && self.IsOnSurface then
 					-- Apply velocity based on the surface we're on
 					local tr = util.TraceHull({
@@ -2266,13 +2265,13 @@ function ENT:OnThinkActive()
 						self:SetAngles(forward:Angle())
 						self:SetLocalVelocity(forward *700) -- Adjust speed as needed
 						-- self:SetLocalVelocity(moveDir *700) -- Adjust speed as needed
-						print("Surface movement")
+						//print("Surface movement")
 					else
 						-- Falling off the surface
 						self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
 						self:SetLocalVelocity(Vector(0,0,0))
 						self.IsOnSurface = false
-						print("Set to ground movement")
+						//print("Set to ground movement")
 					end
 				end
 			else
@@ -2644,8 +2643,6 @@ function ENT:SetViewModelWeapon(wep,ply)
 	local vm = ply:GetViewModel()
 	if IsValid(vm) then
 		local isScripted = wep:IsScripted()
-
-		local fov = -1
 
 		if isScripted and wep.ViewModelFOV then
 			fov = wep.ViewModelFOV
