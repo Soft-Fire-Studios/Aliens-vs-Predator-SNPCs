@@ -1607,11 +1607,11 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local string_find = string.find
 --
-function ENT:CustomAttack(ent,visible)
+function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.EnemyData.DistanceNearest
-	-- local dist = self.LastEnemyDistance
+	local eneData = self.EnemyData
+	local dist = eneData.DistanceNearest
 	local isCrawling = self.CurrentSet == 1
 	local curTime = CurTime()
 	if self.IsCrawler then return end
@@ -1642,7 +1642,7 @@ function ENT:CustomAttack(ent,visible)
 	end
 
 	if self.OnCustomAttack then
-		self:OnCustomAttack(cont,ent,visible,dist)
+		self:OnCustomAttack(cont,enemy,eneData.Visible,dist)
 	end
 
 	if IsValid(cont) then
@@ -1660,20 +1660,20 @@ function ENT:CustomAttack(ent,visible)
 		return
 	end
 
-	if visible then
+	if eneData.Visible then
 		if self.AI_IsBlocking && CurTime() > self.AI_BlockTime then
 			self.AI_IsBlocking = false
 			self.IsBlocking = false
 			return
 		end
 		if self.CanAttack && dist <= self.AttackDistance && !self:IsBusy() then
-			local canUse, inFront = self:CanUseFatality(ent)
+			local canUse, inFront = self:CanUseFatality(enemy)
 			if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-				if self:DoFatality(ent,inFront) == false then
+				if self:DoFatality(enemy,inFront) == false then
 					self:AttackCode(isCrawling)
 				end
 			else
-				if self.CanBlock && !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+				if self.CanBlock && !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 					self.AI_IsBlocking = true
 					self.AI_BlockTime = CurTime() +math.Rand(2,4)
 					return

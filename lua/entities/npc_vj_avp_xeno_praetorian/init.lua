@@ -50,11 +50,11 @@ ENT.CrawlingBounds = Vector(16,16,84)
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:MultipleRangeAttacks()
+function ENT:CustomOnRangeAttack_BeforeStartTimer()
 	if self:IsMoving() then
-		self.AnimTbl_RangeAttack = {"vjges_Praetorian_Spit_layer"}
+		self.AnimTbl_RangeAttack = "vjges_Praetorian_Spit_layer"
 	else
-		self.AnimTbl_RangeAttack = {"Praetorian_Spit"}
+		self.AnimTbl_RangeAttack = "Praetorian_Spit"
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

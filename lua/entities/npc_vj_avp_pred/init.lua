@@ -1197,11 +1197,13 @@ function ENT:FireSpearGun()
 	self:SetCloakDisruptTime(CurTime() +1.5)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomAttack(ent,vis)
+function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
 	local equipment = self:GetEquipment()
 	local cont = self.VJ_TheController
-	local dist = self.EnemyData.DistanceNearest
+	local eneData = self.EnemyData
+	local dist = eneData.DistanceNearest
+	local vis = eneData.Visible
 	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
 	if CurTime() < self.SpecialBlockAnimTime or equipment == 5 or self:IsBusy() then
 		doingBlock = false
@@ -1213,7 +1215,7 @@ function ENT:CustomAttack(ent,vis)
 	end
 	if IsValid(cont) then
 		if VJ_AVP_PREDINFO_ENABLED then
-			local target = ent
+			local target = enemy
 			local tr = util.TraceHull({
 				start = self:EyePos(),
 				endpos = self:EyePos() +cont:GetAimVector() *2048,
@@ -1263,7 +1265,7 @@ function ENT:CustomAttack(ent,vis)
 				-- self:StopMoving()
 				self:FireSpearGun()
 			elseif !doingBlock && vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
-				self:DistractionCode(ent)
+				self:DistractionCode(enemy)
 			elseif !doingBlock && vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
 				self:ChangeEquipment(1)
 				self:SpecialAttackCode(1)
@@ -1280,8 +1282,8 @@ function ENT:CustomAttack(ent,vis)
 				self.IsBlocking = false
 				return
 			end
-			if ent.EntityClass == AVP_ENTITYCLASS_SENTRYGUN then
-				-- local RC = ent.RC
+			if enemy.EntityClass == AVP_ENTITYCLASS_SENTRYGUN then
+				-- local RC = enemy.RC
 				-- local RCDist = self:GetPos():Distance(RC:GetPos())
 				-- if IsValid(RC) then
 				-- 	self.NextRCMoveT = self.NextRCMoveT or 0
@@ -1293,20 +1295,20 @@ function ENT:CustomAttack(ent,vis)
 				-- 		end)
 				-- 		self.NextRCMoveT = CurTime() +6
 				-- 	end
-				-- 	if RCDist <= 80 && RCDist < ent:GetPos():Distance(self:GetPos()) && !self:IsBusy() then
+				-- 	if RCDist <= 80 && RCDist < enemy:GetPos():Distance(self:GetPos()) && !self:IsBusy() then
 				-- 		self:DestroyConsole(RC)
 				-- 	end
 				-- end
 				return
 			end
 			if dist <= self.AttackDistance && !self:IsBusy() && !doingBlock && vis then
-				local canUse, inFront = self:CanUseFatality(ent)
+				local canUse, inFront = self:CanUseFatality(enemy)
 				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-					if self:DoFatality(ent,inFront) == false then
+					if self:DoFatality(enemy,inFront) == false then
 						self:AttackCode()
 					end
 				else
-					if !self.AI_IsBlocking && (!ent.IsVJBaseSNPC && (string_find(ent:GetSequenceName(ent:GetSequence()),"attack") or math.random(1,3) == 1) or ent.IsVJBaseSNPC && ent.AttackType == VJ.ATTACK_TYPE_MELEE && ent.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+					if !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 						self.AI_IsBlocking = true
 						self.AI_BlockTime = CurTime() +math.Rand(2,4)
 						return
@@ -1319,7 +1321,7 @@ function ENT:CustomAttack(ent,vis)
 					end
 				end
 			elseif !doingBlock && vis && self.DisableChasingEnemy && self:GetCloaked() && math.random(1,100) == 1 then
-				self:DistractionCode(ent)
+				self:DistractionCode(enemy)
 			elseif !doingBlock && vis && dist > 200 && dist <= 2500 && !self:IsBusy() && math.random(1,self.DisableChasingEnemy && 100 or 45) == 1 then
 				self:ChangeEquipment(1)
 				self:SpecialAttackCode(1)
@@ -1333,7 +1335,7 @@ function ENT:CustomAttack(ent,vis)
 				-- self:ChangeEquipment(5)
 				-- self:SpecialAttackCode(5)
 			end
-			local pos = ent:GetPos()
+			local pos = enemy:GetPos()
 			local heightDif = math.abs(pos.z -self:GetPos().z)
 			if !self:IsBusy() && !self.DisableChasingEnemy && vis then
 				if dist < 250 && dist > 150 && math.random(1,12) == 1 then
@@ -3161,7 +3163,7 @@ function ENT:OnFlinch(dmginfo, hitgroup, status)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnDeath(dmginfo, hitgroup, status)
-	if status == "Initial" then
+	if status == "Init" then
 		if !self.HasDeathAnimation && self:GetState() == VJ_STATE_NONE then
 			for i = 1,self:GetBoneCount() -1 do
 				if math.random(1,4) <= 3 then continue end

@@ -670,10 +670,11 @@ function ENT:SelectTurnActivity(inAct)
 	return inAct
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomAttack(ent,visible)
+function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
 	local cont = self.VJ_TheController
-	local dist = self.EnemyData.DistanceNearest
+	local eneData = self.EnemyData
+	local dist = eneData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
 
 	if IsValid(cont) then
@@ -690,15 +691,15 @@ function ENT:CustomAttack(ent,visible)
 		return
 	end
 
-	if visible then
+	if eneData.Visible then
 		if self.InBirth then
 			return
 		end
 		if self.CanAttack then
 			if dist <= self.AttackDistance *(self.VJ_AVP_Xenomorph_Matriarch && 2 or 1) && !self:IsBusy() then
-				local canUse, inFront = self:CanUseFatality(ent)
+				local canUse, inFront = self:CanUseFatality(enemy)
 				if canUse && (inFront && math.random(1,2) == 1 or !inFront) then
-					if self:DoFatality(ent,inFront) == false then
+					if self:DoFatality(enemy,inFront) == false then
 						self:AttackCode()
 					end
 				else
