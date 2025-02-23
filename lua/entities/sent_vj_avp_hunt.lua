@@ -60,7 +60,7 @@ if CLIENT then
 
 	local function PlayTrack(ply,snd)
 		StopTrack(ply)
-		print(ply,snd)
+		//print(ply,snd)
 		sound.PlayFile("sound/" .. snd,"noplay noblock",function(soundchannel,errCode,errStr)
 			if IsValid(soundchannel) then
 				soundchannel:EnableLooping(true)
@@ -69,7 +69,7 @@ if CLIENT then
 				soundchannel:Play()
 				ply.MutatorTrack = soundchannel
 				ply.MutatorTrackT = CurTime() +soundchannel:GetLength()
-				print("Playing sound!",snd,soundchannel:GetLength())
+				//print("Playing sound!",snd,soundchannel:GetLength())
 			else
 				print("Error playing sound!",errCode,errStr)
 			end

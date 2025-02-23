@@ -101,7 +101,7 @@ if CLIENT then
 					ply.BossTrack = soundchannel
 					ply.BossTrackT = CurTime() +soundchannel:GetLength()
 				end
-				print("Playing sound!",snd,soundchannel:GetLength())
+				//print("Playing sound!",snd,soundchannel:GetLength())
 			else
 				print("Error playing sound!",errCode,errStr)
 			end
