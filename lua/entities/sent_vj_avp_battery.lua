@@ -59,7 +59,7 @@ function ENT:Initialize()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Use(ent)
-	if ent:IsPlayer() && ent:Alive() && !IsValid(ent:GetObserverTarget()) && ent:Armor() < ent:GetMaxArmor() then
+	if self.BatteryLife > 0 && ent:IsPlayer() && ent:Alive() && !IsValid(ent:GetObserverTarget()) && ent:Armor() < ent:GetMaxArmor() then
 		self.BatteryLife = math.Clamp(self.BatteryLife -10,0,100)
 		ent:SetArmor(math.Clamp(ent:Armor() +10,0,ent:GetMaxArmor() or 100))
 		self.BatteryRestoreDelayT = CurTime() +15

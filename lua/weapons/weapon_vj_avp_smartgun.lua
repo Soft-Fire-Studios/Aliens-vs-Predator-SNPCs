@@ -88,10 +88,10 @@ else
 
 		self.HighlightEnts = self.HighlightEnts or {}
 		if bool && IsValid(ent) then
-			table_Empty(self.HighlightEnts)
+			self.HighlightEnts = {}
 			table_insert(self.HighlightEnts,ent)
 		else
-			table_Empty(self.HighlightEnts)
+			self.HighlightEnts = {}
 		end
 	end)
 end

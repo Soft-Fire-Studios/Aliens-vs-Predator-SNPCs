@@ -249,12 +249,10 @@ function ENT:OnDamaged(dmginfo,hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnDeath(dmginfo, hitgroup, status)
-	if status == "DeathAnim" then
-		if self:GetCloaked() then
-			self:Camo(false)
-		end
+	if status == "DeathAnim" && self:GetCloaked() then
+		self:Camo(false)
 	end
-	self.BaseClass.OnDeath(self, dmginfo, hitgroup, status)
+	baseclass.Get("npc_vj_avp_hum_male").OnDeath(self, dmginfo, hitgroup, status)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
