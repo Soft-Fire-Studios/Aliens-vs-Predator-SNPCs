@@ -12,9 +12,11 @@ ENT.VO = 2
 ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 ENT.AlliedWithPlayerAllies = true
 
-ENT.HasHealthRegeneration = true
-ENT.HealthRegenerationAmount = 2
-ENT.HealthRegenerationDelay = VJ.SET(0.1,0.1)
+ENT.HealthRegenParams = {
+	Enabled = true,
+	Amount = 2,
+	Delay = VJ.SET(0.1, 0.1),
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/rookie.mdl"

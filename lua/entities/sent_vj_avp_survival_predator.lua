@@ -275,7 +275,7 @@ function ENT:SpawnBot(count,respawn)
 						bot.VJ_NPC_Class = {"CLASS_PLAYER_ALLY"}
 						bot.AlliedWithPlayerAllies = true
 						bot.StartHealth = 100
-						bot.HasHealthRegeneration = false
+						bot.HealthRegenParams.Enabled = false
 						bot:Spawn()
 						bot:Activate()
 						bot:CapabilitiesAdd(bit.bor(CAP_AUTO_DOORS,CAP_OPEN_DOORS,CAP_USE))

@@ -8,9 +8,11 @@ include("vj_base/extensions/avp_fatality_module.lua")
 -----------------------------------------------*/
 ENT.Model = {"models/cpthazama/avp/xeno/warrior.mdl"}
 ENT.StartHealth = 140
-ENT.HasHealthRegeneration = true
-ENT.HealthRegenerationAmount = 1
-ENT.HealthRegenerationDelay = VJ.SET(0.5,0.5)
+ENT.HealthRegenParams = {
+	Enabled = true,
+	Amount = 1,
+	Delay = VJ.SET(0.5, 0.5),
+}
 ENT.HullType = HULL_HUMAN
 ENT.PoseParameterLooking_InvertPitch = true
 ENT.PoseParameterLooking_InvertYaw = true
@@ -595,7 +597,7 @@ function ENT:OnEat(status, statusData)
 	elseif status == "BeginEating" then
 		return 0
 	elseif status == "Eat" then
-		self:HeadbiteCorpse(self.EatingData.Ent)
+		self:HeadbiteCorpse(self.EatingData.Target)
 		return 999
 	elseif status == "StopEating" then
 		if statusData != "Dead" && self.EatingData.AnimStatus != "None" then
@@ -1226,7 +1228,7 @@ end
 -- 	elseif status == "Eat" then
 -- 		VJ.EmitSound(self, "cpthazama/avp/xeno/alien/special/flesh eat/flesh_eat_0"..math.random(1, 7)..".ogg", 65)
 -- 		-- Health changes
--- 		local food = self.EatingData.Ent
+-- 		local food = self.EatingData.Target
 -- 		local damage = 1 -- How much damage food will receive
 -- 		local foodHP = food:Health() -- Food's health
 -- 		local myHP = self:Health() -- NPC's current health
@@ -1549,7 +1551,7 @@ function ENT:OnInput(key,activator,caller,data)
 			local mClass = self.VJ_NPC_Class
 			local mult = self.RangeAttackDamageMultiplier or 1
 			local att = self:GetAttachment(self:LookupAttachment("spit") > 0 && self:LookupAttachment("spit") or self:LookupAttachment("eyes"))
-			local targetPos = (self.EnemyData && !self:Visible(ent) && self.EnemyData.LastVisiblePos) or ent:GetPos() +ent:OBBCenter()
+			local targetPos = (self.EnemyData && !self:Visible(ent) && self.EnemyData.VisiblePos) or ent:GetPos() +ent:OBBCenter()
 			local targetAng = (targetPos -att.Pos):Angle()
 			local ang = self:GetAngles()
 			targetAng.y = math.Clamp(targetAng.y, ang.y - 80, ang.y + 80)
@@ -2199,7 +2201,7 @@ end
 function ENT:StalkingAI(ent)
 	local eneData = self.EnemyData
 	local dist = eneData.DistanceNearest
-	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 && eneData && (CurTime() -eneData.LastVisibleTime) > 8 then
+	if !self.SpawnedUsingMutator && (ent:IsPlayer() or ent:IsNPC() && ent:GetEnemy() != self && !ent.VJ_AVP_Predator or ent:IsNextBot()) && !ent:Visible(self) && dist < 2500 && dist > 300 && eneData && (CurTime() -eneData.VisibleTime) > 8 then
 		self.StalkingAITime = CurTime() +2
 		-- self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH",function(x)
 		-- 	x:EngTask("TASK_FACE_ENEMY",0)
@@ -2824,7 +2826,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	-- print("Damaged!")
 	self:Acid(dmginfo:GetDamagePosition(),65,5)
 	-- VJ.AVP_ApplyRadiusDamage(self, self, dmginfo:GetDamagePosition(), 65, 5, DMG_ACID, true, true)
-	self.HealthRegenerationDelayT = CurTime() +5
+	self.HealthRegenDelayT = CurTime() +5
 	if self.MoveAroundRandomlyT > CurTime() then
 		self.NextChaseTime = 0
 		self.MoveAroundRandomlyT = 0

@@ -324,7 +324,7 @@ function ENT:OnThink2()
 			self.NextSpawnEggT = curTime +5
 			self.NextCommandXenosT = curTime +math.random(5,10)
 			for _,v in pairs(VJ_AVP_XENOS) do
-				if IsValid(v) && v:CheckRelationship(self) == D_LI && v.FollowData && v.FollowData.Ent == self then
+				if IsValid(v) && v:CheckRelationship(self) == D_LI && v.FollowData && v.FollowData.Target == self then
 					v:ResetFollowBehavior()
 				end
 			end
