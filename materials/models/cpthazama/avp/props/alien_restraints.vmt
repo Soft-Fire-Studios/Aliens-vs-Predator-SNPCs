@@ -1,0 +1,31 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/props/alien_restraints_col"
+	"$bumpmap"					"models/cpthazama/avp/props/alien_restraints_norm"
+	"$phongexponenttexture"		"models/cpthazama/avp/props/alien_restraints_spec"
+
+    "$nodecal" 					"1"
+    "$nocull" 					"1"
+
+	"$phong"                    "1"
+	"$phongboost"               "0.75"
+	// "$phongexponent"            "20"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+
+	// "$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.2 0.2 0.2]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.85"
+
+	"Proxies"
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

@@ -10,6 +10,8 @@ ENT.Category		= "Aliens vs Predator"
 ENT.Spawnable = false
 ENT.AdminOnly = false
 ENT.AutomaticFrameAdvance = true
+
+ENT.VJ_AVP_Battery = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Active")
@@ -66,6 +68,11 @@ function ENT:Use(ent)
 		ent:ChatPrint("Restored 10% of your suit battery.")
 		if self.BatteryLife <= 0 then
 			self.BatteryRestoreDelayT = CurTime() +30
+
+			local linkedObj = self:GetLinkedObject()
+			if IsValid(linkedObj) && linkedObj.OnDeviceEffected then
+				linkedObj:OnDeviceEffected(self,3)
+			end
 		end
 	end
 end

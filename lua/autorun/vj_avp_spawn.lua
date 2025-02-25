@@ -50,6 +50,7 @@ if VJExists == true then
 	-- VJ.AddNPC("Predator Survival Mode","sent_vj_avp_survival_predator",vCat)
 	-- VJ.AddNPC("Predator Hunt","sent_vj_avp_hunt",vCat) // Discontinued
 	VJ.AddNPC("RC Battery","sent_vj_avp_battery",vCat)
+	VJ.AddNPC("Xenomorph Restraint","sent_vj_avp_restraint",vCat)
 
 	-- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_xeno_chestburster",vCat_A)
 	VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_xeno_facehugger",vCat_A)

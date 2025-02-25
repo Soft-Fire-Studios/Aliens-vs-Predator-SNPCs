@@ -234,7 +234,7 @@ if CLIENT then
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
 				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
-				filter = {ply, camera, self},
+				filter = {ply, camera, self, "sent_vj_avp_restraint"},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),
 				mask = MASK_SHOT,

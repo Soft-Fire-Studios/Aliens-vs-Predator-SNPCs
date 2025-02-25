@@ -1812,7 +1812,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:HandlePerceivedRelationship(v)
 	if self:GetCloaked() then
-		if self:GetBeam() or v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator then
+		if self:GetBeam() or v.VJ_AVP_Xenomorph or v.VJ_AVP_Predator or self:IsOnFire() then
 			return
 		end
 		local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(self:GetSprinting() && 3 or 1))
@@ -1963,6 +1963,11 @@ function ENT:OnInput(key,activator,caller,data)
 			proj.Trail = util.SpriteTrail(proj,0,Color(255,55,55),true,40,1,0.15,1 /(10 +1) *0.5,"VJ_Base/sprites/trail.vmt")
 			-- proj.SoundTbl_Idle = {"weapons/rpg/rocket1.wav"}
 			proj.CollisionDecal = {"Scorch"}
+			proj.Og_DamageCode = proj.DealDamage
+			proj.DealDamage = function(projEnt,data,phys)
+				if !projEnt.Dead then return end
+				projEnt:Og_DamageCode(data,phys)
+			end
 			proj.OnThink = function(projEnt)
 				if !IsValid(projEnt.Predator) && !projEnt.Dead then
 					projEnt:Remove()
@@ -1976,6 +1981,7 @@ function ENT:OnInput(key,activator,caller,data)
 						projEnt.DeathSnd:SetSoundLevel(85)
 						projEnt.DeathSnd:Play()
 						local hitNr = (v:GetPos() -projEnt:GetPos()):GetNormalized()
+						sound.EmitHint(SOUND_DANGER, projEnt:GetPos(), projEnt.RadiusDamageRadius *1.5, 1.5, self)
 						timer.Simple(1.5,function()
 							if IsValid(projEnt) then
 								projEnt.DeathSnd:Stop()
@@ -2200,7 +2206,7 @@ function ENT:OnInput(key,activator,caller,data)
 	elseif key == "console_charge" then
 		local ent = self.BatteryEnt
 		if !IsValid(ent) then return end
-		VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",75)
+		VJ.CreateSound(self,"cpthazama/avp/shared/electricity_predator_power_drain_01.ogg",82)
 		self:SetEnergy(math.Clamp(self:GetEnergy() +ent.BatteryLife,0,200))
 		ent:DrainBattery()
 	elseif key == "console_slidebeep" then
@@ -2596,7 +2602,7 @@ function ENT:OnThinkActive()
 			self:Camo(false)
 			self.NextCloakT = curTime +2
 		end
-		if !self:GetBeam() then
+		if !self:GetBeam() or self:IsOnFire() then
 			for _,v in ents.Iterator() do
 				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then
 					local calcMult = ((self:IsMoving() && (self:GetIdealActivity() == ACT_WALK && 0.35 or 1) or 0.15) *(sprinting && 3 or 1))

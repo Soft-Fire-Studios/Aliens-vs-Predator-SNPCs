@@ -524,6 +524,8 @@ function ENT:Init()
 	self.NextKnockdownT = 0
 	self.IsCrawler = false
 	self.CanDodge = VJ.AnimExists(self,"dodge_left")
+	self.RestraintIdle = VJ.PICK({VJ.SequenceToActivity(self,"Constraints_idle"),VJ.SequenceToActivity(self,"Constraints_idle_02"),VJ.SequenceToActivity(self,"Constraints_idle_03")})
+	self.RestraintAlert = VJ.PICK({VJ.SequenceToActivity(self,"Constraints_roar1"),VJ.SequenceToActivity(self,"Constraints_roar2"),VJ.SequenceToActivity(self,"Constraints_roar3")})
 
 	if !self.VJ_AVP_XenomorphLarge then
 		self.BreathLoop = CreateSound(self,"cpthazama/avp/xeno/alien/vocals/alien_breathing_steady_01.ogg")
@@ -555,6 +557,8 @@ function ENT:Init()
 	if self.CanSpit then
 		self.HasRangeAttack = true
 	end
+
+	self.CanInteract = VJ.AnimExists(self,"interaction")
 
 	if self.CurrentSet == 2 then
 		local bounds = self.StandingBounds or defStandingBounds
@@ -618,6 +622,12 @@ function ENT:DoTranslations(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
+	if IsValid(self.Restraint) then
+		if self.Alerted && !self.VJ_IsBeingControlled then
+			return self.RestraintAlert
+		end
+		return self.RestraintIdle
+	end
 	local avp = self:DoTranslations(act)
 	if avp then
 		-- print(act,avp,self.AnimTranslations[avp])
@@ -1039,6 +1049,39 @@ function ENT:HeadbiteCorpse(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SapBattery(ent)
+	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
+		self.BatteryEnt = nil
+	end})
+	self:SetTurnTarget(ent,1,true)
+	self.BatteryEnt = ent
+	self:SetPos(ent:GetPos() +ent:GetForward() *35 +ent:GetUp() *6)
+	self:SetAngles(Angle(0,(ent:GetPos() -self:GetPos()):Angle().y,0))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DestroyConsole(ent)
+	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
+		self.ConsoleEnt = nil
+	end})
+	self:SetTurnTarget(ent,1,true)
+	self.ConsoleEnt = ent
+	self:SetPos(ent:GetPos() +ent:GetForward() *43 +ent:GetUp() *6)
+	self:SetAngles(Angle(0,(ent:GetPos() -self:GetPos()):Angle().y,0))
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateNavGoal(ent,goal)
+	if ent.EntityClass == AVP_ENTITYCLASS_SENTRYGUN && self.CanInteract then
+		local RC = ent.RC
+		if IsValid(RC) then
+			if self:GetPos():Distance(RC:GetPos()) <= 80 && !self:IsBusy() then
+				self:DestroyConsole(RC)
+				return
+			end
+			return RC:GetPos() +RC:GetForward() *50
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	if self.OnKey then
 		self:OnKey(ply,key)
@@ -1059,7 +1102,14 @@ function ENT:OnKeyPressed(ply,key)
 			end
 		end
 		if tr.Hit && IsValid(ent) then
-			if !ent:IsNPC() && !ent:IsPlayer() && ent:GetClass() != "prop_ragdoll" then
+			if !ent:IsNPC() && !ent:IsPlayer() then
+				if self.CanInteract && ent:GetClass() == "sent_vj_avp_battery" && ent.BatteryLife > 0 && !self:IsBusy() then
+					self:SapBattery(ent)
+					return
+				elseif self.CanInteract && ent:GetClass() == "sent_vj_avp_controller" && !self:IsBusy() then
+					self:DestroyConsole(ent)
+					return
+				end
 				ent:Fire("Use",nil,0,ply,self)
 				return
 			end
@@ -1471,6 +1521,14 @@ function ENT:OnInput(key,activator,caller,data)
 			-- 	self.CurrentSurfaceNormal = forwardTr.HitNormal
 			-- 	print("Set to surface movement")
 			-- end
+		end
+	elseif key == "interaction" then
+		local ent = self.BatteryEnt or self.ConsoleEnt
+		if !IsValid(ent) then return end
+		if ent.VJ_AVP_Battery then
+			ent:DrainBattery()
+		elseif ent.VJ_AVP_Console then
+			ent:DestroyObject()
 		end
 	elseif key == "step" then
 		self:PlayFootstepSound()
@@ -2348,11 +2406,19 @@ function ENT:OnThinkActive()
 		if self.LastSet != curSet then
 			local oldSet = self.LastSet
 			self.LastSet = curSet
-			self.PoseParameterLooking_Names = {
-				pitch= curSet == 1 && {"head_pitch"} or {"standing_head_pitch","standing_body_pitch"},
-				yaw= curSet == 1 && {"head_yaw"} or {"standing_head_yaw","standing_body_yaw"},
-				roll={}
-			}
+			-- if IsValid(self.Restraint) then
+			-- 	self.PoseParameterLooking_Names = {
+			-- 		pitch = {"head_pitch"},
+			-- 		yaw = {"head_yaw"},
+			-- 		roll={}
+			-- 	}
+			-- else
+				self.PoseParameterLooking_Names = {
+					pitch = curSet == 1 && {"head_pitch"} or {"standing_head_pitch","standing_body_pitch"},
+					yaw = curSet == 1 && {"head_yaw"} or {"standing_head_yaw","standing_body_yaw"},
+					roll={}
+				}
+			-- end
 			if oldSet == 1 then -- We're changing from crawling to standing
 				self:SetPoseParameter("standing_head_yaw",self:GetPoseParameter("head_yaw"))
 				self:SetPoseParameter("standing_head_pitch",self:GetPoseParameter("head_pitch"))
@@ -2780,7 +2846,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if self.CanBeKnockedDown && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if self.CanBeKnockedDown && self:GetState() == VJ_STATE_NONE && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
@@ -3141,13 +3207,27 @@ function ENT:UpdatePoseParamTracking(resetPoses)
 	
 	local names = self.PoseParameterLooking_Names
 	for x = 1, #names.pitch do
-		self:SetPoseParameter(names.pitch[x], math_angApproach(self:GetPoseParameter(names.pitch[x]), newPitch, self.PoseParameterLooking_TurningSpeed))
+		if IsValid(self.Restraint) && names.pitch[x] != "head_pitch" then
+			self:SetPoseParameter(names.pitch[x], 0)
+			-- print("Reset",names.pitch[x],"to 0")
+		else
+			self:SetPoseParameter(names.pitch[x], math_angApproach(self:GetPoseParameter(names.pitch[x]), newPitch, self.PoseParameterLooking_TurningSpeed))
+		end
 	end
 	for x = 1, #names.yaw do
-		self:SetPoseParameter(names.yaw[x], math_angApproach(self:GetPoseParameter(names.yaw[x]), newYaw, self.PoseParameterLooking_TurningSpeed))
+		if IsValid(self.Restraint) && names.yaw[x] != "head_yaw" then
+			self:SetPoseParameter(names.yaw[x], 0)
+			-- print("Reset",names.yaw[x],"to 0")
+		else
+			self:SetPoseParameter(names.yaw[x], math_angApproach(self:GetPoseParameter(names.yaw[x]), newYaw, self.PoseParameterLooking_TurningSpeed))
+		end
 	end
 	for x = 1, #names.roll do
-		self:SetPoseParameter(names.roll[x], math_angApproach(self:GetPoseParameter(names.roll[x]), newRoll, self.PoseParameterLooking_TurningSpeed))
+		if IsValid(self.Restraint) then
+			self:SetPoseParameter(names.roll[x], 0)
+		else
+			self:SetPoseParameter(names.roll[x], math_angApproach(self:GetPoseParameter(names.roll[x]), newRoll, self.PoseParameterLooking_TurningSpeed))
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

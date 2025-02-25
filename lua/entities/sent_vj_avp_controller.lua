@@ -10,6 +10,8 @@ ENT.Category		= "Aliens vs Predator"
 ENT.Spawnable = false
 ENT.AdminOnly = false
 ENT.AutomaticFrameAdvance = true
+
+ENT.VJ_AVP_Console = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"Active")
@@ -97,6 +99,7 @@ function ENT:Think()
 										if linkedObj.OnDeviceEffected then
 											linkedObj:OnDeviceEffected(self,self:GetOn() && 2 or 1)
 											self:SetOn(true)
+											VJ.EmitSound(self,"cpthazama/avp/shared/laptop_online_beep_01.ogg",75)
 										end
 										v:PlayAnim("vjseq_sentry_gun_outof",true,false,false)
 										-- v:SetState()
@@ -125,6 +128,11 @@ function ENT:Use(ent)
 		ent:ChatPrint(self:GetOn() && "The Sentry Gun has been turned off." or "The Sentry Gun has been turned on.")
 		linkedObj:OnDeviceEffected(self,self:GetOn() && 2 or 1)
 		self:SetOn(!self:GetOn())
+		if self:GetOn() then
+			VJ.EmitSound(self,"cpthazama/avp/shared/laptop_online_beep_01.ogg",75)
+		else
+			VJ.EmitSound(self,"cpthazama/avp/shared/pickup_audiodiary.ogg",75)
+		end
 		if !self:GetOn() then
 			self.NextRequestRestartT = CurTime() +math.random(15,30)
 		end
