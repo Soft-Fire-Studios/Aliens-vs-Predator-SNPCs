@@ -581,7 +581,11 @@ function ENT:Init()
         end
     end)
 
-	self:SetStepHeight(22)
+	if self.AlwaysStand then
+		self:SetStepHeight(self.StepHeight_Standing or 22)
+	else
+		self:SetStepHeight(self.StepHeight_Crawling or 100)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnEat(status, statusData)
@@ -2433,6 +2437,7 @@ function ENT:OnThinkActive()
 				end
 				self.RangeAttackAnimationStopMovement = false
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, -35)
+				self:SetStepHeight(self.StepHeight_Standing or 22)
 				-- print("standing")
 			else -- We're changing from standing to crawling
 				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
@@ -2448,6 +2453,7 @@ function ENT:OnThinkActive()
 				end
 				self.RangeAttackAnimationStopMovement = true
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, 0)
+				self:SetStepHeight(self.StepHeight_Crawling or 100)
 				-- print("crawling")
 			end
 		end

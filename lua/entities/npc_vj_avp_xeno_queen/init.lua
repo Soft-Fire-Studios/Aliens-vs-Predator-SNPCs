@@ -30,6 +30,8 @@ ENT.AlwaysStand = true
 ENT.CanBeKnockedDown = false
 ENT.DisableFatalities = true
 ENT.CanBlock = false
+ENT.StepHeight_Standing = 50
+ENT.StepHeight_Crawling = 50
 
 ENT.StandingBounds = Vector(23,23,112)
 ENT.CrawlingBounds = Vector(23,23,112)

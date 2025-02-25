@@ -18,6 +18,8 @@ ENT.SoundTbl_FootStep = {
 ENT.StandingBounds = Vector(25,25,200)
 ENT.CrawlingBounds = Vector(25,25,200)
 ENT.CanBlock = false
+ENT.StepHeight_Standing = 66
+ENT.StepHeight_Crawling = 66
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	if VJ_AVP_MatriarchExists(self) then

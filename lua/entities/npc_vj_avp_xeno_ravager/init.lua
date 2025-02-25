@@ -46,6 +46,8 @@ ENT.FaceEnemyMovements = {ACT_HL2MP_WALK_SMG1,ACT_HL2MP_WALK_CROUCH_SMG1,ACT_HL2
 
 ENT.StandingBounds = Vector(16,16,125)
 ENT.CrawlingBounds = Vector(16,16,125)
+ENT.StepHeight_Standing = 40
+ENT.StepHeight_Crawling = 40
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -104,7 +106,6 @@ function ENT:OnInit()
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",
 	}
 
-	self:SetStepHeight(40)
 	self:CapabilitiesRemove(CAP_MOVE_JUMP)
 
 	local bounds = self.StandingBounds or defStandingBounds

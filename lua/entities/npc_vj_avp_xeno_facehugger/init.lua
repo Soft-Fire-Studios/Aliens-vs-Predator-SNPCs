@@ -145,6 +145,8 @@ function ENT:CustomOnInitialize()
             end
         end
     end)
+
+	self:SetStepHeight(80)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
@@ -431,6 +433,8 @@ end
 function ENT:TranslateActivity(act)
 	if act == ACT_IDLE && (self.IsLatched or IsValid(self.Carrier)) then
 		return ACT_IDLE_ANGRY
+	elseif act == ACT_WALK && self.VJ_IsBeingControlled && !self.VJ_TheController:KeyDown(IN_WALK) then
+		return ACT_RUN
 	end
 	return act
 end
@@ -634,6 +638,12 @@ function ENT:OnThinkActive()
 
 		self.DisableChasingEnemy = CurTime() < self.StalkingAITime && dist <= 900 && IsValid(ent) && !ent:Visible(self)
 		self.ConstantlyFaceEnemy = self.DisableChasingEnemy
+
+		if IsValid(self.VJ_TheController) then
+			self.FootstepSoundTimerWalk = self.VJ_TheController:KeyDown(IN_WALK) && 0.2 or 0.1
+		else
+			self.FootstepSoundTimerWalk = 0.2
+		end
 
 		if !IsValid(ent) && IsValid(self:GetTarget()) && self:GetTarget().VJ_AVP_XenomorphCarrier && !self.Carrier && self:GetPos():Distance(self:GetTarget():GetPos()) <= 100 then
 			if self:GetTarget():GetFacehuggerCount() >= 9 then return end

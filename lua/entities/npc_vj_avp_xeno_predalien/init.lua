@@ -33,6 +33,8 @@ ENT.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT
 
 ENT.StandingBounds = Vector(16,16,85)
 ENT.CrawlingBounds = Vector(16,16,85)
+ENT.StepHeight_Standing = 32
+ENT.StepHeight_Crawling = 32
 ENT.CanBlock = false
 ENT.CanSpit = true
 ENT.RangeAttackAnimationStopMovement = false
@@ -104,8 +106,6 @@ function ENT:OnInit()
 	-- self.FaceEnemyMovements = {ACT_WALK,ACT_RUN,ACT_MP_SPRINT,ACT_HL2MP_WALK_SMG1,ACT_HL2MP_RUN_SMG1}
 
 	self.AttackDistance = 80
-
-	self:SetStepHeight(32)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnStep(pos,name)
