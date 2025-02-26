@@ -3014,7 +3014,7 @@ function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 
 	VJ_AVP_XenoBloodSpill(nil,nil,true,{Pos = self:GetPos(), Class = self.VJ_NPC_Class})
 	
-	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", CollisionDecal="VJ_HLR_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
+	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", CollisionDecal="VJ_HLR1_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
 	self:PlaySoundSystem("Gib", "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg")
 	return true, {AllowSound = false}
 end
