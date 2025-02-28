@@ -1148,8 +1148,7 @@ function ENT:OnFatality(ent,inFront,willCounter,fType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:FireSpearGun()
-	if self.InFatality or self.DoingFatality then return end
-	if !self.CanAttack or CurTime() < self.NextSpearGunFireT or self:GetSprinting() or self:GetEnergy() < 10 then return end
+	if self.InFatality or self.DoingFatality or CurTime() < self.SpecialBlockAnimTime or !self.CanAttack or CurTime() < self.NextSpearGunFireT or self:GetSprinting() or self:GetEnergy() < 10 then return end
 	self.AttackIdleTime = CurTime() +VJ.AnimDuration(self,"predator_speargun_fire") +5
 	self:PlayAnimation("vjges_predator_speargun_fire",true,false,true,0,{AlwaysUseGesture=true})
 	self.NextSpearGunFireT = CurTime() +1
@@ -1210,7 +1209,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 	end
 	if !doingBlock && self.IsBlocking then
 		self.IsBlocking = false
-		-- self.SpecialBlockAnimTime = CurTime() +0.3
+		self.SpecialBlockAnimTime = CurTime() +0.1
 	elseif doingBlock && !self.IsBlocking then
 		self.IsBlocking = true
 	end
@@ -1353,8 +1352,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:HeavyAttackCode()
-	if self.InFatality or self.DoingFatality then return end
-	if self:IsBusy() then return end
+	if self.InFatality or self.DoingFatality or self:IsBusy() or CurTime() < self.SpecialBlockAnimTime then return end
 	self:PlaySound(self.SoundTbl_Attack,78)
 	self.TotalBasicAttacks = 0
 	self:PlayAnimation("predator_claws_attack_heavy_buildup",true,false,true,0,{OnFinish=function(i)
@@ -1433,7 +1431,7 @@ function ENT:FirePlasmaCaster()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SpecialAttackCode(atk)
-	if self.InFatality or self.DoingFatality or IsValid(self:GetDisc()) then return end
+	if self.InFatality or self.DoingFatality or IsValid(self:GetDisc()) or CurTime() < self.SpecialBlockAnimTime then return end
 	local atk = atk or 1
 	self.LastSpecialAttackID = atk
 	if atk == 1 && CurTime() > self.PlasmaFireDelayT && !self:GetBeam() then
@@ -1560,7 +1558,7 @@ local sdClawMiss = {
 }
 --
 function ENT:AttackCode()
-	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) then return end
+	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) or CurTime() < self.SpecialBlockAnimTime then return end
 	self.AttackSide = self.AttackSide == "right" && "left" or "right"
 	local side = self.AttackSide
 	local anim = VJ.PICK(self.AttackAnimations)
@@ -1626,7 +1624,7 @@ end
 local math_clamp = math.Clamp
 --
 function ENT:LongJumpCode(gotoPos,atk)
-	if self.InFatality or self:IsBusy() or !self:OnGround() then return true end
+	if self.InFatality or self:IsBusy() or !self:OnGround() or CurTime() < self.SpecialBlockAnimTime then return true end
 	local ply = self.VJ_TheController
 	local bullseye = self.VJ_TheControllerBullseye
 	local aimVec = IsValid(ply) && ply:GetAimVector()
@@ -3131,7 +3129,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
 	local dmg = dmginfo:GetDamage()
-	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
+	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0

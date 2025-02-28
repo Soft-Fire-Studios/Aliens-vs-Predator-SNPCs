@@ -216,7 +216,7 @@ function ENT:OnThink2()
 		end
 	end
 	if !self.InBirth && self.InCharge then
-		if self:IsBusy() then return end
+		if self:IsBusy() or self:GetSequenceName(self:GetSequence()) == "Alien_Queen_charge_build_up" then return end
 		self:SetMoveVelocity(self:GetMoveVelocity() *1.25)
 		self:SetArrivalSpeed(9999)
 		if curTime > self.ChargeT then

@@ -1252,6 +1252,8 @@ if VJExists == true then
 		local math_round = math.Round
 		local math_floor = math.floor
 		local math_clamp = math.Clamp
+		local bit_band = bit.band
+		local bit_bor = bit.bor
 		--
 		function VJ.AVP_ApplyRadiusDamage(attacker, inflictor, startPos, dmgRadius, dmgMax, dmgType, ignoreInnocents, realisticRadius, extraOptions, customFunc)
 			startPos = startPos or attacker:GetPos()
@@ -1260,6 +1262,10 @@ if VJExists == true then
 			extraOptions = extraOptions or {}
 				local disableVisibilityCheck = extraOptions.DisableVisibilityCheck or false
 				local baseForce = extraOptions.Force or false
+				local doFlinch = extraOptions.DoFlinch or false
+				if bit_band(dmgType, DMG_VEHICLE) == DMG_VEHICLE then
+					doFlinch = true
+				end
 			local dmgFinal = dmgMax
 			local hitEnts = {}
 			for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and ents.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, math.cos(math.rad(extraOptions.UseConeDegree or 90)))) or ents.FindInSphere(startPos, dmgRadius)) do
@@ -1287,6 +1293,9 @@ if VJExists == true then
 							dmgInfo:SetInflictor(inflictor)
 							dmgInfo:SetDamageType(dmgType or DMG_BLAST)
 							dmgInfo:SetDamagePosition(nearestPos)
+							if doFlinch then
+								dmgInfo:SetDamageCustom(VJ.DMG_FORCE_FLINCH)
+							end
 							local force = baseForce or math_clamp(dmgFinal, 5, 35)
 							local forceUp = extraOptions.UpForce or false
 							if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then

@@ -1324,8 +1324,7 @@ function ENT:OnBeforeDoFatality(ent,fType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
-	if self.InFatality or self.DoingFatality then return end
-	if !self.CanLeap then return end
+	if self.InFatality or self.DoingFatality or CurTime() < self.SpecialBlockAnimTime or !self.CanLeap then return end
 	self.CurrentSet = 1
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.ChangeSetT = CurTime() +0.5
@@ -1706,6 +1705,8 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 		-- print("enable block")
 	end
 
+	if CurTime() < self.SpecialBlockAnimTime then return end
+
 	if self.OnCustomAttack then
 		self:OnCustomAttack(cont,enemy,eneData.Visible,dist)
 	end
@@ -1810,7 +1811,7 @@ function ENT:DoLeapAttack()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:AttackCode(isCrawling,forceAttack)
-	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) then return end
+	if self.InFatality or self.DoingFatality or !self.CanAttack or CurTime() < (self.BlockAttackT or 0) or CurTime() < self.SpecialBlockAnimTime then return end
 	local gib = self.Gibbed
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		self.AttackType = 2
@@ -2858,7 +2859,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 
 	local explosion = dmginfo:IsExplosionDamage()
-	if self.CanBeKnockedDown && self:GetState() == VJ_STATE_NONE && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
+	if self.CanBeKnockedDown && self:GetState() == VJ_STATE_NONE && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or explosion or dmginfo:GetDamage() > 100 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() > 75) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
