@@ -1268,7 +1268,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAttackBlocked(ent)
 	sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",ent:GetPos() +ent:OBBCenter(),70)
-	local _,dir = self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	local _,dir = self:PlayAnim("crawl_stand_attack_" .. (self.AttackSide or "left") .. "_countered",true,false,false)
+	self.InCounteredStateT = CurTime() +dir
 	self.BlockAttackT = CurTime() +(dir *1.4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2785,6 +2786,9 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 					end
 				end
 			end
+		elseif !(self.IsBlocking or self.AI_IsBlocking) && (self.InCounteredStateT or 0) > CurTime() && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+			dmginfo:SetDamageType(bit.bor(dmginfo:GetDamageType(),DMG_SNIPER))
+			self.InCounteredStateT = 0
 		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
 			self.IsBlocking = false
 			self.BlockAnimTime = 0

@@ -1210,6 +1210,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 	end
 	if !doingBlock && self.IsBlocking then
 		self.IsBlocking = false
+		-- self.SpecialBlockAnimTime = CurTime() +0.3
 	elseif doingBlock && !self.IsBlocking then
 		self.IsBlocking = true
 	end
@@ -1229,7 +1230,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 			self:SetLookEntity(target)
 		end
 		self.LookForHidingSpot = false
-		if doingBlock then return end
+		if doingBlock or self.IsBlocking then return end
 		if equipment == 5 then
 			if cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
 				self:FireSpearGun()
@@ -1308,7 +1309,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 						self:AttackCode()
 					end
 				else
-					if !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+					if !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC /*&& !enemy:IsPlayer()*/ && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 						self.AI_IsBlocking = true
 						self.AI_BlockTime = CurTime() +math.Rand(2,4)
 						return
@@ -3099,6 +3100,9 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 					self:HeavyAttackCode()
 				end
 			end
+		elseif !(self.IsBlocking or self.AI_IsBlocking) && (self.InCounteredStateT or 0) > CurTime() && (bit_band(dmgType,DMG_CLUB) == DMG_CLUB or bit_band(dmgType,DMG_SLASH) == DMG_SLASH or bit_band(dmgType,DMG_VEHICLE) == DMG_VEHICLE) then
+			dmginfo:SetDamageType(bit.bor(dmginfo:GetDamageType(),DMG_SNIPER))
+			self.InCounteredStateT = 0
 		elseif dmginfo:IsBulletDamage() && (self.IsBlocking or self.AI_IsBlocking) then
 			self.IsBlocking = false
 			self.BlockAnimTime = 0
@@ -3112,6 +3116,7 @@ function ENT:OnAttackBlocked(ent)
 	sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",ent:GetPos() +ent:OBBCenter(),70)
 	self.AttackSide = self.AttackSide or "left"
 	local _,dir = self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
+	self.InCounteredStateT = CurTime() +dir
 	self.BlockAttackT = CurTime() +(dir *1.4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
