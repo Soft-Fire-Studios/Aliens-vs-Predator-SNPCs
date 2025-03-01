@@ -149,6 +149,22 @@ function ENT:CustomOnInitialize()
 	self:SetStepHeight(80)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:MaintainRelationships()
+	local memories = self.RelationshipMemory
+	local spawnedAsMutator = self.SpawnedUsingMutator
+	local sightDist = self:GetMaxLookDistance()
+	for _,ent in ipairs(self.RelationshipEnts) do
+		if !spawnedAsMutator && !ent:Visible(self) && self:GetPos():Distance(ent:GetPos()) > sightDist *0.23 then
+			self:SetRelationshipMemory(ent, VJ.MEM_OVERRIDE_DISPOSITION, D_NU)
+			self:SetRelationshipMemory(ent, "avp_xeno_dispoverridden", true)
+		elseif memories[ent]["avp_xeno_dispoverridden"] then
+			self:SetRelationshipMemory(ent, VJ.MEM_OVERRIDE_DISPOSITION, nil)
+			self:SetRelationshipMemory(ent, "avp_xeno_dispoverridden", false)
+		end
+	end
+	baseclass.Get("npc_vj_creature_base").MaintainRelationships(self)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	if key == KEY_SPACE && !self:IsBusy() then
 		local ply = self.VJ_TheController

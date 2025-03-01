@@ -946,33 +946,20 @@ function ENT:FootStep(pos,name)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local NPCTbl_Animals = {npc_barnacle=true,npc_crow=true,npc_pigeon=true,npc_seagull=true,monster_cockroach=true}
---
-function ENT:CheckRelationship(ent)
-	if ent.ForceEntAsEnemy then
-		if ent.ForceEntAsEnemy == self then
-			return D_HT
-		else
-			return D_NU
+function ENT:MaintainRelationships()
+	local memories = self.RelationshipMemory
+	local spawnedAsMutator = self.SpawnedUsingMutator
+	local sightDist = self:GetMaxLookDistance()
+	for _,ent in ipairs(self.RelationshipEnts) do
+		if !spawnedAsMutator && !ent:Visible(self) && self:GetPos():Distance(ent:GetPos()) > sightDist *0.23 then
+			self:SetRelationshipMemory(ent, VJ.MEM_OVERRIDE_DISPOSITION, D_NU)
+			self:SetRelationshipMemory(ent, "avp_xeno_dispoverridden", true)
+		elseif memories[ent]["avp_xeno_dispoverridden"] then
+			self:SetRelationshipMemory(ent, VJ.MEM_OVERRIDE_DISPOSITION, nil)
+			self:SetRelationshipMemory(ent, "avp_xeno_dispoverridden", false)
 		end
 	end
-	-- if ent.ForceEntAsEnemy == self then return D_HT end -- Always enemy to me (Used by the bullseye under certain circumstances)
-	if ent:IsFlagSet(FL_NOTARGET) or NPCTbl_Animals[ent:GetClass()] then return D_NU end
-	if self:GetClass() == ent:GetClass() then return D_LI end
-	if ent:Health() > 0 && self:Disposition(ent) != D_LI then
-		local isPly = ent:IsPlayer()
-		if isPly && VJ_CVAR_IGNOREPLAYERS then return D_NU end
-		local entDisp = ent.Disposition and ent:Disposition(self)
-		if !self.SpawnedUsingMutator && !ent:Visible(self) && ent:GetPos():Distance(self:GetPos()) > self:GetMaxLookDistance() *0.075 then
-			return D_NU
-		end
-		if (ent:IsNPC() && ((entDisp == D_HT) or (entDisp == D_NU && ent.VJ_IsBeingControlled))) or (isPly && ent:Alive()) then
-			return D_HT
-		else
-			return D_NU
-		end
-	end
-	return D_LI
+	baseclass.Get("npc_vj_creature_base").MaintainRelationships(self)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local colFade = {
