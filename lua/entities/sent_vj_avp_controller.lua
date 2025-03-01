@@ -6,9 +6,6 @@ ENT.PrintName 		= "RC Controller"
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= "Aliens vs Predator"
-
-ENT.Spawnable = false
-ENT.AdminOnly = false
 ENT.AutomaticFrameAdvance = true
 
 ENT.VJ_AVP_Console = true

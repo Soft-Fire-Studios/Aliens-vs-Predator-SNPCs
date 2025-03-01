@@ -11,7 +11,6 @@ SWEP.ViewModel					= ""
 SWEP.WorldModel					= ""
 SWEP.HoldType 					= "pistol"
 SWEP.Spawnable					= false
-SWEP.AdminSpawnable				= false
 SWEP.UseHands 					= false
 SWEP.VJBase_IsControllerWeapon 	= true
 

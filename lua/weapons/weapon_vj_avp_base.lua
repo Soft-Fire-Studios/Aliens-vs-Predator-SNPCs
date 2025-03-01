@@ -14,8 +14,6 @@ SWEP.PrintName					= "Aliens vs Predator"
 SWEP.ViewModel					= ""
 SWEP.WorldModel					= ""
 SWEP.HoldType 					= "ar2"
-SWEP.Spawnable					= false
-SWEP.AdminSpawnable				= false
 
 SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main"}

@@ -6,9 +6,6 @@ ENT.PrintName 		= ""
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= ""
-
-ENT.Spawnable = false
-ENT.AdminOnly = false
 ENT.AutomaticFrameAdvance = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetupDataTables()

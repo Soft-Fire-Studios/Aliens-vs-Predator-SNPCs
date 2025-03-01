@@ -35,7 +35,6 @@ SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_flamethrower.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_flamethrower.mdl"
 SWEP.HoldType 					= "ar2"
 SWEP.Spawnable					= true
-SWEP.AdminSpawnable				= false
 
 SWEP.WorldModel_UseCustomPosition = true
 SWEP.WorldModel_CustomPositionAngle = Vector(-12, 0, 180)

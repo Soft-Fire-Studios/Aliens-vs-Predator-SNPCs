@@ -7,9 +7,6 @@ ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= "Aliens vs Predator"
 
-ENT.Spawnable = false
-ENT.AdminOnly = false
-
 ENT.VJ_AVP_HuntPack = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then

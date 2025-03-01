@@ -35,7 +35,6 @@ SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_smartgun.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_smartgun.mdl"
 SWEP.HoldType 					= "crossbow"
 SWEP.Spawnable					= true
-SWEP.AdminSpawnable				= false
 
 SWEP.WorldModel_UseCustomPosition = true
 SWEP.WorldModel_CustomPositionAngle = Vector(0, 0, 180)

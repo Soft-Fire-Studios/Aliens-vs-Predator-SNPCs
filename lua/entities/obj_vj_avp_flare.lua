@@ -11,9 +11,6 @@ ENT.PrintName		= "Flare Round"
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= "VJ Base"
-
-ENT.Spawnable = false
-ENT.AdminOnly = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
 	VJ.AddKillIcon("obj_vj_avp_flare", ENT.PrintName, VJ.KILLICON_PROJECTILE)

@@ -36,7 +36,6 @@ SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_shotgun.mdl"
 SWEP.HoldType 					= "ar2"
 SWEP.IsShotgun 					= true
 SWEP.Spawnable					= true
-SWEP.AdminSpawnable				= false
 
 SWEP.WorldModel_UseCustomPosition = true
 SWEP.WorldModel_CustomPositionAngle = Vector(-12, 0, 180)

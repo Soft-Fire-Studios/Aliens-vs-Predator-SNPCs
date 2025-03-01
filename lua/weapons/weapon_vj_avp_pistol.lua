@@ -13,7 +13,6 @@ SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pistol.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/pistol.mdl"
 SWEP.HoldType 					= "pistol"
 SWEP.Spawnable					= true
-SWEP.AdminSpawnable				= false
 
 SWEP.WorldModel_UseCustomPosition = true
 SWEP.WorldModel_CustomPositionAngle = Vector(-5, 0, 180)

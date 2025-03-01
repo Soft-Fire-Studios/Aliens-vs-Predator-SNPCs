@@ -11,9 +11,6 @@ ENT.PrintName 		= "Marine"
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= "Aliens vs Predator - Humans"
-
-ENT.Spawnable		= false
-ENT.AdminSpawnable	= false
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if !SERVER then return end
 
