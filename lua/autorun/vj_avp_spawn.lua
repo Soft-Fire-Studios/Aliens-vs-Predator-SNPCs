@@ -1263,7 +1263,7 @@ if VJExists == true then
 				local disableVisibilityCheck = extraOptions.DisableVisibilityCheck or false
 				local baseForce = extraOptions.Force or false
 				local doFlinch = extraOptions.DoFlinch or false
-				if bit_band(dmgType, DMG_VEHICLE) == DMG_VEHICLE then
+				if bit_band(dmgType, DMG_SNIPER) == DMG_SNIPER then
 					doFlinch = true
 				end
 			local dmgFinal = dmgMax

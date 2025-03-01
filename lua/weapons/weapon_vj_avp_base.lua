@@ -378,16 +378,18 @@ function SWEP:GetNearestPoint(argent,SameZ)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:DealDamage(v)
-	local oldFlinch,oldFlinchChance
-	if v.VJ_AVP_NPC && v.IsBlocking && v.OnAttackBlocked then
-		v:OnAttackBlocked(self:GetOwner())
-	else
-		if v.IsVJBaseSNPC && v.CanFlinch then
-			oldFlinch = v.CanFlinch
-			oldFlinchChance = v.FlinchChance
-			v.CanFlinch = true
-			v.FlinchChance = 1
-		end
+	if v.IsVJBaseSNPC then
+		v.NextFlinchT = 0
+		v.NextChaseTime = 0
+		v.NextIdleTime = 0
+		v.AnimLockTime = 0
+		v.Flinching = false
+		v:RemoveAllGestures()
+		v:ClearSchedule()
+		v:ClearGoal()
+		v:StopMoving()
+		v:StopAttacks(true)
+		timer.Stop("flinch_reset" .. v:EntIndex())
 	end
 	local applyDmg = DamageInfo()
 	applyDmg:SetDamage(self.MeleeAttackDamage or 10)
@@ -396,10 +398,13 @@ function SWEP:DealDamage(v)
 	applyDmg:SetDamageForce(self:GetForward() *((applyDmg:GetDamage() +100) *70))
 	applyDmg:SetInflictor(self)
 	applyDmg:SetAttacker(self:GetOwner())
+	-- if !v.VJ_AVP_NPC then
+		applyDmg:SetDamageCustom(VJ.DMG_FORCE_FLINCH)
+	-- end
 	v:TakeDamageInfo(applyDmg,self:GetOwner())
-	if v.IsVJBaseSNPC && oldFlinch then
-		v.CanFlinch = oldFlinch
-		v.FlinchChance = oldFlinchChance
+	-- if v.VJ_AVP_NPC && (v.IsBlocking or string_find(v:GetSequenceName(v:GetSequence()),"attack") && !string_find(v:GetSequenceName(v:GetSequence()),"counter")) && v.OnAttackBlocked then
+	if v.VJ_AVP_NPC && (v.IsBlocking or v.AI_IsBlocking) && v.OnAttackBlocked then
+		v:OnAttackBlocked(self:GetOwner())
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

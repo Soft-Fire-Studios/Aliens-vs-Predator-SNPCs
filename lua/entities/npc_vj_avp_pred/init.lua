@@ -3116,6 +3116,8 @@ function ENT:OnAttackBlocked(ent)
 	local _,dir = self:PlayAnimation("predator_claws_attack_" .. self.AttackSide .. "_countered",true,false,false)
 	self.InCounteredStateT = CurTime() +dir
 	self.BlockAttackT = CurTime() +(dir *1.4)
+	self.IsBlocking = false
+	self.AI_IsBlocking = false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnBleed(dmginfo,hitgroup)
@@ -3129,7 +3131,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 	local explosion = dmginfo:IsExplosionDamage()
 	local dmg = dmginfo:GetDamage()
-	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
+	if CurTime() > (self.SpecialBlockAnimTime or 0) && !self.InFatality && !self.DoingFatality && self:Health() > 0 && (/*dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or */explosion or dmg > 125 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE && (dmg >= 65 or (dmg < 65 && math.random(1,3) == 1))) or (dmginfo:GetAttacker().VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_CRUSH) == DMG_CRUSH && dmg >= 65)) then
 		if CurTime() < self.NextKnockdownT then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
