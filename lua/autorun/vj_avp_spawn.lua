@@ -46,7 +46,7 @@ if VJExists == true then
 	VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp_xeno16.png"})
 	VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 	
-	VJ.AddNPC("Survival Mode","sent_vj_avp_survival",vCat)
+	VJ.AddNPC("Survival Mode","sent_vj_avp_survival",vCat, true)
 	-- VJ.AddNPC("Predator Survival Mode","sent_vj_avp_survival_predator",vCat)
 	-- VJ.AddNPC("Predator Hunt","sent_vj_avp_hunt",vCat) // Discontinued
 	VJ.AddNPC("RC Battery","sent_vj_avp_battery",vCat)
