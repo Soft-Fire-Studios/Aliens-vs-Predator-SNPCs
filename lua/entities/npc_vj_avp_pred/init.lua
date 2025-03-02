@@ -331,7 +331,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
-	local anim,animDur = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
+	local anim,animDur,animType = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	local vm = self:GetViewModel()
 	if vm then
 		if extraOptions && extraOptions.VMAnim then
@@ -349,13 +349,14 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	end
 	self.LastActivity = anim
 	self.LastSequence = self:GetSequenceName(self:LookupSequence(animation))
-	return anim,animDur
+	return anim,animDur,animType
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local varGes = "vjges_"
 local varSeq = "vjseq_"
 local string_sub = string.sub
 local table_concat = table.concat
+local funcGetSequenceActivity = FindMetaTable("Entity").GetSequenceActivity
 --
 function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
 	animation = VJ.PICK(animation)
@@ -363,22 +364,24 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	
 	lockAnim = lockAnim or false
 	if lockAnimTime == nil then -- If user didn't put anything, then default it to 0
-		lockAnimTime = 0 -- Set this value to false to let the base calculate the time
+		lockAnimTime = 0
 	end
-	faceEnemy = faceEnemy or false -- Should it face the enemy while playing this animation?
-	animDelay = tonumber(animDelay) or 0 -- How much time until it starts playing the animation (seconds)
+	faceEnemy = faceEnemy or false
+	animDelay = tonumber(animDelay) or 0
 	extraOptions = extraOptions or {}
 	local isGesture = false
 	local isSequence = false
 	local isString = isstring(animation)
+	local isRecheck = false
 	
+	::recheck::
 	-- Handle "vjges_" and "vjseq_"
 	if isString then
 		local finalString; -- Only define a table if we need to!
 		local posCur = 1
 		for i = 1, #animation do
-			local posStartGes, posEndGes = string_find(animation, varGes, posCur) -- Check for "vjges_"
-			local posStartSeq, posEndSeq = string_find(animation, varSeq, posCur) -- Check for "vjges_"
+			local posStartGes, posEndGes = string_find(animation, "vjges_", posCur) -- Check for "vjges_"
+			local posStartSeq, posEndSeq = string_find(animation, "vjseq_", posCur) -- Check for "vjseq_"
 			if !posStartGes && !posStartSeq then -- No ges or seq was found, end the loop!
 				if finalString then
 					finalString[#finalString + 1] = string_sub(animation, posCur)
@@ -408,16 +411,17 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 		end
 	end
 	
-	if extraOptions.AlwaysUseGesture == true then isGesture = true end -- Must play as a gesture
-	if extraOptions.AlwaysUseSequence == true then -- Must play as a sequence
+	if extraOptions.AlwaysUseGesture then isGesture = true end -- Must play as a gesture
+	if extraOptions.AlwaysUseSequence then -- Must play as a sequence
 		//isGesture = false -- Leave this alone to allow gesture-sequences to play even when "AlwaysUseSequence" is true!
 		isSequence = true
 		if isnumber(animation) then -- If it's an activity, then convert it to a string
 			animation = self:GetSequenceName(self:SelectWeightedSequence(animation))
+			isString = true
 		end
 	elseif isString && !isSequence then -- Only for regular & gesture strings
 		-- If it can be played as an activity, then convert it!
-		local result = self:GetSequenceActivity(self:LookupSequence(animation))
+		local result = funcGetSequenceActivity(self, self:LookupSequence(animation))
 		if result == nil or result == -1 then -- Leave it as string
 			isSequence = true
 		else -- Set it as an activity
@@ -426,16 +430,22 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 		end
 	end
 	
-	-- If the given animation doesn't exist, then check to see if it does in the weapon translation list
-	if VJ.AnimExists(self, animation) == false then
-		if !isString then -- If it's an activity then check for possible translation
-			-- If it returns the same activity as "animation", then there isn't even a translation for it so don't play any animation =(
-			if self:TranslateActivity(animation) == animation then
-				return ACT_INVALID, 0, ANIM_TYPE_NONE
+	-- Check for activity translations
+	if !isString && !isRecheck then
+		local translation = self:TranslateActivity(animation)
+		if translation != animation then
+			animation = translation
+			-- The translation is a string, recheck as it might be a gesture activity
+			if isstring(translation) then
+				isString = true
+				isRecheck = true
+				goto recheck
 			end
-		else -- No animation =(
-			return ACT_INVALID, 0, ANIM_TYPE_NONE
 		end
+	end
+	
+	if VJ.AnimExists(self, animation) == false then
+		return ACT_INVALID, 0, ANIM_TYPE_NONE
 	end
 	
 	local animType = ((isGesture and ANIM_TYPE_GESTURE) or isSequence and ANIM_TYPE_SEQUENCE) or ANIM_TYPE_ACTIVITY -- Find the animation type
@@ -2462,10 +2472,15 @@ function ENT:OnThinkActive()
 
 	if self.IsBlocking then
 		-- if !self:IsPlayingGesture(self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))) then
+		print(CurTime())
 		if CurTime() > (self.BlockAnimTime or 0) then
-			self:PlayAnimation("predator_claws_guard_loop",false,false,false,0,{AlwaysUseGesture=true})
+			print(self:PlayAnimation("predator_claws_guard_loop",false,false,false,0,{AlwaysUseGesture=true}))
+			-- local gesture = self:AddGestureSequence(self:LookupSequence("predator_claws_guard_loop"))
+			-- self:SetLayerPriority(gesture,1)
+			-- self:SetLayerPlaybackRate(gesture,0.5)
 			self.NextChaseTime = 0
 		end
+		self:NextThink(0)
 	elseif !self.IsBlocking then
 		local anim = self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))
 		if self:IsPlayingGesture(anim) then
@@ -3154,6 +3169,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		-- self.Flinching = true
 		local _,dir = self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then
+				print("Interrupted the knockdown animation, not resetting",self:GetSequenceName(self:GetSequence()))
 			-- if interrupted && self.NextFlinchT < CurTime() then
 				-- self.Flinching = false
 				return
