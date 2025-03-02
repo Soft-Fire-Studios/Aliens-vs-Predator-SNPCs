@@ -324,6 +324,10 @@ function ENT:CustomOnChangeActivity(newAct)
 		vm:OnChangeActivity(self,act)
 	end
 	self.LongJumping = false
+	-- if self.IsBlocking then
+	-- 	self.IsBlocking = false
+	-- 	self.AI_IsBlocking = false
+	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEnemy, animDelay, extraOptions, customFunc)
@@ -337,6 +341,10 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
 		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
 	end
+	-- if extraOptions.NoLock then
+	-- 	stopActivities = false
+	-- 	stopActivitiesTime = 0
+	-- end
 	local anim,animDur,animType = self:PlayAnim(animation,stopActivities,stopActivitiesTime,faceEnemy,animDelay,extraOptions,customFunc)
 	if stopActivities then
 		local curTime = CurTime()
@@ -989,8 +997,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 	local dist = eneData.DistanceNearest
 	local vis = eneData.Visible
 	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
-	if CurTime() < self.SpecialBlockAnimTime or equipment == 5 or self:IsBusy() then
-		print("This shit",CurTime() < self.SpecialBlockAnimTime,equipment == 5, self:IsBusy())
+	if CurTime() < self.SpecialBlockAnimTime or equipment == 5 /*or self:IsBusy()*/ then
 		doingBlock = false
 	end
 	if !doingBlock && self.IsBlocking then
@@ -2249,13 +2256,8 @@ function ENT:OnThinkActive()
 	-- end
 
 	if self.IsBlocking then
-		-- if !self:IsPlayingGesture(self:GetSequenceActivity(self:LookupSequence("predator_claws_guard_loop"))) then
-		print(CurTime())
 		if CurTime() > (self.BlockAnimTime or 0) then
-			print(self:PlayAnimation("predator_claws_guard_loop",false,false,false,0,{AlwaysUseGesture=true}))
-			-- local gesture = self:AddGestureSequence(self:LookupSequence("predator_claws_guard_loop"))
-			-- self:SetLayerPriority(gesture,1)
-			-- self:SetLayerPlaybackRate(gesture,0.5)
+			self:PlayAnimation("predator_claws_guard_loop",false,false,false,0,{AlwaysUseGesture=true,NoLock=true})
 			self.NextChaseTime = 0
 		end
 	elseif !self.IsBlocking then
