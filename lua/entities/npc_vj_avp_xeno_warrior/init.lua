@@ -1087,16 +1087,18 @@ function ENT:OnKeyPressed(ply,key)
 			filter = {self,ply}
 		})
 		local ent = tr.Entity
+		local ragdoll = false
 		if ent == Entity(0) then
 			for _,v in pairs(ents.FindInSphere(tr.HitPos,128)) do
 				if v:GetClass() == "prop_ragdoll" && v:GetCollisionGroup() == COLLISION_GROUP_DEBRIS then
 					ent = v
+					ragdoll = true
 					break
 				end
 			end
 		end
 		if tr.Hit && IsValid(ent) then
-			if !ent:IsNPC() && !ent:IsPlayer() then
+			if !ent:IsNPC() && !ent:IsPlayer() && !ragdoll then
 				if self.CanInteract && ent:GetClass() == "sent_vj_avp_battery" && ent.BatteryLife > 0 && !self:IsBusy() then
 					self:SapBattery(ent)
 					return
@@ -1109,7 +1111,7 @@ function ENT:OnKeyPressed(ply,key)
 			end
 			-- print(ent,ent.IsVJBaseCorpse,!ent.VJ_AVP_Xenomorph,!ent.VJ_AVP_CorpseHasBeenEaten,!self:IsBusy())
 			-- print(ent,"Has been eaten?",ent.VJ_AVP_CorpseHasBeenEaten)
-			if ent:GetClass() == "prop_ragdoll" && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten && !self:IsBusy() then
+			if ragdoll && ent.IsVJBaseCorpse && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_CorpseHasBeenEaten && !self:IsBusy() then
 				self:HeadbiteCorpse(ent)
 			elseif ent:IsNPC() && self.EnemyData.DistanceNearest <= self.AttackDistance && self.CanAttack && !self:IsBusy() then
 				local canUse, inFront = self:CanUseFatality(ent)
