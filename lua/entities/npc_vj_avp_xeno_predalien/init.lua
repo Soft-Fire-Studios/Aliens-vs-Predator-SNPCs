@@ -37,7 +37,6 @@ ENT.StepHeight_Standing = 32
 ENT.StepHeight_Crawling = 32
 ENT.CanBlock = false
 ENT.CanSpit = true
-ENT.RangeAttackAnimationStopMovement = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.CurrentSet = 2

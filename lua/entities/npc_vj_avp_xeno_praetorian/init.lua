@@ -18,8 +18,6 @@ ENT.ControllerParams = {
     FirstP_ShrinkBone = false
 }
 
-ENT.RangeAttackAnimationStopMovement = false
-
 ENT.HasBreath = true
 ENT.FootstepSoundLevel = 82
 
@@ -52,12 +50,15 @@ ENT.StepHeight_Crawling = 36
 
 ENT.DistractionSound = "cpthazama/avp/xeno/praetorian/vocal/praetorian_trophy_struggle_01.ogg"
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnRangeAttack_BeforeStartTimer()
-	if self:IsMoving() then
-		self.AnimTbl_RangeAttack = "vjges_Praetorian_Spit_layer"
-	else
-		self.AnimTbl_RangeAttack = "Praetorian_Spit"
+function ENT:OnRangeAttack(status, enemy)
+	if status == "Init" then
+		if self:IsMoving() then
+			self.AnimTbl_RangeAttack = "vjges_Praetorian_Spit_layer"
+		else
+			self.AnimTbl_RangeAttack = "Praetorian_Spit"
+		end
 	end
+	self.BaseClass.OnRangeAttack(self, status, enemy)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()

@@ -49,12 +49,10 @@ ENT.FootData = {
 
 ENT.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 ENT.RangeAttackAnimationFaceEnemy = false
-ENT.RangeAttackAnimationStopMovement = true
 ENT.RangeAttackMaxDistance = 2300
 ENT.RangeAttackMinDistance = 400
 ENT.TimeUntilRangeAttackProjectileRelease = false
 ENT.NextRangeAttackTime = VJ.SET(6, 12)
-ENT.DisableDefaultRangeAttackCode = true
 
 ENT.CanFlinch = true
 ENT.FlinchChance = 12
@@ -1771,9 +1769,15 @@ function ENT:RangeAttackProjPos(projectile)
 	return self:GetAttachment(self:LookupAttachment("eyes")).Pos
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnRangeAttack_AfterStartTimer()
-	if self.LastAnimType == VJ.ANIM_TYPE_GESTURE then
+function ENT:OnRangeAttack(status, enemy)
+	if status == "PostInit" && self.LastAnimType == VJ.ANIM_TYPE_GESTURE then
 		self.NextChaseTime = 0
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnRangeAttackExecute(status, enemy, projectile)
+	if status == "Init" then
+		return true
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2431,7 +2435,6 @@ function ENT:OnThinkActive()
 				if !self.VJ_AVP_XenomorphLarge then
 					self.AnimTbl_RangeAttack = {"vjges_spit_standing"}
 				end
-				self.RangeAttackAnimationStopMovement = false
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, -35)
 				self:SetStepHeight(self.StepHeight_Standing or 22)
 				-- print("standing")
@@ -2447,7 +2450,6 @@ function ENT:OnThinkActive()
 				if !self.VJ_AVP_XenomorphLarge then
 					self.AnimTbl_RangeAttack = {"all4s_spit_left","all4s_spit_right"}
 				end
-				self.RangeAttackAnimationStopMovement = true
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, 0)
 				self:SetStepHeight(self.StepHeight_Crawling or 100)
 				-- print("crawling")

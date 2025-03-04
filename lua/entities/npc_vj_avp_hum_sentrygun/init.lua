@@ -21,7 +21,6 @@ ENT.AlertTimeout = VJ.SET(2.5, 2.5)
 ENT.HasMeleeAttack = false
 
 ENT.HasRangeAttack = true
-ENT.DisableDefaultRangeAttackCode = true
 ENT.AnimTbl_RangeAttack = false
 ENT.RangeAttackMaxDistance = 4000
 ENT.RangeAttackMinDistance = 1
@@ -226,47 +225,49 @@ function ENT:CustomAttackCheck_RangeAttack()
 	return self.Turret_HasLOS
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomRangeAttackCode()
-	local startpos = self:GetAttachment(self:LookupAttachment("muzzle")).Pos
-	local ent = self:GetEnemy()
-	local bSpread = 150
-	for i = 1,3 do
-		timer.Simple(0.05 *i,function()
-			if IsValid(self) && IsValid(ent) then
-				local bullet = {}
-				bullet.Num = 1
-				bullet.Src = startpos
-				bullet.Dir = ((ent:GetPos() +ent:OBBCenter()) -startpos):GetNormalized() *4000
-				bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread))
-				bullet.Tracer = 1
-				bullet.TracerName = "VJ_AVP_Trace"
-				bullet.Force = 5
-				bullet.Damage = 5
-				bullet.AmmoType = "AirboatGun"
-				bullet.Callback = function(attacker,tr,dmginfo)
-					util.ScreenShake(tr.HitPos,16,100,0.2,50)
+function ENT:OnRangeAttackExecute(status, enemy, projectile)
+	if status == "Init" then
+		local startpos = self:GetAttachment(self:LookupAttachment("muzzle")).Pos
+		local bSpread = 150
+		for i = 1,3 do
+			timer.Simple(0.05 *i,function()
+				if IsValid(self) && IsValid(enemy) then
+					local bullet = {}
+					bullet.Num = 1
+					bullet.Src = startpos
+					bullet.Dir = ((enemy:GetPos() +enemy:OBBCenter()) -startpos):GetNormalized() *4000
+					bullet.Spread = Vector(math.random(-bSpread,bSpread),math.random(-bSpread,bSpread),math.random(-bSpread,bSpread))
+					bullet.Tracer = 1
+					bullet.TracerName = "VJ_AVP_Trace"
+					bullet.Force = 5
+					bullet.Damage = 5
+					bullet.AmmoType = "AirboatGun"
+					bullet.Callback = function(attacker,tr,dmginfo)
+						util.ScreenShake(tr.HitPos,16,100,0.2,50)
+					end
+					self:FireBullets(bullet)
 				end
-				self:FireBullets(bullet)
-			end
-		end)
-	end
-	
-	VJ.EmitSound(self,sdFiring,90,math.random(98,105))
+			end)
+		end
+		
+		VJ.EmitSound(self,sdFiring,90,math.random(98,105))
 
-	ParticleEffectAttach("vj_avp_muzzle_lmg_main",PATTACH_POINT_FOLLOW,self,1)
-	
-	local FireLight1 = ents.Create("light_dynamic")
-	FireLight1:SetKeyValue("brightness","4")
-	FireLight1:SetKeyValue("distance","250")
-	FireLight1:SetPos(startpos)
-	FireLight1:SetLocalAngles(self:GetAngles())
-	FireLight1:Fire("Color","255 150 60")
-	FireLight1:SetParent(self)
-	FireLight1:Spawn()
-	FireLight1:Activate()
-	FireLight1:Fire("TurnOn","",0)
-	FireLight1:Fire("Kill","",0.07)
-	self:DeleteOnRemove(FireLight1)
+		ParticleEffectAttach("vj_avp_muzzle_lmg_main",PATTACH_POINT_FOLLOW,self,1)
+		
+		local FireLight1 = ents.Create("light_dynamic")
+		FireLight1:SetKeyValue("brightness","4")
+		FireLight1:SetKeyValue("distance","250")
+		FireLight1:SetPos(startpos)
+		FireLight1:SetLocalAngles(self:GetAngles())
+		FireLight1:Fire("Color","255 150 60")
+		FireLight1:SetParent(self)
+		FireLight1:Spawn()
+		FireLight1:Activate()
+		FireLight1:Fire("TurnOn","",0)
+		FireLight1:Fire("Kill","",0.07)
+		self:DeleteOnRemove(FireLight1)
+		return true
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local defAng = Angle(0, 0, 0)

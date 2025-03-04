@@ -19,7 +19,6 @@ ENT.ControllerParams = {
 }
 
 ENT.AnimTbl_RangeAttack = {"vjges_Alien_Queen_spit"}
-ENT.RangeAttackAnimationStopMovement = false
 
 ENT.HasBreath = true
 
@@ -161,8 +160,10 @@ function ENT:OnInit()
 	self:SetStepHeight(50)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnRangeAttack_AfterStartTimer(seed)
-	self.NextChaseTime = 0
+function ENT:OnRangeAttack(status, enemy)
+	if status == "PostInit" then
+		self.NextChaseTime = 0
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:MeleeAttackKnockbackVelocity(hitEnt)
