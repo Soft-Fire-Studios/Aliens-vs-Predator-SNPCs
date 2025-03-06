@@ -52,9 +52,3 @@ ENT.SoundTbl_Death = {"bot/pain5.wav","bot/pain8.wav","bot/pain9.wav"}
 function ENT:Init()
 	self:SetSurroundingBoundsType(BOUNDS_COLLISION)
 end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnGrenadeAttack(status, grenade, customEnt, landDir, landingPos)
-	if status == "Throw" then
-		return (landingPos - grenade:GetPos()) + (self:GetUp()*200 + self:GetForward()*500 + self:GetRight()*math.Rand(-20, 20))
-	end
-end

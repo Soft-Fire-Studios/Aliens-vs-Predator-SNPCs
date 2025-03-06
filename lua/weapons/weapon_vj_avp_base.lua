@@ -658,7 +658,6 @@ function SWEP:OnHolster(newWep)
 	if SERVER && IsValid(owner) && owner:IsPlayer() then
 		owner:SprintEnable()
 	end
-	return true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CustomOnRemove()
