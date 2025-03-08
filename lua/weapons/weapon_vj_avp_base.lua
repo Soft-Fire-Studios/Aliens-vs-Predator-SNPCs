@@ -831,7 +831,7 @@ if CLIENT then
 		if !IsValid(self) then return end
 		
 		local noDraw = false
-		if !self:OnDrawWorldModel() or self:GetNW2Bool("VJ_WorldModel_Invisible") == true or self.WorldModel_Invisible == true then noDraw = true end
+		if !self:OnDrawWorldModel() or !self:GetDrawWorldModel() then drawMdl = false end
 
 		local owner = self:GetOwner()
 		if IsValid(owner) && owner.VJ_AVP_Marine then
