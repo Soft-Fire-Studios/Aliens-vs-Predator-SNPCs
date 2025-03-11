@@ -92,6 +92,7 @@ function SWEP:SetupDataTables()
 			self:NetworkVar(v.Type, v.Index, v.Name)
 		end
 	end
+	baseclass.Get("weapon_vj_base").SetupDataTables(self)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnDeploy()
