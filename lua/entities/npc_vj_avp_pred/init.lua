@@ -339,7 +339,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 		isPredAttack = true
 	end
 	if stopActivitiesTime == false && (string_find(animation,"vjges_") or extraOptions && extraOptions.AlwaysUseGesture) then
-		stopActivitiesTime = self:DecideAnimationLength(animation, false) *0.5
+		stopActivitiesTime = VJ.AnimDurationEx(self, animation, false) *0.5
 	end
 	-- if extraOptions.NoLock then
 	-- 	stopActivities = false
@@ -494,7 +494,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 						elseif npc:GetActivity() == ACT_IDLE && npc:GetIdealActivity() == ACT_IDLE then -- Check both current act AND ideal act because certain activities only change the current act (Ex: UpdateTurnActivity function)
 							npc:UpdateTurnActivity()
 							if npc:GetIdealActivity() != ACT_IDLE then -- If ideal act is no longer idle, then we have selected a turn activity!
-								npc.NextIdleTime = CurTime() + npc:DecideAnimationLength(npc:GetIdealActivity())
+								npc.NextIdleTime = CurTime() + VJ.AnimDurationEx(npc, npc:GetIdealActivity())
 							end
 						end
 					end
