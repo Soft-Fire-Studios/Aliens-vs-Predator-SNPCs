@@ -221,8 +221,10 @@ function ENT:OnUpdatePoseParamTracking(pitch, yaw, roll)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomAttackCheck_RangeAttack()
-	return self.Turret_HasLOS
+function ENT:OnRangeAttack(status, enemy)
+	if status == "PreInit" then
+		return !self.Turret_HasLOS
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnRangeAttackExecute(status, enemy, projectile)
