@@ -816,84 +816,86 @@ function ENT:OnCallForHelp(ally)
 	VJ.EmitSound(self,"cpthazama/avp/xeno/alien/vocals/alien_call_scream_01.ogg",90)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMeleeAttack_AfterChecks(v,isProp)
-	if self.OnHitEntity then
-		self:OnHitEntity(v,isProp)
-	end
-	if self.VJ_AVP_XenomorphRunner && !v.VJ_AVP_Xenomorph && !v.VJ_AVP_IsTech && math.random(1,4) == 1 then
-		if v:IsPlayer() && v:HasGodMode() then return end
-		local tName = "VJ.AVP.Timer.BlackGoo." .. v:EntIndex()
-		if v:IsPlayer() && !timer.Exists(tName) then
-			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")
-			v:ScreenFade(SCREENFADE.IN,Color(0,0,0),0.35,0.1)
+function ENT:OnMeleeAttackExecute(status, ent, isProp)
+	if status == "PreDamage" then
+		if self.OnHitEntity then
+			self:OnHitEntity(ent,isProp)
 		end
-		if !timer.Exists(tName) then
-			v.VJ_AVP_XenomorphRunnerDMG = 1
-			v.VJ_AVP_XenomorphRunnerDMGFrags = v:IsPlayer() && v:Deaths() or 0
-		end
-		timer.Create(tName,10,6,function()
-			if IsValid(v) && v:Health() > 0 then
-				if v:IsPlayer() && v:Deaths() > v.VJ_AVP_XenomorphRunnerDMGFrags then
-					timer.Remove(tName)
-					return
-				end
-				local pos = v:EyePos() +v:GetForward() *5
-				local att = v:LookupAttachment("mouth")
-				if att > 0 then
-					pos = v:GetAttachment(att).Pos
-				end
-				local particle = ents.Create("info_particle_system")
-				particle:SetKeyValue("effect_name","vj_avp_xeno_blackgoo")
-				particle:SetPos(pos)
-				particle:Spawn()
-				particle:Activate()
-				particle:SetParent(v)
-				particle:Fire("Start")
-				particle:Fire("Kill","",1.25)
-				if att > 0 then
-					particle:Fire("SetParentAttachment","mouth",0)
-				end
-				if v:IsPlayer() then
-					v:ScreenFade(SCREENFADE.IN,Color(0,0,0,245),0.35,0.8)
-				end
-				for i = 1,15 do
-					timer.Simple(i *0.05,function()
-						if IsValid(v) && v:Health() > 0 then
-							local oldBleeds = v.Bleeds
-							local oldDamageAllyResponse = v.DamageAllyResponse
-							local oldIdleDamageResponse = v.DamageResponse
-							if v.IsVJBaseSNPC then
-								v.Bleeds = false
-								v.DamageAllyResponse = false
-								v.DamageResponse = "OnlySearch"
-							end
-							local dmgEnt = IsValid(self) && self or v
-							local dmginfo = DamageInfo()
-							dmginfo:SetDamage(v.VJ_AVP_XenomorphRunnerDMG or 1)
-							dmginfo:SetDamageType(i == 1 && bit.bor(DMG_ACID,DMG_DIRECT,DMG_DROWN) or bit.bor(DMG_ACID,DMG_DIRECT))
-							dmginfo:SetAttacker(dmgEnt)
-							dmginfo:SetInflictor(dmgEnt)
-							dmginfo:SetDamagePosition(pos)
-							v:TakeDamageInfo(dmginfo)
-							if v:IsPlayer() then
-								v:ViewPunch(Angle(10,0,0))
-								v:SetVelocity(v:GetVelocity() *-1.3)
-							end
-							if v.IsVJBaseSNPC then
-								v.Bleeds = oldBleeds
-								v.DamageAllyResponse = oldDamageAllyResponse
-								v.DamageResponse = oldIdleDamageResponse
-							end
-						else
-							timer.Remove(tName)
-						end
-					end)
-				end
-				v.VJ_AVP_XenomorphRunnerDMG = (v.VJ_AVP_XenomorphRunnerDMG or 1) +1
-			else
-				timer.Remove(tName)
+		if self.VJ_AVP_XenomorphRunner && !ent.VJ_AVP_Xenomorph && !ent.VJ_AVP_IsTech && math.random(1,4) == 1 then
+			if ent:IsPlayer() && ent:HasGodMode() then return end
+			local tName = "VJ.AVP.Timer.BlackGoo." .. ent:EntIndex()
+			if ent:IsPlayer() && !timer.Exists(tName) then
+				VJ_AVP_CSound(ent,"cpthazama/avp/shared/grapple/grapple_sting_01.ogg")
+				ent:ScreenFade(SCREENFADE.IN,Color(0,0,0),0.35,0.1)
 			end
-		end)
+			if !timer.Exists(tName) then
+				ent.VJ_AVP_XenomorphRunnerDMG = 1
+				ent.VJ_AVP_XenomorphRunnerDMGFrags = ent:IsPlayer() && ent:Deaths() or 0
+			end
+			timer.Create(tName,10,6,function()
+				if IsValid(ent) && ent:Health() > 0 then
+					if ent:IsPlayer() && ent:Deaths() > ent.VJ_AVP_XenomorphRunnerDMGFrags then
+						timer.Remove(tName)
+						return
+					end
+					local pos = ent:EyePos() +ent:GetForward() *5
+					local att = ent:LookupAttachment("mouth")
+					if att > 0 then
+						pos = ent:GetAttachment(att).Pos
+					end
+					local particle = ents.Create("info_particle_system")
+					particle:SetKeyValue("effect_name","vj_avp_xeno_blackgoo")
+					particle:SetPos(pos)
+					particle:Spawn()
+					particle:Activate()
+					particle:SetParent(ent)
+					particle:Fire("Start")
+					particle:Fire("Kill","",1.25)
+					if att > 0 then
+						particle:Fire("SetParentAttachment","mouth",0)
+					end
+					if ent:IsPlayer() then
+						ent:ScreenFade(SCREENFADE.IN,Color(0,0,0,245),0.35,0.8)
+					end
+					for i = 1,15 do
+						timer.Simple(i *0.05,function()
+							if IsValid(ent) && ent:Health() > 0 then
+								local oldBleeds = ent.Bleeds
+								local oldDamageAllyResponse = ent.DamageAllyResponse
+								local oldIdleDamageResponse = ent.DamageResponse
+								if ent.IsVJBaseSNPC then
+									ent.Bleeds = false
+									ent.DamageAllyResponse = false
+									ent.DamageResponse = "OnlySearch"
+								end
+								local dmgEnt = IsValid(self) && self or ent
+								local dmginfo = DamageInfo()
+								dmginfo:SetDamage(ent.VJ_AVP_XenomorphRunnerDMG or 1)
+								dmginfo:SetDamageType(i == 1 && bit.bor(DMG_ACID,DMG_DIRECT,DMG_DROWN) or bit.bor(DMG_ACID,DMG_DIRECT))
+								dmginfo:SetAttacker(dmgEnt)
+								dmginfo:SetInflictor(dmgEnt)
+								dmginfo:SetDamagePosition(pos)
+								ent:TakeDamageInfo(dmginfo)
+								if ent:IsPlayer() then
+									ent:ViewPunch(Angle(10,0,0))
+									ent:SetVelocity(ent:GetVelocity() *-1.3)
+								end
+								if ent.IsVJBaseSNPC then
+									ent.Bleeds = oldBleeds
+									ent.DamageAllyResponse = oldDamageAllyResponse
+									ent.DamageResponse = oldIdleDamageResponse
+								end
+							else
+								timer.Remove(tName)
+							end
+						end)
+					end
+					ent.VJ_AVP_XenomorphRunnerDMG = (ent.VJ_AVP_XenomorphRunnerDMG or 1) +1
+				else
+					timer.Remove(tName)
+				end
+			end)
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1631,7 +1633,7 @@ function ENT:RunDamageCode(mult)
 	end
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
-		self:CustomOnMeleeAttack_AfterChecks(ent, false)
+		self:OnMeleeAttackExecute("PreDamage", ent, false)
 		local isProp = VJ.IsProp(ent)
 		if isProp && (self.PropInteraction == true or self.PropInteraction == "OnlyDamage") then
 			local phys = ent:GetPhysicsObject()

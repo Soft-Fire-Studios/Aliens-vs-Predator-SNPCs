@@ -232,217 +232,217 @@ function ENT:OnInput(key,activator,caller,data)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMeleeAttack_Miss()
-	self:PlayAnim("facehugger_jump_land",true,false,false)
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:CustomOnMeleeAttack_AfterChecks(ent, isProp)
-	if IsValid(self.LatchVictim) then return true end
+function ENT:OnMeleeAttackExecute(status, ent, isProp)
+	if status == "PreDamage" then
+		if IsValid(self.LatchVictim) then return true end
 
-	if !ent.VJ_AVP_Xenomorph && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
-		local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
-		if ent.VJ_AVP_Predator && counter then
-			self:PlayAnim("facehugger_jump_land",true,false,false)
-			return false
-		end
-		local eyeAttach = ent:LookupAttachment("eyes")
-		local mouthAttach = ent:LookupAttachment("mouth")
-		local att,useBone = nil,false
-		if eyeAttach >= 1 then
-			att = "eyes"
-		elseif mouthAttach >= 1 then
-			att = "mouth"
-		elseif ent:LookupBone("ValveBiped.Bip01_Head1") != nil then
-			useBone = true
-		end
+		if !ent.VJ_AVP_Xenomorph && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
+			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
+			if ent.VJ_AVP_Predator && counter then
+				self:PlayAnim("facehugger_jump_land",true,false,false)
+				return false
+			end
+			local eyeAttach = ent:LookupAttachment("eyes")
+			local mouthAttach = ent:LookupAttachment("mouth")
+			local att,useBone = nil,false
+			if eyeAttach >= 1 then
+				att = "eyes"
+			elseif mouthAttach >= 1 then
+				att = "mouth"
+			elseif ent:LookupBone("ValveBiped.Bip01_Head1") != nil then
+				useBone = true
+			end
 
-		if att then
-			local corpse = ents.Create("prop_ragdoll")
-			corpse:SetModel(ent:GetModel())
-			corpse:SetPos(ent:GetPos())
-			corpse:SetAngles(ent:GetAngles())
-			corpse:SetOwner(ent)
-			corpse:Spawn()
-			corpse:Activate()
-			corpse:SetColor(ent:GetColor())
-			corpse:SetMaterial(ent:GetMaterial())
-			corpse:SetSkin(ent:GetSkin())
-			corpse:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-			for x = 0,32 do
-				if ent:GetSubMaterial(x) != "" then
-					corpse:SetSubMaterial(x,ent:GetSubMaterial(x))
-				end
-			end
-			-- corpse:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-			for i = 0, ent:GetNumBodyGroups() do
-				corpse:SetBodygroup(i, ent:GetBodygroup(i))
-			end
-			local physCount = corpse:GetPhysicsObjectCount()
-			for boneLimit = 0, physCount - 1 do -- 128 = Bone Limit
-				local childPhysObj = corpse:GetPhysicsObjectNum(boneLimit)
-				if IsValid(childPhysObj) then
-					local childPhysObj_BonePos, childPhysObj_BoneAng = ent:GetBonePosition(corpse:TranslatePhysBoneToBone(boneLimit))
-					if (childPhysObj_BonePos) then
-						childPhysObj:SetAngles(childPhysObj_BoneAng)
-						childPhysObj:SetPos(childPhysObj_BonePos)
+			if att then
+				local corpse = ents.Create("prop_ragdoll")
+				corpse:SetModel(ent:GetModel())
+				corpse:SetPos(ent:GetPos())
+				corpse:SetAngles(ent:GetAngles())
+				corpse:SetOwner(ent)
+				corpse:Spawn()
+				corpse:Activate()
+				corpse:SetColor(ent:GetColor())
+				corpse:SetMaterial(ent:GetMaterial())
+				corpse:SetSkin(ent:GetSkin())
+				corpse:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+				for x = 0,32 do
+					if ent:GetSubMaterial(x) != "" then
+						corpse:SetSubMaterial(x,ent:GetSubMaterial(x))
 					end
 				end
-			end
-			if ent:IsNPC() then
-				ent:DeleteOnRemove(corpse)
-			else
-				undo.ReplaceEntity(ent,corpse)
-				SafeRemoveEntityDelayed(ent,36)
-			end
-			-- ent:DeleteOnRemove(self)
-
-			corpse.VJ_AVP_Facehugged = true
-			corpse.VJ_AVP_Facehugger = self
-			self:SetFacehugged(corpse)
-			corpse.VJ_AVP_Faction = self.VJ_NPC_Class
-			corpse.VJ_AVP_Class = self:GetClass()
-			corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 90 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
-			if self.VJ_AVP_XenomorphFacehuggerRoyal then
-				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
-			elseif ent.VJ_AVP_Predator then
-				corpse.VJ_AVP_IsPredburster = true
-				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien")
-			elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
-				corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_jungle" or "npc_vj_avp_xeno_jungle")
-			end
-			corpse.BloodData = {Color = ent.BloodColor, Particle = VJ.PICK(ent.BloodParticle), Decal = ent.BloodDecal}
-
-			VJ.CreateSound(self,self.SoundTbl_MeleeAttackGrapple,70)
-			self.LatchVictim = ent
-			self.LatchCorpse = corpse
-			self.IsLatched = true
-			self.BirthT = CurTime() +30
-			self:SetOwner(ent)
-			self:AddFlags(FL_NOTARGET)
-			self.EnemyDetection = false
-			self.DisableSelectSchedule = true
-			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-			self:SetNavType(NAV_NONE)
-			self:SetMoveType(MOVETYPE_NONE)
-			self:SetNoDraw(true)
-			self:DrawShadow(false)
-			self.HasDeathAnimation = false
-			local fakeFacehugger = ents.Create("prop_vj_animatable")
-			fakeFacehugger:SetModel(self:GetModel())
-			fakeFacehugger:SetPos(self:GetPos())
-			fakeFacehugger:SetAngles(self:GetAngles())
-			fakeFacehugger:SetOwner(self)
-			fakeFacehugger:Spawn()
-			fakeFacehugger:Activate()
-			fakeFacehugger:SetSkin(self:GetSkin())
-			fakeFacehugger:SetNotSolid(true)
-			fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
-			if ent.VJ_AVP_Predator then
-				fakeFacehugger:SetModelScale(1.565)
-			end
-			self:DeleteOnRemove(fakeFacehugger)
-			if useBone then
-				//local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
-				self:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
-				-- fakeFacehugger:SetAngles(boneAng)
-				fakeFacehugger:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
-			else
-				self:SetParent(corpse)
-				self:Fire("SetParentAttachment",att,0)
-				fakeFacehugger:SetParent(corpse)
-				fakeFacehugger:Fire("SetParentAttachment",att,0)
-			end
-			fakeFacehugger:ResetSequence("facehugger_harvest_idle")
-			self.LatchFakeFacehugger = fakeFacehugger
-
-			if ent:IsNPC() then
-				ent.VJ_AVP_IsFacehugged = true
-				ent:SetNoDraw(true)
-				ent:SetNotSolid(true)
-				ent:DrawShadow(false)
-				ent:SetModelScale(0.001)
-				ent:NextThink(CurTime() +2)
-				for _,v in pairs(ent:GetChildren()) do
-					if IsValid(v) then
-						ent:SetNoDraw(true)
-						ent:DrawShadow(false)
+				-- corpse:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+				for i = 0, ent:GetNumBodyGroups() do
+					corpse:SetBodygroup(i, ent:GetBodygroup(i))
+				end
+				local physCount = corpse:GetPhysicsObjectCount()
+				for boneLimit = 0, physCount - 1 do -- 128 = Bone Limit
+					local childPhysObj = corpse:GetPhysicsObjectNum(boneLimit)
+					if IsValid(childPhysObj) then
+						local childPhysObj_BonePos, childPhysObj_BoneAng = ent:GetBonePosition(corpse:TranslatePhysBoneToBone(boneLimit))
+						if (childPhysObj_BonePos) then
+							childPhysObj:SetAngles(childPhysObj_BoneAng)
+							childPhysObj:SetPos(childPhysObj_BonePos)
+						end
 					end
 				end
-			end
+				if ent:IsNPC() then
+					ent:DeleteOnRemove(corpse)
+				else
+					undo.ReplaceEntity(ent,corpse)
+					SafeRemoveEntityDelayed(ent,36)
+				end
+				-- ent:DeleteOnRemove(self)
 
-			if ent.OnFacehugged then
-				ent:OnFacehugged(self,fakeFacehugger,corpse)
-			end
+				corpse.VJ_AVP_Facehugged = true
+				corpse.VJ_AVP_Facehugger = self
+				self:SetFacehugged(corpse)
+				corpse.VJ_AVP_Faction = self.VJ_NPC_Class
+				corpse.VJ_AVP_Class = self:GetClass()
+				corpse.VJ_AVP_XenoClass = ent:GetMaxHealth() >= 90 && (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_warrior" or "npc_vj_avp_xeno_warrior") or (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_drone" or "npc_vj_avp_xeno_drone")
+				if self.VJ_AVP_XenomorphFacehuggerRoyal then
+					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
+				elseif ent.VJ_AVP_Predator then
+					corpse.VJ_AVP_IsPredburster = true
+					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien")
+				elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
+					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_jungle" or "npc_vj_avp_xeno_jungle")
+				end
+				corpse.BloodData = {Color = ent.BloodColor, Particle = VJ.PICK(ent.BloodParticle), Decal = ent.BloodDecal}
 
-			if ent:IsNPC() then
-				hook.Add("Think",ent,function(ent)
-					if !IsValid(corpse) then
-						ent:SetNoDraw(false)
-						ent:SetNotSolid(false)
-						ent:DrawShadow(true)
-						ent:SetModelScale(1)
-						ent:NextThink(CurTime())
-						ent:RemoveFlags(FL_NOTARGET)
-						for _,v in pairs(ent:GetChildren()) do
-							if IsValid(v) then
-								ent:SetNoDraw(false)
-								ent:DrawShadow(true)
+				VJ.CreateSound(self,self.SoundTbl_MeleeAttackGrapple,70)
+				self.LatchVictim = ent
+				self.LatchCorpse = corpse
+				self.IsLatched = true
+				self.BirthT = CurTime() +30
+				self:SetOwner(ent)
+				self:AddFlags(FL_NOTARGET)
+				self.EnemyDetection = false
+				self.DisableSelectSchedule = true
+				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+				self:SetNavType(NAV_NONE)
+				self:SetMoveType(MOVETYPE_NONE)
+				self:SetNoDraw(true)
+				self:DrawShadow(false)
+				self.HasDeathAnimation = false
+				local fakeFacehugger = ents.Create("prop_vj_animatable")
+				fakeFacehugger:SetModel(self:GetModel())
+				fakeFacehugger:SetPos(self:GetPos())
+				fakeFacehugger:SetAngles(self:GetAngles())
+				fakeFacehugger:SetOwner(self)
+				fakeFacehugger:Spawn()
+				fakeFacehugger:Activate()
+				fakeFacehugger:SetSkin(self:GetSkin())
+				fakeFacehugger:SetNotSolid(true)
+				fakeFacehugger:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+				if ent.VJ_AVP_Predator then
+					fakeFacehugger:SetModelScale(1.565)
+				end
+				self:DeleteOnRemove(fakeFacehugger)
+				if useBone then
+					//local bonePos,boneAng = corpse:GetBonePosition(corpse:LookupBone("ValveBiped.Bip01_Head1"))
+					self:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
+					-- fakeFacehugger:SetAngles(boneAng)
+					fakeFacehugger:FollowBone(corpse,corpse:LookupBone("ValveBiped.Bip01_Head1"))
+				else
+					self:SetParent(corpse)
+					self:Fire("SetParentAttachment",att,0)
+					fakeFacehugger:SetParent(corpse)
+					fakeFacehugger:Fire("SetParentAttachment",att,0)
+				end
+				fakeFacehugger:ResetSequence("facehugger_harvest_idle")
+				self.LatchFakeFacehugger = fakeFacehugger
+
+				if ent:IsNPC() then
+					ent.VJ_AVP_IsFacehugged = true
+					ent:SetNoDraw(true)
+					ent:SetNotSolid(true)
+					ent:DrawShadow(false)
+					ent:SetModelScale(0.001)
+					ent:NextThink(CurTime() +2)
+					for _,v in pairs(ent:GetChildren()) do
+						if IsValid(v) then
+							ent:SetNoDraw(true)
+							ent:DrawShadow(false)
+						end
+					end
+				end
+
+				if ent.OnFacehugged then
+					ent:OnFacehugged(self,fakeFacehugger,corpse)
+				end
+
+				if ent:IsNPC() then
+					hook.Add("Think",ent,function(ent)
+						if !IsValid(corpse) then
+							ent:SetNoDraw(false)
+							ent:SetNotSolid(false)
+							ent:DrawShadow(true)
+							ent:SetModelScale(1)
+							ent:NextThink(CurTime())
+							ent:RemoveFlags(FL_NOTARGET)
+							for _,v in pairs(ent:GetChildren()) do
+								if IsValid(v) then
+									ent:SetNoDraw(false)
+									ent:DrawShadow(true)
+								end
+							end
+
+							if IsValid(self) then
+								self:SetParent(nil)
+								self:SetHealth(0)
+								self:TakeDamage(1000)
+							end
+							hook.Remove("Think",ent)
+							return
+						end
+
+						ent:SetPos(corpse:GetPos())
+						ent:TaskComplete()
+						ent:StopMoving()
+						ent:ClearSchedule()
+						ent:ClearGoal()
+						ent:ResetIdealActivity(ACT_IDLE)
+						ent:AddFlags(FL_NOTARGET)
+						ent.HasDeathAnimation = false
+						if ent.IsVJBaseSNPC then
+							ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+							ent:SetEnemy(nil)
+							ent.HasSounds = false
+							ent.EnemyDetection = false
+						end
+						local wep = ent:GetActiveWeapon()
+						if IsValid(wep) then
+							if wep.SetNextPrimaryFire then
+								wep:SetNextPrimaryFire(CurTime() +2)
+							end
+							if wep.SetNextSecondaryFire then
+								wep:SetNextSecondaryFire(CurTime() +2)
 							end
 						end
-
-						if IsValid(self) then
-							self:SetParent(nil)
-							self:SetHealth(0)
-							self:TakeDamage(1000)
+					end)
+				else
+					if ent:IsPlayer() then
+						ent:Kill()
+						local ragdoll = ent:GetRagdollEntity()
+						if IsValid(ragdoll) then
+							ragdoll:Remove()
 						end
-						hook.Remove("Think",ent)
-						return
+					elseif ent:IsNextBot() then
+						ent:SetHealth(0)
+						local dmginfo = DamageInfo()
+						dmginfo:SetDamage(1000)
+						dmginfo:SetDamageType(DMG_DIRECT)
+						dmginfo:SetAttacker(self)
+						dmginfo:SetInflictor(self)
+						ent:TakeDamageInfo(dmginfo)
+						ent:Remove()
 					end
-
-					ent:SetPos(corpse:GetPos())
-					ent:TaskComplete()
-					ent:StopMoving()
-					ent:ClearSchedule()
-					ent:ClearGoal()
-					ent:ResetIdealActivity(ACT_IDLE)
-					ent:AddFlags(FL_NOTARGET)
-					ent.HasDeathAnimation = false
-					if ent.IsVJBaseSNPC then
-						ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-						ent:SetEnemy(nil)
-						ent.HasSounds = false
-						ent.EnemyDetection = false
-					end
-					local wep = ent:GetActiveWeapon()
-					if IsValid(wep) then
-						if wep.SetNextPrimaryFire then
-							wep:SetNextPrimaryFire(CurTime() +2)
-						end
-						if wep.SetNextSecondaryFire then
-							wep:SetNextSecondaryFire(CurTime() +2)
-						end
-					end
-				end)
-			else
-				if ent:IsPlayer() then
-					ent:Kill()
-					local ragdoll = ent:GetRagdollEntity()
-					if IsValid(ragdoll) then
-						ragdoll:Remove()
-					end
-				elseif ent:IsNextBot() then
-					ent:SetHealth(0)
-					local dmginfo = DamageInfo()
-					dmginfo:SetDamage(1000)
-					dmginfo:SetDamageType(DMG_DIRECT)
-					dmginfo:SetAttacker(self)
-					dmginfo:SetInflictor(self)
-					ent:TakeDamageInfo(dmginfo)
-					ent:Remove()
 				end
 			end
+		else
+			self:PlayAnim("facehugger_jump_land",true,false,false)
 		end
-	else
+	elseif status == "Miss" then
 		self:PlayAnim("facehugger_jump_land",true,false,false)
 	end
 end
