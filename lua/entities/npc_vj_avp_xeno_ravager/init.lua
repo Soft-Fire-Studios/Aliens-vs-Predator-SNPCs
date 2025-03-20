@@ -139,7 +139,7 @@ function ENT:BeforeRunDamage()
 	self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:MeleeAttackKnockbackVelocity(hitEnt)
+-- function ENT:MeleeAttackKnockbackVelocity(ent)
 -- 	return self:GetForward() *math.random(700,850) +self:GetUp() *100
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------

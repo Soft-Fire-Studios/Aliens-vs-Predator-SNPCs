@@ -141,8 +141,8 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, corpseEnt)
-	corpseEnt:SetPos(self:GetPos() +self:GetUp() *-4)
+function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, corpse)
+	corpse:SetPos(self:GetPos() +self:GetUp() *-4)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()

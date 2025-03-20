@@ -166,7 +166,7 @@ function ENT:OnRangeAttack(status, enemy)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:MeleeAttackKnockbackVelocity(hitEnt)
+function ENT:MeleeAttackKnockbackVelocity(ent)
 	return self:GetForward() *math.random(700,850) +self:GetUp() *100
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
