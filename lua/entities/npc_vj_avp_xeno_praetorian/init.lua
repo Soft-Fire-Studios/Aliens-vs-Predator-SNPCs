@@ -58,7 +58,7 @@ function ENT:OnRangeAttack(status, enemy)
 			self.AnimTbl_RangeAttack = "Praetorian_Spit"
 		end
 	end
-	self.BaseClass.OnRangeAttack(self, status, enemy)
+	baseclass.Get("npc_vj_avp_xeno_warrior").OnRangeAttack(self, status, enemy)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
