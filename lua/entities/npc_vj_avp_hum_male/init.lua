@@ -1431,7 +1431,7 @@ local bit_band = bit.band
 --
 function ENT:OnBleed(dmginfo,hitgroup)
 	local explosion = dmginfo:IsExplosionDamage()
-	if !self.InFatality && self:Health() > 0 && (/*dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or */explosion or dmginfo:GetDamage() >= 75 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() >= 65) or (!self.VJ_IsHugeMonster && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_IsHugeMonster)) then
+	if !self.InFatality && self:Health() > 0 && (/*dmginfo:GetDamageCustom() == VJ.DMG_FORCE_FLINCH or */explosion or dmginfo:GetDamage() >= 75 or bit_band(dmginfo:GetDamageType(),DMG_SNIPER) == DMG_SNIPER or (bit_band(dmginfo:GetDamageType(),DMG_BUCKSHOT) == DMG_BUCKSHOT && dmginfo:GetDamage() >= 65) or (!self.VJ_ID_Boss && bit_band(dmginfo:GetDamageType(),DMG_VEHICLE) == DMG_VEHICLE) or (dmginfo:GetAttacker().VJ_ID_Boss)) then
 		if CurTime() < (self.NextKnockdownT or 0) then return end
 		local dmgAng = ((explosion && dmginfo:GetDamagePosition() or dmginfo:GetAttacker():GetPos()) -self:GetPos()):Angle()
 		dmgAng.p = 0
