@@ -681,6 +681,8 @@ function ENT:RespawnEntity(ent)
 	ent:SetAngles(Angle(0,math.random(0,360),0))
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+// lua_run ents.FindByClass("sent_vj_avp_survival")[1]:ClearCurrentWave()
+--
 function ENT:ClearCurrentWave()
 	for _,v in pairs(self.Entities) do
 		if IsValid(v) then

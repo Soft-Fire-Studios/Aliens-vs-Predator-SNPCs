@@ -303,7 +303,7 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
 				elseif ent.VJ_AVP_Predator then
 					corpse.VJ_AVP_IsPredburster = true
-					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien")
+					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or (math.random(1,100) == 1 && "npc_vj_avp_xeno_superpredalien" or "npc_vj_avp_xeno_predalien"))
 				elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
 					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_jungle" or "npc_vj_avp_xeno_jungle")
 				end

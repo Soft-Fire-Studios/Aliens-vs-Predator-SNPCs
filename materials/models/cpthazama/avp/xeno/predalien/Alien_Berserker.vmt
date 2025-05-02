@@ -1,0 +1,49 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/xeno/predalien/Alien_Berserker_D"
+	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/Alien_Berserker_N"
+	"$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/Alien_Berserker_S"
+
+    "$nodecal" 					"1"
+
+	"$selfillum" 				"1"
+	"$selfillumtint"			"[2 0.43 0.09]"
+	"$selfillummask"			"models/cpthazama/avp/xeno/predalien/Alien_Berserker_G"
+
+	"$emissiveBlendEnabled"		"1"
+	"$emissiveBlendTexture"		"models/cpthazama/avp/xeno/predalien/Alien_Berserker_Noise"
+	"$emissiveBlendBaseTexture"	"models/cpthazama/avp/xeno/predalien/Alien_Berserker_G"
+	"$emissiveBlendFlowTexture"	"models/cpthazama/avp/xeno/predalien/Alien_Berserker_G"
+	"$emissiveBlendTint"		"[2 0.43 0.09]"
+	"$emissiveBlendStrength"    "1"
+	"$emissiveBlendScrollVector" "[0.637 0]"
+
+	"$phong"                    "1"
+	"$phongboost"               "2"
+	"$phongexponent"            "40"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+	"$phongalbedotint" 			"1"
+	"$phongalbedoboost" 		"10"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.1 0.1 0.1]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.45"
+
+	"Proxies" 
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+		"IsNPC"
+		{
+			"scale" 		"1"
+			"resultvar" 	"$emissiveBlendEnabled"
+		}
+	}
+}

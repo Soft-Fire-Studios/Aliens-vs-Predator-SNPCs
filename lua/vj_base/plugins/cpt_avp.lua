@@ -61,6 +61,7 @@ VJ.AddNPC("The Abomination","npc_vj_avp_xeno_predalien",vCat_A)
 VJ.AddNPC("Nethead","npc_vj_avp_xeno_nethead",vCat_A)
 VJ.AddNPC("Specimen Six","npc_vj_avp_xeno_six",vCat_A)
 VJ.AddNPC("The Matriarch","npc_vj_avp_xeno_matriarch",vCat_A)
+VJ.AddNPC("The Berserker","npc_vj_avp_xeno_superpredalien",vCat_A)
 
 -- VJ.AddNPC("Xenomorph Chestburster","npc_vj_avp_kxeno_chestburster",vCat_AK)
 VJ.AddNPC("Xenomorph Facehugger","npc_vj_avp_kxeno_facehugger",vCat_AK)

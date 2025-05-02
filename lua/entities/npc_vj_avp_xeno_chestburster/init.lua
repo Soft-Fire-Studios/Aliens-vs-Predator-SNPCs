@@ -259,7 +259,7 @@ function ENT:OnThinkActive()
 				SpawnControllerObject:StartControlling()
 			end
 		end)
-		if class == "npc_vj_avp_kxeno_predalien" or class == "npc_vj_avp_xeno_predalien" then
+		if (class == "npc_vj_avp_kxeno_predalien" or class == "npc_vj_avp_xeno_predalien" or class == "npc_vj_avp_xeno_superpredalien") then
 			for _,v in pairs(ents.FindByClass("npc_vj_avp_pred*")) do
 				if IsValid(v) && IsValid(v.VJ_TheController) then
 					v.VJ_TheController:ChatPrint("[Incoming Transmission] An Abomination has been detected in your area. Dispatch of the foul creature immediately!")
