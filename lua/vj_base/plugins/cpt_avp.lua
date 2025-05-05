@@ -197,6 +197,12 @@ AVP.fDefaultMaxSuckDistance = AVP.Dist(4.0)
 AVP.fMeleeDamageImpulseStrength = 10.0
 AVP.fFatalDamageAmount = 1000000.0
 
+VJ_AVP_EXP_DEFAULT = 0
+VJ_AVP_EXP_ALERT = 17
+VJ_AVP_EXP_COMBAT = 33
+VJ_AVP_EXP_FEAR = 66
+VJ_AVP_EXP_TALK = 100
+
 cvars.AddChangeCallback("vj_avp_xenostealth", function(convar_name, oldValue, newValue)
 	VJ_AVP_CVAR_XENOSTEALTH = tonumber(newValue) == 1
 end)

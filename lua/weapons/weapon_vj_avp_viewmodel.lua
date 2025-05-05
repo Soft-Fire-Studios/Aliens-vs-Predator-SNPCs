@@ -38,6 +38,31 @@ SWEP.Translations = {
 	["predator_mine_fire_out"] = "predator_hud_predmine_out_fire_test",
 	["predator_battledisc_throw"] = "predator_hud_battledisc_throw_complete",
 }
+
+function SWEP:SetupDataTables()
+	self:NetworkVar("Entity","VMNPC")
+end
+
+if CLIENT then
+	-- local matTT_Thermal = Material("hud/cpthazama/avp/tt_thermal")
+	-- function SWEP:PostDrawViewModel(vm, weapon, ply)
+	-- 	local npc = self:GetVMNPC()
+	-- 	print(self,vm,weapon,ply)
+	-- 	-- print(IsValid(npc),npc.GetVisionMode,npc:GetVisionMode() == 1)
+	-- 	if IsValid(npc) && npc.GetVisionMode && npc:GetVisionMode() == 1 then
+	-- 		render.MaterialOverride(matTT_Thermal) -- your custom thermal shader
+	-- 		render.SetColorModulation(1, 1, 1)
+	-- 		render.SuppressEngineLighting(true)
+
+	-- 		vm:DrawModel()
+
+	-- 		render.SuppressEngineLighting(false)
+	-- 		render.SetColorModulation(1, 1, 1)
+	-- 		render.MaterialOverride(0)
+	-- 	end
+	-- end
+end
+
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:Initialize()
 	self.SequenceTime = 0
@@ -250,6 +275,7 @@ function SWEP:Think()
 
 	local npc = owner.VJ_AVP_ViewModelNPC
 	if IsValid(npc) then
+		self:SetVMNPC(npc)
 		if IsValid(vm) then
 			if !self:IsBusy() && curTime > (self.SequenceTime or 0) then
 				if npc.VJ_AVP_Xenomorph then

@@ -123,6 +123,7 @@ if CLIENT then
 	local scale1 = Vector(1,1,1)
 	local matLaser = Material("sprites/avp/turret_laser_fade")
 	local matLaserStart = Material("vj_base/effects/muzzlestarlarge_01")
+	local matLaserEnd = Material("sprites/light_glow02_add")
 	local laserColor = Color(255,0,0,135)
 	local matNil = Material(" ")
 	-- local matGradientThermal = Material("hud/cpthazama/avp/heatmap.png")
@@ -283,6 +284,11 @@ if CLIENT then
 		"Bip01 mouth_top_right02"
 	}
 	local math_angDif = math.AngleDifference
+	local endPointOffsets = {
+		Vector(-0.5,0,-0.25), -- Left
+		Vector(0.5,0,-0.25), -- Right
+		Vector(0,0,0.5), -- Up
+	}
 	function ENT:Draw()
 		local ply = LocalPlayer()
 		local checkEnt = self
@@ -345,6 +351,7 @@ if CLIENT then
 			local endPos = att.Ang:Forward() *2000
 			local ent = false
 			local lockOn = self:GetLockOn()
+			local lightPos = nil
 			if IsValid(lockOn) then
 				ent = true
 				endPos = lockOn:EyePos() -(lockOn:OBBCenter() /2)
@@ -364,8 +371,37 @@ if CLIENT then
 					filter = self,
 					mask = MASK_SHOT
 				})
+				local hitPos = tr.HitPos
+				local normal = tr.HitNormal
+				local forward = normal:GetNormalized()
+				local right = forward:Angle():Right()
+				local up = forward:Angle():Up()
+				forward:Normalize()
+				right:Normalize()
+				up:Normalize()
+				local endPointData = endPointOffsets[i]
+				local offsetPos = hitPos + right * endPointData.x + forward * endPointData.y + up * endPointData.z
 				render.SetMaterial(matLaser)
-				render.DrawBeam(startPos, tr.HitPos, 0.3, 0, 0.98, laserColor)
+				render.DrawBeam(startPos, offsetPos, 0.3, 0, 0.98, laserColor)
+				render.SetMaterial(matLaserEnd)
+				render.DrawSprite(offsetPos, 0.5, 0.5, laserColor)
+				if i == 1 then
+					lightPos = tr.HitPos
+				end
+			end
+			if lightPos then
+				local dLight = DynamicLight(self:EntIndex())
+				if dLight then
+					dLight.Pos = lightPos
+					dLight.Size = 25
+					dLight.Decay = 0
+					dLight.Style = 0
+					dLight.DieTime = CurTime() +0.125
+					dLight.Brightness = 1
+					dLight.r = 255
+					dLight.g = 0
+					dLight.b = 0
+				end
 			end
 		end
 	end
@@ -1205,9 +1241,29 @@ if CLIENT then
 				end
 				DrawMotionBlur(0.4,0.8,0.015)
 				if mode == 1 then
+					-- render.ClearStencil()
+					-- render.SetStencilEnable(true)
+					-- render.SetStencilWriteMask(255)
+					-- render.SetStencilTestMask(255)
+					-- render.SetStencilReferenceValue(1)
+					-- render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+					-- render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+					-- cam.Start3D(EyePos(), EyeAngles())
+					-- 	local vm = LocalPlayer():GetViewModel()
+					-- 	if IsValid(vm) then
+					-- 		render.SuppressEngineLighting(true)
+					-- 		render.MaterialOverride(0)
+					-- 		vm:DrawModel()
+					-- 		render.SuppressEngineLighting(false)
+					-- 	end
+					-- cam.End3D()
+					-- render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_NOTEQUAL)
+					-- render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+
 					-- DrawColorModify(tab_thermal)
 					DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
 					DrawTexturize(10,matGradientThermal2)
+					-- render.SetStencilEnable(false)
 				elseif mode == 2 then
 					DrawColorModify(tab_xeno)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
@@ -1238,10 +1294,13 @@ if CLIENT then
 									render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
 									render.SetStencilFailOperation(STENCILOPERATION_KEEP)
 									render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
-									v:DrawModel()
+									if !(v.VJ_AVP_Predator && v:GetCloaked()) then
+										v:DrawModel()
+									end
 									render.SuppressEngineLighting(true)
 									if v.VJ_AVP_Predator && v:GetCloaked() then
 										render.MaterialOverride(matTT_Thermal)
+										v:DrawModel()
 									end
 									render.SetColorModulation(1.65,1.65,1.65)
 									render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)

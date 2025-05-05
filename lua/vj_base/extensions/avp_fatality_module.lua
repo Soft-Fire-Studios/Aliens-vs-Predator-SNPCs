@@ -24,20 +24,7 @@ function ENT:CanUseFatality(ent)
 	return false, inFront
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
--- function ENT:CanUseFatality(ent)
--- 	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
--- 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
--- 	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
--- 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
--- 			return false, inFront
--- 		end
--- 		return true, inFront
--- 	end
--- 	return false, inFront
--- end
----------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:IsBusy()
-	-- Idk if this fully works for entities derived from other NPCs
 	if self.Base == "npc_vj_creature_base" or self.Base == "npc_vj_human_base" then
 		return baseclass.Get(self.Base).IsBusy(self) or self.InFatality or self.DoingFatality or self.IsBlocking or self:GetInFatality()
 	end
@@ -110,18 +97,27 @@ function ENT:DoFatality(ent,inFront)
 		end
 		ent:StopMoving()
 		ent:SetAngles(ang)
-		local offset = ent.GetFatalityOffset && ent:GetFatalityOffset(self) or (self:OBBMaxs().y +ent:OBBMaxs().y) *2
+		-- local offset = ent.GetFatalityOffset && ent:GetFatalityOffset(self) or (self:OBBMaxs().y +ent:OBBMaxs().y) *2 // OBSOLETE
+		-- print(self:GetCollisionBounds()," | ",ent:GetCollisionBounds())
+		local myCol,entCol = self:GetCollisionBounds().y, ent:GetCollisionBounds().y
+		myCol = math_abs(myCol)
+		entCol = math_abs(entCol)
+		local offset = (myCol +entCol) +2.5
 		ent:SetPos(self:GetPos() +self:GetForward() *offset)
-		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		ent:StopAttacks(true)
 		ent:ClearSchedule()
 		ent:ClearGoal()
 		ent:StopMoving()
 		ent:SetMaxYawSpeed(0)
+		ent:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		self:SetLocalVelocity(Vector(0,0,0))
 		ent:SetLocalVelocity(Vector(0,0,0))
-		self:SetMoveType(MOVETYPE_FLY)
-		ent:SetMoveType(MOVETYPE_FLY)
+		self:SetVelocity(Vector(0,0,0))
+		ent:SetVelocity(Vector(0,0,0))
+		self:SetNavType(NAV_GROUND)
+		self:SetMoveType(MOVETYPE_NONE)
+		ent:SetNavType(NAV_GROUND)
+		ent:SetMoveType(MOVETYPE_NONE)
 		if IsValid(ent.VJ_TheController) then
 			VJ_AVP_CSound(ent.VJ_TheController,"cpthazama/avp/shared/grapple/grapple_sting_0" .. math.random(1,5) .. ".ogg")
 		end
@@ -132,6 +128,7 @@ function ENT:DoFatality(ent,inFront)
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,false,fType)
 			end
+			ent.CurrentEmote = VJ_AVP_EXP_FEAR
 			local anim = tbl.Kill
 			anim = VJ.PICK(anim)
 			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
@@ -147,6 +144,7 @@ function ENT:DoFatality(ent,inFront)
 						dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 						dmginfo:SetAttacker(IsValid(self) && self or ent)
 						dmginfo:SetInflictor(IsValid(self) && self or ent)
+						ent.HasDeathSounds = false
 						ent:TakeDamageInfo(dmginfo)
 					end
 				end})
@@ -166,6 +164,7 @@ function ENT:DoFatality(ent,inFront)
 					dmginfo:SetDamageForce(self:GetForward() *250)
 					dmginfo:SetAttacker(self)
 					dmginfo:SetInflictor(self)
+					ent.HasDeathSounds = false
 					ent:TakeDamageInfo(dmginfo)
 				end
 			end})
@@ -174,14 +173,18 @@ function ENT:DoFatality(ent,inFront)
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
 			end
-			if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Grab] then
-				ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[tbl.Grab],true,false,true)
+			ent.CurrentEmote = VJ_AVP_EXP_FEAR
+			local grabAnim = ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Grab] or ent.GenericFatalitiesResponse
+			if grabAnim then
+				ent:PlayAnim(grabAnim,true,false,true)
+				-- Entity(1):ChatPrint("Fatality Response: " .. grabAnim)
 			end
 			self:PlayAnim(tbl.Grab,true,false,true,0,{OnFinish=function(int,anim)
 				-- if int then return end
 				if IsValid(ent) then
 					if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[tbl.Lift] then
 						ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[tbl.Lift],true,false,true)
+						-- Entity(1):ChatPrint("Fatality Response: " .. ent.AnimTbl_FatalitiesResponse[tbl.Lift])
 					end
 				end
 				if tbl.Lift then
@@ -204,9 +207,11 @@ function ENT:DoFatality(ent,inFront)
 										dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 										dmginfo:SetAttacker(IsValid(self) && self or ent)
 										dmginfo:SetInflictor(IsValid(self) && self or ent)
+										ent.HasDeathSounds = false
 										ent:TakeDamageInfo(dmginfo)
 									end
 								end})
+								-- Entity(1):ChatPrint("Fatality Response: " .. ent.AnimTbl_FatalitiesResponse[anim])
 							end
 						end
 						self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
@@ -225,6 +230,7 @@ function ENT:DoFatality(ent,inFront)
 									dmginfo:SetDamageForce(self:GetForward() *250)
 									dmginfo:SetAttacker(self)
 									dmginfo:SetInflictor(self)
+									ent.HasDeathSounds = false
 									ent:TakeDamageInfo(dmginfo)
 								end
 							end
@@ -234,6 +240,9 @@ function ENT:DoFatality(ent,inFront)
 					local anim = counter && tbl.Counter or tbl.Kill
 					anim = VJ.PICK(anim)
 					if IsValid(ent) then
+						if counter then
+							ent.CurrentEmote = VJ_AVP_EXP_COMBAT
+						end
 						if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 							ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
 								-- if int then return end
@@ -248,9 +257,11 @@ function ENT:DoFatality(ent,inFront)
 									dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 									dmginfo:SetAttacker(IsValid(self) && self or ent)
 									dmginfo:SetInflictor(IsValid(self) && self or ent)
+									ent.HasDeathSounds = false
 									ent:TakeDamageInfo(dmginfo)
 								end
 							end})
+							-- Entity(1):ChatPrint("Fatality Response: " .. ent.AnimTbl_FatalitiesResponse[anim])
 						end
 					end
 					self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
@@ -269,6 +280,7 @@ function ENT:DoFatality(ent,inFront)
 								dmginfo:SetDamageForce(self:GetForward() *250)
 								dmginfo:SetAttacker(self)
 								dmginfo:SetInflictor(self)
+								ent.HasDeathSounds = false
 								ent:TakeDamageInfo(dmginfo)
 							end
 						end

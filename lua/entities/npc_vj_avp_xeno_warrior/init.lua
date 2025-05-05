@@ -129,6 +129,7 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["v_alien_tailstab_head_front_kill"] = "v_alien_tailstab_head_front_death",
 	["v_alien_tailstab_head_front_grapple"] = "v_alien_tailstab_head_front_grapple_victim",
 }
+ENT.GenericFatalitiesResponse = "standing_flinch_fwd_left"
 
 ENT.FootstepSoundLevel = 60
 ENT.SoundTbl_FootSteps = {
@@ -3123,7 +3124,8 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angYN90)
 			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
 		else
-			self:StopMoving(!self.VJ_AVP_XenomorphLarge)
+			self:StopMoving()
+			-- self:StopMoving(!self.VJ_AVP_XenomorphLarge)
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
 				self:AA_StopMoving()
 			end

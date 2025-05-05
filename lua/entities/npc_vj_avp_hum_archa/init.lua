@@ -12,7 +12,8 @@ ENT.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_WEYLAND_YUTANI"}
 ENT.AlliedWithPlayerAllies = true
 ENT.Weapon_IgnoreSpawnMenu = true
 
-ENT.HasFlashlight = false
+-- ENT.HasFlashlight = false
+ENT.FlashLightAttachment = "bodylamp"
 ENT.HasMotionTracker = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)

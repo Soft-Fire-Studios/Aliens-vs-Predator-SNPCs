@@ -3,6 +3,7 @@
 	"$basetexture" 				"models/cpthazama/avp/marines/weyland/weyland_headshot_entrywound_col"
 	"$bumpmap"					"models/cpthazama/avp/marines/weyland/weyland_headshot_entrywound_norms"
 
+	// "$color2"					"[0.72 0.72 0.72]"
 	"$ambientocclusion"			"1"
 	"$nodecal"					"1"
 

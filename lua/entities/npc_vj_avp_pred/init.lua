@@ -80,10 +80,10 @@ ENT.AnimTbl_Fatalities = {
 			Lift = "predator_wristblade_marine_trophy_kill_lift",
 			Counter = "predator_wristblade_marine_trophy_kill_countered",
 			Kill = {
-				"predator_wristblade_marine_trophy_kill",
+				"predator_wristblade_marine_trophy_kill_kill",
 				"predator_wristblade_marine_trophy_kill_eyestab",
 				"predator_wristblade_marine_trophy_kill_stomachrip",
-				"predator_wristblade_marine_trophy_kill_short"
+				"predator_wristblade_marine_trophy_kill_kill_short"
 			}
 		},
 		Stealth = {
@@ -125,6 +125,7 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["stealth_kill_pred_countered"] = "predator_claws_counter_alien_stealth_kill",
 	["stealth_kill_pred_finished"] = "predator_claws_alien_stealth_kill_death",
 }
+ENT.GenericFatalitiesResponse = "predator_claws_minor_flinch_fl"
 
 ENT.SoundTbl_Idle = {
 	"cpthazama/avp/predator/vocals/prd_clicks_01.ogg",
@@ -1512,9 +1513,10 @@ function ENT:LongJumpCode(gotoPos,atk)
 	end
 	-- print("Set ",self.LongJumpAttacking)
 	local animSetType = (self:GetEquipment() == 5 && "speargun" or "claws")
-	if !atk && height < -150 then
+	-- print(height)
+	if !atk && height < -200 then
 		anim = "predator_" .. animSetType .. "_jump_gain_height"
-	elseif !atk && height > 150 then
+	elseif !atk && height > 200 then
 		anim = "predator_" .. animSetType .. "_jump_drop_down"
 	else
 		if dist > 1500 then

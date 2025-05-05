@@ -44,10 +44,10 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["predator_claws_stealthkill_human_headrip_kill"] = "pred_stealthkill_headrip_death",
 	["predator_wristblade_marine_trophy_kill_lift"] = "trophy_lift",
 	["predator_wristblade_marine_trophy_kill_countered"] = "trophy_counter",
-	["predator_wristblade_marine_trophy_kill"] = "trophy_die",
+	["predator_wristblade_marine_trophy_kill_kill"] = "trophy_die",
 	["predator_wristblade_marine_trophy_kill_eyestab"] = "trophy_die_eyestab",
 	["predator_wristblade_marine_trophy_kill_stomachrip"] = "trophy_die_stomachrip",
-	["predator_wristblade_marine_trophy_kill_short"] = "trophy_die_short",
+	["predator_wristblade_marine_trophy_kill_kill_short"] = "trophy_die_short",
 
 	["stealth_kill_marine_tailstab_head_hold"] = "stealth_kill",
 	["stealth_kill_marine_tailstab_head_kill"] = "stealth_kill_death",
@@ -55,6 +55,7 @@ ENT.AnimTbl_FatalitiesResponse = {
 	["neckbite_marine_ohwa_counter"] = "neckbite_ohwa_counter",
 	["neckbite_marine_ohwa_death"] = "neckbite_ohwa_death",
 }
+ENT.GenericFatalitiesResponse = "thwa_melee_flinch_defenseless_forwards"
 
 ENT.MainSoundPitch = VJ.SET(97, 103)
 ENT.DisableFootStepSoundTimer = true
@@ -729,7 +730,16 @@ function ENT:MarineInitialize(gender)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnInvestigate(ent)
+	self.CurrentEmote = VJ_AVP_EXP_ALERT
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnResetEnemy()
+	self.CurrentEmote = VJ_AVP_EXP_DEFAULT
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAlert(ent)
+	self.CurrentEmote = VJ_AVP_EXP_COMBAT
 	if self.SoundTbl_Surprised && #self.SoundTbl_Surprised > 0 && VJ.GetNearestDistance(self, ent, true) <= 250 then
 		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
 		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
@@ -759,6 +769,7 @@ function ENT:Init()
 		self:OnInit()
 	end
 
+	self.MouthT = 0
 	self.SprintT = 0
 	self.NextSprintT = 0
 	self.Moveset = 0
@@ -787,15 +798,20 @@ function ENT:Init()
 	if self:FindBodygroupByName("vest") > -1 && self:GetBodygroup(self:FindBodygroupByName("vest")) > 0 then return end
 
 	self.FlashlightStatus = false
-	local att = self:LookupAttachment("flashlight")
+	local att = self:LookupAttachment(self.FlashLightAttachment or "flashlight")
 	if att > 0 && self.HasFlashlight then
 		self.CanUseFlashlight = true
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnCreateSound(sdData, sdFile)
+	self.MouthT = CurTime() +(SoundDuration(sdFile) *0.856)
+	self:SetPoseParameter("emote",VJ_AVP_EXP_TALK)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ToggleFlashlight(on)
 	if !self.CanUseFlashlight then return end
-	local att = self:LookupAttachment("flashlight")
+	local att = self:LookupAttachment(self.FlashLightAttachment or "flashlight")
 	if att <= 0 then return end
 	if self.FlashlightStatus == on then return end
 
@@ -815,7 +831,7 @@ function ENT:ToggleFlashlight(on)
 		envLight:SetOwner(self)
 		envLight:SetParent(self)
 		envLight:Spawn()
-		envLight:Fire("setparentattachment","flashlight")
+		envLight:Fire("setparentattachment",self.FlashLightAttachment or "flashlight")
 		self:DeleteOnRemove(envLight)
 		table.insert(self.FlashlightEntities,envLight)
 
@@ -829,7 +845,7 @@ function ENT:ToggleFlashlight(on)
 		spotlight:SetParent(self)
 		spotlight:Spawn()
 		spotlight:Activate()
-		spotlight:Fire("setparentattachment","flashlight")
+		spotlight:Fire("setparentattachment",self.FlashLightAttachment or "flashlight")
 		spotlight:Fire("lighton")
 		spotlight:AddEffects(EF_PARENT_ANIMATES)
 		self:DeleteOnRemove(spotlight)
@@ -843,7 +859,7 @@ function ENT:ToggleFlashlight(on)
 		glow1:SetKeyValue("spawnflags","0.1")
 		glow1:SetParent(self)
 		glow1:SetOwner(self)
-		glow1:Fire("SetParentAttachment","flashlight",0)
+		glow1:Fire("SetParentAttachment",self.FlashLightAttachment or "flashlight",0)
 		glow1:Spawn()
 		self:DeleteOnRemove(glow1)
 		table.insert(self.FlashlightEntities,glow1)
@@ -858,7 +874,7 @@ function ENT:ToggleFlashlight(on)
 		-- glowLight:SetOwner(self)
 		-- glowLight:Spawn()
 		-- glowLight:Fire("TurnOn","",0)
-		-- glowLight:Fire("SetParentAttachment","flashlight",0)
+		-- glowLight:Fire("SetParentAttachment",self.FlashLightAttachment or "flashlight",0)
 		-- self:DeleteOnRemove(glowLight)
 
 		-- self.Light = envLight
@@ -928,7 +944,7 @@ function ENT:OnKeyPressed(ply,key)
 			self.NextCloakT = CurTime() +1
 		end
     elseif key == KEY_F then
-		if (!self.CanUseFlashlight or self:LookupAttachment("flashlight") <= 0) && !IsValid(self:GetFlare()) && !self:IsBusy() then
+		if (!self.CanUseFlashlight or self:LookupAttachment(self.FlashLightAttachment or "flashlight") <= 0) && !IsValid(self:GetFlare()) && !self:IsBusy() then
 			-- self:PlayAnimation("vjges_THWA_Stand_Throw_Flare",true,false,false)
 			-- self.NextChaseTime = 0
 			local flare = ents.Create("obj_vj_avp_flare")
@@ -1226,7 +1242,11 @@ end
 function ENT:OnThinkActive()
 	local curTime = CurTime()
 	self.HasPoseParameterLooking = !self.InFatality
+	if self.CurrentEmote != VJ_AVP_EXP_TALK then
+		self:SetPoseParameter("emote",Lerp(FrameTime() *8,self:GetPoseParameter("emote"),self.CurrentEmote or VJ_AVP_EXP_DEFAULT))
+	end
 	if self.InFatality then
+		-- self.CurrentEmote = VJ_AVP_EXP_FEAR
 		local names = self.PoseParameterLooking_Names
 		for x = 1, #names.pitch do
 			self:SetPoseParameter(names.pitch[x],0)
@@ -1244,6 +1264,16 @@ function ENT:OnThinkActive()
 		end
 		return
 	end
+
+	if curTime < self.MouthT then
+		self.CurrentEmote = VJ_AVP_EXP_TALK
+	else
+		if self.CurrentEmote == VJ_AVP_EXP_TALK then
+			self.CurrentEmote = VJ_AVP_EXP_DEFAULT
+		end
+	end
+
+	-- self.CurrentEmote = self.Alerted && VJ_AVP_EXP_COMBAT or VJ_AVP_EXP_DEFAULT
 
 	local cont = self.VJ_TheController
 	if IsValid(cont) then
@@ -1509,6 +1539,7 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
+	ent:SetPoseParameter("emote",VJ_AVP_EXP_FEAR)
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
 	end
