@@ -1271,6 +1271,7 @@ function ENT:OnThinkActive()
 	else
 		if self.CurrentEmote == VJ_AVP_EXP_TALK then
 			self.CurrentEmote = self.Alerted && VJ_AVP_EXP_COMBAT or VJ_AVP_EXP_DEFAULT
+			-- self:SetPoseParameter("emote",VJ_AVP_EXP_ALERT)
 		end
 	end
 

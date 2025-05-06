@@ -1602,14 +1602,16 @@ function ENT:DistractionCode(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DropMask()
+	if self:GetBodygroup(self:FindBodygroupByName("mask")) == 0 then return end
 	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
 	-- print("Dropping mask")
 	local stripModel = string_Replace(self:GetModel(),"/predators/","/predators/mask/")
 	if !util.IsValidModel(stripModel) then return end
+	local att = self:GetAttachment(self:LookupAttachment("eyes"))
 	local mask = ents.Create("prop_physics")
 	mask:SetModel(stripModel)
-	mask:SetPos(self:GetAttachment(self:LookupAttachment("eyes")).Pos)
-	mask:SetAngles(self:GetAngles())
+	mask:SetPos(att.Pos)
+	mask:SetAngles(att.Ang)
 	mask:SetOwner(self)
 	mask:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 	mask:Spawn()
@@ -2125,6 +2127,8 @@ end
 local VJ_IsProp = VJ.IsProp
 --
 function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
+	self:DropMask()
+	ent:SetBodygroup(ent:FindBodygroupByName("mask"),0)
 	ent:SetNW2Vector("AVP.ArmorTint",self:GetArmorColor())
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
