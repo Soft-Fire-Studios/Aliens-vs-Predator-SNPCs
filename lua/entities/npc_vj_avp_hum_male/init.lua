@@ -805,6 +805,7 @@ function ENT:Init()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateSound(sdData, sdFile)
+	if self:GetBodygroup(self:FindBodygroupByName("mask")) > 0 then return end
 	self.MouthT = CurTime() +(SoundDuration(sdFile) *0.856)
 	self:SetPoseParameter("emote",VJ_AVP_EXP_TALK)
 end
@@ -1269,7 +1270,7 @@ function ENT:OnThinkActive()
 		self.CurrentEmote = VJ_AVP_EXP_TALK
 	else
 		if self.CurrentEmote == VJ_AVP_EXP_TALK then
-			self.CurrentEmote = VJ_AVP_EXP_DEFAULT
+			self.CurrentEmote = self.Alerted && VJ_AVP_EXP_COMBAT or VJ_AVP_EXP_DEFAULT
 		end
 	end
 

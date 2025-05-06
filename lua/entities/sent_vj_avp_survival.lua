@@ -24,12 +24,13 @@ local function debugMessage(...)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetupDataTables()
-	self:NetworkVar("Int",0,"Wave")
-	self:NetworkVar("Int",1,"WaveSwitchVolTime")
-	self:NetworkVar("Int",2,"CurrentTotalNPCs")
-	self:NetworkVar("Int",3,"KillsRemaining")
-	self:NetworkVar("Bool",0,"WaveSwitching")
-	self:NetworkVar("Bool",1,"SpecialRound")
+	self:NetworkVar("Int","Wave")
+	self:NetworkVar("Int","WaveSwitchVolTime")
+	self:NetworkVar("Int","CurrentTotalNPCs")
+	self:NetworkVar("Int","KillsRemaining")
+	self:NetworkVar("Bool","WaveSwitching")
+	self:NetworkVar("Bool","SpecialRound")
+	self:NetworkVar("Bool","ClubRound")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
@@ -56,6 +57,7 @@ if CLIENT then
 	}
 
 	local queenTrack = "cpthazama/avp/music/survival/Showdown.mp3"
+	local clubTrack = "cpthazama/avp/music/Club Eden.mp3"
 
 	local function StopTrack(ply,trk)
 		if trk == nil then
@@ -115,6 +117,7 @@ if CLIENT then
 		local ply = LocalPlayer()
 		ply.MutatorTrackT = 0
 		ply.BossTrackT = 0
+		ply.LastWaveClub = false
 
 		hook.Add("PreDrawHalos",self,function(self)
 			local ply = LocalPlayer()
@@ -134,12 +137,37 @@ if CLIENT then
 			halo_Add(VJ_AVP_HALOS.Survival,col_survivor,0.25,0.25,1,true,true)
 		end)
 
+		local tab = {
+			[ "$pp_colour_addr" ] = 0,
+			[ "$pp_colour_addg" ] = 0,
+			[ "$pp_colour_addb" ] = 0,
+			[ "$pp_colour_brightness" ] = -0.2,
+			[ "$pp_colour_contrast" ] = 0.9,
+			[ "$pp_colour_colour" ] = 0.75,
+			[ "$pp_colour_mulr" ] = 0,
+			[ "$pp_colour_mulg" ] = 0,
+			[ "$pp_colour_mulb" ] = 0
+		}
+		hook.Add("RenderScreenspaceEffects",self,function(self)
+			if !self:GetClubRound() then return end
+			DrawColorModify(tab)
+		end)
+
 		hook.Add("Think",self,function(self)
 			local ply = LocalPlayer()
 			if !IsValid(ply) then return end
 
 			ply.MutatorTrackT = ply.MutatorTrackT or 0
 			ply.BossTrackT = ply.BossTrackT or 0
+
+			local clubRound = self:GetClubRound()
+			if clubRound && ply.LastWaveClub != true then
+				ply.LastWaveClub = true
+				ply.MutatorTrackT = 0
+			elseif !clubRound && ply.LastWaveClub == true then
+				ply.LastWaveClub = false
+				ply.MutatorTrackT = 0
+			end
 
 			if GetConVar("vj_avp_survival_music"):GetInt() == 1 then
 				local specialRound = self:GetSpecialRound()
@@ -155,7 +183,7 @@ if CLIENT then
 					if CurTime() < self:GetWaveSwitchVolTime() then
 						ply.MutatorTrack:SetVolume(Lerp(FT,ply.MutatorTrack:GetVolume(),0.05))
 					else
-						ply.MutatorTrack:SetVolume(Lerp(FT,ply.MutatorTrack:GetVolume(),0.4))
+						ply.MutatorTrack:SetVolume(Lerp(FT,ply.MutatorTrack:GetVolume(),clubRound && 1 or 0.4))
 					end
 				end
 				if ply.BossTrack then
@@ -172,7 +200,7 @@ if CLIENT then
 					end
 				else
 					if !ply.MutatorTrack or ply.MutatorTrack && ply.MutatorTrackT < CurTime() then
-						PlayTrack(ply,VJ.PICK(self.Tracks),1)
+						PlayTrack(ply,clubRound && clubTrack or VJ.PICK(self.Tracks),1)
 					end
 				end
 			else
@@ -337,6 +365,7 @@ function ENT:Initialize()
 	self.Bots = {}
 	self.Entities = {}
 	self:SetWaveSwitching(true)
+	-- self:SetClubRound(true)
 	self:SetWave(0)
 	self:SetWaveSwitchVolTime(CurTime() +10)
 	self.CurrentMaxNPCs = self.IncrementAmount
@@ -350,6 +379,9 @@ function ENT:Initialize()
 
 	timer.Simple(10,function()
 		if IsValid(self) then
+			-- if math.random(1,1) == 1 then
+			-- 	self:SetClubRound(true)
+			-- end
 			self:SetSpecialRound(false)
 			self:SetWaveSwitching(false)
 			self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount,1,self.MaxNPCs)
@@ -499,6 +531,27 @@ function ENT:CheckNextRoundAvailability()
 	if self.KillsLeft <= 0 then
 		self:SetWaveSwitching(true)
 		self:SetWaveSwitchVolTime(CurTime() +20)
+		if self:GetClubRound() then
+			for _,v in ents.Iterator() do
+				if v:GetClass() == "point_spotlight" or v:GetClass() == "light" then
+					local curStatus = v:GetInternalVariable("m_bSpotlightOn")
+					if v.VJ_AVP_OriginalLightStatus != nil then
+						if v.VJ_AVP_OriginalLightStatus == true then
+							v:Fire("TurnOn", "", 0)
+							v:Fire("LightOn", "", 0)
+						else
+							v:Fire("TurnOff", "", 0)
+							v:Fire("LightOff", "", 0)
+						end
+						v.VJ_AVP_OriginalLightStatus = nil
+					else
+						v:Fire("TurnOn", "", 0)
+						v:Fire("LightOn", "", 0)
+					end
+				end
+			end
+			self:SetClubRound(false)
+		end
 		for _,v in pairs(player.GetAll()) do
 			VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
 			v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
@@ -535,6 +588,7 @@ function ENT:NextRound()
 	if newWave %5 == 0 then
 		self.MaxBosses = newWave /5
 		self:SetSpecialRound(true)
+		self:SetClubRound(false)
 		self:SetWaveSwitching(false)
 		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
 		-- self.CurrentMaxNPCs = math_Clamp(self.CurrentMaxNPCs +self.IncrementAmount,1,self.MaxNPCs)
@@ -548,6 +602,9 @@ function ENT:NextRound()
 			v:ChatPrint("Wave ".. newWave .. " has started...")
 		end
 	else
+		if math.random(1,100) == 1 then
+			self:SetClubRound(true)
+		end
 		self:SetSpecialRound(false)
 		self:SetWaveSwitching(false)
 		self.CurrentMaxNPCs = math_Clamp(self.IncrementAmount *newWave,1,self.MaxNPCs)
@@ -756,6 +813,36 @@ function ENT:Think()
 	self:SetKillsRemaining(self.KillsLeft)
 	local wave = self:GetWave()
 
+	if !self:GetWaveSwitching() && self:GetClubRound() && self.KillsLeft > 0 then
+		if curTime > (self.NextLightFlickerT or 0) then
+			for _,v in ents.Iterator() do
+				if v:GetClass() == "point_spotlight" or v:GetClass() == "light" then
+					local curStatus = v:GetInternalVariable("m_bSpotlightOn")
+					if v.VJ_AVP_OriginalLightStatus == nil then
+						v.VJ_AVP_OriginalLightStatus = curStatus
+					end
+					v:Fire("TurnOff", "", 0)
+					v:Fire("LightOff", "", 0)
+					timer.Simple(math.Rand(0.05,0.1),function()
+						if IsValid(v) then
+							v:Fire("TurnOn", "", 0)
+							v:Fire("LightOn", "", 0)
+						end
+					end)
+				elseif v:IsPlayer() then
+					v:Flashlight(!v:FlashlightIsOn())
+					if curTime > (v.VJ_AVP_Survival_BumpT or 0) then
+						v:ViewPunch(Angle(2.5,0,0))
+						v.VJ_AVP_Survival_BumpT = curTime +0.4
+					end
+				elseif v.VJ_AVP_NPC && v.HasFlashlight then
+					v:ToggleFlashlight(!v.FlashlightStatus)
+				end
+			end
+			self.NextLightFlickerT = curTime +math.Rand(0.11,0.2)
+		end
+	end
+
 	if self.NextSpawnAttemptT < curTime then
 		if curTime > self.NextCheckForStuckAITime then
 			self.NextCheckForStuckAITime = curTime +math.Rand(9,18)
@@ -840,6 +927,7 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
 					"npc_vj_avp_" .. xenoType .. "_praetorian",
+					"npc_vj_avp_" .. xenoType .. "_predalien",
 					"npc_vj_avp_" .. xenoType .. "_ravager",
 				})
 			end

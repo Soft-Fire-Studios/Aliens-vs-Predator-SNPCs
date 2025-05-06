@@ -3022,7 +3022,7 @@ function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateSound(sdData, sdFile)
-	if self.BreathLoop then
+	if self.BreathLoop && sdFile then
 		self.BreathLoop:ChangeVolume(0.1)
 		self.CurrentVoiceLineTime = CurTime() +SoundDuration(sdFile) *1.5
 	end

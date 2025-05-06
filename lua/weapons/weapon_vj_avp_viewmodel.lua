@@ -37,6 +37,26 @@ SWEP.Translations = {
 	["predator_mine_fire_loop"] = "predator_hud_predmine_loop_fire_test",
 	["predator_mine_fire_out"] = "predator_hud_predmine_out_fire_test",
 	["predator_battledisc_throw"] = "predator_hud_battledisc_throw_complete",
+	["predator_wristblade_marine_trophy_kill_grab"] = "predator_hud_wristblade_marine_trophy_kill_grab",
+	["predator_wristblade_marine_trophy_kill_lift"] = "predator_hud_wristblade_marine_trophy_kill_lift",
+	["predator_wristblade_marine_trophy_kill_countered"] = "predator_hud_claws_trophy_marine_countered",
+	["predator_wristblade_marine_trophy_kill_countered_smartgun"] = "predator_hud_claws_trophy_marine_countered_smartgun",
+	["predator_wristblade_marine_trophy_kill_kill"] = "predator_hud_claws_trophy_marine_kill",
+	["predator_wristblade_marine_trophy_kill_eyestab"] = "predator_hud_claws_trophy_marine_kill_eyestab",
+	["predator_wristblade_marine_trophy_kill_kill_short"] = "predator_hud_claws_trophy_marine_kill_short",
+	-- ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"] = "predator_hud_claws_trophy_marine_kill_spear_floor",
+	-- ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"] = "predator_hud_claws_trophy_marine_kill_spear_headrip",
+	["predator_wristblade_marine_trophy_kill_stomachrip"] = "predator_hud_claws_trophy_marine_kill_stomachrip",
+	["predator_claws_stealthkill_human_grab"] = "predator_hud_claws_stealthkill_human_grab",
+	["predator_claws_stealthkill_human_countered"] = "predator_hud_claws_stealthkill_human_countered",
+	["predator_claws_stealthkill_human_headrip_hold"] = "predator_hud_claws_stealthkill_human_headrip_hold",
+	["predator_claws_stealthkill_human_headrip_kill"] = "predator_hud_claws_stealthkill_human_headrip_kill",
+	["predator_claws_stealthkill_human_hold"] = "predator_hud_claws_stealthkill_human_hold",
+	["predator_claws_stealthkill_human_kill"] = "predator_hud_claws_stealthkill_human_kill",
+	["predator_claws_stealthkill_human_kill_quick"] = "predator_hud_claws_stealthkill_human_kill_quick",
+	["predator_claws_stealthkill_human_kill_slow"] = "predator_hud_claws_stealthkill_human_kill_slow",
+	["predator_claws_stealthkill_human_kill_stab_chest"] = "predator_hud_claws_stealthkill_human_stab_chest",
+	-- ["predator_claws_stealthkill_human_start"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
 }
 
 function SWEP:SetupDataTables()
@@ -244,7 +264,7 @@ function SWEP:OnChangeActivity(npc,act)
 	local vmSeqEdit = string_replace(vmSeq,"_hud_","_")
 	local trans = self.Translations[curSeq]
 	local lastSeq = self.LastSequence
-	-- print("Requested:",curSeq)
+	-- print("Incoming:",curSeq,"Requested:",curSeqEdit)
 	if string_EndsWith(curSeq,"_rest") then return end
 	if trans then
 		if vmSeq != trans then
