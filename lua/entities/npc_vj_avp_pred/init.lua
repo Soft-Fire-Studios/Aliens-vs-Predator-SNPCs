@@ -545,7 +545,7 @@ function ENT:DoCountdownAttack()
 		self.NextCloakT = CurTime() +50
 	end
 	self:PlayAnimation("predator_destruct_start",true,false,false)
-	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+	self:DropMask()
 	self.TransIdle = ACT_HL2MP_IDLE
 	Do(0,function()
 		self:PlayAnimation("vjges_predator_" .. (self:GetEquipment() == 5 && "speargun" or "claws") .. "_console_use",false,false,false,0,{AlwaysUseGesture=true,DisableChaseFix=true})
@@ -933,7 +933,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnFatality(ent,inFront,willCounter,fType)
 	if !willCounter then
-		self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+		self:DropMask()
 	end
 	if self:GetCloaked() then
 		self:Camo(false)
@@ -1601,8 +1601,25 @@ function ENT:DistractionCode(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:OnFacehugged(facehugger,facehuggerProp,corpse)
+function ENT:DropMask()
 	self:SetBodygroup(self:FindBodygroupByName("mask"),0)
+	-- print("Dropping mask")
+	local stripModel = string_Replace(self:GetModel(),"/predators/","/predators/mask/")
+	if !util.IsValidModel(stripModel) then return end
+	local mask = ents.Create("prop_physics")
+	mask:SetModel(stripModel)
+	mask:SetPos(self:GetAttachment(self:LookupAttachment("eyes")).Pos)
+	mask:SetAngles(self:GetAngles())
+	mask:SetOwner(self)
+	mask:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+	mask:Spawn()
+	mask:Activate()
+	SafeRemoveEntityDelayed(mask,60)
+	-- print("Dropped",mask)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnFacehugged(facehugger,facehuggerProp,corpse)
+	self:DropMask()
 	corpse:SetBodygroup(corpse:FindBodygroupByName("mask"),0)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

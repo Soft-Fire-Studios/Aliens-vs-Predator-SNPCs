@@ -29,6 +29,7 @@ ENT.AttackDamageMultiplier = 3
 ENT.BulletDamageReductionRequirement = 80
 ENT.CanBeKnockedDown = false
 ENT.CanSpit = false
+ENT.CanDodge = false
 ENT.CanScreamForHelp = false
 ENT.CanLeap = false
 ENT.CanLeapAttack = false
@@ -57,6 +58,7 @@ function ENT:OnInit()
 		["rfoot"] = {Range=19.5,OnGround=true},
 	}
 	self.MainSoundPitch = VJ.SET(70, 75)
+	self.CanDodge = false
 
 	self.HitGroups = {}
 	self.SoundTbl_Alert = {
@@ -104,6 +106,13 @@ function ENT:OnInit()
 	self.SoundTbl_Death = {
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_01.ogg",
 		"cpthazama/avp/xeno/praetorian/vocal/praetorian_death_scream_03.ogg",
+	}
+	self.SoundTbl_FootSteps = {
+		[MAT_CONCRETE] = {
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_01.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_02.ogg",
+			"cpthazama/avp/xeno/alien queen/alien_queen_footstep_03.ogg",
+		}
 	}
 
 	self:CapabilitiesRemove(CAP_MOVE_JUMP)
