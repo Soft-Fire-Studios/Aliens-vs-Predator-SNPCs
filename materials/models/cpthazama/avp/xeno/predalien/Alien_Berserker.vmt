@@ -5,6 +5,7 @@
 	"$phongexponenttexture"		"models/cpthazama/avp/xeno/predalien/Alien_Berserker_S"
 
     "$nodecal" 					"1"
+	"$color2"					"[1.7 1.7 1.7]"
 
 	"$selfillum" 				"1"
 	"$selfillumtint"			"[2 0.43 0.09]"

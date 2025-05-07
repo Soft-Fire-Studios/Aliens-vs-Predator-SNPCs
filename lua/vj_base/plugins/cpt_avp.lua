@@ -332,7 +332,7 @@ if SERVER then
 
 	function VJ_AVP_MotionTracker(self)
 		local curTime = CurTime()
-		if self:IsNPC() && !VJ_CVAR_AI_ENABLED then return end
+		if self:IsNPC() && (!VJ_CVAR_AI_ENABLED or self.HasMotionTracker == false) then return end
 		self:SetNW2Float("AVP.MotionTracker.Ping",self.Ping_NextPingT or 0)
 		if curTime > (self.Ping_NextPingT or 0) then
 			self.Ping_NextPingT = curTime +0.85

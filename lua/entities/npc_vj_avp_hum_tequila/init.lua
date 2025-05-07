@@ -63,9 +63,9 @@ function ENT:OnInit()
 		"cpthazama/avp/humans/vocals/Tequila/KILLED_THREAT_TEQ_06.ogg",
 		"cpthazama/avp/humans/vocals/Tequila/KILLED_THREAT_TEQ_07.ogg",
 	}
-	self.SoundTbl_MotionTracker_Far = {}
-	self.SoundTbl_MotionTracker_Mid = {}
-	self.SoundTbl_MotionTracker_Close = {}
+	self.SoundTbl_MotionTracker_Far = {"cpthazama/avp/humans/vocals/Tequila/M01_ClubTrap_17.wav"}
+	self.SoundTbl_MotionTracker_Mid = {"cpthazama/avp/humans/vocals/Tequila/M01_ClubTrap_17.wav"}
+	self.SoundTbl_MotionTracker_Close = {"cpthazama/avp/humans/vocals/Tequila/M01_ClubTrap_17.wav"}
 	self.SoundTbl_Pain = {
 		"cpthazama/avp/humans/human/vocals/tequila_sick/tq_groan_01.ogg",
 		"cpthazama/avp/humans/human/vocals/tequila_sick/tq_groan_02.ogg",

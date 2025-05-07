@@ -358,6 +358,8 @@ if CLIENT then
 			end
 		end
 
+		if !ply.VJ_IsControllingNPC && !GetConVar("vj_avp_hud_ping"):GetBool() then return end
+
 		local radarPosX = -33.5
 		local radarPosY = 16.6
 		local radarPosW = 14.75

@@ -62,6 +62,23 @@ ENT.DisableFootStepSoundTimer = true
 
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
+
+ENT.SoundTbl_SeeBody = {}
+ENT.SoundTbl_DistractionSuccess = {}
+ENT.SoundTbl_InvestigateComplete = {}
+ENT.SoundTbl_MotionTracker_Far = {}
+ENT.SoundTbl_MotionTracker_Mid = {}
+ENT.SoundTbl_MotionTracker_Close = {}
+ENT.SoundTbl_Spot_XenoLarge = {}
+ENT.SoundTbl_Spot_Xeno = {}
+ENT.SoundTbl_Spot_Android = {}
+ENT.SoundTbl_Spot_PredatorCloaked = {}
+ENT.SoundTbl_Spot_Predator = {}
+ENT.SoundTbl_AllyDeath_Xeno = {}
+ENT.SoundTbl_AllyDeath_Android = {}
+ENT.SoundTbl_AllyDeath_Predator = {}
+ENT.SoundTbl_Surprised = {}
+ENT.SoundTbl_Alert_Horde = {}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/alex.mdl"
@@ -1112,7 +1129,8 @@ function ENT:SetAnimationTranslations(hType)
 		self.AnimModelSet = VJ.ANIM_SET_NONE
 	end
 	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "civilian_nwa_Alert_idle01"),toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
-	
+	self.Weapon_AimTurnDiff = 0.74
+
 	if hType == nil then return end
 	if hType == "pistol" then
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
@@ -1473,7 +1491,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:ClearSchedule()
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- local dmgDir = self:GetDamageDirection(dmginfo)
 		local _,dur = self:PlayAnim("ohwa_big_flinch_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end

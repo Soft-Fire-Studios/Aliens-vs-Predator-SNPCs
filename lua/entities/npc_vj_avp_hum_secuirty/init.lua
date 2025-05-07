@@ -10,7 +10,7 @@ ENT.Gender = 1
 ENT.VJ_NPC_Class = {"CLASS_WEYLAND_YUTANI"}
 
 ENT.HasFlashlight = false
-ENT.HasMotionTracker = true
+ENT.HasMotionTracker = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/security.mdl"

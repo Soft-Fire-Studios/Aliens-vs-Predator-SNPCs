@@ -2966,7 +2966,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 			self.ActivatedSelfDestruct = true
 			return
 		end
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		-- self.CanFlinch = false
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		-- self.Flinching = true

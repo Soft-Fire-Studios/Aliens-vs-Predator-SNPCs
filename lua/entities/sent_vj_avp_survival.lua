@@ -381,6 +381,14 @@ function ENT:Initialize()
 		if IsValid(self) then
 			-- if math.random(1,1) == 1 then
 			-- 	self:SetClubRound(true)
+			-- 	self.ClubRoundVOT = CurTime() +math.Rand(20,40)
+			-- 	timer.Simple(5,function()
+			-- 		if IsValid(self) then
+			-- 			for _,v in pairs(player.GetAll()) do
+			-- 				VJ_AVP_CSound(v,"cpthazama/avp/music/M01_Admin_17_Club_marine.wav")
+			-- 			end
+			-- 		end
+			-- 	end)
 			-- end
 			self:SetSpecialRound(false)
 			self:SetWaveSwitching(false)
@@ -388,7 +396,7 @@ function ENT:Initialize()
 			self:SetWave(self:GetWave() +1)
 			self.KillsLeft = self.IncrementAmount *self:GetWave()
 			for _,v in pairs(player.GetAll()) do
-				VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
+				VJ_AVP_CSound(v,self:GetClubRound() && "cpthazama/avp/music/M01_Club_11_Comp.wav" or "cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
 				v:ChatPrint("Wave ".. self:GetWave() .. " has started...")
 			end
 		end
@@ -531,6 +539,7 @@ function ENT:CheckNextRoundAvailability()
 	if self.KillsLeft <= 0 then
 		self:SetWaveSwitching(true)
 		self:SetWaveSwitchVolTime(CurTime() +20)
+		local dontDOIT = false
 		if self:GetClubRound() then
 			for _,v in ents.Iterator() do
 				if v:GetClass() == "point_spotlight" or v:GetClass() == "light" then
@@ -550,10 +559,16 @@ function ENT:CheckNextRoundAvailability()
 					end
 				end
 			end
+			for _,v in pairs(player.GetAll()) do
+				VJ_AVP_CSound(v,"cpthazama/avp/music/M01_RoadToClub_04_Club_marine.wav")
+			end
+			dontDOIT = true
 			self:SetClubRound(false)
 		end
 		for _,v in pairs(player.GetAll()) do
-			VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
+			if !dontDOIT then
+				VJ_AVP_CSound(v,"cpthazama/avp/music/survival/survivor_wave_cleared_03.mp3")
+			end
 			v:ChatPrint("Wave " .. self:GetWave() .. " has ended, next wave in 10 seconds...")
 		end
 
@@ -604,6 +619,14 @@ function ENT:NextRound()
 	else
 		if math.random(1,100) == 1 then
 			self:SetClubRound(true)
+			self.ClubRoundVOT = CurTime() +math.Rand(20,40)
+			timer.Simple(5,function()
+				if IsValid(self) then
+					for _,v in pairs(player.GetAll()) do
+						VJ_AVP_CSound(v,"cpthazama/avp/music/M01_Admin_17_Club_marine.wav")
+					end
+				end
+			end)
 		end
 		self:SetSpecialRound(false)
 		self:SetWaveSwitching(false)
@@ -612,7 +635,7 @@ function ENT:NextRound()
 		self.KillsLeft = self.IncrementAmount *newWave
 		for _,v in pairs(player.GetAll()) do
 			VJ_AVP_CSound(v,"cpthazama/avp/shared/grapple/grapple_sting_04.ogg")
-			VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_23.ogg")
+			VJ_AVP_CSound(v,self:GetClubRound() && "cpthazama/avp/music/M01_Club_11_Comp.wav" or "cpthazama/avp/shared/MP_ANNOUNCE_23.ogg")
 			v:ChatPrint("Wave ".. newWave .. " has started...")
 		end
 	end
@@ -814,6 +837,12 @@ function ENT:Think()
 	local wave = self:GetWave()
 
 	if !self:GetWaveSwitching() && self:GetClubRound() && self.KillsLeft > 0 then
+		if curTime > (self.ClubRoundVOT or 0) then
+			for _,v in pairs(player.GetAll()) do
+				VJ_AVP_CSound(v,"cpthazama/avp/music/M01_RoadToClub_0" .. math.random(1,3) .. "_Club_marine.wav")
+			end
+			self.ClubRoundVOT = curTime +math.Rand(20,40)
+		end
 		if curTime > (self.NextLightFlickerT or 0) then
 			for _,v in ents.Iterator() do
 				if v:GetClass() == "point_spotlight" or v:GetClass() == "light" then

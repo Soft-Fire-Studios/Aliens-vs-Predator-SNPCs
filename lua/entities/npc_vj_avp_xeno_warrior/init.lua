@@ -665,6 +665,8 @@ function ENT:CustomOnChangeActivity(act)
 		VJ.CreateSound(self,self.SoundTbl_Jump,76)
 	elseif act == ACT_SPRINT then
 		VJ.EmitSound(self,"cpthazama/avp/xeno/alien/footsteps/sprint/alien_sprint_burst_0" .. math.random(1,3) .. ".ogg",70)
+	-- elseif act == ACT_IDLE && self:GetState() == VJ_STATE_ONLY_ANIMATION_NOATTACK then -- anti wtf is happening bug fix?
+		-- self:SetState()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1317,7 +1319,7 @@ function ENT:OnBeforeDoFatality(ent,fType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:LongJumpCode(gotoPos,atk)
-	if self.InFatality or self.DoingFatality or CurTime() < self.SpecialBlockAnimTime or !self.CanLeap then return end
+	if self.InFatality or self.DoingFatality or CurTime() < self.SpecialBlockAnimTime or !self.CanLeap or self.IsCrawler then return end
 	self.CurrentSet = 1
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.ChangeSetT = CurTime() +0.5
@@ -1732,7 +1734,7 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 					self:AttackCode(isCrawling)
 				end
 			else
-				if self.CanBlock && !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
+				if !self.IsCrawler && self.CanBlock && !self.AI_IsBlocking && (!enemy.IsVJBaseSNPC && (string_find(enemy:GetSequenceName(enemy:GetSequence()),"attack") or math.random(1,3) == 1) or enemy.IsVJBaseSNPC && enemy.AttackType == VJ.ATTACK_TYPE_MELEE && enemy.AttackState == VJ.ATTACK_STATE_STARTED) && math.random(1,2) == 1 then
 					self.AI_IsBlocking = true
 					self.AI_BlockTime = CurTime() +math.Rand(2,4)
 					return
@@ -1785,7 +1787,7 @@ function ENT:OnRangeAttackExecute(status, enemy, projectile)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoLeapAttack()
-	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
 	VJ.CreateSound(self,self.SoundTbl_Jump,80)
@@ -1823,7 +1825,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 		self.NextChaseTime = 0
 		return
 	end
-	if forceAttack == 4 then
+	if forceAttack == 4 && !self.IsCrawler then
 		self:DoLeapAttack()
 		return
 	end
@@ -2349,7 +2351,7 @@ function ENT:OnThinkActive()
 	end	
 
 	if self.OnThink2 then
-		self:OnThink2()
+		self:OnThink2(curTime)
 	end
 
 	local darkness = self.DarknessLevel
@@ -2848,6 +2850,16 @@ function ENT:OnBleed(dmginfo,hitgroup)
 			decap.Dead = true
 			if hitgroup == HITGROUP_LEFTLEG or hitgroup == HITGROUP_RIGHTLEG or hitgroup == HITGROUP_LEFTARM or hitgroup == HITGROUP_RIGHTARM then
 				self.IsCrawler = true
+				self.CanBlock = false
+				self.IsBlocking = false
+				self.AI_IsBlocking = false
+				self.AI_BlockTime = 0
+				self.CanDodge = false
+				self.CanStand = false
+				self.CanSprint = false
+				self.CanLeap = false
+				self.CanBeKnockedDown = false
+				self.DisableFatalities = true
 			end
 			if decap.OnDecap then
 				decap.OnDecap(self,dmginfo,hitgroup)
@@ -2876,7 +2888,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:ClearSchedule()
 		self:ClearGoal()
 		self:SetAngles(dmgAng)
-		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		local dmgDir = self:GetDamageDirection(dmginfo)
 		self:DoKnockdownAnimation(dmgDir)
 		self.NextDamageAllyResponseT = CurTime() +1

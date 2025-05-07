@@ -297,11 +297,96 @@ function ENT:OnKey(ply,key)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:OnThink2(curTime)
+	if self:GetSequenceName(self:GetSequence()) == "Praetorian_Charge" then
+		self.AttackDamage = 180
+		self.AttackDamageDistance = 140
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+		local dmgcode = self:RunDamageCode()
+		VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
+		local tr = util.TraceHull({
+			start = self:GetPos() +self:OBBCenter(),
+			endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *100,
+			filter = self,
+			mins = self:OBBMins() /2,
+			maxs = self:OBBMaxs() /2,
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if (#dmgcode <= 0 && tr.HitWorld) then
+			self:SetLocalVelocity(Vector(0,0,0))
+			self:SetVelocity(Vector(0,0,0))
+			VJ.EmitSound(self,"cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",80)
+			ParticleEffect("AntlionFX_UnBurrow",tr.HitPos,Angle())
+			util.ScreenShake(self:GetPos(),12,200,4,900)
+			VJ.STOPSOUND(self.CurrentSpeechSound)
+			VJ.STOPSOUND(self.CurrentIdleSound)
+			VJ.CreateSound(self,self.SoundTbl_Pain,90)
+			self:PlayAnim("Praetorian_Charge_HitWall",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then return end
+				self:SetState()
+			end})
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCustomAttack(ply,ent,vis,dist)
 	if !IsValid(ply) && !self.SpawnedUsingMutator && CurTime() > self.NextSummonT && math.random(1,50) == 1 && !self:IsBusy() then
 		self:DoSummon()
 		self.NextSummonT = CurTime() +math.random(60,120)
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local math_Clamp = math.Clamp
+--
+function ENT:DoLeapAttack()
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
+	VJ.CreateSound(self,self.SoundTbl_Alert,90)
+
+	self:PlayAnim("Praetorian_Charge_Start",true,false,true,0,{OnFinish=function(interrupted)
+		if interrupted then return end
+		-- self:SetGroundEntity(NULL)
+		-- self:SetVelocity(self:GetForward() *(math_Clamp(self.EnemyData.DistanceNearest,300,2000)) +self:GetUp() *200)
+		local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *2000
+		-- self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, (math_Clamp(self.EnemyData.DistanceNearest,700,2500))))
+		-- self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, (math_Clamp(self.EnemyData.DistanceNearest,700,2500))))
+		self:SetVelocity(VJ.CalculateTrajectory(self, nil, "Line", self:GetPos(), targetPos, 2000))
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
+		-- VJ.CreateSound(self,self.SoundTbl_Jump,90)
+		self:PlayAnim("Praetorian_Charge",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self.AttackDamage = 180
+			self.AttackDamageDistance = 140
+			self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH)
+			local dmgcode = self:RunDamageCode()
+			VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
+			local tr = util.TraceHull({
+				start = self:GetPos() +self:OBBCenter(),
+				endpos = self:GetPos() +self:OBBCenter() +self:GetForward() *100,
+				filter = self,
+				mins = self:OBBMins() /2,
+				maxs = self:OBBMaxs() /2,
+				mask = MASK_SOLID_BRUSHONLY
+			})
+			if tr.HitWorld then
+				VJ.EmitSound(self,"cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",80)
+				ParticleEffect("AntlionFX_UnBurrow",tr.HitPos,Angle())
+				util.ScreenShake(self:GetPos(),12,200,4,900)
+				VJ.STOPSOUND(self.CurrentSpeechSound)
+				VJ.STOPSOUND(self.CurrentIdleSound)
+				VJ.CreateSound(self,self.SoundTbl_Pain,90)
+				self:SetLocalVelocity(Vector(0,0,0))
+				self:SetVelocity(Vector(0,0,0))
+				-- util.Decal("Scorch",tr.HitPos +tr.HitNormal, tr.HitPos -tr.HitNormal, self)
+			end
+			self:PlayAnim((#dmgcode <= 0 && tr.HitWorld) && "Praetorian_Charge_HitWall" or "Praetorian_Charge_Miss",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then return end
+				self:SetState()
+			end})
+		end})
+	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local subSpecies = {
