@@ -1,0 +1,11 @@
+"VertexLitGeneric"
+{
+    "$basetexture" 				"models/cpthazama/avp/predators/T_P_BigDog_head_C"
+    "$bumpmap"					"models/cpthazama/avp/predators/T_P_BigDog_head_N"
+    "$phongexponenttexture"		"models/cpthazama/avp/predators/T_P_BigDog_head_EXP"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongalbedotint"          "1"
+}

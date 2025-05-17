@@ -1,0 +1,29 @@
+"VertexLitGeneric"
+{
+    "$basetexture" 				"models/cpthazama/avp/predators/T_P_BigDog_Armor_C"
+    "$bumpmap"					"models/cpthazama/avp/predators/T_P_BigDog_Armor_N"
+    "$phongexponenttexture"		"models/cpthazama/avp/predators/T_P_BigDog_Armor_EXP"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongalbedotint"          "1"
+	"$phongalbedoboost"         "30"
+	"$phongwarptexture" 		"models/cpthazama/avp/phongwarp_steel"
+
+	"$envmap"                   "env_cubemap"
+	"$envmaptint" 				"[0.01 0.01 0.01]"
+	"$envmapfresnel"            "0.4"
+	"$basemapalphaenvmapmask" 	"1"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"0.2"
+
+	"Proxies"
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

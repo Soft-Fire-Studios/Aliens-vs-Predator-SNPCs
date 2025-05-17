@@ -1,0 +1,11 @@
+"VertexLitGeneric"
+{
+    "$basetexture" 				"models/cpthazama/avp/predators/T_EyeIrisBaseColor_Predator_01"
+    "$bumpmap"					"vj_base/flat"
+    "$phongexponenttexture"		"vj_base/exponent"
+
+	"$phong"                    "1"
+	"$phongboost"               "1"
+	"$phongfresnelranges"       "[0.15 0.545 0.115]"
+	"$phongalbedotint"          "1"
+}
