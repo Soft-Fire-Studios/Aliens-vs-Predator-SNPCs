@@ -8,4 +8,16 @@
 	"$phongboost"               "1"
 	"$phongfresnelranges"       "[0.15 0.545 0.115]"
 	"$phongalbedotint"          "1"
+
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0"
+	"$refractamount"			"1"
+
+	"Proxies"
+	{
+		"AVP_Cloak"
+		{
+			resultVar	"$cloakfactor"
+		}
+	}
 }

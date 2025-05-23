@@ -33,6 +33,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Entity",2,"Spear")
 	self:NetworkVar("Entity",3,"Disc")
 	self:NetworkVar("Entity",4,"LookEntity")
+	self:NetworkVar("Entity","FatalityTarget")
 	self:NetworkVar("Int",0,"VisionMode")
 	self:NetworkVar("Int",1,"Equipment")
 	self:NetworkVar("Int",2,"StimCount")
@@ -390,7 +391,7 @@ if CLIENT then
 				end
 			end
 			if lightPos then
-				local dLight = DynamicLight(self:EntIndex())
+				local dLight = DynamicLight(self:EntIndex() +1)
 				if dLight then
 					dLight.Pos = lightPos
 					dLight.Size = 25
@@ -494,7 +495,7 @@ if CLIENT then
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
 				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
-				filter = {ply, camera, self},
+				filter = {ply, camera, self, self:GetFatalityTarget()},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),
 				mask = MASK_SHOT,
@@ -984,6 +985,12 @@ if CLIENT then
 		end)
 		if delete == true then hook.Remove("HUDPaint","VJ_AVP_Predator_HUD") end
 
+		local modeColors = {
+			[1] = Color(255,0,0),
+			[2] = Color(0,221,255),
+			[3] = Color(255,255,255),
+			[4] = Color(255,242,0)
+		}
 		hook.Add("Think","VJ_AVP_Predator_VisionLight",function()
 			if IsValid(ent) then
 				-- local light = DynamicLight(ent:EntIndex())
@@ -1030,6 +1037,22 @@ if CLIENT then
 					if IsValid(ent.LandingParticle) then
 						-- ent.LandingParticle:SetPos(targetPos)
 						ent.LandingParticle:SetControlPoint(0,targetPos)
+					end
+					if targetPos then
+						local dLight = DynamicLight(ent:EntIndex() +2)
+						local lightColor = modeColors[mode +1]
+						-- print("FUCK")
+						if dLight then
+							dLight.Pos = targetPos
+							dLight.Size = 200
+							dLight.Decay = 0
+							dLight.Style = 0
+							dLight.DieTime = CurTime() +0.125
+							dLight.Brightness = 1
+							dLight.r = 255
+							dLight.g = 0
+							dLight.b = 0
+						end
 					end
 				else
 					if IsValid(ent.LandingParticle) then
@@ -1227,7 +1250,7 @@ if CLIENT then
 			end
 
 			if mode > 0 then
-				local dLight = DynamicLight(ent:EntIndex())
+				local dLight = DynamicLight(ent:EntIndex() +3)
 				if dLight then
 					dLight.Pos = ent:GetPos() +ent:OBBCenter()
 					dLight.r = 5

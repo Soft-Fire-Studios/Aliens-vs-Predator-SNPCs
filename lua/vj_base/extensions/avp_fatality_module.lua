@@ -15,7 +15,7 @@ end)
 function ENT:CanUseFatality(ent)
 	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
-	if ent.VJ_AVP_NPC && !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
+	if !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
 			return false, inFront
 		end
@@ -38,6 +38,7 @@ function ENT:ResetFatality()
 	self.DoingFatality = false
 	self.GodMode = false
 	self:SetInFatality(false)
+	self:SetFatalityTarget(nil)
 	self:SetMoveType(MOVETYPE_STEP)
 	self:SetState()
 	self:SetMaxYawSpeed(self.TurningSpeed)
@@ -83,11 +84,14 @@ function ENT:DoFatality(ent,inFront)
 		tbl = inFront && tbl.Trophy or tbl.Stealth
 		if !tbl or self.DoingFatality or self.InFatality or ent.DoingFatality or ent.InFatality then return false end
 		self.FatalityEnt = ent
+		self:SetFatalityTarget(ent)
 		self.DoingFatality = true
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 		self:SetMaxYawSpeed(0)
 		self:SetInFatality(true)
-		ent:SetInFatality(true)
+		if ent.SetInFatality then
+			ent:SetInFatality(true)
+		end
 		ent.GodMode = true
 		ent.InFatality = true
 		ent.FatalityKiller = self
@@ -124,6 +128,19 @@ function ENT:DoFatality(ent,inFront)
 		if self.OnHit then
 			self:OnHit({ent})
 		end
+		local biped
+		if ent.VJ_AVP_CanUseBiped then
+			biped = ents.Create("sent_vj_avp_fatality")
+			biped:SetPos(ent:GetPos())
+			biped:SetAngles(ent:GetAngles())
+			-- biped:SetModel("models/cpthazama/avp/marines/ani_valve_mesh.mdl")
+			biped:Spawn()
+			biped.Owner = ent
+			ent:SetParent(biped)
+			ent:AddEffects(bit.bor(EF_BONEMERGE,EF_PARENT_ANIMATES))
+			ent:DeleteOnRemove(biped)
+			ent.VJ_AVP_Biped = biped
+		end
 		if tbl.OnlyKill then
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,false,fType)
@@ -136,6 +153,10 @@ function ENT:DoFatality(ent,inFront)
 					-- if int then return end
 					if ent.ResetFatality then
 						ent:ResetFatality()
+					end
+					if IsValid(ent.VJ_AVP_Biped) then
+						ent:SetParent(nil)
+						SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 					end
 					if IsValid(ent) then
 						local dmginfo = DamageInfo()
@@ -156,6 +177,10 @@ function ENT:DoFatality(ent,inFront)
 				if IsValid(ent) then
 					if ent.ResetFatality then
 						ent:ResetFatality()
+					end
+					if IsValid(ent.VJ_AVP_Biped) then
+						ent:SetParent(nil)
+						SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 					end
 					ent.HasDeathAnimation = false
 					local dmginfo = DamageInfo()
@@ -199,6 +224,10 @@ function ENT:DoFatality(ent,inFront)
 									if ent.ResetFatality then
 										ent:ResetFatality()
 									end
+									if IsValid(ent.VJ_AVP_Biped) then
+										ent:SetParent(nil)
+										SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
+									end
 									if !counter && IsValid(ent) then
 										ent.HasDeathAnimation = false
 										local dmginfo = DamageInfo()
@@ -221,6 +250,10 @@ function ENT:DoFatality(ent,inFront)
 							if IsValid(ent) then
 								if ent.ResetFatality then
 									ent:ResetFatality()
+								end
+								if IsValid(ent.VJ_AVP_Biped) then
+									ent:SetParent(nil)
+									SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 								end
 								if !counter then
 									ent.HasDeathAnimation = false
@@ -249,6 +282,10 @@ function ENT:DoFatality(ent,inFront)
 								if ent.ResetFatality then
 									ent:ResetFatality()
 								end
+								if IsValid(ent.VJ_AVP_Biped) then
+									ent:SetParent(nil)
+									SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
+								end
 								if !counter && IsValid(ent) then
 									ent.HasDeathAnimation = false
 									local dmginfo = DamageInfo()
@@ -271,6 +308,10 @@ function ENT:DoFatality(ent,inFront)
 						if IsValid(ent) then
 							if ent.ResetFatality then
 								ent:ResetFatality()
+							end
+							if IsValid(ent.VJ_AVP_Biped) then
+								ent:SetParent(nil)
+								SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 							end
 							if !counter then
 								ent.HasDeathAnimation = false

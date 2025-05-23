@@ -234,6 +234,8 @@ ENT.AttackDamage = 35
 ENT.AttackDamageDistance = 110
 ENT.AttackDamageType = 24
 ENT.AttackDamageType = DMG_SLASH
+
+ENT.UsesLaserCaster = false
 ---------------------------------------------------------------------------------------------------------------------------------------------
 util.AddNetworkString("VJ.AVP.PredatorLandingPos")
 --
@@ -614,6 +616,7 @@ function ENT:Init()
 	self.ActivatedSelfDestruct = false
 	self.TotalBasicAttacks = 0
 	self.NextKnockdownT = 0
+	self.LaserCasterTime = 0
 	
 	self:SetBodygroup(self:FindBodygroupByName("equip_mine"),1)
 	self:SetBodygroup(self:FindBodygroupByName("equip_disc"),1)
@@ -628,6 +631,8 @@ function ENT:Init()
 	if self.OnInit then
 		self:OnInit()
 	end
+
+	-- self.SoundTbl_Alert = self.SoundTbl_Alert or self.SoundTbl_Idle
 
     for attName, var in pairs(self.FootData) do
         var.AttID = self:LookupAttachment(attName)
@@ -1169,6 +1174,22 @@ function ENT:FirePlasmaCaster()
 	self.LastSpecialAttackID = 0
 	if self:GetEnergy() >= amount then
 		local ent = self:GetLockOn()
+		self:SetEnergy(self:GetEnergy() -amount)
+		self.NextRegenEnergyT = CurTime() +5
+		if self.UsesLaserCaster then
+			local time = self.PlasmaHoldTime *0.45
+			self.LaserCasterTime = CurTime() +time
+			self.PlasmaHoldTime = 0
+			self.PlasmaFireDelayT = CurTime() +time +0.51
+			timer.Simple(time,function()
+				if IsValid(self) && self.LastSpecialAttackID == 0 then
+					self:SetBeam(false)
+				end
+			end)
+			self.NextChaseTime = 0
+			VJ.EmitSound(self,"cpthazama/avp/predator/Plasma_Missile_Explode01.ogg",80)
+			return
+		end
 		if IsValid(ent) then
 			local att = self:GetAttachment(self:LookupAttachment("plasma"))
 			local targetPos = ent:GetPos() +ent:OBBCenter()
@@ -1204,8 +1225,6 @@ function ENT:FirePlasmaCaster()
 				VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_shot_0" .. math.random(1,3) .. ".ogg",85,110 -(amount /4))
 			end
 		end
-		self:SetEnergy(self:GetEnergy() -amount)
-		self.NextRegenEnergyT = CurTime() +5
 		ParticleEffect("vj_avp_predator_plasma_fire",self:GetAttachment(self:LookupAttachment("plasma")).Pos,self:GetAngles())
 	else
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_no_energy_01.ogg",70)
@@ -2353,6 +2372,36 @@ function ENT:OnThinkActive()
 			self.HasBattleDisc = false
 			self:SetBeam(false)
 		end
+	end
+
+	if curTime < self.LaserCasterTime then
+		local attID = self:LookupAttachment("plasma")
+		local att = self:GetAttachment(attID)
+		local tr
+		if IsValid(ply) then
+			tr = util.TraceHull({
+				start = att.Pos,
+				endpos = att.Pos +ply:GetAimVector() *8000,
+				filter = {self,self.VJ_TheController,self.VJ_TheControllerBullseye},
+				mins = Vector(-8,-8,-8),
+				maxs = Vector(8,8,8),
+			})
+		else
+			tr = util.TraceHull({
+				start = att.Pos,
+				endpos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or att.Pos +self:GetForward() *8000,
+				filter = {self,self.VJ_TheController,self.VJ_TheControllerBullseye},
+				mins = Vector(-8,-8,-8),
+				maxs = Vector(8,8,8),
+			})
+		end
+		local hitPos = tr.HitPos
+
+		util.ParticleTracerEx("vj_avp_predator_beam", att.Pos, hitPos, false, self:EntIndex(), attID)
+		ParticleEffect("vj_avp_predator_beam_impact", hitPos, Angle())
+		sound.EmitHint(SOUND_DANGER,hitPos,200,1,self)
+		sound.Play("cpthazama/avp/predator/Plasma_Missile_Explode02.ogg",hitPos,70)
+		VJ.ApplyRadiusDamage(self,self,hitPos,50,10,bit.bor(DMG_BURN,DMG_BLAST),true,false)
 	end
 
 	if self.OnThink2 then

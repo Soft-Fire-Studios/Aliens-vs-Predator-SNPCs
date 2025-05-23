@@ -89,6 +89,7 @@ VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
 VJ.AddNPC("Extinction","npc_vj_avp_pred_extinction",vCat_P)
 VJ.AddNPC("Tech","npc_vj_avp_pred_tech",vCat_P)
 VJ.AddNPC("Ancient","npc_vj_avp_pred_predlord",vCat_P)
+VJ.AddNPC("Mr. Black","npc_vj_avp_pred_mrblack",vCat_P)
 
 /*
 	weapon_vj_avp_pistol
@@ -852,6 +853,10 @@ VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
 VJ.AddParticle("particles/vj_avp_rc_battery.pcf",{
 	"vj_avp_rc_battery_sap",
 })
+VJ.AddParticle("particles/vj_avp_predator_beam.pcf",{
+	"vj_avp_predator_beam",
+	"vj_avp_predator_beam_impact",
+})
 VJ.AddParticle("particles/vj_avp_predator.pcf",{})
 -- VJ.AddParticle("particles/vj_avp_ins_muzzle.pcf",{
 -- 	"vj_avp_wep_rifle_muzzle",
@@ -1357,6 +1362,59 @@ if SERVER then
 						if (isCombine && ent.IsVJBaseSNPC_Human && ent.VJ_ID_Police != true) or (isCombine && !ent.IsVJBaseSNPC_Human) or ent.VJ_ID_Vehicle == true or (mat == MAT_METAL or mat == MAT_GLASS) then
 							ent:SetNW2Bool("AVP.IsTech",true)
 							ent.VJ_AVP_IsTech = true
+						end
+						if ent:LookupBone("ValveBiped.Bip01_Spine1") then
+							ent.VJ_AVP_CanUseBiped = true
+							ent.AnimTbl_FatalitiesResponse = {
+								["predator_claws_stealthkill_human_grab"] = "pred_stealthkill_hold",
+								["predator_claws_stealthkill_human_countered"] = "pred_stealthkill_counter",
+								["predator_claws_stealthkill_human_kill"] = "pred_stealthkill_stab_chest",
+								["predator_claws_stealthkill_human_kill_quick"] = "pred_stealthkill_die_quick",
+								["predator_claws_stealthkill_human_kill_slow"] = "pred_stealthkill_die_slow",
+								["predator_claws_stealthkill_human_kill_stab_chest"] = "pred_stealthkill_stab_chest",
+								["predator_claws_stealthkill_human_headrip_kill"] = "pred_stealthkill_headrip_death",
+								["predator_wristblade_marine_trophy_kill_lift"] = "trophy_lift",
+								["predator_wristblade_marine_trophy_kill_countered"] = "trophy_counter",
+								["predator_wristblade_marine_trophy_kill_kill"] = "trophy_die",
+								["predator_wristblade_marine_trophy_kill_eyestab"] = "trophy_die_eyestab",
+								["predator_wristblade_marine_trophy_kill_stomachrip"] = "trophy_die_stomachrip",
+								["predator_wristblade_marine_trophy_kill_kill_short"] = "trophy_die_short",
+
+								["stealth_kill_marine_tailstab_head_hold"] = "stealth_kill",
+								["stealth_kill_marine_tailstab_head_kill"] = "stealth_kill_death",
+								["neckbite_marine_ohwa_grab"] = "neckbite_ohwa_grab",
+								["neckbite_marine_ohwa_counter"] = "neckbite_ohwa_counter",
+								["neckbite_marine_ohwa_death"] = "neckbite_ohwa_death",
+							}
+							ent.GenericFatalitiesResponse = "thwa_melee_flinch_defenseless_forwards"
+							local oldPlayAnim = ent.PlayAnim
+							function ent:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
+								if IsValid(self.VJ_AVP_Biped) then
+									return self.VJ_AVP_Biped:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
+								else
+									return oldPlayAnim(self, animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
+								end
+							end
+							if !ent.OnFatality then
+								function ent:OnFatality(attacker,inFront,willCounter,fType)
+									if self.SoundTbl_CallForHelp then
+										self:PlaySoundSystem("CallForHelp")
+									elseif self.SoundTbl_Alert then
+										self:PlaySoundSystem("Alert")
+									end
+								end
+							end
+							function ent:ResetFatality()
+								self.InFatality = false
+								self.FatalityEnt = nil
+								self.FatalityKiller = nil
+								self.DoingFatality = false
+								self.GodMode = false
+								self:SetMoveType(MOVETYPE_STEP)
+								self:SetState()
+								self:SetMaxYawSpeed(self.TurningSpeed)
+								self.NextFatalityTime = CurTime() +3
+							end
 						end
 					end
 				end

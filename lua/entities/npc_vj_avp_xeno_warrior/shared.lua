@@ -21,6 +21,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector",1,"QueenMarker")
 	self:NetworkVar("Int",0,"HP")
 	self:NetworkVar("Entity",0,"VM")
+	self:NetworkVar("Entity","FatalityTarget")
 end
 
 if CLIENT then
@@ -234,7 +235,7 @@ if CLIENT then
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
 				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
-				filter = {ply, camera, self, "sent_vj_avp_restraint"},
+				filter = {ply, camera, self, "sent_vj_avp_restraint", self:GetFatalityTarget()},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),
 				mask = MASK_SHOT,
