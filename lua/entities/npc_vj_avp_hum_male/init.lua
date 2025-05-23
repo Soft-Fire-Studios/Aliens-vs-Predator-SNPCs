@@ -1563,6 +1563,12 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent.OnHeadAte = function(corpse,xeno)
 		corpse:SetBodygroup(corpse:FindBodygroupByName("head"),1)
 	end
+	if IsValid(dmginfo:GetAttacker()) && dmginfo:GetAttacker().VJ_AVP_XenomorphRavager then
+		ent:SetBodygroup(ent:FindBodygroupByName("head"),2)
+		ent:SetBodygroup(ent:FindBodygroupByName("helmet"),0)
+		ent.VJ_AVP_CorpseHasBeenEaten = true
+		VJ.EmitSound(ent,"cpthazama/avp/humans/human/special/decap_blood_sound_05.ogg",75)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CustomOnRemove()

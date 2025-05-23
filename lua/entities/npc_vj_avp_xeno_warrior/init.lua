@@ -3005,6 +3005,14 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	ent:SetNW2Bool("AVP.Xenomorph",true)
 
 	VJ_AVP_XenoBloodSpill(self,ent)
+
+	if IsValid(dmginfo:GetAttacker()) && dmginfo:GetAttacker().VJ_AVP_XenomorphRavager then
+		ent:SetBodygroup(ent:FindBodygroupByName("face"),2)
+		ent:SetBodygroup(ent:FindBodygroupByName("head"),1)
+		ent:SetBodygroup(ent:FindBodygroupByName("mouth_mini"),1)
+		ent.VJ_AVP_CorpseHasBeenEaten = true
+		VJ.EmitSound(ent,"cpthazama/avp/humans/human/special/decap_blood_sound_05.ogg",75)
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local colorYellow = VJ.Color2Byte(Color(255, 221, 35))
