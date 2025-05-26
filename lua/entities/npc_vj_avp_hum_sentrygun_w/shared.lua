@@ -1,0 +1,6 @@
+ENT.Base 			= "npc_vj_avp_hum_sentrygun"
+ENT.Type 			= "ai"
+ENT.PrintName 		= ""
+ENT.Author 			= "Cpt. Hazama"
+ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
+ENT.Category		= ""

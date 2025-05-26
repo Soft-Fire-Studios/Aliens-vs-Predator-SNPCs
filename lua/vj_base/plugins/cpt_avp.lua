@@ -110,6 +110,7 @@ local wepMarines = {
 }
 
 VJ.AddNPC("Sentry Gun","npc_vj_avp_hum_sentrygun",vCat_M)
+VJ.AddNPC("Sentry Gun (Weyland Yutani Corp.)","npc_vj_avp_hum_sentrygun_w",vCat_M)
 VJ.AddNPC("Random Marine","sent_vj_avp_marine",vCat_M)
 VJ.AddNPC_HUMAN("Van Zandt","npc_vj_avp_hum_van",wepMarines,vCat_M)
 VJ.AddNPC_HUMAN("Connor","npc_vj_avp_hum_connor",wepMarines,vCat_M)

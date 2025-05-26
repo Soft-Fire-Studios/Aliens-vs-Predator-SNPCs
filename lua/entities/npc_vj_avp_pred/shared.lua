@@ -325,8 +325,54 @@ if CLIENT then
 			end
 		end
 
-		if checkEnt == self then
-			self:DrawModel()
+		self:DrawModel()
+		if checkEnt != self then
+			if !self.HiddenUpperBones then
+				self.HiddenUpperBones = {}
+				local root = self:LookupBone("Bip01 Spine2")
+				if root && root != -1 then
+					local function HideChildren(bone)
+						for _,v in pairs(self:GetChildBones(bone)) do
+							if v != -1 then
+								self.HiddenUpperBones[#self.HiddenUpperBones +1] = v
+								HideChildren(v)
+							end
+						end
+					end
+					HideChildren(root)
+
+					for _, bone in ipairs(self.HiddenUpperBones) do
+						self:ManipulateBoneScale(bone,Vector(0,0,0))
+					end
+					local clavicleBones = {
+						["Bip01 L Clavicle"] = Vector(0,0-100),
+						["Bip01 R Clavicle"] = Vector(0,0,-100),
+					}
+					for boneName, offset in pairs(clavicleBones) do
+						local boneIndex = self:LookupBone(boneName)
+						if boneIndex && boneIndex != -1 then
+							self:ManipulateBonePosition(boneIndex,offset)
+						end
+					end
+				end
+			end
+		else
+			if self.HiddenUpperBones then
+				for _, bone in ipairs(self.HiddenUpperBones) do
+					self:ManipulateBoneScale(bone,Vector(1,1,1))
+				end
+				local clavicleBones = {
+					["Bip01 L Clavicle"] = Vector(0,0,0),
+					["Bip01 R Clavicle"] = Vector(0,0,0),
+				}
+				for boneName, offset in pairs(clavicleBones) do
+					local boneIndex = self:LookupBone(boneName)
+					if boneIndex && boneIndex != -1 then
+						self:ManipulateBonePosition(boneIndex,offset)
+					end
+				end
+				self.HiddenUpperBones = nil
+			end
 		end
 
 		local mode = self:GetVisionMode()
@@ -434,12 +480,12 @@ if CLIENT then
 		local refreshRate = nil
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
-			local setPos = self:EyePos() + self:GetForward()*20
+			local setPos = self:EyePos() +self:GetForward() *20
 			local offset = ply.VJC_FP_Offset
 			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
 			if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
-				local bonePos, boneAng = self:GetBonePosition(ply.VJC_FP_Bone)
-				setPos = bonePos
+				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Head"))
+				setPos = bonePos +self:GetForward() *10
 				-- if ply.VJC_FP_CameraBoneAng > 0 then
 				-- 	ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
 				-- end
@@ -1492,4 +1538,48 @@ if CLIENT then
 			end
 		end
 	end)
+
+    hook.Add("PreDrawOpaqueRenderables","VJ.AVP.PredatorHUD.StencilMask",function()
+        local ply = LocalPlayer()
+        if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+        local npc = ply.VJCE_NPC
+        if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 then return end
+
+        local bone = npc:LookupBone("Bip01 Spine2")
+        if !bone or bone == -1 then return end
+        local waistPos = npc:GetBonePosition(bone)
+
+		cam.Start3D(EyePos(), EyeAngles())
+			render.ClearStencil()
+			render.SetStencilEnable(true)
+			render.SetStencilWriteMask(255)
+			render.SetStencilTestMask(255)
+			render.SetStencilReferenceValue(88)
+			render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+			render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+			render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+			render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+			render.SuppressEngineLighting(true)
+			render.SetColorMaterialIgnoreZ(true)
+			render.DrawBox(npc:GetPos(),npc:GetAngles(),Vector(-90,-90,-140),Vector(90,90,0),Color(0,0,0,0),true)
+			render.SuppressEngineLighting(false)
+			render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+			render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+			render.SetStencilReferenceValue(88)
+			npc:DrawModel()
+			render.SetStencilEnable(false)
+		cam.End3D()
+    end)
+
+    hook.Add("PostDrawOpaqueRenderables", "VJ.AVP_PredatorHUD.StencilRender", function()
+        local ply = LocalPlayer()
+        if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+        local npc = ply.VJCE_NPC
+        if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 then return end
+
+        render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+        render.SetStencilReferenceValue(88)
+        npc:DrawModel()
+        render.SetStencilEnable(false)
+    end)
 end

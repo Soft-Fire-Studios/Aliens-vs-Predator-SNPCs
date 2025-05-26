@@ -13,6 +13,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",1,"Cloaked")
 	self:NetworkVar("Bool",2,"InFatality")
 	self:NetworkVar("Entity",0,"Flare")
+	self:NetworkVar("Entity","FatalityTarget")
 end
 
 if CLIENT then

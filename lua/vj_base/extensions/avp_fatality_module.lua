@@ -106,7 +106,7 @@ function ENT:DoFatality(ent,inFront)
 		local myCol,entCol = self:GetCollisionBounds().y, ent:GetCollisionBounds().y
 		myCol = math_abs(myCol)
 		entCol = math_abs(entCol)
-		local offset = (myCol +entCol) +2.5
+		local offset = (myCol +entCol) +5
 		ent:SetPos(self:GetPos() +self:GetForward() *offset)
 		ent:StopAttacks(true)
 		ent:ClearSchedule()
