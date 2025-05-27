@@ -1,0 +1,13 @@
+"Refract"
+{
+	"$refracttexture" "hud/cpthazama/avp/reflection"
+	"$dudvmap" "dev/water_dudv"
+	"$normalmap" "hud/cpthazama/avp/pred_health_stab"
+	"$nocull" "1"
+	"$halflambert" "1"
+	"$model" "1"
+	"$refractamount" "0.05"
+	"$refracttint" "[1 1 1]"
+	"$reflectentities" "1"
+	"$nodecal" "1"
+}

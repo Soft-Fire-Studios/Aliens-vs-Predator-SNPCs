@@ -37,6 +37,7 @@ ENT.SoundTbl_Death = {"cpthazama/avp/weapons/sentry guns/sentry_gun_destroyed_01
 local sdFiring = {"^cpthazama/avp/weapons/sentry guns/sentry gun burst 01.ogg","^cpthazama/avp/weapons/sentry guns/sentry gun burst 02.ogg","^cpthazama/avp/weapons/sentry guns/sentry gun burst 03.ogg"}
 
 ENT.Turret_HasLOS = false
+-- ENT.PoseParameterLooking_TurningSpeed = 4
 ENT.Turret_CurrentParameter = 0
 ENT.Turret_ScanDirSide = 0
 ENT.Turret_ScanDirUp = 0
@@ -51,6 +52,7 @@ function ENT:Init()
 
 	local att = self:LookupAttachment("scan")
 	if att > 0 then
+		ParticleEffectAttach("vj_avp_sentrygun_light", PATTACH_POINT_FOLLOW, self, att)
         local spotlight = ents.Create("beam_spotlight")
         spotlight:SetPos(self:GetPos())
         spotlight:SetAngles(self:GetAngles())
@@ -115,11 +117,13 @@ function ENT:OnDeviceEffected(rc,efType)
 		if IsValid(self.ProjectedTexture) then
 			self.ProjectedTexture:Fire("turnon")
 		end
+		ParticleEffectAttach("vj_avp_sentrygun_light", PATTACH_POINT_FOLLOW, self, att)
 		rc:SetSkin(0)
 		self:RemoveFlags(FL_NOTARGET)
 		self.EnemyDetection = true
 		self.turret_idlesd:Play()
 	elseif efType == 2 or efType == 3 then -- Turned off/drained
+		self:StopParticles()
 		if IsValid(self.Spotlight) then
 			self.Spotlight:Fire("lightoff")
 		end
@@ -156,9 +160,9 @@ end
 function ENT:OnThink()
 	local parameter = self:GetPoseParameter("aim_yaw")
 	if parameter != self.Turret_CurrentParameter then
-		self.turret_turningsd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav") 
-		self.turret_turningsd:SetSoundLevel(60)
-		self.turret_turningsd:PlayEx(1, 100)
+		-- self.turret_turningsd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav") 
+		-- self.turret_turningsd:SetSoundLevel(60)
+		-- self.turret_turningsd:PlayEx(1, 100)
 	else
 		if self.turret_turningsd then
 			VJ.STOPSOUND(self.turret_turningsd)
@@ -189,18 +193,42 @@ function ENT:OnThinkActive()
 		self.HasPoseParameterLooking = false
 		if pyaw >= 70 then
 			self.Turret_ScanDirSide = 1
+			self.turret_turningsd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav") 
+			self.turret_turningsd:SetSoundLevel(60)
+			self.turret_turningsd:PlayEx(1, 100)
+			timer.Simple(SoundDuration("cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav"),function()
+				if IsValid(self) then
+					if self.turret_turningsd then
+						VJ.STOPSOUND(self.turret_turningsd)
+						self.turret_turningsd = nil
+						-- VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine stop click 01.ogg", 70, 100)
+					end
+				end
+			end)
 			if self.Turret_NextScanBeepT < CurTime() then
-				VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine move 02.ogg", 75, 100)
+				-- VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine move 02.ogg", 75, 100)
 				self.Turret_NextScanBeepT = CurTime() +0.5
 			end
 		elseif pyaw <= -70 then
 			self.Turret_ScanDirSide = 0
+			self.turret_turningsd = CreateSound(self, "cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav") 
+			self.turret_turningsd:SetSoundLevel(60)
+			self.turret_turningsd:PlayEx(1, 100)
+			timer.Simple(SoundDuration("cpthazama/avp/weapons/sentry guns/sentry_gun_pan_02.wav"),function()
+				if IsValid(self) then
+					if self.turret_turningsd then
+						VJ.STOPSOUND(self.turret_turningsd)
+						self.turret_turningsd = nil
+						-- VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine stop click 01.ogg", 70, 100)
+					end
+				end
+			end)
 			if self.Turret_NextScanBeepT < CurTime() then
-				VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine move 02.ogg", 75, 100)
+				-- VJ.EmitSound(self, "cpthazama/avp/weapons/sentry guns/sentry gun marine move 02.ogg", 75, 100)
 				self.Turret_NextScanBeepT = CurTime() +0.5
 			end
 		end
-		self:SetPoseParameter("aim_yaw", pyaw + (self.Turret_ScanDirSide == 1 and -5 or 5))
+		self:SetPoseParameter("aim_yaw", pyaw + (self.Turret_ScanDirSide == 1 && -2 or 2))
 		self:SetPoseParameter("aim_pitch",Lerp(FrameTime() *8,self:GetPoseParameter("aim_pitch"),0))
 	else
 		self.HasPoseParameterLooking = true

@@ -345,7 +345,7 @@ if CLIENT then
 						self:ManipulateBoneScale(bone,Vector(0,0,0))
 					end
 					local clavicleBones = {
-						["Bip01 L Clavicle"] = Vector(0,0-100),
+						["Bip01 L Clavicle"] = Vector(0,0,-100),
 						["Bip01 R Clavicle"] = Vector(0,0,-100),
 					}
 					for boneName, offset in pairs(clavicleBones) do
@@ -726,6 +726,30 @@ if CLIENT then
 		flesh=true,
 		zombieflesh=true,
 	}
+
+	net.Receive("VJ_AVP_Predator_SoundDetect",function(len,pl)
+		local ent = net.ReadEntity()
+		local t = net.ReadTable()
+	
+		if !IsValid(ent) then return end
+		local ply = LocalPlayer()
+		if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+		local npc = ply.VJCE_NPC
+		local fov = ply:GetFOV()
+		local isZoomed = fov != GetConVarNumber("fov_desired")
+		if npc != ent or !isZoomed then return end
+		local tr = util.TraceLine({
+			start = ply:GetShootPos(),
+			endpos = ply:GetShootPos() +ply:GetAimVector() *8000,
+			filter = {ply, ent},
+			mask = MASK_SHOT
+		})
+		local sndPos = t.Pos or IsValid(t.Entity) && t.Entity:GetPos()
+		if !sndPos then return end
+		if tr.HitPos:Distance(sndPos) < 512 && sndPos:Distance(ent:GetPos()) > 758 then
+			sound.Play(t.SoundName, sndPos, math.Clamp(t.SoundLevel *1.45,t.SoundLevel, 180), t.SoundPitch, t.SoundVolume)
+		end
+	end)
 	
 	local render_GetLightColor = render.GetLightColor
 	local math_Clamp = math.Clamp

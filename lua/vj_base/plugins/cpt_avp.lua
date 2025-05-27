@@ -250,6 +250,7 @@ if SERVER then
 	util.AddNetworkString("VJ_AVP_Xeno_Darkness")
 	util.AddNetworkString("VJ_AVP_CSound")
 	util.AddNetworkString("VJ_AVP_PingTable")
+	util.AddNetworkString("VJ_AVP_PredHealthStab")
 
 	net.Receive("VJ_AVP_Marine_Darkness",function(len,pl)
 		local ent = net.ReadEntity()
@@ -1126,6 +1127,20 @@ if CLIENT then
 			view.fov = fov
 			return view
 		end
+	end)
+
+	net.Receive("VJ_AVP_PredHealthStab",function()
+		local ent = net.ReadEntity()
+		if !IsValid(ent) then return end
+		ent.VJ_AVP_HealthStabOverlayT = CurTime() +3
+		hook.Add("RenderScreenspaceEffects","VJ.AVP.PredHealthStab." .. ent:EntIndex(),function()
+			if !IsValid(ent) or IsValid(ent) && CurTime() > ent.VJ_AVP_HealthStabOverlayT then
+				hook.Remove("RenderScreenspaceEffects","VJ.AVP.PredHealthStab." .. ent:EntIndex())
+				return
+			end
+			local per = math.Clamp((ent.VJ_AVP_HealthStabOverlayT -CurTime()) /3,0,1)
+			DrawMaterialOverlay("hud/cpthazama/avp/pred_health_stab",per *-0.07)
+		end)
 	end)
 end
 if SERVER then

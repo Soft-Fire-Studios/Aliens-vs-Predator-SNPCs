@@ -20,7 +20,7 @@ if CLIENT then
 	local render_GetLightColor = render.GetLightColor
 	function ENT:Draw()
 		self:DrawModel()
-
+		
 		if VJ_AVP_CVAR_FLASHLIGHT then
 			local light = render_GetLightColor(self:GetPos() +self:OBBCenter()):Length()
 			-- print(light)

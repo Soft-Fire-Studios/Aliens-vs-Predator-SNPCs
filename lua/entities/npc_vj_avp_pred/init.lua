@@ -383,6 +383,7 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ20 = Vector(0, 0, 20)
+util.AddNetworkString("VJ_AVP_Predator_SoundDetect")
 --
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Predator_Client")
@@ -395,6 +396,23 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
 	self.JumpParams.Enabled = false
+	self:SetMaxYawSpeed(self.TurningSpeed *2)
+
+	local hookName = "VJ_AVP_Predator_SoundHook" .. npc:EntIndex()
+	hook.Add("EntityEmitSound", hookName, function(t)
+		if !IsValid(npc) or !IsValid(ply) or IsValid(npc) && !IsValid(npc.VJ_TheController) then
+			print("Force removed sound hook")
+			hook.Remove("EntityEmitSound", hookName)
+			return
+		end
+		-- print(t.Entity)
+		if IsValid(t.Entity) && !(t.Entity:IsNPC() or t.Entity:IsPlayer() or t.Entity:IsWeapon() or t.Entity:IsNextBot()) && t.Entity != npc then return end
+		-- print("Predator SV sound hook: " ..t.SoundName)
+		net.Start("VJ_AVP_Predator_SoundDetect")
+			net.WriteEntity(npc)
+			net.WriteTable(t)
+		net.Send(ply)
+	end)
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
@@ -413,7 +431,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(ply)
 		net.Send(ply)
 		if IsValid(npc) then
+			hook.Remove("EntityEmitSound", hookName)
 			npc.JumpParams.Enabled = true
+			npc:SetMaxYawSpeed(npc.TurningSpeed)
 		end
 	end
 
@@ -1759,6 +1779,11 @@ function ENT:OnInput(key,activator,caller,data)
 	elseif key == "stimpack_use" then
 		self:SetHealth(self:GetMaxHealth())
 		self:SetStimCount(self:GetStimCount() -1)
+		if IsValid(self.VJ_TheController) then
+			net.Start("VJ_AVP_PredHealthStab")
+				net.WriteEntity(self.VJ_TheController)
+			net.Send(self.VJ_TheController)
+		end
 		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_jab_01.ogg",75)
 	elseif key == "stimpack_scream" then
 		self:PlaySound(self.SoundTbl_Stimpack,100)

@@ -2860,6 +2860,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 				self.CanLeap = false
 				self.CanBeKnockedDown = false
 				self.DisableFatalities = true
+				self.CanFlinch = 0
 			end
 			if decap.OnDecap then
 				decap.OnDecap(self,dmginfo,hitgroup)

@@ -220,6 +220,9 @@ function SWEP:OnPlaySound(sdFile)
 		local npc = IsValid(owner) && owner.VJ_AVP_ViewModelNPC
 		if IsValid(npc) && npc:GetEquipment() == 5 then return end
 		if npc.VJ_AVP_Xenomorph then return end
+		local fov = owner:GetFOV()
+		local isZoomed = fov != GetConVarNumber("fov_desired")
+		if isZoomed then return end
 		local animTime = self:PlayWeaponAnimation({"predator_hud_claws_fidget_inspect_claw","predator_hud_claws_fidget_stretch","predator_hud_claws_fidget_wipe_wrist_pc"})
 		self.NextFidgetT = curTime +animTime
 	end

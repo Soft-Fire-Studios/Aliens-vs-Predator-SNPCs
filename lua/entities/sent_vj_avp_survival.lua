@@ -1059,10 +1059,11 @@ function ENT:OnRemove()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:SetProperPos(setEnt,origin)
+function ENT:SetProperPos(setEnt,origin,disableGroundSnap)
 	local mins = setEnt:OBBMins()
 	local maxs = setEnt:OBBMaxs()
 	local pos = origin || setEnt:GetPos()
+	local savePos = pos
 	local nearents = ents.FindInBox(pos +mins,pos +maxs)
 	maxs.x = maxs.x *2
 	maxs.y = maxs.y *2
@@ -1149,5 +1150,73 @@ function ENT:SetProperPos(setEnt,origin)
 			pos = pos +trTgt.Normal *maxs.x
 		end
 	end
+	if !disableGroundSnap then
+		local trDown = util.TraceLine({
+			start = pos,
+			endpos = pos +Vector(0,0,maxs.z *-2),
+			filter = tbl_filter,
+			-- collisiongroup = COLLISION_GROUP_WORLD,
+		})
+		if(trDown.Hit) then
+			debugoverlay.Line(pos,trDown.HitPos,5, Color(255, 255, 255))
+			debugoverlay.Box(pos, Vector(-2, -2, -2), Vector(2, 2, 2), 5, Color(255, 255, 255))
+			pos.z = trDown.HitPos.z
+		end
+	end
+	-- pos.z = pos.z + 3
+	-- debugoverlay.Box(pos, Vector(-2, -2, -2), Vector(2, 2, 2), 5, Color(0, 26, 255))
+	local minC, maxC = setEnt:GetCollisionBounds()
+	local corners = { // 4 corners
+		Vector(minC.x, minC.y, 0),
+		Vector(minC.x, maxC.y, 0),
+		Vector(maxC.x, minC.y, 0),
+		Vector(maxC.x, maxC.y, 0)
+	}
+	for _,v in pairs(corners) do
+		if !util.IsInWorld(pos +v) then
+			-- print("BAD CORNER: ",pos +v)
+			debugoverlay.Box(pos, Vector(-2, -2, -2), Vector(2, 2, 2), 5, Color(255, 0, 0))
+			local toSafeDir = (savePos - v):GetNormalized()
+			local trace1 = util.TraceLine({
+				start = v,
+				endpos = savePos,
+				filter = tbl_filter,
+				collisiongroup = COLLISION_GROUP_WORLD,
+				output = {}
+			})
+			debugoverlay.Line(v,trace1.HitPos,5, Color(255, 0, 230))
+			if trace1.Hit && util.IsInWorld(trace1.HitPos) then
+				-- print("Found possible entry point:", trace1.HitPos)
+				debugoverlay.Box(trace1.HitPos, Vector(-4, -4, -4), Vector(4, 4, 4), 5, Color(255, 0, 230))
+				local trace2 = util.TraceLine({
+					start = trace1.HitPos,
+					endpos = v,
+					filter = tbl_filter,
+					collisiongroup = COLLISION_GROUP_WORLD,
+					output = {}
+				})
+				debugoverlay.Line(v,trace2.HitPos,5, Color(67, 227, 255))
+				if trace2.Hit && util.IsInWorld(trace2.HitPos) then
+					-- print("Final valid position near world edge:", trace2.HitPos)
+					debugoverlay.Box(trace2.HitPos, Vector(-4, -4, -4), Vector(4, 4, 4), 5, Color(67, 227, 255))
+					pos = trace2.HitPos + trace2.HitNormal *16
+				else
+					pos = savePos
+				end
+			else
+				pos = savePos
+			end
+			break
+		end
+	end
+	if !util.IsInWorld(pos) then
+		pos = savePos
+	end
+	pos = pos +Vector(0,0,6)
+
+	debugoverlay.Line(setEnt:GetPos(),pos,5, Color(47, 255, 0))
+	debugoverlay.Box(pos, Vector(-2, -2, -2), Vector(2, 2, 2), 5, Color(13, 255, 0))
 	setEnt:SetPos(pos)
+
+	return pos
 end
