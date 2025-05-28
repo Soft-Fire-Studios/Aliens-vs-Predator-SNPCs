@@ -421,6 +421,11 @@ function SWEP:OnMeleeHit(entities)
 		if tr.Hit then
 			sound.Play("cpthazama/avp/weapons/blocking/block_hit_generic_mono_0" .. math.random(1,3) .. ".ogg", tr.HitPos, 75)
 			hitType = 1
+			local effect = EffectData()
+			effect:SetOrigin(tr.HitPos)
+			effect:SetNormal(tr.HitNormal)
+			effect:SetAngles(tr.HitNormal:Angle())
+			util.Effect("ManhackSparks", effect)
 		else
 			VJ.CreateSound(self,"cpthazama/avp/weapons/human/melee/marine_melee_swing_0" .. math.random(1,2) .. ".ogg",70)
 			hitType = 2

@@ -8,6 +8,30 @@ if CLIENT then
 	SWEP.SlotPos					= 4
 end
 
+sound.Add({
+	name = "AVP.PulseRifle.ClipOut",
+	sound = "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_exit_clip_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
+sound.Add({
+	name = "AVP.PulseRifle.ClipIn",
+	sound = "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_insert_clip_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
+sound.Add({
+	name = "AVP.PulseRifle.Slide",
+	sound = "cpthazama/avp/weapons/human/pulse_rifle/pulse_rifle_side_catch_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
 SWEP.PrintName					= "M41A Pulse Rifle"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pulserifle.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_pulserifle.mdl"

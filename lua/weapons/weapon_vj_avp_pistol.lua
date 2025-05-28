@@ -8,6 +8,30 @@ if CLIENT then
 	SWEP.SlotPos					= 4
 end
 
+sound.Add({
+	name = "AVP.Pistol.ClipOut",
+	sound = "cpthazama/avp/weapons/human/pistol/pistol_clip_out_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
+sound.Add({
+	name = "AVP.Pistol.ClipIn",
+	sound = "cpthazama/avp/weapons/human/pistol/pistol_clip_in_02.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
+sound.Add({
+	name = "AVP.Pistol.Slide",
+	sound = "cpthazama/avp/weapons/human/pistol/pistol_cock_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+
 SWEP.PrintName					= "VP78 Pistol"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pistol.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/pistol.mdl"

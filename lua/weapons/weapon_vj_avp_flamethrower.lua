@@ -4,6 +4,13 @@ SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
 SWEP.Category					= "VJ Base - Aliens vs Predator"
 
 sound.Add({
+	name = "AVP.Flamethrower.Fluid",
+	sound = {"cpthazama/avp/weapons/human/flamethrower/flamethrower_fluid_movement_01.ogg","cpthazama/avp/weapons/human/flamethrower/flamethrower_fluid_movement_02.ogg","cpthazama/avp/weapons/human/flamethrower/flamethrower_fluid_movement_03.ogg","cpthazama/avp/weapons/human/flamethrower/flamethrower_fluid_movement_04.ogg"},
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 65,
+})
+sound.Add({
 	name = "AVP.Flamethrower.Latch",
 	sound = {"cpthazama/avp/weapons/human/flamethrower/flamethrower_reload_latch_01.ogg","cpthazama/avp/weapons/human/flamethrower/flamethrower_reload_latch_02.ogg"},
 	channel = CHAN_STATIC,
@@ -83,6 +90,10 @@ end
 function SWEP:AddVars()
 	self:NetworkVar("Bool", 2, "Flame")
 	self:NetworkVar("Entity", 0, "FlameAtt")
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:CustomOnMeleeHit(entities,hitType,owner)
+	self:EmitSound("AVP.Flamethrower.Fluid")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnInit()
