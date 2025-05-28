@@ -2244,6 +2244,17 @@ function ENT:FindNodePos(pos,min,max,upVis,upVisEnt)
 	return VJ.PICK(closestNodes)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SelectSchedule()
+	local selfData = self:GetTable()
+	if selfData.Dead then return end
+	
+	local curTime = CurTime()
+	local eneValid = IsValid(self:GetEnemy())
+	self:PlayIdleSound(nil, nil, eneValid)
+
+	baseclass.Get("npc_vj_creature_base").SelectSchedule(self)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnThinkActive()
 	if self.Dead then return end
 	if self.CountdownTimer then
