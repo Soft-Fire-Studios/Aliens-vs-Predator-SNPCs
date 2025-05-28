@@ -746,7 +746,7 @@ if CLIENT then
 		})
 		local sndPos = t.Pos or IsValid(t.Entity) && t.Entity:GetPos()
 		if !sndPos then return end
-		if tr.HitPos:Distance(sndPos) < 512 && sndPos:Distance(ent:GetPos()) > 758 then
+		if tr.HitPos:Distance(sndPos) < 256 && sndPos:Distance(ent:GetPos()) > 1024 then
 			sound.Play(t.SoundName, sndPos, math.Clamp(t.SoundLevel *1.45,t.SoundLevel, 180), t.SoundPitch, t.SoundVolume)
 		end
 	end)

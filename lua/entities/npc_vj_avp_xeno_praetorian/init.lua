@@ -391,12 +391,12 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local subSpecies = {
 	"npc_vj_avp_xeno_carrier",
-	"npc_vj_avp_xeno_venator",
+	"npc_vj_avp_xeno_royal",
 	"npc_vj_avp_xeno_ravager",
 }
 local subKSpecies = {
 	"npc_vj_avp_kxeno_carrier",
-	"npc_vj_avp_kxeno_venator",
+	"npc_vj_avp_kxeno_royal",
 	"npc_vj_avp_kxeno_ravager",
 }
 --
