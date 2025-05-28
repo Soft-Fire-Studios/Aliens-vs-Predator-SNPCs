@@ -220,6 +220,26 @@ local function AddPM(name, mdl, hands, skin)
 	end
 end
 
+local wavLoopCache = {}
+local file_Open = file.Open
+local string_lower = string.lower
+local function readUInt32LE(b,i)
+	return b[i] +b[i +1] *256 +b[i +2] *65536 +b[i +3] *16777216
+end
+
+function IsLoopingSound(sndPath)
+	if wavLoopCache[sndPath] != nil then return wavLoopCache[sndPath] end
+
+	local file = file_Open("sound/" ..sndPath,"rb","GAME")
+	if !file then wavLoopCache[sndPath] = false return false end
+
+	local data = file:Read(file:Size())
+	file:Close()
+
+	wavLoopCache[sndPath] = data:find("smpl",1,true) != nil
+	return wavLoopCache[sndPath]
+end
+
 -- AddPM("Alex", "models/cpthazama/avp/marines/alex.mdl", "models/weapons/c_arms_cstrike.mdl")
 -- AddPM("Combat Android", "models/cpthazama/avp/marines/android.mdl", "models/weapons/c_arms_cstrike.mdl")
 -- AddPM("Cannor", "models/cpthazama/avp/marines/connor.mdl", "models/weapons/c_arms_cstrike.mdl")

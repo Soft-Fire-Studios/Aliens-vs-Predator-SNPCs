@@ -408,6 +408,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		-- print(t.Entity)
 		if IsValid(t.Entity) && !(t.Entity:IsNPC() or t.Entity:IsPlayer() or t.Entity:IsWeapon() or t.Entity:IsNextBot()) && t.Entity != npc then return end
 		-- print("Predator SV sound hook: " ..t.SoundName)
+		if IsLoopingSound(t.SoundName) then return end
 		net.Start("VJ_AVP_Predator_SoundDetect")
 			net.WriteEntity(npc)
 			net.WriteTable(t)
