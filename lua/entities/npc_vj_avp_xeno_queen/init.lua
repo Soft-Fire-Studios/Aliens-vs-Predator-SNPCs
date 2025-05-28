@@ -351,113 +351,70 @@ function ENT:OnThink2()
 			self:StopMoving()
 		end
 		self:SetState(VJ_STATE_ONLY_ANIMATION)
-		if curTime > self.NextCommandXenosT && math.random(1,20) == 1 then
-			self.NextCommandXenosT = curTime +math.random(20,40)
-			local command = {}
-			local tbl = {}
-			tbl.Drones = {}
-			tbl.Warriors = {}
-			tbl.Praetorian = {}
+		if curTime > self.NextCommandXenosT && math.random(1, 20) == 1 then
+			self.NextCommandXenosT = curTime + math.random(20, 40)
 
-			for _,v in ents.Iterator() do
+			local qPos = self:GetPos()
+			local command = {}
+			local tbl = {
+				Drones = {},
+				Warriors = {},
+				Praetorian = {}
+			}
+
+			for _, v in ents.Iterator() do
 				if v.VJ_AVP_Xenomorph && v != self && !v.VJ_AVP_Xenomorph_Queen && self:CheckRelationship(v) == D_LI then
-					if v.VJ_AVP_XenomorphID == "drone" then
-						table_insert(tbl.Drones,v)
+					local id = v.VJ_AVP_XenomorphID
+					if id == "drone" then
+						table.insert(tbl.Drones, v)
 						command.Drone = true
-						-- print("Found drone",v)
-					elseif v.VJ_AVP_XenomorphID == "warrior" then
-						table_insert(tbl.Warriors,v)
+					elseif id == "warrior" then
+						table.insert(tbl.Warriors, v)
 						command.Warrior = true
-						-- print("Found warrior",v)
-					elseif v.VJ_AVP_XenomorphID == "praetorian" then
+					elseif id == "praetorian" then
 						if v.VJ_AVP_XenomorphCarrier && v:GetFacehuggerCount() > 6 then
-							table_insert(tbl.Warriors,v)
+							table.insert(tbl.Warriors, v)
 							command.Warrior = true
 						else
-							table_insert(tbl.Praetorian,v)
+							table.insert(tbl.Praetorian, v)
 							command.Praetorian = true
-							-- print("Found praetorian",v)
 						end
 					end
 				end
 			end
+
+			PrintTable(tbl)
 
 			if !command.Drone && !command.Warrior && !command.Praetorian then return end
 
-			self:PlaySound({"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg","^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"},100)
+			self:PlaySound({
+				"^cpthazama/avp/xeno/alien/hud/queen_message_new_objective_01.ogg",
+				"^cpthazama/avp/xeno/alien/hud/queen_message_objective_complete_01.ogg"
+			}, 100)
 			RunConsoleCommand("ai_clear_bad_links")
 
-			local nodegraph = table.Copy(VJ_Nodegraph.Data.Nodes)
-			if command.Drone then
-				local possibleNodes = {}
-				for _,node in pairs(nodegraph) do
-					local dist = self:GetPos():Distance(node.pos)
-					if node.type == 2 && dist < 1500 && dist > 500 then
-						table_insert(possibleNodes,node.pos)
+			self.NodeGraphCopy = self.NodeGraphCopy or table.Copy(VJ_Nodegraph.Data.Nodes)
+			local nodegraph = self.NodeGraphCopy
+
+			local function assignNodes(xenoTbl, distMin, distMax, transformCallback)
+				local nodes = {}
+				for _, node in ipairs(nodegraph) do
+					local dist = qPos:Distance(node.pos)
+					if node.type == 2 && dist > distMin && dist <= distMax then
+						table.insert(nodes, node.pos)
 					end
 				end
-				for _,v in pairs(tbl.Drones) do
-					local node = VJ.PICK(possibleNodes)
-					if node then
-						-- print("Sending ",v," to ",node)
-						v:StopMoving()
-						if v.SetQueenMarker then
-							v:SetQueenMarker(node)
-							if IsValid(v.VJ_TheController) then
-								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
-							end
-						end
-						v:SetLastPosition(node)
-						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-							x.TurnData = {Type = VJ.FACE_ENEMY_VISIBLE}
-							x.CanShootWhenMoving = true
-						end)
+
+				local count = #xenoTbl
+				for _, v in ipairs(xenoTbl) do
+					if transformCallback && transformCallback(v, count) then
+						-- print("Skipping node assignment for " .. v:GetClass() .. " [" .. v:EntIndex() .. "] due to transformation")
+						continue
 					end
-				end
-			end
-			if command.Warrior then
-				local possibleNodes = {}
-				for _,node in pairs(nodegraph) do
-					local dist = self:GetPos():Distance(node.pos)
-					if node.type == 2 && dist >= 1500 then
-						table_insert(possibleNodes,node.pos)
-					end
-				end
-				for _,v in pairs(tbl.Warriors) do
-					local node = VJ.PICK(possibleNodes)
-					if node then
-						-- print("Sending ",v," to ",node)
-						v:StopMoving()
-						if v.SetQueenMarker then
-							v:SetQueenMarker(node)
-							if IsValid(v.VJ_TheController) then
-								v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
-							end
-						end
-						v:SetLastPosition(node)
-						v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-							x.TurnData = {Type = VJ.FACE_ENEMY_VISIBLE}
-							x.CanShootWhenMoving = true
-						end)
-					end
-				end
-			end
-			if command.Praetorian then
-				local possibleNodes = {}
-				for _,node in pairs(nodegraph) do
-					local dist = self:GetPos():Distance(node.pos)
-					if node.type == 2 && dist <= 750 && dist > 400 then
-						table_insert(possibleNodes,node.pos)
-					end
-				end
-				local count = table_Count(tbl.Praetorian)
-				for _,v in pairs(tbl.Praetorian) do
-					if !v.VJ_AVP_XenomorphPraetorianSubClass && math.random(1,10) == 1 && count > 1 && v.DoRoyalTransformation then
-						v:DoRoyalTransformation(true)
-					else
-						local node = VJ.PICK(possibleNodes)
+					if !v:IsBusy() then
+						local node = VJ.PICK(nodes)
 						if node then
-							-- print("Sending ",v," to ",node)
+							-- print("Assigning node to " .. v:GetClass() .. " [" .. v:EntIndex() .. "] at " .. tostring(node))
 							v:StopMoving()
 							if v.SetQueenMarker then
 								v:SetQueenMarker(node)
@@ -466,13 +423,35 @@ function ENT:OnThink2()
 								end
 							end
 							v:SetLastPosition(node)
-							v:SCHEDULE_GOTO_POSITION((self:GetPos():Distance(node) > 500 && math.random(1,3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-								x.TurnData = {Type = VJ.FACE_ENEMY_VISIBLE}
+							v:SCHEDULE_GOTO_POSITION((qPos:Distance(node) > 500 && math.random(1, 3) == 1) && "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
+								x.TurnData = { Type = VJ.FACE_ENEMY_VISIBLE }
 								x.CanShootWhenMoving = true
 							end)
 						end
 					end
 				end
+			end
+
+			if command.Drone then
+				-- print("Assigning nodes to Drones")
+				assignNodes(tbl.Drones, 500, 1500)
+			end
+
+			if command.Warrior then
+				-- print("Assigning nodes to Warriors")
+				assignNodes(tbl.Warriors, 1500, 99999)
+			end
+
+			if command.Praetorian then
+				-- print("Assigning nodes to Praetorians")
+				assignNodes(tbl.Praetorian, 400, 750, function(v, count)
+					if !v.VJ_AVP_XenomorphPraetorianSubClass && math.random(1, 10) == 1 && count > 1 && v.DoRoyalTransformation then
+						v:DoRoyalTransformation(true)
+						-- print("Praetorian transformed into Royal!")
+						return true
+					end
+					return false
+				end)
 			end
 		end
 		if curTime > self.NextSpawnEggT && table_Count(self.Eggs) < VJ_AVP_MAX_EGGS then
@@ -512,10 +491,17 @@ function ENT:OnThink2()
 
 				if !util.IsInWorld(tr2.HitPos) then continue end
 
-				for _,v in pairs(ents.FindInSphere(tr2.HitPos, 50)) do
-					if v:GetClass() == "npc_vj_avp_xeno_egg" then
+				-- for _,v in pairs(ents.FindInSphere(tr2.HitPos, 50)) do
+				-- 	if v:GetClass() == "npc_vj_avp_xeno_egg" then
+				-- 		goodPos = false
+				-- 		-- Entity(1):ChatPrint("Egg too close to this point!")
+				-- 		break
+				-- 	end
+				-- end
+
+				for _, egg in ipairs(self.Eggs) do
+					if IsValid(egg) && egg:GetPos():Distance(tr2.HitPos) < 50 then
 						goodPos = false
-						-- Entity(1):ChatPrint("Egg too close to this point!")
 						break
 					end
 				end
