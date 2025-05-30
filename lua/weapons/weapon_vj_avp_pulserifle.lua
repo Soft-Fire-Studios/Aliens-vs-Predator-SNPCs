@@ -78,6 +78,27 @@ SWEP.ViewModelZoomAdjust = {
 	Ang = {Right = 0,Up = -0.1,Forward = 0}
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:OnInit()
+	if CLIENT then
+		hook.Add("PostDrawViewModel",self, function(self,vm, ply, weapon)
+			if !IsValid(weapon) or weapon != self then return end
+
+			local bone = vm:LookupBone("Pulserifle_body")
+			if !bone then return end
+
+			local pos, ang = vm:GetBonePosition(bone)
+			pos = pos +ang:Right() *1.355 + ang:Forward() *-1.45 + ang:Up() *6.45
+			ang:RotateAroundAxis(ang:Right(), 115)
+			ang:RotateAroundAxis(ang:Forward(), 0)
+			ang:RotateAroundAxis(ang:Up(), 177)
+
+			cam.Start3D2D(pos, ang, 0.02)
+				draw.SimpleTextOutlined(weapon:Clip1(), "HudNumbers",0, 0,Color(255,0,0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+			cam.End3D2D()
+		end)
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnReload()
 	self:DoViewPunch(0,Angle(1,-4,1))
 	-- self:DoViewPunch(0.4,Angle(1,-4,1))

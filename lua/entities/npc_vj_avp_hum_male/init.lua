@@ -31,6 +31,8 @@ ENT.TimeUntilMeleeAttackDamage = 0.25
 ENT.Weapon_CanCrouchAttack = false
 ENT.Weapon_AimTurnDiff = 0.74
 
+ENT.BecomeEnemyToPlayer = 4
+
 local moveslikejaggerfuckingkms = 21378944
 ENT.AnimTbl_TakingCover = moveslikejaggerfuckingkms
 
@@ -62,6 +64,7 @@ ENT.DisableFootStepSoundTimer = true
 
 ENT.HasFlashlight = true
 ENT.HasMotionTracker = true
+ENT.CanUseStimpacks = true
 
 ENT.SoundTbl_SeeBody = {}
 ENT.SoundTbl_DistractionSuccess = {}
@@ -951,7 +954,7 @@ function ENT:OnKeyPressed(ply,key)
 			ent:Fire("Use",nil,0,ply,self)
 		end
     elseif key == KEY_G then
-		if self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
+		if self.CanUseStimpacks && self:Health() < self:GetMaxHealth() && CurTime() > self.NextHealT then
 			self:UseStimpack()
 			self.NextHealT = CurTime() +3
 		end
@@ -1314,7 +1317,7 @@ function ENT:OnThinkActive()
 		-- 	self:SetSprinting(false)
 		-- end
 
-		if !self.VJ_AVP_IsTech && self:Health() < self:GetMaxHealth() *0.5 && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
+		if self.CanUseStimpacks && !self.VJ_AVP_IsTech && self:Health() < self:GetMaxHealth() *0.5 && CurTime() > self.NextHealT && math.random(1,30) == 1 && !self:IsBusy() then
 			self:UseStimpack()
 			self.NextHealT = CurTime() +math.Rand(45,60)
 		end

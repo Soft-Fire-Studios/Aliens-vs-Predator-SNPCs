@@ -14,6 +14,7 @@ ENT.VJ_NPC_Class = {"CLASS_WEYLAND_YUTANI"}
 
 ENT.HasFlashlight = false
 ENT.HasMotionTracker = true
+ENT.CanUseStimpacks = false
 
 ENT.AllowCloaking = false
 ---------------------------------------------------------------------------------------------------------------------------------------------

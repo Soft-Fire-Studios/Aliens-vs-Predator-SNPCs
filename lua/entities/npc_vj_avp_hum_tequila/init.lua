@@ -22,6 +22,7 @@ function ENT:GenderInit(gender)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
+	self.BecomeEnemyToPlayer = 15
 	self:SetBodygroup(self:FindBodygroupByName("vest"),1)
 	self.SoundTbl_LostEnemy = {}
 	self.SoundTbl_Alert = {

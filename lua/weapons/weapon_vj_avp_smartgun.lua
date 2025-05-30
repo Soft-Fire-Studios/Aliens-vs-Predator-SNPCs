@@ -63,8 +63,8 @@ SWEP.Primary.StartSound 		= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_
 SWEP.Primary.EndSound 			= {"cpthazama/avp/weapons/human/minigun/minigun_shoot_end_01.ogg"}
 
 SWEP.ViewModelAdjust = {
-	Pos = {Right = 0,Forward = 0,Up = -0.25},
-	Ang = {Right = 0,Up = 0,Forward = -2}
+	Pos = {Right = 0,Forward = 0,Up = 0.45},
+	Ang = {Right = -0.65,Up = 0,Forward = -4}
 }
 
 SWEP.DisableSprint = true
@@ -107,6 +107,21 @@ function SWEP:OnInit()
 				if !IsValid(ent) then table_Empty(self.HighlightEnts) return end
 				halo.Add(self.HighlightEnts,Color(199,250,255),1,1,4,true,true)
 			end
+		end)
+		hook.Add("PostDrawViewModel",self, function(self,vm, ply, weapon)
+			if !IsValid(weapon) or weapon != self then return end
+
+			local bone = vm:LookupBone("Minigun")
+			if !bone then return end
+			local pos, ang = vm:GetBonePosition(bone)
+			pos = pos +ang:Right() *20.2 + ang:Forward() *-7.57 + ang:Up() *-4.5
+			ang:RotateAroundAxis(ang:Right(), 180)
+			ang:RotateAroundAxis(ang:Forward(), 300)
+			ang:RotateAroundAxis(ang:Up(), 180)
+
+			cam.Start3D2D(pos, ang, 0.0227)
+				draw.SimpleTextOutlined(weapon:Clip1(), "HudNumbers",0, 0,Color(199,250,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+			cam.End3D2D()
 		end)
 	end
 end

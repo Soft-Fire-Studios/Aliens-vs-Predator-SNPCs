@@ -1457,6 +1457,7 @@ local sdTailMiss = {
 
 local string_StartWith = string.StartWith
 local string_Replace = string.Replace
+local string_Explode = string.Explode
 --
 function ENT:OnInput(key,activator,caller,data)
 	if self.OnInput2 then
@@ -1624,6 +1625,22 @@ function ENT:OnInput(key,activator,caller,data)
 		end
 		if snd then
 			VJ.EmitSound(sndEnt or self,snd,vol or 70)
+		end
+	elseif string_StartWith(key, "fatality ") then
+		local args = string_Explode(" ", key)
+		local ent = args[2] == "target" && self:GetFatalityTarget() or self
+		local evType = args[3]
+		local value = args[4]
+
+		if evType == "sfx" then
+			VJ.EmitSound(ent,value,70)
+		elseif evType == "vo" then
+			VJ.CreateSound(ent,value,75)
+		elseif evType == "decap" then
+			if value == "head" then
+				ent:SetBodygroup(ent:FindBodygroupByName("head"),2)
+				ent:SetBodygroup(ent:FindBodygroupByName("mask"),1)
+			end
 		end
 	end
 end

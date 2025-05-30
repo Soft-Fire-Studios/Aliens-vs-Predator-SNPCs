@@ -97,7 +97,25 @@ function SWEP:CustomOnMeleeHit(entities,hitType,owner)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnInit()
-	if CLIENT then return end
+	if CLIENT then
+		hook.Add("PostDrawViewModel",self, function(self,vm, ply, weapon)
+			if !IsValid(weapon) or weapon != self then return end
+
+			local bone = vm:LookupBone("flamethrower")
+			if !bone then return end
+
+			local pos, ang = vm:GetBonePosition(bone)
+			pos = pos +ang:Right() *3.65 + ang:Forward() *-1.12 + ang:Up() *6.88
+			ang:RotateAroundAxis(ang:Right(), 100)
+			ang:RotateAroundAxis(ang:Forward(), 0)
+			ang:RotateAroundAxis(ang:Up(), 179)
+
+			cam.Start3D2D(pos, ang, 0.011)
+				draw.SimpleTextOutlined(weapon:Clip1(), "HudNumbers",0, 0,Color(199,250,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+			cam.End3D2D()
+		end)
+		return
+	end
 	local pos = self:GetPos()
 	pos = pos +self:GetUp() *18 +self:GetRight() *10
 	local ang = self:GetAngles()
