@@ -111,7 +111,9 @@ function SWEP:OnInit()
 			ang:RotateAroundAxis(ang:Up(), 179)
 
 			cam.Start3D2D(pos, ang, 0.011)
-				draw.SimpleTextOutlined(weapon:Clip1(), "HudNumbers",0, 0,Color(199,250,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined("00", "VJFont_AVP_Ammo",0, 0,Color(199,250,255,25), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined(weapon:Clip1(), "VJFont_AVP_AmmoBlur",0, 0,Color(199,250,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined(weapon:Clip1(), "VJFont_AVP_Ammo",0, 0,Color(199,250,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
 			cam.End3D2D()
 		end)
 		return

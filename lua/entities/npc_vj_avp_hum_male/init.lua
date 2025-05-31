@@ -1063,6 +1063,31 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	return anim,animDur
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+-- function ENT:TranslateActivity(act)
+-- 	if self.Moveset == 1 then
+-- 		if act == ACT_RUN then
+-- 			act = ACT_WALK
+-- 		end
+-- 	elseif self.Moveset == 2 then
+-- 		if act == ACT_RUN then
+-- 			return self.AnimationTranslations[ACT_SPRINT] or ACT_RUN
+-- 		end
+-- 		if act == ACT_WALK then
+-- 			act = ACT_RUN
+-- 		end
+-- 	elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
+-- 		if act == ACT_WALK then
+-- 			act = ACT_RUN
+-- 		end
+-- 	end
+
+-- 	if self.CustomIdle && act == ACT_IDLE && !IsValid(self:GetActiveWeapon()) then
+-- 		return self.CustomIdle
+-- 	end
+
+-- 	return baseclass.Get("npc_vj_creature_base").TranslateActivity(self,act)
+-- end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
 	-- if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
 	-- 	if act == ACT_IDLE && self.Alerted then
@@ -1086,6 +1111,10 @@ function ENT:TranslateActivity(act)
 			end
 		end
 	-- end
+
+	if self.CustomIdle && act == ACT_IDLE && !IsValid(self:GetActiveWeapon()) then
+		return self.CustomIdle
+	end
 
 	if act == ACT_IDLE then
 		if self.Weapon_UnarmedBehavior_Active then

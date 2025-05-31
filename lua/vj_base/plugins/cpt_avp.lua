@@ -129,7 +129,7 @@ VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulser
 VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_smartgun"},vCat_M)
 VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
 
--- VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",wepMarines,vCat_M)
+VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",{"weapon_vj_avp_pulserifle"},vCat_M)
 VJ.AddNPC_HUMAN("Teresa Aquila","npc_vj_avp_hum_tequila",wepMarines,vCat_M)
 // For some reason only the generic males got official names, so we're just gonna make the names up using an online name generator for the generic females LOL
 VJ.AddNPC_HUMAN("Butch","npc_vj_avp_hum_butch",wepMarines,vCat_M)
@@ -851,6 +851,24 @@ else
 		size = 23,
 		weight = 600,
 		blursize = 1,
+		antialias = true,
+		italic = false,
+	})
+
+	surface.CreateFont("VJFont_AVP_Ammo", {
+		font = "DS-Digital",
+		size = 32,
+		weight = 600,
+		blursize = 0,
+		antialias = true,
+		italic = false,
+	})
+
+	surface.CreateFont("VJFont_AVP_AmmoBlur", {
+		font = "DS-Digital",
+		size = 32,
+		weight = 600,
+		blursize = 3,
 		antialias = true,
 		italic = false,
 	})

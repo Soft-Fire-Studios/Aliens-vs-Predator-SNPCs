@@ -70,7 +70,7 @@ SWEP.Primary.Sound = {
 SWEP.Primary.UsesLoopedSound 	= true
 
 SWEP.ViewModelAdjust = {
-	Pos = {Right = 0,Forward = -1,Up = -0.2},
+	Pos = {Right = 0,Forward = 0,Up = -0.2},
 	Ang = {Right = 0,Up = 0,Forward = 4}
 }
 SWEP.ViewModelZoomAdjust = {
@@ -93,7 +93,9 @@ function SWEP:OnInit()
 			ang:RotateAroundAxis(ang:Up(), 177)
 
 			cam.Start3D2D(pos, ang, 0.02)
-				draw.SimpleTextOutlined(weapon:Clip1(), "HudNumbers",0, 0,Color(255,0,0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined("00", "VJFont_AVP_Ammo",0, 0,Color(255,0,0,25), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined(weapon:Clip1(), "VJFont_AVP_AmmoBlur",0, 0,Color(255,0,0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
+				draw.SimpleTextOutlined(weapon:Clip1(), "VJFont_AVP_Ammo",0, 0,Color(255,0,0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER,1, Color(0, 0, 0))
 			cam.End3D2D()
 		end)
 	end
