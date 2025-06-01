@@ -1112,8 +1112,8 @@ function ENT:TranslateActivity(act)
 		end
 	-- end
 
-	if self.CustomIdle && act == ACT_IDLE && !IsValid(self:GetActiveWeapon()) then
-		return self.CustomIdle
+	if self.NoWeaponOverrides && !IsValid(self:GetActiveWeapon()) && self.NoWeaponOverrides[act] then
+		return self.NoWeaponOverrides[act]
 	end
 
 	if act == ACT_IDLE then

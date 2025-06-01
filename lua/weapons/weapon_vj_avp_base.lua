@@ -509,7 +509,8 @@ function SWEP:GetViewModelAdjustPosition()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:OnSecondaryAttack()
-	return self.UsesZoom
+	-- return self.UsesZoom
+	return false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:CanPrimaryAttack()
