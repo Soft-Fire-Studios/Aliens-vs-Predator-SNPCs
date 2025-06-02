@@ -1,0 +1,28 @@
+"VertexLitGeneric"
+{
+	"$basetexture" 				"models/cpthazama/avp/marines/colonist/colonist_body_b_colour"
+	"$bumpmap"					"models/cpthazama/avp/marines/colonist/colonist_body_normal"
+
+    "$nodecal" 					"1"
+
+	"$phong"                     "1"
+	"$phongboost"                "9"
+	"$phongexponent"             "30"
+	"$phongfresnelranges"        "[0.15 0.545 0.115]"
+
+	"$normalmapalphaenvmapmask"  "1"
+	"$envmapfresnel"             "1"
+	"$envmap"                    "env_cubemap"
+	"$envmaptint" 				 "[0.2 0.2 0.2]"
+
+	"$DEM_TintScale" 			"[1 1 1]"
+	"$DEM_Multiplier" 			"1.25"
+
+	"Proxies"
+	{
+		"DynamicEnvMap"
+		{
+			resultVar	"$envmaptint"
+		}
+	}
+}

@@ -279,7 +279,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_01.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_01/DEATH_MAR01_02.ogg",
 			}
-		else
+		elseif VO == 2 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Male_Marine_02/AGGRESSIVE_TO_ALERT_MAR02_06.ogg",
 				"cpthazama/avp/humans/vocals/Male_Marine_02/AGGRESSIVE_TO_ALERT_MAR02_07.ogg",
@@ -590,7 +590,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_03.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_04.ogg",
 			}
-		else
+		elseif vo == 2 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_06.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_07.ogg",
@@ -1040,7 +1040,9 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
 	if self.InFatality or self.DoingFatality or self.VJ_AVP_IsTech or self:IsBusy() then return end
+	self:SetBodygroup(self:FindBodygroupByName("stimpack"),1)
 	self:PlayAnimation("vjges_ohwa_pistol_stim",true,false,false,0,{OnFinish=function(interrupted,anim)
+		self:SetBodygroup(self:FindBodygroupByName("stimpack"),0)
 		if self.LastActivity != anim then return end
 		self:SetHealth(self:GetMaxHealth())
 	end})
@@ -1297,6 +1299,7 @@ function ENT:OnThinkActive()
 		self:SetPoseParameter("emote",Lerp(FrameTime() *8,self:GetPoseParameter("emote"),self.CurrentEmote or VJ_AVP_EXP_DEFAULT))
 	end
 	if self.InFatality then
+		-- print(self,self:GetSequenceName(self:GetSequence()))
 		-- self.CurrentEmote = VJ_AVP_EXP_FEAR
 		local names = self.PoseParameterLooking_Names
 		for x = 1, #names.pitch do

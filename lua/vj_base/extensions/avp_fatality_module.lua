@@ -13,7 +13,7 @@ cvars.AddChangeCallback("vj_avp_fatalities", function(convar_name, oldValue, new
 end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CanUseFatality(ent)
-	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
+	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or ent.VJ_AVP_IsFacehugged or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
 	if !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then
 		if ent.VJ_AVP_XenomorphLarge == true && self.VJ_AVP_XenomorphLarge != true then
@@ -158,9 +158,11 @@ function ENT:DoFatality(ent,inFront)
 						ent:SetParent(nil)
 						SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 					end
+					-- print("Ended fatality for", ent, "the attacker was", self)
 					if IsValid(ent) then
+						ent:SetHealth(0)
 						local dmginfo = DamageInfo()
-						dmginfo:SetDamage(ent:Health())
+						dmginfo:SetDamage(150)
 						dmginfo:SetDamageType(DMG_SLASH)
 						dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 						dmginfo:SetAttacker(IsValid(self) && self or ent)
@@ -182,19 +184,22 @@ function ENT:DoFatality(ent,inFront)
 						ent:SetParent(nil)
 						SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 					end
+					-- print("Ended fatality for", ent, "the attacker was", self)
 					ent.HasDeathAnimation = false
+					ent:SetHealth(0)
 					local dmginfo = DamageInfo()
-					dmginfo:SetDamage(ent:Health())
+					dmginfo:SetDamage(150)
 					dmginfo:SetDamageType(DMG_SLASH)
-					dmginfo:SetDamageForce(self:GetForward() *250)
-					dmginfo:SetAttacker(self)
-					dmginfo:SetInflictor(self)
+					dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+					dmginfo:SetAttacker(IsValid(self) && self or ent)
+					dmginfo:SetInflictor(IsValid(self) && self or ent)
 					ent.HasDeathSounds = false
 					ent:TakeDamageInfo(dmginfo)
 				end
 			end})
 		else
 			local counter = math.random(1,!inFront && 200 or 100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
+			-- print(counter && "Is a counter fatality!" or "Is a normal fatality!")
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
 			end
@@ -215,8 +220,18 @@ function ENT:DoFatality(ent,inFront)
 				if tbl.Lift then
 					self:PlayAnim(tbl.Lift,true,false,true,0,{OnFinish=function(int)
 						-- if int then return end
-						local anim = counter && tbl.Counter or tbl.Kill
+						local anim = tbl.Kill
+						if counter then
+							anim = tbl.Counter
+							-- print("Fatality: Counter is true, counter animation found, using counter animation.")
+						end
+						if !anim then
+							anim = tbl.Kill
+							counter = false
+							-- print("Fatality: No kill animation found, using default kill animation.")
+						end
 						anim = VJ.PICK(anim)
+						-- print("Fatality: Using animation:", anim)
 						if IsValid(ent) then
 							if ent.AnimTbl_FatalitiesResponse && ent.AnimTbl_FatalitiesResponse[anim] then
 								ent:PlayAnim(ent.AnimTbl_FatalitiesResponse[anim],true,false,true,0,{OnFinish=function(int)
@@ -228,10 +243,11 @@ function ENT:DoFatality(ent,inFront)
 										ent:SetParent(nil)
 										SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 									end
+									-- print("Ended fatality for", ent, "the attacker was", self, "counter:", counter)
 									if !counter && IsValid(ent) then
-										ent.HasDeathAnimation = false
+										ent:SetHealth(0)
 										local dmginfo = DamageInfo()
-										dmginfo:SetDamage(ent:Health())
+										dmginfo:SetDamage(150)
 										dmginfo:SetDamageType(DMG_SLASH)
 										dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 										dmginfo:SetAttacker(IsValid(self) && self or ent)
@@ -255,14 +271,15 @@ function ENT:DoFatality(ent,inFront)
 									ent:SetParent(nil)
 									SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 								end
-								if !counter then
-									ent.HasDeathAnimation = false
+								-- print("Ended fatality for", ent, "the attacker was", self, "counter:", counter)
+								if !counter && IsValid(ent) then
+									ent:SetHealth(0)
 									local dmginfo = DamageInfo()
-									dmginfo:SetDamage(ent:Health())
+									dmginfo:SetDamage(150)
 									dmginfo:SetDamageType(DMG_SLASH)
-									dmginfo:SetDamageForce(self:GetForward() *250)
-									dmginfo:SetAttacker(self)
-									dmginfo:SetInflictor(self)
+									dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+									dmginfo:SetAttacker(IsValid(self) && self or ent)
+									dmginfo:SetInflictor(IsValid(self) && self or ent)
 									ent.HasDeathSounds = false
 									ent:TakeDamageInfo(dmginfo)
 								end
@@ -270,7 +287,16 @@ function ENT:DoFatality(ent,inFront)
 						end})
 					end})
 				else
-					local anim = counter && tbl.Counter or tbl.Kill
+					local anim = tbl.Kill
+					if counter then
+						anim = tbl.Counter
+						-- print("Fatality: Counter is true, counter animation found, using counter animation.")
+					end
+					if !anim then
+						anim = tbl.Kill
+						counter = false
+						-- print("Fatality: No kill animation found, using default kill animation.")
+					end
 					anim = VJ.PICK(anim)
 					if IsValid(ent) then
 						if counter then
@@ -286,10 +312,11 @@ function ENT:DoFatality(ent,inFront)
 									ent:SetParent(nil)
 									SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 								end
+								-- print("Ended fatality for", ent, "the attacker was", self, "counter:", counter)
 								if !counter && IsValid(ent) then
-									ent.HasDeathAnimation = false
+									ent:SetHealth(0)
 									local dmginfo = DamageInfo()
-									dmginfo:SetDamage(ent:Health())
+									dmginfo:SetDamage(150)
 									dmginfo:SetDamageType(DMG_SLASH)
 									dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
 									dmginfo:SetAttacker(IsValid(self) && self or ent)
@@ -313,14 +340,15 @@ function ENT:DoFatality(ent,inFront)
 								ent:SetParent(nil)
 								SafeRemoveEntityDelayed(ent.VJ_AVP_Biped,0.02)
 							end
-							if !counter then
-								ent.HasDeathAnimation = false
+							-- print("Ended fatality for", ent, "the attacker was", self, "counter:", counter)
+							if !counter && IsValid(ent) then
+								ent:SetHealth(0)
 								local dmginfo = DamageInfo()
-								dmginfo:SetDamage(ent:Health())
+								dmginfo:SetDamage(150)
 								dmginfo:SetDamageType(DMG_SLASH)
-								dmginfo:SetDamageForce(self:GetForward() *250)
-								dmginfo:SetAttacker(self)
-								dmginfo:SetInflictor(self)
+								dmginfo:SetDamageForce(IsValid(self) && self:GetForward() *250 or ent:GetForward() *-250)
+								dmginfo:SetAttacker(IsValid(self) && self or ent)
+								dmginfo:SetInflictor(IsValid(self) && self or ent)
 								ent.HasDeathSounds = false
 								ent:TakeDamageInfo(dmginfo)
 							end

@@ -643,6 +643,15 @@ function ENT:TranslateActivity(act)
 		return avp
 	end
 
+	if self.IsCrawler then
+		if act == ACT_TURN_LEFT or act == ACT_TURN_RIGHT then
+			local gib = self.Gibbed
+			if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+				return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
+			end
+		end
+	end
+
 	local translation = self.AnimationTranslations[act]
 	if translation then
 		if istable(translation) then
@@ -1609,6 +1618,14 @@ function ENT:OnInput(key,activator,caller,data)
 			self:SetHealth(math_Clamp(self:Health() +(#hitEnts *5),0,self:GetMaxHealth()))
 		end
 		VJ.EmitSound(self,sdMM,75)
+	elseif key == "attack_mouth_ges" then
+		self.AttackDamageDistance = 55
+		self.AttackDamageType = DMG_SLASH
+		local hitEnts = self:RunDamageCode(0.75)
+		if #hitEnts > 0 then
+			self:SetHealth(math_Clamp(self:Health() +(#hitEnts *2),0,self:GetMaxHealth()))
+		end
+		VJ.EmitSound(self,sdMM,75)
 	elseif key == "attack_tail" then
 		self.AttackDamageDistance = 200
 		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_VEHICLE)
@@ -1632,6 +1649,11 @@ function ENT:OnInput(key,activator,caller,data)
 		local evType = args[3]
 		local value = args[4]
 
+		print("Doing fatality event:", evType, "on", ent, "with value:", value)
+		if !IsValid(ent) then
+			print("Invalid entity for fatality event:", ent)
+			return
+		end
 		if evType == "sfx" then
 			VJ.EmitSound(ent,value,70)
 		elseif evType == "vo" then
@@ -1690,31 +1712,12 @@ function ENT:OnThinkAttack(isAttacking, enemy)
 	local dist = eneData.DistanceNearest
 	local isCrawling = self.CurrentSet == 1
 	local curTime = CurTime()
-	if self.IsCrawler then return end
-	local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
-	if !self.CanBlock then
-		doingBlock = false
-	end
-	-- if self:IsBusy() then
-	-- 	doingBlock = false
-	-- 	print("busy")
-	-- end
-	if !doingBlock && self.IsBlocking then
-		self.IsBlocking = false
-		-- print("disable block")
-	elseif doingBlock && !self.IsBlocking then
-		self.IsBlocking = true
-		if isCrawling then
-			self.CurrentSet = (self.CurrentSet == 1 && self.CanStand) && 2 or 1
-			self.ChangeSetT = CurTime() +0.5
-			if self.CurrentSet == 1 then
-				self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
-			else
-				self.AnimTbl_Flinch = self.AnimTbl_FlinchStand
-			end
-			self:PlayAnim("crawl_to_block",true,false,true)
+	if self.IsCrawler then
+		if (IsValid(cont) && cont:KeyDown(IN_ATTACK) or !IsValid(cont) && dist <= self.AttackDistance) && !self:IsBusy() then
+			self:PlayAnim("headbite_2ndry",true,false,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
+			self:OnInput("attack_mouth_ges")
 		end
-		-- print("enable block")
+		return
 	end
 
 	if CurTime() < self.SpecialBlockAnimTime then return end
@@ -2122,11 +2125,19 @@ function ENT:Gibs()
 	self:CreateGibEntity("obj_vj_gib","UseAlien_Small")
 	self:CreateGibEntity("obj_vj_gib","UseAlien_Small")
 	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
-	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
-	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
-	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
-	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
-	self:CreateGibEntity("obj_vj_gib","UseAlien_Big")
+	if self.VJ_AVP_K_Xenomorph then
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/larm_k.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/rarm_k.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/lleg_k.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/rleg_k.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/tail_k.mdl"})
+	else
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/larm.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/rarm.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/lleg.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/rleg.mdl"})
+		self:CreateGibEntity("obj_vj_gib",{"models/cpthazama/avp/xeno/gibs/tail.mdl"})
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetGroundAngle(curSet)
@@ -2236,6 +2247,7 @@ function ENT:OnThinkActive()
 	if self.Dead then return end
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
+		-- print(self,self:GetSequenceName(self:GetSequence()))
 		local names = self.PoseParameterLooking_Names
 		for x = 1, #names.pitch do
 			self:SetPoseParameter(names.pitch[x],0)
@@ -2421,6 +2433,18 @@ function ENT:OnThinkActive()
 			end
 		end
 	else
+		local cont = self.VJ_TheController
+		local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
+		if !self.CanBlock or !IsValid(cont) && self.AI_IsBlocking && (!IsValid(self:GetEnemy()) or CurTime() > self.AI_BlockTime) then
+			doingBlock = false
+		end
+		if !doingBlock && self.IsBlocking then
+			self.IsBlocking = false
+			self.AI_IsBlocking = false
+			self.AI_BlockTime = 0
+		elseif doingBlock && !self.IsBlocking then
+			self.IsBlocking = true
+		end
 		if self.AlwaysStand && curSet != 2 then
 			self.CurrentSet = 2
 			self.NextIdleTime = 0
@@ -2878,6 +2902,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 				self.CanBeKnockedDown = false
 				self.DisableFatalities = true
 				self.CanFlinch = false
+				self.AttackDistance = 55
 			end
 			if decap.OnDecap then
 				decap.OnDecap(self,dmginfo,hitgroup)
@@ -3056,6 +3081,7 @@ function ENT:HandleGibOnDeath(dmginfo, hitgroup)
 	
 	-- self:CreateGibEntity("obj_vj_gib", "models/vj_hlr/gibs/agib1.mdl", {BloodType="Yellow", CollisionDecal="VJ_HLR1_Blood_Yellow", Pos=self:LocalToWorld(Vector(0, 0, 40))})
 	self:PlaySoundSystem("Gib", "cpthazama/avp/xeno/alien/gib/alien_explode_0" .. math.random(1,6) .. ".ogg")
+	self:Gibs()
 	return true, {AllowSound = false}
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

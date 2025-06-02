@@ -4,3 +4,5 @@ ENT.PrintName 		= ""
 ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= ""
+
+ENT.VJ_AVP_SuperPredator = true

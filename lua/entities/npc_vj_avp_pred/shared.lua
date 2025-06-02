@@ -281,7 +281,7 @@ if CLIENT then
 		"Bip01 mouth_bottom_right02",
 		"Bip01 mouth_top_left",
 		"Bip01 mouth_top_left02",
-		"Bip01 mouth_top_right",
+		"Bip01 mouth_top_right01",
 		"Bip01 mouth_top_right02"
 	}
 	local math_angDif = math.AngleDifference
@@ -372,6 +372,16 @@ if CLIENT then
 					end
 				end
 				self.HiddenUpperBones = nil
+			else
+				if self.VJ_AVP_SuperPredator then
+					// scale the faceBones down a bit
+					for _,boneName in ipairs(faceBones) do
+						local boneIndex = self:LookupBone(boneName)
+						if boneIndex && boneIndex != -1 then
+							self:ManipulateBoneScale(boneIndex,self:GetBodygroup(self:FindBodygroupByName("mask")) == 1 && Vector(0.3,0.3,0.3) or Vector(0.8,0.8,0.8))
+						end
+					end
+				end
 			end
 		end
 

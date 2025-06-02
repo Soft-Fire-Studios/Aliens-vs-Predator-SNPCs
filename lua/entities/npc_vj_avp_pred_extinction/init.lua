@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/predators/extinction.mdl"}
 ENT.StartHealth = 600
 
-ENT.UsesLaserCaster = true
+-- ENT.UsesLaserCaster = true
 -------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInit()
 	-- self.BaseClass.OnInit(self)

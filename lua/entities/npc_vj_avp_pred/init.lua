@@ -1349,7 +1349,8 @@ function ENT:SpecialAttackCode(atk)
 		self.SpearProp = spear
 		VJ.EmitSound(self.SpearProp,"cpthazama/avp/weapons/predator/spear/prd_spear_draw.ogg",72)
 		self:PlayAnimation("vjges_predator_spear_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted,anim)
-			if self.LastActivity != anim then SafeRemoveEntity(spear) return end
+			if interrupted then SafeRemoveEntity(spear) return end
+			-- if self.LastActivity != anim then SafeRemoveEntity(spear) return end
 			local _,dur = self:PlayAnimation("vjges_predator_spear_2nd_throw",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 				SafeRemoveEntity(spear)
 			end})
@@ -2299,6 +2300,7 @@ function ENT:OnThinkActive()
 
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
+		-- print(self,self:GetSequenceName(self:GetSequence()))
 		local names = self.PoseParameterLooking_Names
 		for x = 1, #names.pitch do
 			self:SetPoseParameter(names.pitch[x],0)

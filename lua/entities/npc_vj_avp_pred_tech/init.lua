@@ -8,7 +8,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/predators/tech.mdl"}
 ENT.StartHealth = 600
 
-ENT.UsesLaserCaster = true
+-- ENT.UsesLaserCaster = true
 
 ENT.ArmorColor = Vector(1.3,1.3,1.3)
 

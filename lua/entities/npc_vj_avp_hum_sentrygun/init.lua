@@ -117,7 +117,7 @@ function ENT:OnDeviceEffected(rc,efType)
 		if IsValid(self.ProjectedTexture) then
 			self.ProjectedTexture:Fire("turnon")
 		end
-		ParticleEffectAttach("vj_avp_sentrygun_light", PATTACH_POINT_FOLLOW, self, att)
+		ParticleEffectAttach("vj_avp_sentrygun_light", PATTACH_POINT_FOLLOW, self, self:LookupAttachment("scan"))
 		rc:SetSkin(0)
 		self:RemoveFlags(FL_NOTARGET)
 		self.EnemyDetection = true

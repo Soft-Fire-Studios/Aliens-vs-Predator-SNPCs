@@ -236,7 +236,7 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 	if status == "PreDamage" then
 		if IsValid(self.LatchVictim) then return true end
 
-		if !ent.VJ_AVP_Xenomorph && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
+		if !ent.VJ_AVP_Xenomorph && !ent.InFatality && (ent:IsNPC() or (ent:IsNextBot() && ent.IsLambdaPlayer) or ent:IsPlayer() && ent:Health() <= 25) && !ent.VJ_AVP_IsFacehugged && !ent.VJ_AVP_IsTech && (ent:IsNPC() && (ent:GetHullType() == HULL_HUMAN or ent:GetHullType() == HULL_WIDE_HUMAN) or !ent:IsNPC()) && util.IsValidRagdoll(ent:GetModel()) then
 			local counter = math.random(1,100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 			if ent.VJ_AVP_Predator && counter then
 				self:PlayAnim("facehugger_jump_land",true,false,false)
@@ -303,7 +303,11 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
 				elseif ent.VJ_AVP_Predator then
 					corpse.VJ_AVP_IsPredburster = true
-					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or (math.random(1,100) == 1 && "npc_vj_avp_xeno_superpredalien" or "npc_vj_avp_xeno_predalien"))
+					if ent.VJ_AVP_SuperPredator then
+						corpse.VJ_AVP_XenoClass = self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_superpredalien"
+					else
+						corpse.VJ_AVP_XenoClass = self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_predalien" or "npc_vj_avp_xeno_predalien"
+					end
 				elseif ent:IsNPC() && ent:Classify() == CLASS_VORTIGAUNT then
 					corpse.VJ_AVP_XenoClass = (self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_jungle" or "npc_vj_avp_xeno_jungle")
 				end
@@ -390,7 +394,7 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 							if IsValid(self) then
 								self:SetParent(nil)
 								self:SetHealth(0)
-								self:TakeDamage(1000)
+								self:TakeDamage(5)
 							end
 							hook.Remove("Think",ent)
 							return
@@ -430,7 +434,7 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 					elseif ent:IsNextBot() then
 						ent:SetHealth(0)
 						local dmginfo = DamageInfo()
-						dmginfo:SetDamage(1000)
+						dmginfo:SetDamage(5)
 						dmginfo:SetDamageType(DMG_DIRECT)
 						dmginfo:SetAttacker(self)
 						dmginfo:SetInflictor(self)
@@ -692,7 +696,7 @@ function ENT:GiveBirth()
 	if !IsValid(self.VJ_TheController) then
 		self:SetHealth(0)
 		self.DisableCorpseCleanUp = true
-		self:TakeDamage(1000)
+		self:TakeDamage(5)
 		for i = 1,4 do
 			timer.Simple(i,function()
 				if IsValid(corpseEnt) then
@@ -749,7 +753,7 @@ function ENT:GiveBirth()
 				end)
 				if IsValid(ent) && ent:IsNPC() then
 					undo.ReplaceEntity(ent,chestburster)
-					ent:TakeDamage(1000)
+					ent:TakeDamage(5)
 				end
 			end
 		end)
@@ -798,7 +802,7 @@ function ENT:GiveBirth()
 		end)
 		if IsValid(ent) && ent:IsNPC() then
 			undo.ReplaceEntity(ent,chestburster)
-			ent:TakeDamage(1000)
+			ent:TakeDamage(5)
 		end
 	end
 end

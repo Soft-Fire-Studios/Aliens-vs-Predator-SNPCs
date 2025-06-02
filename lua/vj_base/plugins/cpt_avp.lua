@@ -5,7 +5,7 @@
 --------------------------------------------------*/
 VJ.AddPlugin("Aliens vs Predator SNPCs", "NPC")
 
-VJ.AddConVar("vj_avp_fatalities",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+VJ.AddConVar("vj_avp_fatalities",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_flashlight",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -89,7 +89,7 @@ VJ.AddNPC("Serpent Hunter","npc_vj_avp_pred_alien",vCat_P)
 VJ.AddNPC("Extinction","npc_vj_avp_pred_extinction",vCat_P)
 VJ.AddNPC("Tech","npc_vj_avp_pred_tech",vCat_P)
 VJ.AddNPC("Ancient","npc_vj_avp_pred_predlord",vCat_P)
-VJ.AddNPC("Mr. Black","npc_vj_avp_pred_mrblack",vCat_P)
+-- VJ.AddNPC("Mr. Black","npc_vj_avp_pred_mrblack",vCat_P) // What to do about him having one wrist blade hmmmmmm?
 
 /*
 	weapon_vj_avp_pistol
@@ -122,11 +122,13 @@ VJ.AddNPC_HUMAN("Moss","npc_vj_avp_hum_moss",wepMarines,vCat_M)
 VJ.AddNPC_HUMAN("Thomas","npc_vj_avp_hum_youngwhite",wepMarines,vCat_M)
 VJ.AddNPC_HUMAN("Martinez","npc_vj_avp_hum_hispanic",wepMarines,vCat_M)
 -- VJ.AddNPC_HUMAN("Kaneko","npc_vj_avp_hum_kaneko",wepMarines,vCat_M)
--- VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{},vCat_M)
+VJ.AddNPC_HUMAN("Colonist","npc_vj_avp_hum_colonist",{},vCat_M)
+VJ.AddNPC_HUMAN("Scientist","npc_vj_avp_hum_scientist",{},vCat_M)
 VJ.AddNPC_HUMAN("Archaeologist","npc_vj_avp_hum_archa",{},vCat_M)
 VJ.AddNPC_HUMAN("Security Guard","npc_vj_avp_hum_secuirty",{"weapon_vj_avp_pistol"},vCat_M)
 VJ.AddNPC_HUMAN("Combat Android","npc_vj_avp_hum_android",{"weapon_vj_avp_pulserifle","weapon_vj_avp_flamethrower","weapon_vj_avp_scopedrifle"},vCat_M)
 VJ.AddNPC_HUMAN("Combat Android Elite","npc_vj_avp_hum_android_elite",{"weapon_vj_avp_pulserifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_shotgun","weapon_vj_avp_scopedrifle","weapon_vj_avp_smartgun"},vCat_M)
+VJ.AddNPC_HUMAN("H. G. Groves","npc_vj_avp_hum_heller",{"weapon_vj_avp_pistol"},vCat_M)
 VJ.AddNPC_HUMAN("Weyland Yutani","npc_vj_avp_hum_weyland",{"weapon_vj_avp_shotgun"},vCat_M)
 
 VJ.AddNPC_HUMAN("Katya","npc_vj_avp_hum_katya",{"weapon_vj_avp_pulserifle"},vCat_M)

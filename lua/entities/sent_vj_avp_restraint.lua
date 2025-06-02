@@ -75,6 +75,7 @@ function ENT:Initialize()
 			xeno:SetParent(self)
 			xeno:Spawn()
 			xeno:Activate()
+			xeno.CanSetGroundAngle = false
 			xeno.Restraint = self
 			self.Xeno = xeno
 			timer.Simple(0,function()
@@ -82,6 +83,7 @@ function ENT:Initialize()
 					xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 					xeno:AddFlags(FL_NOTARGET)
 					xeno:SetMaxYawSpeed(0)
+					xeno.CanSetGroundAngle = false
 					xeno.PoseParameterLooking_Names = {
 						pitch = {"head_pitch"},
 						yaw = {"head_yaw"},
@@ -159,6 +161,7 @@ function ENT:OnDeviceEffected(rc,efType)
 			xeno:SetOwner(self)
 			xeno:SetParent(NULL)
 			xeno:VJ_ACT_PLAYACTIVITY("Constraints_Release_Agressive",true,false,false,0,{OnFinish=function()
+				xeno.CanSetGroundAngle = true
 				xeno:SetState()
 				xeno:RemoveFlags(FL_NOTARGET)
 				xeno:SetMaxYawSpeed(xeno.TurningSpeed)
