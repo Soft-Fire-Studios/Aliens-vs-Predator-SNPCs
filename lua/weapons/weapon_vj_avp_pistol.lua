@@ -32,6 +32,8 @@ sound.Add({
 	level = 65,
 })
 
+SWEP.DeploySound = {"cpthazama/avp/shared/marine_weapon_draw_with_kit_03.ogg"}
+
 SWEP.PrintName					= "VP78 Pistol"
 SWEP.ViewModel					= "models/cpthazama/avp/weapons/hud_pistol.mdl"
 SWEP.WorldModel					= "models/cpthazama/avp/weapons/pistol.mdl"

@@ -1041,11 +1041,13 @@ end
 function ENT:UseStimpack()
 	if self.InFatality or self.DoingFatality or self.VJ_AVP_IsTech or self:IsBusy() then return end
 	self:SetBodygroup(self:FindBodygroupByName("stimpack"),1)
-	self:PlayAnimation("vjges_ohwa_pistol_stim",true,false,false,0,{OnFinish=function(interrupted,anim)
+	self:PlayAnimation("vjges_" .. (self.AnimationTranslations[AVP_ANIM_STIMPACK] or "ohwa_pistol_stim"),true,false,false,0,{OnFinish=function(interrupted,anim)
 		self:SetBodygroup(self:FindBodygroupByName("stimpack"),0)
 		if self.LastActivity != anim then return end
 		self:SetHealth(self:GetMaxHealth())
+		VJ.EmitSound(self,"cpthazama/avp/humans/marine_stim_inject_01.ogg",70)
 	end})
+	VJ.EmitSound(self,"cpthazama/avp/humans/marine_stim_open_01.ogg",70)
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1162,6 +1164,7 @@ function ENT:SetAnimationTranslations(hType)
 	if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
 		self.AnimModelSet = VJ.ANIM_SET_NONE
 	end
+	self:ClearPoseParameters()
 	self.AnimationTranslations[ACT_COWER] 								= {toAct(self, "civilian_nwa_Alert_idle01"),toAct(self, "nwa_Cower1"),toAct(self, "nwa_stand_alert_PanicA"),toAct(self, "nwa_panic_idle")}
 	self.Weapon_AimTurnDiff = 0.74
 
@@ -1532,6 +1535,10 @@ function ENT:OnBleed(dmginfo,hitgroup)
 			if interrupted then return end
 			self:SetState()
 		end})
+		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK,dur *0.85)
+		-- self.NextChaseTime = CurTime() +dur
+		-- self.NextIdleTime = CurTime() +dur
+		-- self.AnimLockTime = CurTime() +dur
 		self.NextKnockdownT = CurTime() +(dur *0.5)
 		self.NextDamageAllyResponseT = CurTime() +(dur *0.8)
 	end

@@ -15,6 +15,8 @@ SWEP.ViewModel					= ""
 SWEP.WorldModel					= ""
 SWEP.HoldType 					= "ar2"
 
+SWEP.DeploySound = {"cpthazama/avp/shared/marine_weapon_draw_with_kit_01.ogg"}
+
 SWEP.PrimaryEffects_MuzzleParticles = {"vj_avp_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main"}
 -- SWEP.PrimaryEffects_MuzzleParticles = {"vj_muzzle_main","vj_avp_wep_rifle_muzzle"}

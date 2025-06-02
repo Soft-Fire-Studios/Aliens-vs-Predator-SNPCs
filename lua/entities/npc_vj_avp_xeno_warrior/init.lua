@@ -1463,6 +1463,20 @@ local sdTailMiss = {
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_5.ogg",
 	"cpthazama/avp/weapons/alien/tail/alien_tailswipe_tp_6.ogg",
 }
+local fatalitySounds = {
+	["SoundTbl_Hiss"] = function(self)
+		return VJ.PICK("cpthazama/avp/xeno/alien/vocals/alien_hiss_short_01.ogg","cpthazama/avp/xeno/alien/vocals/alien_hiss_short_02.ogg")
+	end,
+	["SoundTbl_Scream"] = function(self)
+		return self.SoundTbl_Alert
+	end,
+	["SoundTbl_Pain"] = function(self)
+		return self.SoundTbl_Pain
+	end,
+	["SoundTbl_Death"] = function(self)
+		return self.SoundTbl_Death
+	end,
+}
 
 local string_StartWith = string.StartWith
 local string_Replace = string.Replace
@@ -1657,11 +1671,47 @@ function ENT:OnInput(key,activator,caller,data)
 		if evType == "sfx" then
 			VJ.EmitSound(ent,value,70)
 		elseif evType == "vo" then
-			VJ.CreateSound(ent,value,75)
+			local tblVal = fatalitySounds[value]
+			if tblVal && type(tblVal) == "function" then
+				tblVal = tblVal(self)
+			end
+			VJ.CreateSound(ent,tblVal or value,75)
 		elseif evType == "decap" then
 			if value == "head" then
 				ent:SetBodygroup(ent:FindBodygroupByName("head"),2)
 				ent:SetBodygroup(ent:FindBodygroupByName("mask"),1)
+			elseif value == "bite" then
+				ent:SetBodygroup(ent:FindBodygroupByName("head"),1)
+				ent:SetBodygroup(ent:FindBodygroupByName("mask"),0)
+			end
+		elseif evType == "blood" then
+			if value == "face" or value == "neck" then
+				local bone = ent:LookupBone("Jaw")
+				if !bone then
+					bone = ent:LookupBone("ValveBiped.Bip01_Head1")
+				end
+				if bone then
+					local pos, ang = ent:GetBonePosition(bone)
+					ParticleEffect(ent.BloodParticle && VJ.PICK(ent.BloodParticle) or "blood_impact_red_01", pos, ang)
+				end
+			elseif value == "head" then
+				local bone = ent:LookupBone("Bip01 Head")
+				if !bone then
+					bone = ent:LookupBone("ValveBiped.Bip01_Head1")
+				end
+				if bone then
+					local pos, ang = ent:GetBonePosition(bone)
+					ParticleEffect(ent.BloodParticle && VJ.PICK(ent.BloodParticle) or "blood_impact_red_01", pos, ang)
+				end
+			elseif value == "chest" then
+				local bone = ent:LookupBone("Bip01 Spine2")
+				if !bone then
+					bone = ent:LookupBone("ValveBiped.Bip01_Spine4")
+				end
+				if bone then
+					local pos, ang = ent:GetBonePosition(bone)
+					ParticleEffect(ent.BloodParticle && VJ.PICK(ent.BloodParticle) or "blood_impact_red_01", pos, ang)
+				end
 			end
 		end
 	end

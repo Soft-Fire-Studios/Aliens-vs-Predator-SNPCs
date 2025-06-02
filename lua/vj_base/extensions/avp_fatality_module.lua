@@ -200,6 +200,9 @@ function ENT:DoFatality(ent,inFront)
 		else
 			local counter = math.random(1,!inFront && 200 or 100) <= (100 *(ent:Health() /ent:GetMaxHealth()))
 			-- print(counter && "Is a counter fatality!" or "Is a normal fatality!")
+			if !counter && ent:IsNPC() then
+				ent:AddFlags(FL_NOTARGET)
+			end
 			if ent.OnFatality then
 				ent:OnFatality(self,inFront,counter,fType)
 			end

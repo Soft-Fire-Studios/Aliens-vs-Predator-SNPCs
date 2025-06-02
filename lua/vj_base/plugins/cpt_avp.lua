@@ -27,6 +27,68 @@ VJ.AddClientConVar("vj_avp_moviepred", 0, "Enable AVP movie sounds for Predator 
 VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
 VJ_AVP_CVAR_FLASHLIGHT = GetConVar("vj_avp_flashlight"):GetBool()
 
+sound.Add({
+	name = "VJ.AVP.Fatality.NeckSnap",
+	sound = {
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_01.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_02.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_03.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_04.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_05.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_neck_break_06.ogg",
+	},
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
+sound.Add({
+	name = "VJ.AVP.Fatality.HeadDecap",
+	sound = {
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_01.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_02.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_03.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_04.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_05.ogg",
+		"cpthazama/avp/humans/human/impacts/blood/trophy_kill_gore_06.ogg",
+	},
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
+sound.Add({
+	name = "VJ.AVP.Fatality.TailStab",
+	sound = "cpthazama/avp/weapons/alien/tail/alien_killmove_cheststabgore_in.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
+sound.Add({
+	name = "VJ.AVP.Fatality.TailRetract",
+	sound = "cpthazama/avp/weapons/alien/tail/alien_killmove_cheststabgore_out.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
+sound.Add({
+	name = "VJ.AVP.Fatality.TailSlice",
+	sound = "cpthazama/avp/weapons/alien/claws/claw_impact_tp/alien_clawhit_slice_tp_7.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
+sound.Add({
+	name = "VJ.AVP.Fatality.HeadBite",
+	sound = "cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_01.ogg",
+	channel = CHAN_STATIC,
+	volume = 1,
+	level = 75,
+})
+
 local vCat = "Aliens vs Predator"
 local vCat_M = "Aliens vs Predator - Humans"
 local vCat_P = "Aliens vs Predator - Predators"

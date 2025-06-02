@@ -20,7 +20,7 @@ function ENT:GenderInit(gender)
 	return "models/cpthazama/avp/marines/scientist.mdl"
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:ColonistInitialize()
+function ENT:OnInit()
 	self.BecomeEnemyToPlayer = 2
 	self.SoundTbl_Idle = {}
 	self.SoundTbl_Alert = {}

@@ -36,6 +36,8 @@ SWEP.WorldModel					= "models/cpthazama/avp/weapons/w_smartgun.mdl"
 SWEP.HoldType 					= "crossbow"
 SWEP.Spawnable					= true
 
+SWEP.DeploySound = {"cpthazama/avp/shared/marine_weapon_draw_with_kit_02.ogg"}
+
 SWEP.WorldModel_UseCustomPosition = true
 SWEP.WorldModel_CustomPositionAngle = Vector(0, 0, 180)
 SWEP.WorldModel_CustomPositionOrigin = Vector(-1, 0, 0.3)
