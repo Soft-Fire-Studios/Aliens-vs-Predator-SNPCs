@@ -21,7 +21,7 @@ VJ.AddConVar("vj_avp_kseries_ally",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 VJ.AddClientConVar("vj_avp_hud_predinfo", 1, "Enable Predator HUD info display?")
-VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Pinging?")
+VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Survival Music?")
 VJ.AddClientConVar("vj_avp_moviepred", 0, "Enable AVP movie sounds for Predator Vision")
 
 VJ_AVP_CVAR_XENOSTEALTH = GetConVar("vj_avp_xenostealth"):GetBool()
@@ -459,7 +459,10 @@ if SERVER then
 							self.NextInvestigationMove = CurTime() +0.3
 						elseif self.IsFollowing == false && math.random(1,15) == 1 && perDist <= 0.35 then
 							self:SetLastPosition(closestEnt:GetPos())
-							self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH")
+							self:SCHEDULE_GOTO_POSITION("TASK_WALK_PATH", function(x)
+								x.CanShootWhenMoving = true
+								x.TurnData = {Type = VJ.FACE_ENEMY}
+							end)
 							self.NextInvestigationMove = CurTime() +10
 						end
 						self:OnInvestigate(v)

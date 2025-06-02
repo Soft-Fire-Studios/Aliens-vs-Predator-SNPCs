@@ -110,6 +110,7 @@ function ENT:Think()
 	local curTime = CurTime()
 
 	if IsValid(self.Xeno) then
+		self.Xeno.RoyalMorphT = CurTime() +600
 		self:ResetSequence(self:LookupSequence("idle"))
 	end
 	self:NextThink(CurTime())

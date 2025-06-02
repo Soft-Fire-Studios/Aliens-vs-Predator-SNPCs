@@ -1,71 +1,90 @@
-Predator
-  - LMB = Light Attack
-  - RMB = Heavy Attack
-  - LMB + Shift = Leap Attack
-  - LMB + RMB (Hold) = Block
-  - E = Use / Fatality (or Distract if looking at an enemy)
-  - R = Toggle Cloak
-  - F = Toggle Vision Mode (Normal, Thermal, Xenomorph, Synthetic)
-  - G = Use Medicomp
-  - 1,2,3,4,5 = Select Equipment
-  - Ctrl (Can be held for equipment 1) = Use Equipment
-  - Shift (Hold) = Prepare Long Jump
-  - Shift + Space = Long Jump
+[b]Predator[/b]
+[list]
+[*] LMB = Light Attack
+[*] RMB = Heavy Attack
+[*] LMB + Shift = Leap Attack
+[*] LMB + RMB (Hold) = Block
+[*] E = Use / Fatality (or Distract if looking at an enemy)
+[*] R = Toggle Cloak
+[*] F = Toggle Vision Mode (Normal, Thermal, Xenomorph, Synthetic)
+[*] G = Use Medicomp
+[*] 1,2,3,4,5 = Select Equipment
+[*] Ctrl (Can be held for equipment 1) = Use Equipment
+[*] Shift (Hold) = Prepare Long Jump
+[*] Shift + Space = Long Jump
+[/list]
 
-Xenomorph
+[b]Xenomorph[/b]
+[list]
+[list]
   (Crouching)
-  - LMB = Light Attack
-  - RMB = Heavy Attack / Spit Attack
-  - LMB + Shift = Leap Attack
-  - Move + LMB = Light Attack Combo
-  - Move + RMB = Jump Attack
-  - LMB + RMB (Hold) = Block
-  - E = Use / Fatality (or Distract if looking at an enemy)
-  - Space = Long Jump (Will mount to surface if its a wall)
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
-  - Ctrl = Stand
+[*] LMB = Light Attack
+[*] RMB = Heavy Attack / Spit Attack
+[*] LMB + Shift = Leap Attack
+[*] Move + LMB = Light Attack Combo
+[*] Move + RMB = Jump Attack
+[*] LMB + RMB (Hold) = Block
+[*] E = Use / Fatality (or Distract if looking at an enemy)
+[*] Space = Long Jump (Will mount to surface if its a wall)
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[*] Ctrl = Stand
+[/list]
 
   (Standing)
-  - LMB = Light Attack
-  - RMB = Heavy Attack / Spit Attack
-  - LMB + Shift = Leap Attack
-  - Move + LMB = Light Attack Combo
-  - LMB + RMB (Hold) = Block
-  - E = Use / Fatality (or Distract if looking at an enemy)
-  - Space = Long Jump (Will mount to surface if its a wall)
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
-  - Ctrl = Crouch
+[*] LMB = Light Attack
+[*] RMB = Heavy Attack / Spit Attack
+[*] LMB + Shift = Leap Attack
+[*] Move + LMB = Light Attack Combo
+[*] LMB + RMB (Hold) = Block
+[*] E = Use / Fatality (or Distract if looking at an enemy)
+[*] Space = Long Jump (Will mount to surface if its a wall)
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[*] Ctrl = Crouch
+[/list]
 
   (Facehugger)
-  - LMB = Grapple
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[list]
+[*] LMB = Grapple
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[/list]
 
   (Chestburster)
-  - LMB = Bite
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[list]
+[*] LMB = Bite
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[/list]
 
   (Predalien)
-  - LMB = Light Attack
-  - RMB = Slam Attack
-  - LMB + Shift = Leap Attack
-  - Space = Long Jump
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[list]
+[*] LMB = Light Attack
+[*] RMB = Slam Attack
+[*] LMB + Shift = Leap Attack
+[*] Space = Long Jump
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[/list]
 
   (Praetorian)
-  - Same as Xenomorph
-  - B = Call for reinforcements
+[list]
+[*] Same as Xenomorph
+[*] B = Call for reinforcements
+[/list]
 
   (Queen/Matriarch)
-  - LMB = Heavy Attack
-  - RMB = Spit Attack
-  - Shift = Charge Attack
-  - Space = Toggle Egg Sack
-  - F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[list]
+[*] LMB = Heavy Attack
+[*] RMB = Spit Attack
+[*] Shift = Charge Attack
+[*] Space = Toggle Egg Sack
+[*] F = Toggle Vision Mode (Normal, Inverted Night Vision)
+[/list]
+[/list]
 
-Human
-  - LMB = Melee Attack
-  - RMB = Fire Weapon
-  - LMB + RMB (Hold) = Block
-  - R = Reload Weapon
-  - F = Toggle Flashlight (Throw flare is no flashlight available)
-  - G = Use Stimpack
+[b]Human[/b]
+[list]
+[*] LMB = Melee Attack
+[*] RMB = Fire Weapon
+[*] LMB + RMB (Hold) = Block
+[*] R = Reload Weapon
+[*] F = Toggle Flashlight (Throw flare is no flashlight available)
+[*] G = Use Stimpack
+[/list]

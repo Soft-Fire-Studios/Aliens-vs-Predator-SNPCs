@@ -107,7 +107,7 @@ function SWEP:OnInit()
 
 		local render_GetLightColor = render.GetLightColor
 		hook.Add("RenderScreenspaceEffects",self,function(self)
-			if self:GetZoomed() then
+			if self:GetZoomed() && LocalPlayer() == self:GetOwner() then
 				local hitPos = self:GetOwner():GetEyeTrace().HitPos +self:GetOwner():GetAimVector() *-10
 				local lightLevel = render_GetLightColor(hitPos):Length()
 				local contrast = lightLevel < 0.2 && lightLevel *-3 or lightLevel *0.1
