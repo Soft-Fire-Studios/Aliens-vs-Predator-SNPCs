@@ -178,7 +178,7 @@ function SWEP:OnInit()
 		end
 
 		hook.Add("HUDPaint",self,function(self)
-			if self:GetZoomed() then
+			if self:GetZoomed() && LocalPlayer() == self:GetOwner() then
 				DrawIcon(matScope,0,0,138,138)
 				DrawIcon_D(matCrosshair,0.35,0.125,60,60)
 				local lightLevel = render_GetLightColor(self:GetOwner():EyePos()):Length()

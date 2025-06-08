@@ -658,6 +658,13 @@ if CLIENT then
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
 	local function ScreenPos(x,y)
+		if GetConVar("vj_avp_hud_ultrawide"):GetBool() then
+			local w, h = ScrW(), ScrH()
+			local pos = {}
+			pos.x = w * 0.5 + w * x * 0.009
+			pos.y = h * 0.5 + w * y * 0.009 
+			return pos
+		end
 		local w = ScrW()
 		local h = ScrH()
 		local pos = {}
@@ -668,6 +675,13 @@ if CLIENT then
 	end
 
 	local function ScreenScale(x,y)
+		if GetConVar("vj_avp_hud_ultrawide"):GetBool() then
+			local w, h = ScrW(), ScrH()
+			local size = {}
+			size.x = w * x * 0.009
+			size.y = w * y * 0.009
+			return size
+		end
 		local w = ScrW()
 		local h = ScrH()
 		local size = {}
