@@ -428,8 +428,8 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Male_Marine_02/death_mar02_04.ogg",
 			}
 		end
-	else -- Female
-		if vo == 1 then
+	elseif gender == 2 then -- Female
+		if VO == 1 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_01.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_02.ogg",
@@ -590,7 +590,7 @@ function ENT:MarineInitialize(gender)
 				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_03.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_01/death_fem01_04.ogg",
 			}
-		elseif vo == 2 then
+		elseif VO == 2 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_06.ogg",
 				"cpthazama/avp/humans/vocals/Female_Marine_02/AGGRESSIVE_TO_ALERT_FEM02_07.ogg",

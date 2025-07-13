@@ -123,6 +123,8 @@ function ENT:CustomOnInitialize()
 	self.NextCarrierT = 0
 	self.StalkingAITime = 0
 
+	self:CapabilitiesRemove(bit.bor(CAP_OPEN_DOORS,CAP_AUTO_DOORS))
+
 	self:SetCollisionBounds(Vector(5,5,7),Vector(-5,-5,0))
 	self:SetPhysicsDamageScale(0)
 

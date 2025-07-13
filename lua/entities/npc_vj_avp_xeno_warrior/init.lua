@@ -2444,7 +2444,7 @@ function ENT:OnThinkActive()
 					if v.HasEnemyMemory && v:HasEnemyMemory(self) then
 						v:ClearEnemyMemory(self)
 					end
-					if v.GetEnemy && v:GetEnemy() == self then
+					if v.GetEnemy && v:GetEnemy() == self && v.SetEnemy then
 						v:SetEnemy(nil)
 					end
 				end

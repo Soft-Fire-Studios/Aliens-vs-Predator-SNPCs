@@ -2525,7 +2525,7 @@ function ENT:OnThinkActive()
 							-- v:MarkEnemyAsEluded(self)
 							-- v:UpdateEnemyMemory(self,self:GetPos() +VectorRand() *500)
 						end
-						if v.GetEnemy && v:GetEnemy() == self then
+						if v.GetEnemy && v:GetEnemy() == self && v.SetEnemy then
 							v:SetEnemy(nil)
 						end
 					end
