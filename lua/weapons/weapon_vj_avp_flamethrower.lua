@@ -78,6 +78,8 @@ SWEP.ViewModelAdjust = {
 	Pos = {Right = 0,Forward = 0,Up = 0},
 	Ang = {Right = 0,Up = 0,Forward = 0}
 }
+
+SWEP.Flames = {}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local IsProp = VJ.IsProp
 --
@@ -85,6 +87,33 @@ function SWEP:OnShoot()
 	local owner = self:GetOwner()
 	sound.EmitHint(SOUND_DANGER, owner:GetPos() +owner:GetAimVector() *(self.Primary.AccurateRange /2), self.Primary.AccurateRange *2, 0.2, owner)
 	VJ.ApplyRadiusDamage(owner,self,(owner:GetPos() +(self:GetForward() *owner:OBBMaxs().y)),self.Primary.AccurateRange,self.Primary.Damage,DMG_BURN,true,false,{UseConeDegree=self.Primary.Cone,UseConeDirection=owner:GetAimVector()}, function(ent) if !ent:IsOnFire() && (ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() or IsProp(ent)) then ent:Ignite(10) end end)
+	local tr = util.TraceLine({
+		start = owner:EyePos(),
+		endpos = owner:EyePos() +owner:GetAimVector() *self.Primary.AccurateRange,
+		filter = {owner,self},
+		mask = MASK_SOLID_BRUSHONLY
+	})
+	if tr.HitWorld then
+		if #self.Flames >= 25 then
+			local flame = self.Flames[1]
+			SafeRemoveEntity(flame)
+			table.remove(self.Flames, 1)
+		end
+		local flame = ents.Create("env_fire")
+		flame:SetPos(tr.HitPos +tr.HitNormal *0.1)
+		flame:SetKeyValue("health", "5")
+		flame:SetKeyValue("firesize", "5")
+		flame:SetKeyValue("fireattack", "1")
+		flame:SetKeyValue("spawnflags", "132")
+		flame:SetKeyValue("firetype", "0")
+		flame:SetKeyValue("firespread", "1")
+		flame:SetKeyValue("damagescale", "2")
+        flame:Spawn()
+        flame:Activate()
+        flame:Fire("StartFire", "", 0)
+		SafeRemoveEntityDelayed(flame, 5)
+		self.Flames[#self.Flames +1] = flame
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:AddVars()

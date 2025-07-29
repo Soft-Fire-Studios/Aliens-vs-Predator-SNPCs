@@ -752,7 +752,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInvestigate(ent)
 	self.CurrentEmote = VJ_AVP_EXP_ALERT
-	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,4) == 1 then
+	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && !self.Alerted && math.random(1,4) == 1 then
 		-- print("OnInvestigate")
 		self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_FIDGET],self.AnimationTranslations[AVP_ANIM_WHATSTHAT]}),true,false,true,0,{OnFinish=function(interrupted,anim)
 			if interrupted then return end

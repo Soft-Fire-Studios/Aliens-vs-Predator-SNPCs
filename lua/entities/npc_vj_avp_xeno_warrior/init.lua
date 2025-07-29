@@ -1720,6 +1720,17 @@ function ENT:OnInput(key,activator,caller,data)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local metallicMats = {
+	[MAT_CONCRETE]=true,
+	[MAT_CLIP]=true,
+	[MAT_METAL]=true,
+	[MAT_VENT]=true,
+	[MAT_COMPUTER]=true,
+	[MAT_GLASS]=true,
+	[MAT_GRATE]=true,
+	[MAT_TILE]=true,
+}
+--
 function ENT:RunDamageCode(mult)
 	mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
@@ -1741,6 +1752,26 @@ function ENT:RunDamageCode(mult)
 		end
 		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or isProp or ent:GetClass() == "prop_ragdoll"
 	end)
+
+	if #hitEnts <= 0 then
+		local atkEnt = IsValid(self.VJ_TheController) && self.VJ_TheController or self
+		local tr = util.TraceLine({
+			start = self:EyePos(),
+			endpos = self:EyePos() +atkEnt:GetAimVector() *self.AttackDamageDistance,
+			filter = {self,atkEnt,self.VJ_TheControllerBullseye},
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if tr.Hit && metallicMats[tr.MatType] then
+			local effectdata = EffectData()
+			effectdata:SetOrigin(tr.HitPos)
+			effectdata:SetNormal(tr.HitNormal)
+			effectdata:SetScale(math.Rand(1,2))
+			effectdata:SetMagnitude(math.Rand(1,3))
+			effectdata:SetRadius(math.Rand(1,2))
+			util.Effect("Sparks",effectdata,true,true)
+			sound.Play("cpthazama/avp/weapons/alien/claws/claw_impact_tp/alien_clawhit_metal_tp_2.ogg",tr.HitPos,75,math.random(94,104))
+		end
+	end
 	return hitEnts
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3118,6 +3149,13 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 		ent.VJ_AVP_CorpseHasBeenEaten = true
 		VJ.EmitSound(ent,"cpthazama/avp/humans/human/special/decap_blood_sound_05.ogg",75)
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+local bAND = bit.band
+local GIB_DAMAGE_MASK = bit.bor(DMG_ALWAYSGIB, DMG_ENERGYBEAM, DMG_BLAST, DMG_VEHICLE, DMG_CRUSH, DMG_DISSOLVE, DMG_SLOWBURN, DMG_PHYSGUN, DMG_PLASMA, DMG_SONIC)
+--
+function ENT:IsGibDamage(dmgType)
+	return bAND(dmgType, DMG_NEVERGIB) == 0 && bAND(dmgType, GIB_DAMAGE_MASK) != 0 && (bAND(dmgType, DMG_ALWAYSGIB) == 0 || bAND(dmgType, DMG_BULLET) == 0) || bAND(dmgType, DMG_BURN) != 0 && self:IsOnFire()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local colorYellow = VJ.Color2Byte(Color(255, 221, 35))

@@ -1430,6 +1430,17 @@ function ENT:AttackCode()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local metallicMats = {
+	[MAT_CONCRETE]=true,
+	[MAT_CLIP]=true,
+	[MAT_METAL]=true,
+	[MAT_VENT]=true,
+	[MAT_COMPUTER]=true,
+	[MAT_GLASS]=true,
+	[MAT_GRATE]=true,
+	[MAT_TILE]=true,
+}
+--
 function ENT:RunDamageCode(mult)
 	mult = mult or 1
 	mult = mult *(self.AttackDamageMultiplier or 1)
@@ -1440,6 +1451,25 @@ function ENT:RunDamageCode(mult)
 
 	if #hitEnts > 0 then
 		self:OnHit(hitEnts)
+	else
+		local atkEnt = IsValid(self.VJ_TheController) && self.VJ_TheController or self
+		local tr = util.TraceLine({
+			start = self:EyePos(),
+			endpos = self:EyePos() +atkEnt:GetAimVector() *self.AttackDamageDistance,
+			filter = {self,atkEnt,self.VJ_TheControllerBullseye},
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if tr.Hit && metallicMats[tr.MatType] then
+			local effectdata = EffectData()
+			effectdata:SetOrigin(tr.HitPos)
+			effectdata:SetNormal(tr.HitNormal)
+			effectdata:SetScale(math.Rand(1,2))
+			effectdata:SetMagnitude(math.Rand(1,3))
+			effectdata:SetRadius(math.Rand(1,2))
+			util.Effect("Sparks",effectdata,true,true)
+			sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",tr.HitPos,75,math.random(94,104))
+			-- sound.Play("cpthazama/avp/weapons/alien/claws/claw_impact_tp/alien_clawhit_metal_tp_2.ogg",tr.HitPos,75,math.random(94,104))
+		end
 	end
 	return hitEnts
 end
