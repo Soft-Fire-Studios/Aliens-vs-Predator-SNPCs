@@ -141,12 +141,14 @@ function ENT:DoKnockdownAnimation(dmgDir)
 			self:PlayAnim("Predalien_Hybrid_getup",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then return end
 				self:SetState()
+				self:SCHEDULE_IDLE_STAND()
 			end})
 		end})
 	else
 		self:PlayAnim("Predalien_Hybrid_hit_by_mine",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
 		end})
 	end
 end
@@ -351,6 +353,7 @@ function ENT:DoLeapAttack()
 			self:PlayAnim((#dmgcode <= 0 && tr.HitWorld) && "Predalien_Hybrid_leap_attack_hit_wall" or "Predalien_Hybrid_leap_attack_miss",true,false,false,0,{OnFinish=function(interrupted)
 				if interrupted then return end
 				self:SetState()
+				self:SCHEDULE_IDLE_STAND()
 			end})
 		end})
 	end})
@@ -464,6 +467,7 @@ function ENT:LongJumpCode(gotoPos,atk)
 	end
 	self:SetTurnTarget(self.LongJumpPos, 1)
 	self:PlayAnim(anim,true,false,false)
+	self.JumpT = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local vec0 = Vector(0,0,0)
@@ -490,6 +494,15 @@ function ENT:OnThink2()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:JumpVelocityCode()
+	self.JumpT = self.JumpT +0.1
+	if self.JumpT >= 4 then -- Fallback for that weird bug where they get stucking in the air
+		self.LongJumping = false
+		self.LongJumpPos = nil
+		self:SetMoveType(MOVETYPE_STEP)
+		self:SetState()
+		self:SCHEDULE_IDLE_STAND()
+		return
+	end
 	local currentPos = self:GetPos()
 	if self.LongJumpAttacking then
 		local targetPos = self.LongJumpPos +self:GetUp() *20

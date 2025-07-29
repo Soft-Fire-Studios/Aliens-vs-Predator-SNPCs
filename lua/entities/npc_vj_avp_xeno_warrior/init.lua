@@ -497,6 +497,7 @@ local defCrawlingBounds = Vector(13,13,34)
 local table_insert = table.insert
 --
 function ENT:Init()
+	VJ_AVP_NodegraphChecker(self)
 	self.CurrentSet = 1 -- Crawl | 2 = Stand
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.LastSet = 0
@@ -1058,6 +1059,7 @@ end
 function ENT:SapBattery(ent)
 	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
 		self.BatteryEnt = nil
+		self:SCHEDULE_IDLE_STAND()
 	end})
 	self:SetTurnTarget(ent,1,true)
 	self.BatteryEnt = ent
@@ -1068,6 +1070,7 @@ end
 function ENT:DestroyConsole(ent)
 	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
 		self.ConsoleEnt = nil
+		self:SCHEDULE_IDLE_STAND()
 	end})
 	self:SetTurnTarget(ent,1,true)
 	self.ConsoleEnt = ent
@@ -1876,6 +1879,7 @@ function ENT:DoLeapAttack()
 		self:PlayAnim(#dmgcode <= 0 && "leap_attack_miss" or "leap_long_land",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
 		end})
 	end})
 	self:SetTurnTarget(targetPos,0.25,true)
@@ -2726,6 +2730,7 @@ function ENT:OnThinkActive()
 				local _,dur = xeno:PlayAnim("Alien_Queen_fidget_roar",true,false,false,0,{OnFinish=function(interrupted)
 					if interrupted then return end
 					xeno:SetState()
+					xeno:SCHEDULE_IDLE_STAND()
 				end})
 				xeno.NextLookForBirthT = CurTime() +dur +5
 				xeno.NextSpecialEggCheckT = CurTime() +dur +5
@@ -2765,6 +2770,7 @@ function ENT:OnThinkActive()
 						xeno:PlayAnim("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
 							if interrupted then xeno:SetState() return end
 							xeno:SetState()
+							xeno:SCHEDULE_IDLE_STAND()
 						end})
 					end})
 					undo.ReplaceEntity(self,xeno)
@@ -2930,7 +2936,11 @@ function ENT:OnBleed(dmginfo,hitgroup)
 	end
 
 	if !self.IsCrawler && self.CanDodge && !self:IsBusy() && math.random(1,8) == 1 then
-		self:PlayAnim({"dodge_left","dodge_right"},true,false,true)
+		self:PlayAnim({"dodge_left","dodge_right"},true,false,true,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
+		end})
 	end
 
 	local decap = self.HitGroups[hitgroup]
@@ -2991,6 +3001,7 @@ end
 function ENT:OnFlinch(dmginfo, hitgroup, status)
 	if status == "Execute" then
 		self:SetState()
+		self:SCHEDULE_IDLE_STAND()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2998,6 +3009,7 @@ function ENT:DoKnockdownAnimation(dmgDir)
 	local _,dir = self:PlayAnim(dmgDir == 4 && "standing_knockdown_forward" or "standing_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 		if interrupted then return end
 		self:SetState()
+		self:SCHEDULE_IDLE_STAND()
 	end})
 	self.NextKnockdownT = CurTime() +(dir *0.5)
 end

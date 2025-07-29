@@ -195,6 +195,10 @@ function SWEP:OnPrimaryAttack(status, statusData)
 	
 		if CLIENT then return end
 	
+		local owner = self:GetOwner()
+		if owner.VJ_AVP_Marine then
+			owner:PlayAnim(owner.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1], false, false, false, 0, {AlwaysUseGesture = true})
+		end
 		self:SetLastFire(CurTime())
 	
 		if math.random(1,2) == 1 then

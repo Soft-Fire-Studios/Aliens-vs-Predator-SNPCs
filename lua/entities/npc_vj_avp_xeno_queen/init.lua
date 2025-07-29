@@ -202,6 +202,7 @@ function ENT:OnThink2()
 		self.NextLookForBirthT = curTime +60
 		if self.InBirth && self.EnemyData.DistanceNearest <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
 			self.InBirth = false
+			self:StopParticles()
 			for _,v in pairs(VJ_AVP_XENOS) do
 				if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
 					v:Follow(self)
@@ -213,6 +214,7 @@ function ENT:OnThink2()
 			self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
 			self.AnimTranslations[ACT_IDLE] = ACT_IDLE
 			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
 			SafeRemoveEntity(self.EggSack)
 		end
 	end
@@ -300,6 +302,7 @@ function ENT:OnThink2()
 		end
 	elseif self.InBirth then
 		if !IsValid(self.EggSack) then
+			ParticleEffectAttach("vj_avp_xeno_drool", PATTACH_POINT_FOLLOW, self, self:LookupAttachment("eyes"))
 			local eggsack = ents.Create("prop_vj_animatable")
 			eggsack:SetModel("models/cpthazama/avp/xeno/queen_eggsack.mdl")
 			eggsack:SetPos(self:GetPos() +self:GetForward() *18 +self:GetUp() *-10)
@@ -334,8 +337,10 @@ function ENT:OnThink2()
 				self:PlayAnim("Alien_Queen_eggsack_exit",true,false,false)
 				self:PlaySound({"^cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg"},120)
 				self.InBirth = false
+				self:StopParticles()
 				self.AnimTranslations[ACT_IDLE] = ACT_IDLE
 				self:SetState()
+				self:SCHEDULE_IDLE_STAND()
 				for _,v in pairs(VJ_AVP_XENOS) do
 					if IsValid(v) && v != self && v:CheckRelationship(self) == D_LI then
 						v:Follow(self)

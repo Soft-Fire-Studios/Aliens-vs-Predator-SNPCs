@@ -116,6 +116,7 @@ end
 local table_insert = table.insert
 --
 function ENT:CustomOnInitialize()
+	VJ_AVP_NodegraphChecker(self)
 	self.IsLatched = false
 	self.LatchVictim = nil
 	self.Carrier = nil

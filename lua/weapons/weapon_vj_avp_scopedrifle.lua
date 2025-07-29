@@ -31,7 +31,7 @@ SWEP.Primary.Ammo				= "SniperRound"
 SWEP.Primary.Delay				= 60 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
 SWEP.Primary.Recoil				= 5
-SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 3.5 or 0.9)
+SWEP.NPC_NextPrimaryFire 		= 2
 
 SWEP.AnimTbl_PrimaryFire 		= {ACT_VM_PRIMARYATTACK}
 SWEP.AnimTbl_SecondaryFire 		= false

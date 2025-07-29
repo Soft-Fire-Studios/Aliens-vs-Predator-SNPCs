@@ -606,6 +606,7 @@ local bounds = Vector(14,14,75)
 local defArmor = Vector(1,1,1)
 --
 function ENT:Init()
+	VJ_AVP_NodegraphChecker(self)
 	self:SetVisionMode(0)
 	self:SetEquipment(1)
 	self:SetStimCount(5)
@@ -694,6 +695,7 @@ function ENT:Init()
 				self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
 					self.EnemyDetection = true
 					self:SetState()
+					self:SCHEDULE_IDLE_STAND()
 					self:RemoveFlags(FL_NOTARGET)
 					SafeRemoveEntity(predmobile)
 				end})
@@ -3060,12 +3062,13 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		-- self.Flinching = true
 		local _,dir = self:PlayAnimation(dmgDir == 4 && "predator_plasma_knockdown_forward" or "predator_plasma_knockdown_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then
-				print("Interrupted the knockdown animation, not resetting",self:GetSequenceName(self:GetSequence()))
+				-- print("Interrupted the knockdown animation, not resetting",self:GetSequenceName(self:GetSequence()))
 			-- if interrupted && self.NextFlinchT < CurTime() then
 				-- self.Flinching = false
 				return
 			end
 			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
 			-- self.Flinching = false
 			-- self.CanFlinch = true
 		end})
@@ -3077,6 +3080,7 @@ end
 function ENT:OnFlinch(dmginfo, hitgroup, status)
 	if status == "Execute" then
 		self:SetState()
+		self:SCHEDULE_IDLE_STAND()
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

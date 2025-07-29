@@ -41,6 +41,7 @@ function ENT:ResetFatality()
 	self:SetFatalityTarget(nil)
 	self:SetMoveType(MOVETYPE_STEP)
 	self:SetState()
+	self:SCHEDULE_IDLE_STAND()
 	self:SetMaxYawSpeed(self.TurningSpeed)
 	self.NextFatalityTime = CurTime() +3
 end
@@ -265,6 +266,7 @@ function ENT:DoFatality(ent,inFront)
 						self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
 							-- if int then return end
 							self:SetState()
+							self:SCHEDULE_IDLE_STAND()
 							self:ResetFatality()
 							if IsValid(ent) then
 								if ent.ResetFatality then
@@ -334,6 +336,7 @@ function ENT:DoFatality(ent,inFront)
 					self:PlayAnim(anim,true,false,true,0,{OnFinish=function(int)
 						-- if int then return end
 						self:SetState()
+						self:SCHEDULE_IDLE_STAND()
 						self:ResetFatality()
 						if IsValid(ent) then
 							if ent.ResetFatality then

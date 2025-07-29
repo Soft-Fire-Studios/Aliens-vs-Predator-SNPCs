@@ -55,7 +55,7 @@ SWEP.Primary.Ammo				= "BuckShot"
 SWEP.Primary.Delay				= 70 /SWEP.Primary.RPM
 SWEP.Primary.Cone				= (3 /SWEP.Primary.AccurateRange) *75
 SWEP.Primary.Recoil				= 8
-SWEP.NPC_NextPrimaryFire 		= SWEP.Primary.Delay *(SWEP.Primary.Automatic == false && 3.5 or 0.9)
+SWEP.NPC_NextPrimaryFire 		= 1.4
 
 SWEP.NPC_FiringDistanceScale = 0.25
 

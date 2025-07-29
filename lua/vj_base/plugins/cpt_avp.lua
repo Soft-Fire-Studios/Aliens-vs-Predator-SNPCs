@@ -380,6 +380,20 @@ if SERVER then
 	end
 	concommand.Add("vj_avp_patchround",VJ_AVP_PatchRound)
 
+	function VJ_AVP_NodegraphChecker(self)
+		if ai.GetNodeCount() <= 0 then
+			local creator = IsValid(self) && self:GetCreator()
+			if IsValid(creator) && creator:IsPlayer() then
+				creator:ChatPrint("[WARNING] This map does not contain a nodegraph! Much of the AI functionality will be broken if used on this map!")
+			else
+				for _,v in ipairs(player.GetAll()) do
+					v:ChatPrint("[WARNING] This map does not contain a nodegraph! Much of the AI functionality will be broken if used on this map!")
+				end
+			end
+			print("[AVP] If you're seeing this message, this is part of my new node detection/warning system. I see too many people using my mods on maps that don't have a nodegraph, which ends up breaking my mods and making them blame me for it. Please play on a noded map or node it yourself with the Nodegraph Editor+ Tool!")
+		end
+	end
+
 	VJ_AVP_MAX_EGGS = 50
 
 	local table_insert = table.insert
@@ -953,6 +967,7 @@ VJ.AddParticle("particles/vj_avp_android.pcf",{
 })
 VJ.AddParticle("particles/vj_avp_xenomorph.pcf",{
 	"vj_avp_xeno_blackgoo",
+	"vj_avp_xeno_drool",
 	"vj_avp_xeno_spit",
 	"vj_avp_xeno_spit_impact",
 	"vj_avp_xeno_queenmarker",

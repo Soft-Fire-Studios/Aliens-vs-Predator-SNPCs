@@ -752,16 +752,40 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInvestigate(ent)
 	self.CurrentEmote = VJ_AVP_EXP_ALERT
+	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,4) == 1 then
+		-- print("OnInvestigate")
+		self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_FIDGET],self.AnimationTranslations[AVP_ANIM_WHATSTHAT]}),true,false,true,0,{OnFinish=function(interrupted,anim)
+			if interrupted then return end
+			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
+		end})
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnResetEnemy()
 	self.CurrentEmote = VJ_AVP_EXP_DEFAULT
+	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,4) == 1 then
+		-- print("OnResetEnemy")
+		self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_NOPROBLEM],self.AnimationTranslations[AVP_ANIM_ITSOK]}),true,false,true,0,{OnFinish=function(interrupted,anim)
+			if interrupted then return end
+			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
+		end})
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAlert(ent)
 	self.CurrentEmote = VJ_AVP_EXP_COMBAT
 	if self.SoundTbl_Surprised && #self.SoundTbl_Surprised > 0 && VJ.GetNearestDistance(self, ent, true) <= 250 then
 		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
+		if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,2) == 1 then
+			-- print("OnAlert")
+			self:PlayAnim(self.AnimationTranslations[AVP_ANIM_OHSHIT],true,false,true,0,{OnFinish=function(interrupted,anim)
+				if interrupted then return end
+				self:SetState()
+				self:SCHEDULE_IDLE_STAND()
+			end})
+		end
 		-- self:PlayAnimation("ohwn_oh_shit",true,false,true)
 		return
 	end
@@ -785,6 +809,7 @@ end
 local toAct = VJ.SequenceToActivity
 --
 function ENT:Init()
+	VJ_AVP_NodegraphChecker(self)
 	if self.OnInit then
 		self:OnInit()
 	end
@@ -822,6 +847,12 @@ function ENT:Init()
 	if att > 0 && self.HasFlashlight then
 		self.CanUseFlashlight = true
 	end
+
+	-- timer.Simple(0.2,function()
+	-- 	if IsValid(self) then
+	-- 		self:PlayAnim(self.AnimationTranslations[AVP_ANIM_FIDGET],true,false,true)
+	-- 	end
+	-- end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateSound(sdData, sdFile)
@@ -1124,7 +1155,7 @@ function ENT:TranslateActivity(act)
 		if self.Weapon_UnarmedBehavior_Active then
 			return ACT_COWER
 		elseif self.Alerted && self:GetWeaponState() != VJ.WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
-			return ACT_IDLE_ANGRY
+			return self.AnimationTranslations[ACT_IDLE_ANGRY] or ACT_IDLE_ANGRY
 		end
 	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
@@ -1171,7 +1202,7 @@ function ENT:SetAnimationTranslations(hType)
 	if hType == nil then return end
 	if hType == "pistol" then
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "ohwn_pistol_idle")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "ohwa_alert_idle_1")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= ACT_IDLE_AIM_STEALTH
 		
 		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "ohwn_Walk")
 		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "ohwa_Walk")
@@ -1209,7 +1240,7 @@ function ENT:SetAnimationTranslations(hType)
 		self.PoseParameterLooking_Names = {pitch={"pp_ohw_pitch"}, yaw={"pp_ohw_yaw"}, roll={}}
 	elseif hType == "crossbow" then
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "smartgun_n_idle")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "smartgun_alert_watchfulA")
+		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= ACT_IDLE_AGITATED
 		
 		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "smartgun_n_Walk")
 		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "smartgun_run")
@@ -1246,7 +1277,7 @@ function ENT:SetAnimationTranslations(hType)
 		self.PoseParameterLooking_Names = {pitch={"pp_smartgun_pitch"}, yaw={"pp_smartgun_yaw"}, roll={}}
 	else
 		self.AnimationTranslations[ACT_IDLE] 							= toAct(self, "idleA_thwn")
-		self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "thwa_alert_idle_1")
+		-- self.AnimationTranslations[ACT_IDLE_ANGRY] 						= toAct(self, "thwa_alert_idle_1")
 		
 		self.AnimationTranslations[ACT_WALK] 							= toAct(self, "thwn_Walk")
 		self.AnimationTranslations[ACT_WALK_AIM] 						= toAct(self, "thwa_Walk")
@@ -1262,7 +1293,7 @@ function ENT:SetAnimationTranslations(hType)
 
 		self.AnimationTranslations[ACT_MELEE_ATTACK1] 					= toAct(self, "thwa_melee_light_attack")
 		self.AnimationTranslations[ACT_RANGE_ATTACK1] 					= toAct(self, "idleA_thwa")
-		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= wep.IsShotgun && "vjges_shotgun_shoot" or "vjges_thwa_shoot"
+		self.AnimationTranslations[ACT_GESTURE_RANGE_ATTACK1] 			= wep.IsShotgun && "vjges_shotgun_fire" or "vjges_thwa_shoot"
 		self.AnimTbl_WeaponReload 										= wep.IsShotgun && "vjges_shotgun_reload" or "vjges_thwa_Stand_reload"
 
 		self.AnimationTranslations[AVP_ANIM_STIMPACK] 					= toAct(self, "thwa_stim")
@@ -1534,6 +1565,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		local _,dur = self:PlayAnim("ohwa_big_flinch_back",true,false,false,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
 		end})
 		self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK,dur *0.85)
 		-- self.NextChaseTime = CurTime() +dur

@@ -92,9 +92,9 @@ function ENT:Open()
 					end})
 				end
 			end
-			SafeRemoveEntityDelayed(self,30)
 		end
 	end)
+	SafeRemoveEntityDelayed(self,30)
 	self.Opened = true
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
