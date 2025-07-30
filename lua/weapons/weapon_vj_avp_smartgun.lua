@@ -4,7 +4,7 @@ SWEP.Contact					= "http://steamcommunity.com/groups/vrejgaming"
 SWEP.Category					= "VJ Base - Aliens vs Predator"
 
 if CLIENT then
-	SWEP.Slot						= 2
+	SWEP.Slot						= 4
 	SWEP.SlotPos					= 4
 end
 

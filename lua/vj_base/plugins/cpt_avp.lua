@@ -956,6 +956,11 @@ else
 	})
 end
 
+VJ.AddParticle("particles/vj_avp_pickup.pcf",{
+	"vj_avp_pickup_ammo",
+	"vj_avp_pickup_grenade",
+	"vj_avp_pickup_stim",
+})
 VJ.AddParticle("particles/vj_avp_blood.pcf",{
 	"vj_avp_blood_predator",
 	"vj_avp_blood_xeno",

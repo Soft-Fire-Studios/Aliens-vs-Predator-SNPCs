@@ -217,6 +217,16 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.MaxNPCs = 15
 ENT.IncrementAmount = 4
+ENT.MaxPickups = {
+	[1] = 2, -- Stimpack
+	[2] = 2, -- Pulse Rifle
+	[3] = 2, -- Pistol
+	[4] = 1, -- Shotgun
+	[5] = 1, -- Flamethrower
+	[6] = 1, -- Scoped Rifle
+	[7] = 1, -- Smartgun
+	[8] = 1, -- Grenades
+}
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local marineList = {
 	"npc_vj_avp_hum_connor",
@@ -335,6 +345,76 @@ function ENT:SpawnBot(count,respawn)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SpawnAmmoPickups()
+	local ammoCounts = {}
+	local function getIndexFromType(typeId)
+		return (typeId or 0) +1
+	end
+	local goodPositions = {}
+	local nodes = (VJ_Nodegraph && VJ_Nodegraph.Data && VJ_Nodegraph.Data.Nodes) or {}
+	local minDist = 368
+	local minDistSqr = minDist *minDist
+	for _,node in RandomPairs(nodes) do
+		local pos = node.pos
+		if !pos then continue end
+		local ok = true
+		for _, gp in ipairs(goodPositions) do
+			if gp:DistToSqr(pos) < minDistSqr then
+				ok = false
+				break
+			end
+		end
+		if ok then
+			goodPositions[#goodPositions +1] = pos
+		end
+	end
+
+	local function allMaxed()
+		for i = 1,8 do
+			local have = ammoCounts[i] or 0
+			local cap  = self.MaxPickups[i] or 0
+			if have < cap then
+				return false
+			end
+		end
+		return true
+	end
+
+	for _,basePos in ipairs(goodPositions) do
+		if allMaxed() then break end
+		if math.random(2) == 1 then continue end
+
+		local pos = basePos +VectorRand() *math.Rand(0,256)
+		local tr = util.TraceLine({
+			start = pos,
+			endpos = pos +Vector(0,0,-256),
+			filter = self,
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		if !tr.Hit or !util.IsInWorld(tr.HitPos) then continue end
+
+		local typeId = math.random(0,7)
+		local idx = getIndexFromType(typeId)
+		local current = ammoCounts[idx] or 0
+		local cap = self.MaxPickups[idx] or 0
+		if current >= cap then continue end
+
+		local ent = ents.Create("sent_vj_avp_ammo")
+		if !IsValid(ent) then continue end
+		ent:SetPos(tr.HitPos +Vector(0,0,2))
+		ent.PickupType = typeId
+		ent:Spawn()
+		ent:Activate()
+		if (ammoCounts[idx] or 0) >= (self.MaxPickups[idx] or 0) then
+			ent:Remove()
+			continue
+		end
+		self:DeleteOnRemove(ent)
+		print("Spawned ammo pickup at",ent:GetPos(),"type",typeId,"count",current +1,"/",self.MaxPickups[idx])
+		ammoCounts[idx] = (ammoCounts[idx] or 0) +1
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local math_ceil = math.ceil
 --
 function ENT:Initialize()
@@ -376,6 +456,10 @@ function ENT:Initialize()
 
 	self.XenoType = math.random(1,100) == 1 && "kxeno" or "xeno"
 	self.IsPredatorPlayers = false
+
+	if !self.IsPredatorPlayers then
+		self:SpawnAmmoPickups()
+	end
 
 	timer.Simple(10,function()
 		if IsValid(self) then

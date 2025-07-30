@@ -26,7 +26,7 @@ sound.Add({
 })
 
 if CLIENT then
-	SWEP.Slot						= 2
+	SWEP.Slot						= 3
 	SWEP.SlotPos					= 4
 end
 

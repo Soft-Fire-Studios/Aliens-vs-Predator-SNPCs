@@ -429,6 +429,7 @@ function ENT:MarineInitialize(gender)
 			}
 		end
 	elseif gender == 2 then -- Female
+		self:SetHandFix(true)
 		if VO == 1 then
 			self.SoundTbl_LostEnemy = {
 				"cpthazama/avp/humans/vocals/Female_Marine_01/AGGRESSIVE_TO_ALERT_FEM01_01.ogg",
@@ -752,13 +753,14 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInvestigate(ent)
 	self.CurrentEmote = VJ_AVP_EXP_ALERT
-	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && !self.Alerted && math.random(1,4) == 1 then
+	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && !self.Alerted && math.random(1,4) == 1 && CurTime() > (self.NextWhatsThatT or 0) then
 		-- print("OnInvestigate")
-		self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_FIDGET],self.AnimationTranslations[AVP_ANIM_WHATSTHAT]}),true,false,true,0,{OnFinish=function(interrupted,anim)
+		local _,dur = self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_FIDGET],self.AnimationTranslations[AVP_ANIM_WHATSTHAT]}),true,false,true,0,{OnFinish=function(interrupted,anim)
 			if interrupted then return end
 			self:SetState()
 			self:SCHEDULE_IDLE_STAND()
 		end})
+		self.NextWhatsThatT = CurTime() +dur +math.Rand(3,8)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -777,7 +779,7 @@ end
 function ENT:OnAlert(ent)
 	self.CurrentEmote = VJ_AVP_EXP_COMBAT
 	if self.SoundTbl_Surprised && #self.SoundTbl_Surprised > 0 && VJ.GetNearestDistance(self, ent, true) <= 250 then
-		self:PlaySoundSystem("Alert", ent.SoundTbl_Surprised)
+		self:PlaySoundSystem("Alert", self.SoundTbl_Surprised)
 		if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,2) == 1 then
 			-- print("OnAlert")
 			self:PlayAnim(self.AnimationTranslations[AVP_ANIM_OHSHIT],true,false,true,0,{OnFinish=function(interrupted,anim)

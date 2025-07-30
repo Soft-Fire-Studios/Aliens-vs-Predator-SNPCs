@@ -9,10 +9,11 @@ ENT.VJ_AVP_NPC = true
 ENT.VJ_AVP_Marine = true
 
 function ENT:SetupDataTables()
-	self:NetworkVar("Bool",0,"Sprinting")
-	self:NetworkVar("Bool",1,"Cloaked")
-	self:NetworkVar("Bool",2,"InFatality")
-	self:NetworkVar("Entity",0,"Flare")
+	self:NetworkVar("Bool","Sprinting")
+	self:NetworkVar("Bool","Cloaked")
+	self:NetworkVar("Bool","InFatality")
+	self:NetworkVar("Bool","HandFix")
+	self:NetworkVar("Entity","Flare")
 	self:NetworkVar("Entity","FatalityTarget")
 end
 
@@ -20,6 +21,13 @@ if CLIENT then
 	local render_GetLightColor = render.GetLightColor
 	function ENT:Draw()
 		self:DrawModel()
+
+		if self:GetHandFix() then
+			local handBone = self:LookupBone("Bip01 R Hand")
+			if handBone then
+				self:ManipulateBoneAngles(handBone,Angle(0,8,0))
+			end
+		end
 		
 		if VJ_AVP_CVAR_FLASHLIGHT then
 			local light = render_GetLightColor(self:GetPos() +self:OBBCenter()):Length()
