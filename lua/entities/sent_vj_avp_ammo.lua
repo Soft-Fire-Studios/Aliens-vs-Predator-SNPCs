@@ -34,7 +34,7 @@ end
 if CLIENT then
 	local WIRE_MAT = Material("models/wireframe")
 	local MODELLIST = {
-		[1] = "models/items/healthkit.mdl",
+		[1] = "models/cpthazama/avp/weapons/stimpack.mdl",
 		[2] = "models/cpthazama/avp/weapons/w_pulserifle.mdl",
 		[3] = "models/cpthazama/avp/weapons/pistol.mdl",
 		[4] = "models/cpthazama/avp/weapons/w_shotgun.mdl",
@@ -44,7 +44,7 @@ if CLIENT then
 		[8] = "models/weapons/ar2_grenade.mdl",
 	}
 	local WEAPONMOD = {
-		[1] = {PosOffset = Vector(0,-2,5), Scale = 0.4},
+		[1] = {PosOffset = Vector(1.75,-3.75,5), AngleOffset = Angle(-90,0,0), Scale = 1},
 		[2] = {PosOffset = Vector(0,-5,10), Scale = 1},
 		[3] = {PosOffset = Vector(0,-3,10), Scale = 1},
 		[4] = {PosOffset = Vector(0,-10,10), Scale = 1},
@@ -143,8 +143,9 @@ function ENT:GrabEquip(ent)
 	self:StopParticles()
 	local pickupType = self.PickupType
 	if pickupType == 0 then
-		ent:SetHealth(math_Clamp(ent:Health() +50,0,ent:GetMaxHealth()))
-		ent:ChatPrint("Picked up a Stimpack! Health +50")
+			ent:Give("weapon_vj_avp_stimpack")
+		-- ent:SetHealth(math_Clamp(ent:Health() +50,0,ent:GetMaxHealth()))
+		ent:ChatPrint("Picked up a Stimpack!")
 		VJ.EmitSound(ent,"cpthazama/avp/shared/pickup_health.ogg",70)
 	elseif pickupType >= 1 && pickupType <= 6 then
 		if !ent:HasWeapon(self.WeaponPickup) then

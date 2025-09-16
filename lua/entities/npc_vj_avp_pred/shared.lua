@@ -57,6 +57,8 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 			ply:AllowFlashlight(false)
 		end
 
+		if npc.CanDoIntro && npc.IntroData && npc.IntroData.IntroPhase < 4 then return end
+
 		if button == KEY_F then
 			if npc.VJ_AVP_Predator && (npc.PredLord && 1 or npc:GetBodygroup(npc:FindBodygroupByName("mask")) == 1) then
 				local mode = npc:GetVisionMode()
@@ -133,9 +135,26 @@ if CLIENT then
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
 	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
+	local introSnd = "cpthazama/avp/predator/intro.mp3"
+
     function ENT:Initialize()
 		self.Mat_cloakfactor = 0
 		self.CL_PreviousVisionMode = 0
+		self.IntroData = {
+			DidIntro = false,
+			IntroMaterial = nil,
+			IntroPhase = 0, -- 0 = Not started, 1 = Zoom Phase, 2 = Real-Game Zoom Phase, 3 = 3rd Person Pred-Mobile Phase
+		}
+		self.CanDoIntro = false
+		timer.Simple(0.1,function()
+			if IsValid(self) then
+				local ply = LocalPlayer()
+				-- print(ply,ply.VJ_IsControllingNPC,ply.VJCE_NPC,self)
+				if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
+					self.CanDoIntro = GetConVar("vj_avp_predmobile"):GetBool()
+				end
+			end
+		end)
 
 		-- hook.Add("PreDrawOpaqueRenderables",self,function(self)
 		-- 	local ply = LocalPlayer()
@@ -293,6 +312,13 @@ if CLIENT then
 	function ENT:Draw()
 		local ply = LocalPlayer()
 		local checkEnt = self
+		local introData = self.CanDoIntro && self.IntroData or nil
+		local disableDrawing = introData && introData.IntroPhase < 3
+		local disableDrawingVM = introData && introData.IntroPhase < 4
+		if disableDrawingVM then
+			ply.VJC_Camera_Mode = 1
+		end
+		if disableDrawing then return end
 		if IsValid(ply) && ply.VJCE_NPC == self && ply.VJC_Camera_Mode == 2 then
 			checkEnt = ply:GetViewModel()
 
@@ -484,11 +510,29 @@ if CLIENT then
 	local vec1 = Vector(1, 1, 1)
 	local debugT = 0
 	function ENT:Controller_CalcView(ply, origin, angles, myFOV, camera, cameraMode)
-		local pos = origin -- The position that will be set
+		local pos = origin
 		local ang = ply:EyeAngles()
 		local newFOV = myFOV
 		local refreshRate = nil
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
+		local introData = self.CanDoIntro && self.IntroData
+		if introData && introData.IntroPhase < 4 then
+			if introData.IntroPhase == 2 then
+				pos = self:GetPos() +self:GetUp() *(introData.WorldZoomHeight)
+				ang = (self:GetPos() -pos):Angle()
+				return {origin = pos, angles = ang, fov = newFOV, speed = 0}
+			end
+			local att = self:GetAttachment(self:LookupAttachment("eyes"))
+			local cycle = self:GetCycle()
+			if cycle < 0.5 then
+				pos = att.Pos +att.Ang:Forward() *-400 + self:GetUp() *300
+				ang = (att.Pos -pos):Angle()
+			else
+				pos = self:GetPos() +self:OBBCenter() +self:GetForward() *(cycle *130) +self:GetUp() *(cycle *20) +self:GetRight() *-(cycle *25)
+				ang = (att.Pos -pos):Angle()
+			end
+			return {origin = pos, angles = ang, fov = newFOV, speed = 0}
+		end
 		if cameraMode == 2 then -- First person
 			local setPos = self:EyePos() +self:GetForward() *20
 			local offset = ply.VJC_FP_Offset
@@ -782,6 +826,7 @@ if CLIENT then
 		local ent = net.ReadEntity()
 		local cont = net.ReadEntity()
 		local ply = cont
+		local matHUD_VisionChange = Material("hud/cpthazama/avp/pred_vis_change_wipe.png", "smooth additive")
 		
 		ent.PreviousVisionMode = 0
 
@@ -807,6 +852,20 @@ if CLIENT then
 
 		local index = ent:EntIndex()
 
+		local introCol = Vector(0,0,0)
+		local introColB = Vector(1,1,1)
+		ent.IntroColorLerp = Vector(0,0,0)
+		local matHUD_Intro1 = Material("hud/cpthazama/avp/intro/pl1.png","smooth additive")
+		local matHUD_Intro2 = Material("hud/cpthazama/avp/intro/pl2.png","smooth additive")
+		ent.IntroMaterial = matHUD_Intro1
+
+		ent.IntroData = ent.IntroData or {
+			DidIntro = false,
+			IntroMaterial = nil,
+			IntroPhase = 0, -- 0 = Not started, 1 = Zoom Phase, 2 = Real-Game Zoom Phase, 3 = 3rd Person Pred-Mobile Phase, 4 = Finished
+		}
+		ent.IntroData.IntroMaterial = matHUD_Intro1
+		ent.IntroData.IntroColorLerp = Vector(0,0,0)
 		hook.Add("HUDPaint","VJ_AVP_Predator_HUD",function()
 			if !IsValid(ent) then return end
 			local r = 255
@@ -815,6 +874,164 @@ if CLIENT then
 			local a = 250
 			local hpColor = Color(r,g,b)
 			local energyColor = Color(197,220,230)
+
+			local introData = ent.IntroData
+			if introData && ent.CanDoIntro && !introData.Started then
+				introData.Started = true
+				sound.PlayFile("sound/cpthazama/avp/predator/intro.mp3","noplay",function(station,errCode,errStr)
+					if IsValid(station) then
+						station:Play()
+						station:SetVolume(0.5)
+						station:SetPlaybackRate(1)
+					else
+						print("Error playing sound!",errCode,errStr)
+					end
+					return station
+				end)
+				timer.Simple(SoundDuration("cpthazama/avp/predator/intro.mp3"),function()
+					if IsValid(ent) then
+						introData.DidIntro = true
+						introData.IntroPhase = 3
+						ply.VJC_Camera_Mode = 2
+					end
+				end)
+				timer.Simple(3,function()
+					if IsValid(ent) then
+						introData.IntroMaterial = matHUD_Intro2
+						introData.IntroPhase = 1
+						introData.markerUV = {u = 0.6,v = 0.351}
+						introData.FlashT = CurTime() +0.25
+						timer.Simple(0.75,function()
+							if IsValid(ent) then
+								introData.FlashT = CurTime() +0.4
+								introData.IntroZoom = 1
+							end
+						end)
+						timer.Simple(3.5,function()
+							if IsValid(ent) then
+								introData.FlashT = CurTime() +0.4
+								introData.IntroZoom = 2
+							end
+						end)
+						timer.Simple(5.5,function()
+							if IsValid(ent) then
+								introData.FlashT = CurTime() +0.4
+								introData.IntroZoom = 3
+							end
+						end)
+					end
+				end)
+				timer.Simple(9.5,function()
+					if IsValid(ent) then
+						introData.IntroPhase = 2
+						introData.FlashT = CurTime() +0.25
+						introData.WorldZoomHeight = 5000
+					end
+				end)
+				timer.Simple(10.3,function()
+					if IsValid(ent) then
+						introData.FlashT = CurTime() +0.25
+						introData.WorldZoomHeight = 3500
+					end
+				end)
+				timer.Simple(12.4,function()
+					if IsValid(ent) then
+						introData.FlashT = CurTime() +0.25
+						introData.WorldZoomHeight = 2000
+					end
+				end)
+				timer.Simple(13.5,function()
+					if IsValid(ent) then
+						introData.FlashT = CurTime() +0.25
+						introData.WorldZoomHeight = 1500
+					end
+				end)
+			end
+
+			if introData.Started then
+				if introData.IntroPhase < 3 then
+					if introData.IntroPhase < 2 then
+						introData.IntroColorLerp = LerpVector(FrameTime() *0.5,introData.IntroColorLerp,introColB)
+						surface.SetDrawColor(introData.IntroColorLerp.x *255,introData.IntroColorLerp.y *255,introData.IntroColorLerp.z *255,255)
+						surface.SetMaterial(introData.IntroMaterial)
+						local zoom = introData.IntroZoom or 0
+						local posX,posY = 0,0
+						local sizeX,sizeY = ScrW(),ScrH()
+						if zoom == 1 then
+							introData.sizeX = Lerp(FrameTime() *2,introData.sizeX or ScrW(),ScrW() *1.5)
+							introData.sizeY = Lerp(FrameTime() *2,introData.sizeY or ScrH(),ScrH() *1.5)
+							introData.posX = Lerp(FrameTime() *2,introData.posX or 0,-ScrW() *0.4)
+							introData.posY = Lerp(FrameTime() *2,introData.posY or 0,-ScrH() *0.04)
+							posX = introData.posX
+							posY = introData.posY
+							sizeX = introData.sizeX
+							sizeY = introData.sizeY
+						elseif zoom == 2 then
+							introData.sizeX = Lerp(FrameTime() *2,introData.sizeX or ScrW(),ScrW() *2)
+							introData.sizeY = Lerp(FrameTime() *2,introData.sizeY or ScrH(),ScrH() *2)
+							introData.posX = Lerp(FrameTime() *2,introData.posX or 0,-ScrW() *0.7)
+							introData.posY = Lerp(FrameTime() *2,introData.posY or 0,-ScrH() *0.21)
+							posX = introData.posX
+							posY = introData.posY
+							sizeX = introData.sizeX
+							sizeY = introData.sizeY
+						elseif zoom == 3 then
+							introData.sizeX = Lerp(FrameTime() *2,introData.sizeX or ScrW(),ScrW() *6)
+							introData.sizeY = Lerp(FrameTime() *2,introData.sizeY or ScrH(),ScrH() *6)
+							introData.posX = Lerp(FrameTime() *2,introData.posX or 0,-ScrW() *3.1)
+							introData.posY = Lerp(FrameTime() *2,introData.posY or 0,-ScrH() *1.6)
+							posX = introData.posX
+							posY = introData.posY
+							sizeX = introData.sizeX
+							sizeY = introData.sizeY
+						end
+						surface.DrawTexturedRect(posX,posY,sizeX,sizeY)
+						if introData.IntroPhase >= 1 && introData.IntroPhase < 3 && introData.markerUV then
+							local u,v = introData.markerUV.u,introData.markerUV.v
+							local mx = posX +u *sizeX
+							local my = posY +v *sizeY
+							local base = 100
+							local pulse = math.sin(CurTime() *12) *50
+							local markerSize = base +pulse
+							surface.SetDrawColor(r,g,b,255)
+							surface.SetMaterial(matHUDTarget)
+							surface.DrawTexturedRect(mx -markerSize *0.5,my -markerSize *0.5,markerSize,markerSize)
+						end
+					elseif introData.IntroPhase == 2 then
+						surface.SetDrawColor(r,g,b,150)
+						surface.DrawRect(0,0,ScrW(),ScrH())
+					end
+					if introData.IntroPhase >= 1 && introData.IntroPhase <= 2 then
+						surface.SetDrawColor(Color(r,g,b,a))
+						surface.SetMaterial(matHUD)
+						surface.DrawTexturedRect(0,0,ScrW(),ScrH())
+					end
+					if introData.FlashT && CurTime() < introData.FlashT then
+						local dur = 0.4
+						local start = introData.FlashT - dur
+						local frac = math.Clamp((CurTime() - start) / dur, 0, 1)
+						local mw, mh = matHUD_VisionChange:Width(), matHUD_VisionChange:Height()
+						if mw == 0 or mh == 0 then
+							mw, mh = 256, 1024
+						end
+						local scale = ScrH() /mh
+						local drawW = mw *scale
+						local drawH = ScrH()
+						local x = -drawW +(ScrW() +drawW) *frac
+						local y = 0
+
+						surface.SetDrawColor(r,g,b,255)
+						surface.SetMaterial(matHUD_VisionChange)
+						surface.DrawTexturedRect(x, y, drawW, drawH)
+					end
+				end
+				if introData.IntroPhase < 4 then
+					if ent:GetSequenceName(ent:GetSequence()) == "predator_intro" && ent:GetCycle() >= 0.99 then
+						introData.IntroPhase = 4
+					end
+					return
+				end
+			end
 
 			local mode = ent:GetVisionMode()
 			if mode == 0 then -- No Mask
@@ -1099,6 +1316,8 @@ if CLIENT then
 				-- 	light.DieTime = CurTime() +0.2
 				-- 	light.Style = 0
 				-- end
+
+				if ent.CanDoIntro && ent.IntroData && ent.IntroData.IntroPhase < 4 then return end
 				
 				local mode = ent:GetVisionMode()
 				local maskBG = ent:FindBodygroupByName("mask")
@@ -1291,6 +1510,7 @@ if CLIENT then
 		-- local acceptClasses = {viewmodel=true,prop_ragdoll=true}
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_Vision",function()
 			if !IsValid(ent) then return end
+			if ent.CanDoIntro && ent.IntroData && ent.IntroData.IntroPhase < 4 then return end
 			local mode = ent:GetVisionMode()
 			if mode != ent.PreviousVisionMode then
 				DrawColorModify(gDefault)

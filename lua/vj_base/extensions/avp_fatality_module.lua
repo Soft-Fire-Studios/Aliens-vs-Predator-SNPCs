@@ -44,6 +44,9 @@ function ENT:ResetFatality()
 	self:SCHEDULE_IDLE_STAND()
 	self:SetMaxYawSpeed(self.TurningSpeed)
 	self.NextFatalityTime = CurTime() +3
+	if self.NextCloakT then
+		self.NextCloakT = CurTime() +0.5
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoFatality(ent,inFront)

@@ -246,6 +246,13 @@ AVP_ENTITYCLASS_CIVILIAN = 256
 AVP_ENTITYCLASS_MARINE = 512
 AVP_ENTITYCLASS_SENTRYGUN = 1024
 
+AVP_MAXSQUADMEMBERS = 6
+
+AVP_FLAG_SQUAD_NONE = 0
+AVP_FLAG_SQUAD_MEMBER = 1
+AVP_FLAG_SQUAD_LEADER = 2
+AVP_FLAG_SQUAD_FRONTLINE = 4
+
 AVP.fDefaultDamageRadius = AVP.Dist(2.0)
 AVP.fDefaultDamageAIBackAttackFactor = 0.5
 AVP.fDefaultAttackDetectionRadius = AVP.Dist(4.0)
@@ -381,6 +388,13 @@ if SERVER then
 	concommand.Add("vj_avp_patchround",VJ_AVP_PatchRound)
 
 	function VJ_AVP_NodegraphChecker(self)
+		if ai.GetNodeCount == nil then
+			for _,v in ipairs(player.GetAll()) do
+				v:ChatPrint("[WARNING] You are running on an outdated version of Garry's Mod! Please update to the latest version to use this mod properly!")
+			end
+			self:Remove()
+			return
+		end
 		if ai.GetNodeCount() <= 0 then
 			local creator = IsValid(self) && self:GetCreator()
 			if IsValid(creator) && creator:IsPlayer() then
@@ -1043,9 +1057,125 @@ AddWep("M56 Smartgun","weapon_vj_avp_smartgun")
 AddWep("M260B Flamethrower","weapon_vj_avp_flamethrower")
 AddWep("ZX-76 Shotgun","weapon_vj_avp_shotgun")
 
+if SERVER then
+	hook.Add("PlayerSpawnedNPC","VJ.AVP.PlayerSpawnedNPC",function(ply,npc)
+		timer.Simple(0.01,function()
+			if IsValid(npc) && IsValid(ply) then
+				if ply.VJ_AVP_SpawnedNPCClass then
+					if IsValid(npc) && npc:GetClass() == ply.VJ_AVP_SpawnedNPCClass then
+						ply.VJ_AVP_SpawnedNPCClass = nil
+						local controllerOBJ = ents.Create("obj_vj_controller")
+						controllerOBJ.VJCE_Player = ply
+						controllerOBJ:SetControlledNPC(npc)
+						controllerOBJ:Spawn()
+						controllerOBJ:StartControlling()
+					end
+				end
+			end
+		end)
+	end)
+
+	util.AddNetworkString("VJ.AVP.ControlSpawnedNPC")
+
+	net.Receive("VJ.AVP.ControlSpawnedNPC", function(len, ply)
+		local npcClass = net.ReadString()
+		local ply = net.ReadEntity()
+		ply.VJ_AVP_SpawnedNPCClass = npcClass
+		-- print(ply,"Added NPC class",npcClass)
+	end)
+end
+
 if CLIENT then
+	hook.Add("SpawnmenuIconMenuOpen", "VJ.AVP.SpawnIconOptions", function(menu,icon,contentType)
+		if contentType == "npc" then
+			local npcName = icon:GetSpawnName()
+			local NPCinfo = scripted_ents.Get(npcName)
+			if NPCinfo && (NPCinfo.IsVJBaseSNPC && NPCinfo.VJ_AVP_NPC) then
+				menu:AddSpacer()
+				menu:AddOption("Spawn as NPC", function()
+					icon:DoClick()
+					local ply = LocalPlayer()
+					net.Start("VJ.AVP.ControlSpawnedNPC")
+						net.WriteString(npcName)
+						net.WriteEntity(ply)
+					net.SendToServer()
+				end):SetIcon("icon16/heart.png")
+			end
+		end
+	end)
+
+	local menuMat_BG = Material("vgui/avp/bg1.png","smooth")
 	hook.Add("PopulateToolMenu", "VJ_ADDTOMENU_AVP", function()
 		spawnmenu.AddToolMenuOption("DrVrej", "SNPC Configures", "Aliens vs Predator", "Aliens vs Predator", "", "", function(Panel)
+			function Panel:Paint(w,h)
+				if !self.IntroStart then
+					self.IntroStart = CurTime()
+					self.IntroDuration = 1.45
+				end
+				local frac = math.TimeFraction(self.IntroStart,self.IntroStart +self.IntroDuration,CurTime())
+				frac = math.Clamp(frac,0,1)
+				local speedHz = 1.5
+				local base = 0.85
+				local amplitude = 0.12
+				local t = CurTime() *(math.pi *2) *speedHz
+				local br = base +amplitude *math.sin(t)
+				local flickerChance = 0.03
+				if math.random() < flickerChance then
+					br = br -math.Rand(0.1,0.25)
+				end
+				br = br +math.Rand(-0.02,0.02)
+				br = br *frac
+				local v = math.Clamp(math.floor(255 *br +0.5),0,255)
+
+				surface.SetDrawColor(v,v,v,255)
+				surface.SetMaterial(menuMat_BG)
+				surface.DrawTexturedRect(0,0,w,h)
+
+				if !self.ThemeAudio then
+					self:Open()
+				end
+			end
+			function Panel:Open()
+				if g_SpawnMenu:IsVisible() != true or IsValid(self.ThemeAudio) then return end
+				sound.PlayFile("sound/cpthazama/avp/music/Menu.mp3","noplay",function(station,errCode,errStr)
+					if IsValid(self.ThemeAudio) then return end
+					if IsValid(station) then
+						station:EnableLooping(true)
+						station:Play()
+						station:SetVolume(0.3)
+						station:SetPlaybackRate(1)
+						self.ThemeAudio = station
+					else
+						print("Error playing sound!",errCode,errStr)
+					end
+					return station
+				end)
+				hook.Add("Think","VJ.AVP.MenuMusic",function()
+					if g_SpawnMenu:IsVisible() != true then
+					-- if g_SpawnMenu:IsVisible() != true or g_SpawnMenu:IsVisible() && !self:IsFocused() then
+						if IsValid(self.ThemeAudio) then
+							self.ThemeAudio:Stop()
+							self.ThemeAudio = nil
+						end
+						self.IntroStart = false
+						hook.Remove("Think","VJ.AVP.MenuMusic")
+					end
+				end)
+			end
+
+			local function controlAdd(ctrType, ctrData)
+				local DPanel = Panel:AddControl(ctrType, ctrData)
+				DPanel.OnChange = function(self)
+					surface.PlaySound(ctrType == "CheckBox" && "cpthazama/avp/shared/menu/menu_2nd_accept.ogg" or "cpthazama/avp/shared/menu/menu_2nd_value_change.ogg")
+				end
+				DPanel.OnCursorEntered = function(self)
+					surface.PlaySound("cpthazama/avp/shared/menu/menu_2nd_navigation.ogg")
+				end
+				DPanel.OnCursorExited = function(self)
+					surface.PlaySound("cpthazama/avp/shared/menu/menu_2nd_cancel.ogg")
+				end
+			end
+
 			-- local vj_icon = vgui.Create("DImage")
 			-- vj_icon:SetSize(512,60)
 			-- vj_icon:SetImage("vgui/avp/spacer.png")
@@ -1063,25 +1193,25 @@ if CLIENT then
 			vj_icon:SetImage("vgui/avp/spacer.png")
 			Panel:AddPanel(vj_icon)
 			Panel:AddControl("Label", {Text = "General Settings"})
-			Panel:AddControl("Checkbox", {Label = "Enable Fatalities", Command = "vj_avp_fatalities"})
-			Panel:AddControl("Checkbox", {Label = "Enable Ambience Music [Survival]", Command = "vj_avp_survival_music"})
-			Panel:AddControl("Checkbox", {Label = "Enable Bots [Survival]", Command = "vj_avp_survival_bots"})
-			Panel:AddControl("Slider", {Label = "Bot Count (0 = Auto) [Survival]", min = 0, max = 8, Command = "vj_avp_survival_maxbots"})
-			Panel:AddControl("Checkbox", {Label = "Use VJ Players As Bots", Command = "vj_avp_survival_plybots"})
-			-- Panel:AddControl("Checkbox", {Label = "Respawn as Xenomorphs [Survival]", Command = "vj_avp_survival_respawn"})
-			Panel:AddControl("Checkbox", {Label = "Enable Marine HUD", Command = "vj_avp_hud"})
-			Panel:AddControl("Checkbox", {Label = "Enable Marine HUD Pinging", Command = "vj_avp_hud_ping"})
-			Panel:AddControl("Checkbox", {Label = "Ultra-Wide HUD Fix", Command = "vj_avp_hud_ultrawide"})
+			controlAdd("Checkbox", {Label = "Enable Fatalities", Command = "vj_avp_fatalities"})
+			controlAdd("Checkbox", {Label = "Enable Ambience Music [Survival]", Command = "vj_avp_survival_music"})
+			controlAdd("Checkbox", {Label = "Enable Bots [Survival]", Command = "vj_avp_survival_bots"})
+			controlAdd("Slider", {Label = "Bot Count (0 = Auto) [Survival]", min = 0, max = 8, Command = "vj_avp_survival_maxbots"})
+			controlAdd("Checkbox", {Label = "Use VJ Players As Bots", Command = "vj_avp_survival_plybots"})
+			-- controlAdd("Checkbox", {Label = "Respawn as Xenomorphs [Survival]", Command = "vj_avp_survival_respawn"})
+			controlAdd("Checkbox", {Label = "Enable Marine HUD", Command = "vj_avp_hud"})
+			controlAdd("Checkbox", {Label = "Enable Marine HUD Pinging", Command = "vj_avp_hud_ping"})
+			controlAdd("Checkbox", {Label = "Ultra-Wide HUD Fix", Command = "vj_avp_hud_ultrawide"})
 
 			local vj_icon = vgui.Create("DImage")
 			vj_icon:SetSize(512,130)
 			vj_icon:SetImage("vgui/avp/faction_alien.png")
 			Panel:AddPanel(vj_icon)
 			Panel:AddControl("Label", {Text = "Xenomorph Settings"})
-			Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"})
-			Panel:AddControl("Checkbox", {Label = "Enable Xenomorph Stealth", Command = "vj_avp_xenostealth"})
+			controlAdd("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"})
+			controlAdd("Checkbox", {Label = "Enable Xenomorph Stealth", Command = "vj_avp_xenostealth"})
 			Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."})
-			Panel:AddControl("Checkbox", {Label = "Successful K-Series Experiment", Command = "vj_avp_kseries_ally"})
+			controlAdd("Checkbox", {Label = "Successful K-Series Experiment", Command = "vj_avp_kseries_ally"})
 			Panel:AddControl("Label", {Text = "Note: This will make K-Series Xenomorphs friendly to Weyland-Yutani forces."})
 
 			local vj_icon = vgui.Create("DImage")
@@ -1089,11 +1219,11 @@ if CLIENT then
 			vj_icon:SetImage("vgui/avp/faction_predator.png")
 			Panel:AddPanel(vj_icon)
 			Panel:AddControl("Label", {Text = "Predator Settings"})
-			Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_p"})
-			Panel:AddControl("Checkbox", {Label = "Enable Unique Spawns", Command = "vj_avp_predmobile"})
-			Panel:AddControl("Checkbox", {Label = "Enable Predator HUD Info Display", Command = "vj_avp_hud_predinfo"})
+			controlAdd("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_p"})
+			controlAdd("Checkbox", {Label = "Enable Unique Spawns", Command = "vj_avp_predmobile"})
+			controlAdd("Checkbox", {Label = "Enable Predator HUD Info Display", Command = "vj_avp_hud_predinfo"})
 			if LocalPlayer():IsAdmin() then
-				Panel:AddControl("Checkbox", {Label = "Toggle Predator HUD Info Code", Command = "vj_avp_pred_info"})
+				controlAdd("Checkbox", {Label = "Toggle Predator HUD Info Code", Command = "vj_avp_pred_info"})
 				Panel:AddControl("Label", {Text = "Admin Only - Disables the background code for the info display. WILL BREAK THE HUD IN MOST INSTANCES!"})
 			end
 
@@ -1102,8 +1232,8 @@ if CLIENT then
 			vj_icon:SetImage("vgui/avp/faction_marine.png")
 			Panel:AddPanel(vj_icon)
 			Panel:AddControl("Label", {Text = "Human Settings"})
-			Panel:AddControl("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_m"})
-			Panel:AddControl("Checkbox", {Label = "Enable Dynamic Flashlights", Command = "vj_avp_flashlight"})
+			controlAdd("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_m"})
+			controlAdd("Checkbox", {Label = "Enable Dynamic Flashlights", Command = "vj_avp_flashlight"})
 			Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."})
 		end)
 	end)

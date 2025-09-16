@@ -1210,7 +1210,7 @@ function ENT:DistractionCode(ent)
 				ent:OnDistracted(1)
 			else
 				ent:OnInvestigate(ent)
-				ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "Investigate" or "Alert")
+				ent:PlaySoundSystem((ent.SoundTbl_Investigate && #ent.SoundTbl_Investigate > 0) && "Investigate" or "Alert")
 			end
 		elseif !ent.IsVJBaseSNPC then
 			ent:SetLastPosition(soundPos)

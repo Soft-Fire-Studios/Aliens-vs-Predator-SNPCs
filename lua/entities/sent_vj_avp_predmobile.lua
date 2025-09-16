@@ -28,18 +28,6 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_NONE)
 	self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 	-- self:AddFlags(FL_OBJECT)
-
-	local bullseye = ents.Create("obj_vj_bullseye")
-	bullseye:SetPos(self:GetPos())
-	bullseye:SetAngles(self:GetAngles())
-	bullseye:SetParent(self)
-	bullseye.VJ_NPC_Class = {"CLASS_PREDATOR","CLASS_YAUTJA"}
-	bullseye:Spawn()
-	bullseye:Activate()
-	bullseye:Fire("SetParentAttachment", "engine")
-	bullseye:SetNoDraw(true)
-	bullseye:DrawShadow(false)
-	self:DeleteOnRemove(bullseye)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Think()

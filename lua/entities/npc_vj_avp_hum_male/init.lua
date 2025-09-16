@@ -842,6 +842,10 @@ function ENT:Init()
         end
     end)
 
+	self.Flags = self.Flags or 0
+	self.SquadMembers = {self}
+	self.NextSquadThinkT = CurTime() +1
+
 	if self:FindBodygroupByName("vest") > -1 && self:GetBodygroup(self:FindBodygroupByName("vest")) > 0 then return end
 
 	self.FlashlightStatus = false
@@ -849,12 +853,89 @@ function ENT:Init()
 	if att > 0 && self.HasFlashlight then
 		self.CanUseFlashlight = true
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+-- function ENT:HandlePerceivedRelationship(v)
+-- 	if self.Flags == AVP_FLAG_SQUAD_NONE && self.EntityClass != AVP_ENTITYCLASS_CIVILIAN then
+-- 		print("Running squad join logic for", self, self:HasAVPFlag(AVP_FLAG_SQUAD_NONE))
+-- 		local joinedOtherSquad = false
+-- 		local wep = self:GetActiveWeapon()
+-- 		local frontliner = IsValid(wep) && (wep:GetClass() == "weapon_vj_avp_smartgun" or wep:GetClass() == "weapon_vj_avp_flamethrower")
+-- 		for _,v in pairs(ents.FindInSphere(self:GetPos(),512)) do
+-- 			if joinedOtherSquad then break end
+-- 			if v:IsNPC() && v.VJ_AVP_Marine && v != self && self.EntityClass != AVP_ENTITYCLASS_CIVILIAN && self:CheckRelationship(v) == D_LI then
+-- 				local vWep = v:GetActiveWeapon()
+-- 				local vFrontliner = IsValid(vWep) && (vWep:GetClass() == "weapon_vj_avp_smartgun" or vWep:GetClass() == "weapon_vj_avp_flamethrower")
+-- 				if v.Flags == AVP_FLAG_SQUAD_NONE && #self.SquadMembers < AVP_MAXSQUADMEMBERS then
+-- 					table.insert(v.SquadMembers,v)
+-- 					table.insert(self.SquadMembers,v)
+-- 					v:SetAVPFlag(AVP_FLAG_SQUAD_NONE,false)
+-- 					v:SetAVPFlag(vFrontliner && AVP_FLAG_SQUAD_FRONTLINE or AVP_FLAG_SQUAD_MEMBER,true)
+-- 					print(v, "Joined our squad", self, "with " .. #self.SquadMembers .. " members", "As a " .. (vFrontliner && "frontliner" or "member"))
+-- 				elseif v.Flags != AVP_FLAG_SQUAD_NONE && !joinedOtherSquad && #v.SquadMembers < AVP_MAXSQUADMEMBERS then
+-- 					joinedOtherSquad = true
+-- 					self:SetAVPFlag(AVP_FLAG_SQUAD_NONE,false)
+-- 					self:SetAVPFlag(vFrontliner && AVP_FLAG_SQUAD_FRONTLINE or AVP_FLAG_SQUAD_MEMBER,true)
+-- 					table.insert(self.SquadMembers,self)
+-- 					table.insert(v.SquadMembers,self)
+-- 					print(self, "Joined other squad", v, "with " .. #v.SquadMembers .. " members", "As a " .. (vFrontliner && "frontliner" or "member"))
+-- 				end
+-- 			end
+-- 		end
+-- 		if !joinedOtherSquad && #self.SquadMembers > 1 then
+-- 			print("No other squad found, setting ourselves as own squad member")
+-- 			local leaderExists = false
+-- 			for _,v in ipairs(self.SquadMembers) do
+-- 				if IsValid(v) && v:HasAVPFlag(AVP_FLAG_SQUAD_LEADER) && v != self then
+-- 					leaderExists = true
+-- 					print("Found squad leader", v)
+-- 					break
+-- 				end
+-- 			end
+-- 			self:SetAVPFlag(AVP_FLAG_SQUAD_NONE,false)
+-- 			self:SetAVPFlag(frontliner && AVP_FLAG_SQUAD_FRONTLINE or (leaderExists && AVP_FLAG_SQUAD_MEMBER or AVP_FLAG_SQUAD_LEADER),true)
+-- 		elseif joinedOtherSquad && #self.SquadMembers > 1 then
+-- 			print("Checking for a squad leader")
+-- 			local leaderExists = false
+-- 			for _,v in ipairs(self.SquadMembers) do
+-- 				if IsValid(v) && v:HasAVPFlag(AVP_FLAG_SQUAD_LEADER) && v != self then
+-- 					leaderExists = true
+-- 					print("Found squad leader", v)
+-- 					break
+-- 				end
+-- 			end
+-- 			if !leaderExists then
+-- 				self:SetAVPFlag(AVP_FLAG_SQUAD_LEADER,true)
+-- 				print("No squad leader found, setting ourselves as leader")
+-- 			end
+-- 		end
 
-	-- timer.Simple(0.2,function()
-	-- 	if IsValid(self) then
-	-- 		self:PlayAnim(self.AnimationTranslations[AVP_ANIM_FIDGET],true,false,true)
-	-- 	end
-	-- end)
+-- 		print("-------------------------------------------")
+-- 		print(self, "Is in a squad with", #self.SquadMembers, "members")
+-- 		for _,v in ipairs(self.SquadMembers) do
+-- 			if IsValid(v) then
+-- 				print(" - ", v, "Status:", (v:HasAVPFlag(AVP_FLAG_SQUAD_LEADER) && "Leader" or v:HasAVPFlag(AVP_FLAG_SQUAD_FRONTLINE) && "Frontliner") or "Member", "Squad Members:", #v.SquadMembers)
+-- 			else
+-- 				print(" - Invalid member")
+-- 			end
+-- 		end
+-- 	end
+-- end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:HasAVPFlag(flag)
+	return bit.band(self.Flags, flag) == flag
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SetAVPFlag(flag, set)
+	if set then
+		if self:HasAVPFlag(flag) then return end
+		print("Setting flag", flag, "on", self)
+		self.Flags = bit.bor(self.Flags, flag)
+	else
+		if !self:HasAVPFlag(flag) then return end
+		print("Removing flag", flag, "from", self)
+		self.Flags = bit.band(self.Flags, bit.bnot(flag))
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCreateSound(sdData, sdFile)
@@ -1432,6 +1513,18 @@ function ENT:OnThinkActive()
 		end
 	end
 
+	-- local squad = self.SquadMembers
+	-- if curTime > self.NextSquadThinkT && #squad > 1 then
+	-- 	if self:HasAVPFlag(AVP_FLAG_SQUAD_LEADER) then
+	-- 		for _,member in ipairs(squad) do
+	-- 			if IsValid(member) && member != self then
+	-- 				member:Follow(self)
+	-- 			end
+	-- 		end
+	-- 	end
+	-- 	self.NextSquadThinkT = curTime +2
+	-- end
+
 	if self.HasMotionTracker then
 		VJ_AVP_MotionTracker(self)
 	end
@@ -1650,6 +1743,12 @@ end
 function ENT:CustomOnRemove()
 	if self.WhenRemoved then
 		self:WhenRemoved()
+	end
+
+	for i,v in pairs(self.SquadMembers) do
+		if IsValid(v) && v != self then
+			table.RemoveByValue(v.SquadMembers,self)
+		end
 	end
 
 	-- if IsValid(self.Flashlight) then

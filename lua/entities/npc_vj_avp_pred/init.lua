@@ -6,6 +6,9 @@ include("vj_base/extensions/avp_fatality_module.lua")
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
 	without the prior written consent of the author, unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
+
+// predator_claws_a03_pred_harvest - cycle 1
+
 ENT.Model = {"models/cpthazama/avp/predators/youngblood.mdl"}
 ENT.StartHealth = 450
 ENT.HullType = HULL_HUMAN
@@ -684,21 +687,46 @@ function ENT:Init()
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
 				self.EnemyDetection = false
-				local predmobile = ents.Create("sent_vj_avp_predmobile")
-				predmobile:SetPos(self:GetPos())
-				predmobile:SetAngles(self:GetAngles())
-				predmobile:Spawn()
-				predmobile:SetOwner(self)
-				predmobile:ResetSequence("predator_intro")
-				self.PredShip = predmobile
-				self:DeleteOnRemove(predmobile)
-				self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
-					self.EnemyDetection = true
-					self:SetState()
-					self:SCHEDULE_IDLE_STAND()
-					self:RemoveFlags(FL_NOTARGET)
-					SafeRemoveEntity(predmobile)
-				end})
+				self:SetNoDraw(true)
+				self:DrawShadow(false)
+				self.GodMode = true
+				self:SetMaxYawSpeed(0)
+				local oldAng = self:GetAngles()
+				timer.Simple(0.1,function()
+					if IsValid(self) then
+						self:SetMaxYawSpeed(0)
+						self:SetAngles(Angle(0,oldAng.y,0))
+						timer.Simple(IsValid(self.VJ_TheController) && SoundDuration("cpthazama/avp/predator/intro.mp3") -1 or 0,function()
+							if IsValid(self) then
+								self:SetNoDraw(false)
+								self:DrawShadow(true)
+								self.GodMode = false
+								self.InIntro = true
+								self:Camo(true)
+								local predmobile = ents.Create("sent_vj_avp_predmobile")
+								predmobile:SetPos(self:GetPos())
+								predmobile:SetAngles(self:GetAngles())
+								predmobile:Spawn()
+								predmobile:SetOwner(self)
+								predmobile:ResetSequence("predator_intro")
+								self.PredShip = predmobile
+								self:DeleteOnRemove(predmobile)
+								self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
+									self.EnemyDetection = true
+									self:SetState()
+									self:SCHEDULE_IDLE_STAND()
+									self:RemoveFlags(FL_NOTARGET)
+									SafeRemoveEntity(predmobile)
+									self:SetMaxYawSpeed(self.TurningSpeed)
+									self.InIntro = false
+									if IsValid(self.VJ_TheController) then
+										self.VJ_TheController:SetEyeAngles(Angle(0,self:GetAngles().y,0))
+									end
+								end})
+							end
+						end)
+					end
+				end)
 			end
 		end
 	end)
@@ -1664,7 +1692,7 @@ function ENT:DistractionCode(ent)
 					ent:OnDistracted(1)
 				else
 					ent:OnInvestigate(v)
-					ent:PlaySoundSystem(#ent.SoundTbl_Investigate > 0 && "Investigate" or "Alert")
+					ent:PlaySoundSystem((ent.SoundTbl_Investigate && #ent.SoundTbl_Investigate > 0) && "Investigate" or "Alert")
 				end
 			elseif !ent.IsVJBaseSNPC then
 				ent:SetLastPosition(soundPos)
@@ -2024,6 +2052,19 @@ function ENT:OnInput(key,activator,caller,data)
 		ship:SetCloaked(false)
 		ship:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
 		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/land.ogg",150)
+
+		local bullseye = ents.Create("obj_vj_bullseye")
+		bullseye:SetPos(ship:GetPos())
+		bullseye:SetAngles(ship:GetAngles())
+		bullseye:SetParent(ship)
+		bullseye.VJ_NPC_Class = self.VJ_NPC_Class
+		bullseye:Spawn()
+		bullseye:Activate()
+		bullseye:Fire("SetParentAttachment", "engine")
+		bullseye:SetNoDraw(true)
+		bullseye:DrawShadow(false)
+		ship:DeleteOnRemove(bullseye)
+		ship.Bullseye = bullseye
 	elseif key == "cin_predintro_ship_land1" then
 		local ship = self.PredShip
 		if !IsValid(ship) then return end
@@ -2042,6 +2083,8 @@ function ENT:OnInput(key,activator,caller,data)
 		if !IsValid(ship) then return end
 
 		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/open.ogg",95)
+		self:Camo(false)
+		SafeRemoveEntity(ship.Bullseye)
 	elseif key == "cin_predintro_ship_beep" then
 		local ship = self.PredShip
 		if !IsValid(ship) then return end
@@ -2330,6 +2373,10 @@ function ENT:OnThinkActive()
 		return
 	end
 
+	if self.InIntro then
+		self.HasPoseParameterLooking = false
+		return
+	end
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
 		-- print(self,self:GetSequenceName(self:GetSequence()))
