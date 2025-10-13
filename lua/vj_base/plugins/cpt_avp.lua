@@ -6,6 +6,7 @@
 VJ.AddPlugin("Aliens vs Predator SNPCs", "NPC")
 
 VJ.AddConVar("vj_avp_fatalities",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
+VJ.AddConVar("vj_avp_fatalities_lowhp",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_predmobile",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_xenostealth",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_flashlight",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
@@ -1194,6 +1195,7 @@ if CLIENT then
 			Panel:AddPanel(vj_icon)
 			Panel:AddControl("Label", {Text = "General Settings"})
 			controlAdd("Checkbox", {Label = "Enable Fatalities", Command = "vj_avp_fatalities"})
+			controlAdd("Checkbox", {Label = "Only Attempt Fatalities on Low HP Targets", Command = "vj_avp_fatalities_lowhp"})
 			controlAdd("Checkbox", {Label = "Enable Ambience Music [Survival]", Command = "vj_avp_survival_music"})
 			controlAdd("Checkbox", {Label = "Enable Bots [Survival]", Command = "vj_avp_survival_bots"})
 			controlAdd("Slider", {Label = "Bot Count (0 = Auto) [Survival]", min = 0, max = 8, Command = "vj_avp_survival_maxbots"})
@@ -1252,6 +1254,7 @@ VJ_AVP_HALOS.Other = {}
 VJ_AVP_HALOS.Survival = {}
 VJ_AVP_HALOS.Hunt = {}
 VJ_AVP_FATALITIES = GetConVar("vj_avp_fatalities"):GetBool()
+VJ_AVP_FATALITIES_LOWHP = GetConVar("vj_avp_fatalities_lowhp"):GetBool()
 
 VJ_AVP_XENOS = {}
 

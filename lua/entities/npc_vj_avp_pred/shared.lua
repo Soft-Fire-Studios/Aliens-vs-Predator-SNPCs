@@ -925,25 +925,25 @@ if CLIENT then
 					if IsValid(ent) then
 						introData.IntroPhase = 2
 						introData.FlashT = CurTime() +0.25
-						introData.WorldZoomHeight = 5000
+						introData.WorldZoomHeight = 8000
 					end
 				end)
 				timer.Simple(10.3,function()
 					if IsValid(ent) then
 						introData.FlashT = CurTime() +0.25
-						introData.WorldZoomHeight = 3500
+						introData.WorldZoomHeight = 6000
 					end
 				end)
 				timer.Simple(12.4,function()
 					if IsValid(ent) then
 						introData.FlashT = CurTime() +0.25
-						introData.WorldZoomHeight = 2000
+						introData.WorldZoomHeight = 4000
 					end
 				end)
 				timer.Simple(13.5,function()
 					if IsValid(ent) then
 						introData.FlashT = CurTime() +0.25
-						introData.WorldZoomHeight = 1500
+						introData.WorldZoomHeight = 2000
 					end
 				end)
 			end

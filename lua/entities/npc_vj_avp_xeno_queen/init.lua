@@ -794,17 +794,18 @@ function ENT:OnStep(pos,name)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnAlert(ent)
-	if math.random(1,2) == 1 && !self:IsBusy() then
+	if math.random(1,2) == 1 && !self:IsBusy() && !self.InBirth && CurTime() > (self.NextScreamAlertT or 0) then
 		VJ.STOPSOUND(self.CurrentSpeechSound)
 		VJ.STOPSOUND(self.CurrentIdleSound)
 		self:PlayAnim("Alien_Queen_fidget_roar",true,false,false)
 		self:PlaySound("cpthazama/avp/xeno/alien queen/vocal/alien_queen_scream_05.ogg",110)
 		util.ScreenShake(self:EyePos(),16,200,4,1000,true)
+		self.NextScreamAlertT = CurTime() +30
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnCallForHelp(ally)
-	if self:IsBusy() then return end
+	if self:IsBusy() or !self.InBirth or CurTime() < (self.NextScreamAlertT or 0) then return end
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
 	self:PlayAnim("Alien_Queen_fidget_roar",true,false,false)

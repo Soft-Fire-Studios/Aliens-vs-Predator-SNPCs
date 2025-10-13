@@ -965,7 +965,7 @@ function ENT:MaintainRelationships()
 	local sightDist = self:GetMaxLookDistance()
 	for _,ent in ipairs(self.RelationshipEnts) do
 		if !IsValid(ent) then continue end
-		if !spawnedAsMutator && !ent:Visible(self) && self:GetPos():Distance(ent:GetPos()) > sightDist *0.23 then
+		if !spawnedAsMutator && !ent:Visible(self) && self:GetPos():Distance(ent:GetPos()) > sightDist *((self.VJ_AVP_Xenomorph_Queen && self.InBirth) && 0.05 or 0.23) then
 			self:SetRelationshipMemory(ent, VJ.MEM_OVERRIDE_DISPOSITION, D_NU)
 			self:SetRelationshipMemory(ent, "avp_xeno_dispoverridden", true)
 		elseif memories[ent]["avp_xeno_dispoverridden"] then

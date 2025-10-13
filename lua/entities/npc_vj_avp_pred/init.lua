@@ -711,6 +711,9 @@ function ENT:Init()
 								predmobile:ResetSequence("predator_intro")
 								self.PredShip = predmobile
 								self:DeleteOnRemove(predmobile)
+								local ply = self.VJ_TheController
+								local cont = self.VJ_TheControllerEntity
+								local bullseye = self.VJ_TheControllerBullseye
 								self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
 									self.EnemyDetection = true
 									self:SetState()
@@ -719,8 +722,12 @@ function ENT:Init()
 									SafeRemoveEntity(predmobile)
 									self:SetMaxYawSpeed(self.TurningSpeed)
 									self.InIntro = false
-									if IsValid(self.VJ_TheController) then
-										self.VJ_TheController:SetEyeAngles(Angle(0,self:GetAngles().y,0))
+									if IsValid(ply) then
+										ply:SetEyeAngles(Angle(0,self:GetAngles().y,0))
+										self.VJ_IsBeingControlled = true
+										self.VJ_TheController = ply
+										self.VJ_TheControllerEntity = cont
+										self.VJ_TheControllerBullseye = bullseye
 									end
 								end})
 							end
@@ -2050,6 +2057,7 @@ function ENT:OnInput(key,activator,caller,data)
 		if !IsValid(ship) then return end
 
 		ship:SetCloaked(false)
+		ParticleEffectAttach("vj_avp_predator_predmobile",PATTACH_POINT_FOLLOW,ship,1)
 		ship:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
 		VJ.CreateSound(ship,"cpthazama/avp/predator/predmobile/land.ogg",150)
 
@@ -2094,6 +2102,7 @@ function ENT:OnInput(key,activator,caller,data)
 		local ship = self.PredShip
 		if !IsValid(ship) then return end
 
+		ship:StopParticles()
 		VJ.CreateSound(ship,"cpthazama/avp/predator/adrenalin/adrenalin_turn_off_04.ogg",90)
 	elseif key == "cin_predintro_ship_close" then
 		local ship = self.PredShip
@@ -2399,6 +2408,10 @@ function ENT:OnThinkActive()
 		return
 	end
 	self:SetArrivalSpeed(9999)
+	// wtf....
+	if self.VJ_IsBeingControlled then
+		self:SetEnemy(self.VJ_TheControllerBullseye)
+	end
 	local curTime = CurTime()
 	local dist = self.EnemyData.DistanceNearest
 	-- local moveAct = self:SelectMovementActivity(dist)
