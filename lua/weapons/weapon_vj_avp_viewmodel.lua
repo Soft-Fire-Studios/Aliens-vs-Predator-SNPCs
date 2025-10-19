@@ -84,6 +84,10 @@ if CLIENT then
 end
 
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local string_find = string.find
+local string_replace = string.Replace
+local string_EndsWith = string.EndsWith
+--
 function SWEP:Initialize()
 	self.SequenceTime = 0
 	self.LastIdleType = 0
@@ -169,6 +173,17 @@ function SWEP:OnPlayAnimation(anim,vm,animDur)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function SWEP:IsIdling()
+	local owner = self:GetOwner()
+	local vm = owner:GetViewModel()
+	if !IsValid(vm) then return false end
+	local vmSeq = vm:GetSequenceName(vm:GetSequence())
+	if string_EndsWith(vmSeq,"_rest") then
+		return true
+	end
+	return false
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:PlayWeaponAnimation(anim,speed,cycle,isIdle)
 	local owner = self:GetOwner()
 	local vm = owner:GetViewModel()
@@ -220,9 +235,11 @@ function SWEP:OnPlaySound(sdFile)
 		local npc = IsValid(owner) && owner.VJ_AVP_ViewModelNPC
 		if IsValid(npc) && npc:GetEquipment() == 5 then return end
 		if npc.VJ_AVP_Xenomorph then return end
+		local vm = owner:GetViewModel()
+		local vmSeq = vm:GetSequenceName(vm:GetSequence())
 		local fov = owner:GetFOV()
 		local isZoomed = fov != GetConVarNumber("fov_desired")
-		if isZoomed then return end
+		if isZoomed or !self:IsIdling() then return end
 		local animTime = self:PlayWeaponAnimation({"predator_hud_claws_fidget_inspect_claw","predator_hud_claws_fidget_stretch","predator_hud_claws_fidget_wipe_wrist_pc"})
 		self.NextFidgetT = curTime +animTime
 	end
@@ -243,10 +260,6 @@ function SWEP:IsBusy(checkMove)
 	return false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local string_find = string.find
-local string_replace = string.Replace
-local string_EndsWith = string.EndsWith
---
 function SWEP:OnChangeActivity(npc,act)
 	local curTime = CurTime()
 	local owner = self:GetOwner()

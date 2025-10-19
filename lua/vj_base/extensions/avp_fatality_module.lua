@@ -21,7 +21,7 @@ cvars.AddChangeCallback("vj_avp_fatalities_lowhp", function(convar_name, oldValu
 end)
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:CanUseFatality(ent)
-	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or ent.VJ_AVP_IsFacehugged or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
+	if !VJ_AVP_FATALITIES or self.InFatality or self.DoingFatality or self.IsCrawler or ent.VJ_AVP_IsFacehugged or /*!ent.AnimTbl_Fatalities or*/ !ent.AnimTbl_FatalitiesResponse or !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or self.DisableFatalities then return false, false end
 	if VJ_AVP_FATALITIES_LOWHP && !IsValid(self.VJ_TheController) && ent:Health() > (ent:GetMaxHealth() *0.25) then return false, false end
 	local inFront = (ent:GetForward():Dot((self:GetPos() -ent:GetPos()):GetNormalized()) > math_cos(math_rad(80)))
 	if !ent.Dead && !ent.InFatality && !ent.DoingFatality && CurTime() > (self.NextFatalityTime or 0) && (ent.Flinching or ent:Health() <= (ent:GetMaxHealth() *0.15) or !inFront or string_find(ent:GetSequenceName(ent:GetSequence()),"knockdown") or string_find(ent:GetSequenceName(ent:GetSequence()),"big_flinch") or CurTime() < (ent.SpecialBlockAnimTime or 0)) then

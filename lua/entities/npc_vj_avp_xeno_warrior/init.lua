@@ -2966,7 +2966,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 		self:StopMoving()
 	end
 
-	if !self.IsCrawler && self.CanDodge && !self:IsBusy() && math.random(1,8) == 1 then
+	if !self.IsCrawler && !self:IsOnFire() && self.CanDodge && !self:IsBusy() && math.random(1,8) == 1 then
 		self:PlayAnim({"dodge_left","dodge_right"},true,false,true,0,{OnFinish=function(interrupted)
 			if interrupted then return end
 			self:SetState()

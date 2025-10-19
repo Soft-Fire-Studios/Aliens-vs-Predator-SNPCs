@@ -45,6 +45,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool",1,"Sprinting")
 	self:NetworkVar("Bool",2,"Beam")
 	self:NetworkVar("Bool",3,"InFatality")
+	self:NetworkVar("Bool",4,"DoingIntro")
 	self:NetworkVar("Vector",0,"JumpPosition")
 	self:NetworkVar("Vector",1,"ArmorColor")
 end
@@ -152,6 +153,9 @@ if CLIENT then
 				-- print(ply,ply.VJ_IsControllingNPC,ply.VJCE_NPC,self)
 				if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
 					self.CanDoIntro = GetConVar("vj_avp_predmobile"):GetBool()
+					if !self:GetDoingIntro() then
+						self.CanDoIntro = false
+					end
 				end
 			end
 		end)

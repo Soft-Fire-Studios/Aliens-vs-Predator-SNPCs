@@ -7,6 +7,7 @@ ENT.Author 			= "Cpt. Hazama"
 ENT.Contact 		= "http://steamcommunity.com/groups/vrejgaming"
 ENT.Category		= "Aliens vs Predator"
 ENT.AutomaticFrameAdvance = true
+ENT.RenderGroup 	= RENDERGROUP_BOTH
 
 -- ENT.Spawnable 		= true
 -- ENT.AdminSpawnable 	= true
@@ -107,6 +108,10 @@ if CLIENT then
         end
     end
 	return
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Initialize()

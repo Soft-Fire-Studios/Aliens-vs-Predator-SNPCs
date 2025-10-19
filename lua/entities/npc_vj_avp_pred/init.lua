@@ -678,12 +678,12 @@ function ENT:Init()
 			-- end
 			local tr = util.TraceHull({
 				start = self:GetPos(),
-				endpos = self:GetPos() +self:GetUp() *32000,
+				endpos = self:GetPos() +self:GetUp() *32768,
 				filter = {self},
 				mins = self:OBBMins(),
 				maxs = self:OBBMaxs()
 			})
-			if tr.HitSky then
+			if tr.HitSky == true then
 				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 				self:AddFlags(FL_NOTARGET)
 				self.EnemyDetection = false
@@ -691,6 +691,7 @@ function ENT:Init()
 				self:DrawShadow(false)
 				self.GodMode = true
 				self:SetMaxYawSpeed(0)
+				self:SetDoingIntro(true)
 				local oldAng = self:GetAngles()
 				timer.Simple(0.1,function()
 					if IsValid(self) then
@@ -722,6 +723,7 @@ function ENT:Init()
 									SafeRemoveEntity(predmobile)
 									self:SetMaxYawSpeed(self.TurningSpeed)
 									self.InIntro = false
+									self:SetDoingIntro(false)
 									if IsValid(ply) then
 										ply:SetEyeAngles(Angle(0,self:GetAngles().y,0))
 										self.VJ_IsBeingControlled = true
@@ -1502,6 +1504,17 @@ function ENT:RunDamageCode(mult)
 			effectdata:SetMagnitude(math.Rand(1,3))
 			effectdata:SetRadius(math.Rand(1,2))
 			util.Effect("Sparks",effectdata,true,true)
+			local light = ents.Create("light_dynamic")
+			light:SetKeyValue("brightness","2")
+			light:SetKeyValue("distance",math.random(2,3) *25)
+			light:SetLocalAngles(self:GetAngles())
+			light:SetPos(tr.HitPos)
+			light:Spawn()
+			light:Activate()
+			light:Fire("Color","255 200 100")
+			light:Fire("TurnOn","",0)
+			light:Fire("Kill","",0.1)
+			self:DeleteOnRemove(light)
 			sound.Play("cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_blades_block_0" .. math.random(1,5) .. ".ogg",tr.HitPos,75,math.random(94,104))
 			-- sound.Play("cpthazama/avp/weapons/alien/claws/claw_impact_tp/alien_clawhit_metal_tp_2.ogg",tr.HitPos,75,math.random(94,104))
 		end
