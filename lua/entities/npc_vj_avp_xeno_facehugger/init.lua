@@ -102,6 +102,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	function controlEnt:OnThink()
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
+		self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()

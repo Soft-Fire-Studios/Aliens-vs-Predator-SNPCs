@@ -426,6 +426,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		if self.VJC_Camera_Mode == 2 then
 			self.VJCE_NPC.AttackIdleTime = CurTime() +1.5
 		end
+		self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()

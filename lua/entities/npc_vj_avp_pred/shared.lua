@@ -136,7 +136,6 @@ if CLIENT then
 	local matGradientXeno = Material("hud/cpthazama/avp/grey_gradient.png")
 	local matGradientTech = Material("hud/cpthazama/avp/tech_gradient.png")
 	local matGradientNoMask = Material("hud/cpthazama/avp/tech_world_gradient_darker.png")
-	local introSnd = "cpthazama/avp/predator/intro.mp3"
 
     function ENT:Initialize()
 		self.Mat_cloakfactor = 0
@@ -404,7 +403,6 @@ if CLIENT then
 				self.HiddenUpperBones = nil
 			else
 				if self.VJ_AVP_SuperPredator then
-					// scale the faceBones down a bit
 					for _,boneName in ipairs(faceBones) do
 						local boneIndex = self:LookupBone(boneName)
 						if boneIndex && boneIndex != -1 then
@@ -660,46 +658,50 @@ if CLIENT then
 	local matXenoOverlay = Material("models/cpthazama/avp/xenovision")
 	local matColdOverlay = Material("hud/cpthazama/avp/tt_tech_overlay")
 	local matColdOverlay_Cloaked = Material("hud/cpthazama/avp/tt_tech_overlay_cloaked")
-	local matHUD = Material("hud/cpthazama/avp/predator_hud.png","smooth additive")
-	local matHUD_Cloaked = Material("hud/cpthazama/avp/predator_cloak_hud.png","smooth additive")
-	local matHUDZoom = Material("hud/cpthazama/avp/predator_zoom.png","smooth additive")
-	local matHUDTarget = Material("hud/cpthazama/avp/predator_target.png","smooth additive")
-	local matHUDEquip_Spear = Material("hud/cpthazama/avp/avp_p_wps_realspear_highlight_v2.png","smooth additive")
-	local matHUDEquip_Disc = Material("hud/cpthazama/avp/avp_p_wps_disc_highlight_v2.png","smooth additive")
-	local matHUDEquip_Mine = Material("hud/cpthazama/avp/avp_p_wps_mine_highlight_v3.png","smooth additive")
-	local matHUDCrosshair_Plasma = Material("hud/cpthazama/avp/avp_p_reticle_plasma.png","smooth additive")
-	local matHUDCrosshair_Other = Material("hud/cpthazama/avp/avp_p_reticle_other.png","smooth additive")
-	local matHUDCrosshair_Spear = Material("hud/cpthazama/avp/avp_p_reticle_spear.png","smooth additive")
-	local matHUDEquipSelect_Base = Material("hud/cpthazama/avp/pred_wepicon.png","smooth additive")
-	local matHUDEquipSelect_Plasma = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_plasma.png","smooth additive")
-	local matHUDEquipSelect_Mine = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_mine.png","smooth additive")
-	local matHUDEquipSelect_Disc = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_disc.png","smooth additive")
-	local matHUDEquipSelect_Spear = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_spear.png","smooth additive")
-	local matHUDEquipSelect_Speargun = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_speargun.png","smooth additive")
-	local matHUD_HP = Material("hud/cpthazama/avp/pred_hp.png","smooth additive")
-	local matHUD_HP_Warning = Material("hud/cpthazama/avp/pred_hp_warning.png","smooth additive")
-	local matHUD_HP_Base = Material("hud/cpthazama/avp/pred_hp_bar.png","smooth additive")
-	local matHUD_EP = Material("hud/cpthazama/avp/pred_energy.png","smooth additive")
-	local matHUD_Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive")
-	local matHUDCloak_Solid = Material("hud/cpthazama/avp/predmask_solid.png","smooth additive")
-	local matHUDCloak_Outline = Material("hud/cpthazama/avp/predmask_outline.png","smooth additive")
-	local matHUD_Target_Base = Material("hud/cpthazama/avp/highlight_bar.png","smooth additive")
-	local matHUD_Target_Icon_Nil = Material("hud/cpthazama/avp/icons/generic.png","smooth additive")
-	local matHUD_Target_Icon_Human = Material("hud/cpthazama/avp/icons/human.png","smooth additive")
-	local matHUD_Target_Icon_Android = Material("hud/cpthazama/avp/icons/android.png","smooth additive")
-	local matHUD_Target_Icon_Xeno = Material("hud/cpthazama/avp/icons/xeno.png","smooth additive")
-	local matHUD_Target_Icon_XenoPred = Material("hud/cpthazama/avp/icons/predalien.png","smooth additive")
-	local matHUD_Target_Icon_XenoQueen = Material("hud/cpthazama/avp/icons/queen.png","smooth additive")
-	local matHUD_Target_Icon_Pred = Material("hud/cpthazama/avp/icons/predator.png","smooth additive")
-	local matHUD_Target_Icon_Veh = Material("hud/cpthazama/avp/icons/vehicle.png","smooth additive")
-	local matHUD_Target_Range_Base = Material("hud/cpthazama/avp/range.png","smooth additive")
-	local matHUD_Target_Range_Glow = Material("hud/cpthazama/avp/range_glow.png","smooth additive")
-
-	local matHUD_Blood = {
-		Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
-		Material("hud/cpthazama/avp/blood/green_2.png","smooth additive"),
-		Material("hud/cpthazama/avp/blood/green_3.png","smooth additive"),
-		Material("hud/cpthazama/avp/blood/green_4.png","smooth additive")
+	local materialList = {
+		VisionChange = Material("hud/cpthazama/avp/pred_vis_change_wipe.png","smooth additive"),
+		Intro1 = Material("hud/cpthazama/avp/intro/pl1.png","smooth additive"),
+		Intro2 = Material("hud/cpthazama/avp/intro/pl2.png","smooth additive"),
+		Base = Material("hud/cpthazama/avp/predator_hud.png","smooth additive"),
+		Cloaked = Material("hud/cpthazama/avp/predator_cloak_hud.png","smooth additive"),
+		Zoom = Material("hud/cpthazama/avp/predator_zoom.png","smooth additive"),
+		Target = Material("hud/cpthazama/avp/predator_target.png","smooth additive"),
+		Equip_Spear = Material("hud/cpthazama/avp/avp_p_wps_realspear_highlight_v2.png","smooth additive"),
+		Equip_Disc = Material("hud/cpthazama/avp/avp_p_wps_disc_highlight_v2.png","smooth additive"),
+		Equip_Mine = Material("hud/cpthazama/avp/avp_p_wps_mine_highlight_v3.png","smooth additive"),
+		Crosshair_Plasma = Material("hud/cpthazama/avp/avp_p_reticle_plasma.png","smooth additive"),
+		Crosshair_Other = Material("hud/cpthazama/avp/avp_p_reticle_other.png","smooth additive"),
+		Crosshair_Spear = Material("hud/cpthazama/avp/avp_p_reticle_spear.png","smooth additive"),
+		EquipSelect_Base = Material("hud/cpthazama/avp/pred_wepicon.png","smooth additive"),
+		EquipSelect_Plasma = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_plasma.png","smooth additive"),
+		EquipSelect_Mine = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_mine.png","smooth additive"),
+		EquipSelect_Disc = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_disc.png","smooth additive"),
+		EquipSelect_Spear = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_spear.png","smooth additive"),
+		EquipSelect_Speargun = Material("hud/cpthazama/avp/avp_p_hud_wpnicon_speargun.png","smooth additive"),
+		HP = Material("hud/cpthazama/avp/pred_hp.png","smooth additive"),
+		HP_Warning = Material("hud/cpthazama/avp/pred_hp_warning.png","smooth additive"),
+		HP_Base = Material("hud/cpthazama/avp/pred_hp_bar.png","smooth additive"),
+		EP = Material("hud/cpthazama/avp/pred_energy.png","smooth additive"),
+		Item_HP = Material("hud/cpthazama/avp/predhealthicon.png","smooth additive"),
+		Cloak_Solid = Material("hud/cpthazama/avp/predmask_solid.png","smooth additive"),
+		Cloak_Outline = Material("hud/cpthazama/avp/predmask_outline.png","smooth additive"),
+		Target_Base = Material("hud/cpthazama/avp/highlight_bar.png","smooth additive"),
+		Target_Icon_Nil = Material("hud/cpthazama/avp/icons/generic.png","smooth additive"),
+		Target_Icon_Human = Material("hud/cpthazama/avp/icons/human.png","smooth additive"),
+		Target_Icon_Android = Material("hud/cpthazama/avp/icons/android.png","smooth additive"),
+		Target_Icon_Xeno = Material("hud/cpthazama/avp/icons/xeno.png","smooth additive"),
+		Target_Icon_XenoPred = Material("hud/cpthazama/avp/icons/predalien.png","smooth additive"),
+		Target_Icon_XenoQueen = Material("hud/cpthazama/avp/icons/queen.png","smooth additive"),
+		Target_Icon_Pred = Material("hud/cpthazama/avp/icons/predator.png","smooth additive"),
+		Target_Icon_Veh = Material("hud/cpthazama/avp/icons/vehicle.png","smooth additive"),
+		Target_Range_Base = Material("hud/cpthazama/avp/range.png","smooth additive"),
+		Target_Range_Glow = Material("hud/cpthazama/avp/range_glow.png","smooth additive"),
+		Blood = {
+			Material("hud/cpthazama/avp/blood/green_1.png","smooth additive"),
+			Material("hud/cpthazama/avp/blood/green_2.png","smooth additive"),
+			Material("hud/cpthazama/avp/blood/green_3.png","smooth additive"),
+			Material("hud/cpthazama/avp/blood/green_4.png","smooth additive")
+		}
 	}
 
 	local acceptableClasses = {viewmodel=true}
@@ -830,7 +832,6 @@ if CLIENT then
 		local ent = net.ReadEntity()
 		local cont = net.ReadEntity()
 		local ply = cont
-		local matHUD_VisionChange = Material("hud/cpthazama/avp/pred_vis_change_wipe.png", "smooth additive")
 		
 		ent.PreviousVisionMode = 0
 
@@ -859,16 +860,14 @@ if CLIENT then
 		local introCol = Vector(0,0,0)
 		local introColB = Vector(1,1,1)
 		ent.IntroColorLerp = Vector(0,0,0)
-		local matHUD_Intro1 = Material("hud/cpthazama/avp/intro/pl1.png","smooth additive")
-		local matHUD_Intro2 = Material("hud/cpthazama/avp/intro/pl2.png","smooth additive")
-		ent.IntroMaterial = matHUD_Intro1
+		ent.IntroMaterial = materialList.Intro1
 
 		ent.IntroData = ent.IntroData or {
 			DidIntro = false,
 			IntroMaterial = nil,
 			IntroPhase = 0, -- 0 = Not started, 1 = Zoom Phase, 2 = Real-Game Zoom Phase, 3 = 3rd Person Pred-Mobile Phase, 4 = Finished
 		}
-		ent.IntroData.IntroMaterial = matHUD_Intro1
+		ent.IntroData.IntroMaterial = materialList.Intro1
 		ent.IntroData.IntroColorLerp = Vector(0,0,0)
 		hook.Add("HUDPaint","VJ_AVP_Predator_HUD",function()
 			if !IsValid(ent) then return end
@@ -901,7 +900,7 @@ if CLIENT then
 				end)
 				timer.Simple(3,function()
 					if IsValid(ent) then
-						introData.IntroMaterial = matHUD_Intro2
+						introData.IntroMaterial = materialList.Intro2
 						introData.IntroPhase = 1
 						introData.markerUV = {u = 0.6,v = 0.351}
 						introData.FlashT = CurTime() +0.25
@@ -998,7 +997,7 @@ if CLIENT then
 							local pulse = math.sin(CurTime() *12) *50
 							local markerSize = base +pulse
 							surface.SetDrawColor(r,g,b,255)
-							surface.SetMaterial(matHUDTarget)
+							surface.SetMaterial(materialList.Target)
 							surface.DrawTexturedRect(mx -markerSize *0.5,my -markerSize *0.5,markerSize,markerSize)
 						end
 					elseif introData.IntroPhase == 2 then
@@ -1007,14 +1006,15 @@ if CLIENT then
 					end
 					if introData.IntroPhase >= 1 && introData.IntroPhase <= 2 then
 						surface.SetDrawColor(Color(r,g,b,a))
-						surface.SetMaterial(matHUD)
+						surface.SetMaterial(materialList.Base)
 						surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 					end
 					if introData.FlashT && CurTime() < introData.FlashT then
 						local dur = 0.4
 						local start = introData.FlashT - dur
 						local frac = math.Clamp((CurTime() - start) / dur, 0, 1)
-						local mw, mh = matHUD_VisionChange:Width(), matHUD_VisionChange:Height()
+						local mat = materialList.VisionChange
+						local mw, mh = mat:Width(), mat:Height()
 						if mw == 0 or mh == 0 then
 							mw, mh = 256, 1024
 						end
@@ -1025,7 +1025,7 @@ if CLIENT then
 						local y = 0
 
 						surface.SetDrawColor(r,g,b,255)
-						surface.SetMaterial(matHUD_VisionChange)
+						surface.SetMaterial(mat)
 						surface.DrawTexturedRect(x, y, drawW, drawH)
 					end
 				end
@@ -1087,7 +1087,7 @@ if CLIENT then
 						table.remove(dmgSplatter,id)
 						continue
 					end
-					DrawIcon(matHUD_Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
+					DrawIcon(materialList.Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
 				end
 			end
 
@@ -1095,18 +1095,18 @@ if CLIENT then
 			cloakA = Lerp(FT,cloakA,cloaked && 50 or 0)
 			if cloaked then
 				surface.SetDrawColor(Color(r,g,b,cloakA))
-				surface.SetMaterial(matHUD_Cloaked)
+				surface.SetMaterial(materialList.Cloaked)
 				surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 			end
 
 			surface.SetDrawColor(Color(r,g,b,a))
-			surface.SetMaterial(matHUD)
+			surface.SetMaterial(materialList.Base)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 	
 			if GetConVar("vj_avp_hud_predinfo"):GetBool() then
 				local lockOn = ent:GetLockOn()
 				local target = ((ent:GetBeam() && IsValid(lockOn) && lockOn:GetClass() != "obj_vj_bullseye") && lockOn) or ent:GetLookEntity()
-				local targetName,targetMelee,targetRange,targetIcon,targetAddLen = "",0,0,matHUD_Target_Icon_Nil,0
+				local targetName,targetMelee,targetRange,targetIcon,targetAddLen = "",0,0,materialList.Target_Icon_Nil,0
 				if IsValid(target) && (target:IsNPC() or target:IsPlayer() or target:IsNextBot()) then
 					targetAlpha = Lerp(FT *8,targetAlpha,a)
 					if target:IsPlayer() then
@@ -1118,23 +1118,23 @@ if CLIENT then
 						targetName = target:GetClass()
 					end
 					if (target.IsVJBaseSNPC_Tank or target.VJ_ID_Vehicle) then
-						targetIcon = matHUD_Target_Icon_Veh
+						targetIcon = materialList.Target_Icon_Veh
 						targetAddLen = 4
 					elseif (target:GetNW2Bool("AVP.IsTech",false) or target.VJ_AVP_IsTech) && target.IsVJBaseSNPC_Human then
-						targetIcon = matHUD_Target_Icon_Android
+						targetIcon = materialList.Target_Icon_Android
 					elseif (target.VJ_AVP_Xenomorph or target:GetNW2Bool("AVP.Xenomorph",false)) then
 						if target.VJ_AVP_XenomorphPredalien then
-							targetIcon = matHUD_Target_Icon_XenoPred
+							targetIcon = materialList.Target_Icon_XenoPred
 						elseif target.VJ_AVP_Xenomorph_Queen then
-							targetIcon = matHUD_Target_Icon_XenoQueen
+							targetIcon = materialList.Target_Icon_XenoQueen
 						else
-							targetIcon = matHUD_Target_Icon_Xeno
+							targetIcon = materialList.Target_Icon_Xeno
 						end
 						targetAddLen = 5
 					elseif target.VJ_AVP_Predator then
-						targetIcon = matHUD_Target_Icon_Pred
+						targetIcon = materialList.Target_Icon_Pred
 					elseif (target.IsVJBaseSNPC_Human or target:IsPlayer()) then
-						targetIcon = matHUD_Target_Icon_Human
+						targetIcon = materialList.Target_Icon_Human
 					end
 					local data = Entity(1).VJ_AVP_PredatorHUD_TargetData
 					if data then
@@ -1149,7 +1149,7 @@ if CLIENT then
 				end
 				local targetCol = hpColor
 				targetCol.a = targetAlpha
-				DrawIcon(matHUD_Target_Base,32,-1,25,45,r,g,b,targetAlpha)
+				DrawIcon(materialList.Target_Base,32,-1,25,45,r,g,b,targetAlpha)
 				DrawIcon(targetIcon,32 +(targetAddLen *0.5),-15,8 +targetAddLen,8,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
 				targetName = string_Left(targetName or "",18)
 				DrawText(targetName,"VJFont_AVP_Predator",26,-10,targetCol,0,0)
@@ -1157,7 +1157,7 @@ if CLIENT then
 				if targetMelee > 0 then
 					local meleeRangeStartX,meleeRangeStartY = 28,-1
 					for i = 1,5 do
-						DrawIcon(targetMelee >= i && matHUD_Target_Range_Glow or matHUD_Target_Range_Base,meleeRangeStartX,meleeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+						DrawIcon(targetMelee >= i && materialList.Target_Range_Glow or materialList.Target_Range_Base,meleeRangeStartX,meleeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
 						meleeRangeStartX = meleeRangeStartX +4
 					end
 					DrawText("Melee Distance","VJFont_AVP_Predator",26,3.65,targetCol,0,0)
@@ -1166,17 +1166,17 @@ if CLIENT then
 				if targetRange > 0 then
 					local rangeRangeStartX,rangeRangeStartY = 28,12
 					for i = 1,5 do
-						DrawIcon(targetRange >= i && matHUD_Target_Range_Glow or matHUD_Target_Range_Base,rangeRangeStartX,rangeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
+						DrawIcon(targetRange >= i && materialList.Target_Range_Glow or materialList.Target_Range_Base,rangeRangeStartX,rangeRangeStartY,6,6,targetCol.r,targetCol.g,targetCol.b,targetAlpha)
 						rangeRangeStartX = rangeRangeStartX +4
 					end
 					DrawText("Range Distance","VJFont_AVP_Predator",26,15.65,targetCol,0,0)
 				end
 			end
 
-			DrawIcon(cloaked && matHUDCloak_Outline or matHUDCloak_Solid,0,25.5,4.5,4.5,r,g,b,a)
+			DrawIcon(cloaked && materialList.Cloak_Outline or materialList.Cloak_Solid,0,25.5,4.5,4.5,r,g,b,a)
 
 			local equip = ent:GetEquipment()
-			DrawIcon(equip == 1 && matHUDCrosshair_Plasma or (equip == 4 or equip == 5) && matHUDCrosshair_Spear or matHUDCrosshair_Other,0,0,2,2,r,g,b,a)
+			DrawIcon(equip == 1 && materialList.Crosshair_Plasma or (equip == 4 or equip == 5) && materialList.Crosshair_Spear or materialList.Crosshair_Other,0,0,2,2,r,g,b,a)
 
 			local equipShowT = ent:GetEquipmentShowTime()
 			if equipShowT > CurTime() then
@@ -1184,8 +1184,8 @@ if CLIENT then
 					local curEquip = equip == i
 					local x,y = equipPoints[i].x,equipPoints[i].y
 					local alpha = !hasMask && 0 or (curEquip && a or 50) *(equipShowT -CurTime())
-					DrawIcon(matHUDEquipSelect_Base,x,y,curEquip && 12 or 10,curEquip && 8.5 or 8,r,g,b,alpha)
-					DrawIcon(i == 1 && matHUDEquipSelect_Plasma or i == 2 && matHUDEquipSelect_Mine or i == 3 && matHUDEquipSelect_Disc or i == 4 && matHUDEquipSelect_Spear or matHUDEquipSelect_Speargun,x,y,8,6,r,g,b,alpha)
+					DrawIcon(materialList.EquipSelect_Base,x,y,curEquip && 12 or 10,curEquip && 8.5 or 8,r,g,b,alpha)
+					DrawIcon(i == 1 && materialList.EquipSelect_Plasma or i == 2 && materialList.EquipSelect_Mine or i == 3 && materialList.EquipSelect_Disc or i == 4 && materialList.EquipSelect_Spear or materialList.EquipSelect_Speargun,x,y,8,6,r,g,b,alpha)
 				end
 			end
 
@@ -1196,12 +1196,12 @@ if CLIENT then
 			for i = 1,maxStimCount do
 				stimX = stimX +1.1
 				stimsA[i] = Lerp(FT *4,stimsA[i],!hasMask && 0 or (stimCount < i && 50 or a))
-				DrawIcon(matHUD_Item_HP,stimPos +stimX,26.5,3.25,3.25,r,g,b,stimsA[i])
+				DrawIcon(materialList.Item_HP,stimPos +stimX,26.5,3.25,3.25,r,g,b,stimsA[i])
 			end
 
-			DrawIcon(matHUD_HP_Base,23.5,22.3,27,4,hpColor.r,hpColor.g,hpColor.b,a)
-			DrawIcon_UV(matHUD_HP,9,19,hpPer *30,6,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,a)
-			DrawIcon(matHUD_HP_Warning,24,22,30,6,hpColor.r *1.25,hpColor.g *1.25,hpColor.b *1.25,hpPer <= 0.4 && math.abs(math.sin(CurTime() *4) *a) or a)
+			DrawIcon(materialList.HP_Base,23.5,22.3,27,4,hpColor.r,hpColor.g,hpColor.b,a)
+			DrawIcon_UV(materialList.HP,9,19,hpPer *30,6,{0,0,hpPer,1},hpColor.r,hpColor.g,hpColor.b,a)
+			DrawIcon(materialList.HP_Warning,24,22,30,6,hpColor.r *1.25,hpColor.g *1.25,hpColor.b *1.25,hpPer <= 0.4 && math.abs(math.sin(CurTime() *4) *a) or a)
 
 			if hasMask then
 				local energy = ent:GetEnergy()
@@ -1213,7 +1213,7 @@ if CLIENT then
 				local maxEnergyTiles = 20
 				for i = 1,maxEnergyTiles do
 					energysA[i] = Lerp(FT *4,energysA[i],energyPer < i /maxEnergyTiles && 25 or a)
-					DrawIcon(matHUD_EP,energyPosX,energyPosY,energySize,energySize,energyColor.r,energyColor.g,energyColor.b,energysA[i])
+					DrawIcon(materialList.EP,energyPosX,energyPosY,energySize,energySize,energyColor.r,energyColor.g,energyColor.b,energysA[i])
 					energyPosX = energyPosX +1.25
 					energyPosY = energyPosY -0.09
 					energySize = energySize -0.1
@@ -1225,7 +1225,7 @@ if CLIENT then
 			ent.VJ_AVP_FOV = ent.VJ_AVP_FOV or 0
 			ent.VJ_AVP_FOV = Lerp(FrameTime() *5,ent.VJ_AVP_FOV,isZoomed && 255 or 0)
 			surface.SetDrawColor(Color(r,g,b,ent.VJ_AVP_FOV))
-			surface.SetMaterial(matHUDZoom)
+			surface.SetMaterial(materialList.Zoom)
 			surface.DrawTexturedRect(0,0,ScrW(),ScrH())
 	
 			local spear = ent:GetSpear()
@@ -1234,7 +1234,7 @@ if CLIENT then
 				local size = 125
 				size = size +math.sin(CurTime() *10) *10
 				surface.SetDrawColor(Color(r,g,b,a *math.Clamp(spear:GetPos():Distance(ent:GetPos()) /1000,0,1)))
-				surface.SetMaterial(matHUDEquip_Spear)
+				surface.SetMaterial(materialList.Equip_Spear)
 				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 			end
 	
@@ -1244,7 +1244,7 @@ if CLIENT then
 				local size = 125
 				size = size +math.sin(CurTime() *10) *10
 				surface.SetDrawColor(Color(r,g,b,a *math.Clamp(disc:GetPos():Distance(ent:GetPos()) /1500,0,1)))
-				surface.SetMaterial(matHUDEquip_Disc)
+				surface.SetMaterial(materialList.Equip_Disc)
 				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 			end
 
@@ -1254,7 +1254,7 @@ if CLIENT then
 					local size = 75
 					size = size +math.sin(CurTime() *10) *10
 					surface.SetDrawColor(Color(r,g,b,a *math.Clamp(v:GetPos():Distance(ent:GetPos()) /1000,0,1)))
-					surface.SetMaterial(matHUDEquip_Mine)
+					surface.SetMaterial(materialList.Equip_Mine)
 					surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 				elseif IsValid(v) && v:GetClass() == "sent_vj_avp_battery" && v:GetActive() then
 					local entPos = (v:GetPos() +v:OBBCenter()):ToScreen()
@@ -1265,7 +1265,7 @@ if CLIENT then
 					end
 					size = size +math.sin(CurTime() *10) *10
 					surface.SetDrawColor(Color(r,g,b,a *alpha))
-					surface.SetMaterial(matHUDTarget)
+					surface.SetMaterial(materialList.Target)
 					surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 				end
 			end
@@ -1289,7 +1289,7 @@ if CLIENT then
 				local size = 75
 				size = size +math.sin(CurTime() *10) *50
 				surface.SetDrawColor(Color(r,g,b,a))
-				surface.SetMaterial(matHUDTarget)
+				surface.SetMaterial(materialList.Target)
 				surface.DrawTexturedRect(entPos.x -(size /2),entPos.y -(size /2),size,size)
 			else
 				if ent.VJ_AVP_LockOn then
@@ -1510,6 +1510,78 @@ if CLIENT then
 			["$pp_colour_mulb"] 		= 0,
 			["$pp_colour_inv"] = 0,
 		}
+
+		local isStencilDrawing = false
+		local function shouldThermalVM(vm, ply, allowDuringStencil)
+			if !allowDuringStencil && isStencilDrawing then
+				return false
+			end
+			if !IsValid(ply) or !IsValid(vm) then return false end
+			if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return false end
+			local npc = ply.VJCE_NPC
+			if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 or npc:GetVisionMode() != 1 or vm != ply:GetViewModel() then return false end
+			local maskBG = npc:FindBodygroupByName("mask")
+			if maskBG > -1 then
+				local mask = npc.PredLord && 1 or npc:GetBodygroup(maskBG)
+				if mask == 0 then
+					return false
+				end
+			end
+			return true,npc
+		end
+
+		hook.Add("PreDrawViewModel","VJ_AVP_Predator_VMThermal_Pre",function(vm, ply, wep)
+			local ok, npc = shouldThermalVM(vm,ply,false)
+			if !ok then return end
+
+			render.SuppressEngineLighting(true)
+			if npc:GetCloaked() then
+				render.MaterialOverride(matTT_Thermal)
+			-- else
+				-- render.MaterialOverride(matTT_Thermal_Overlay)
+			end
+			render.SetColorModulation(1.65, 1.65, 1.65)
+		end)
+		if delete == true then hook.Remove("PreDrawViewModel", "VJ_AVP_Predator_VMThermal_Pre") end
+
+		hook.Add("PostDrawViewModel","VJ_AVP_Predator_VMThermal_Post",function(vm, ply, wep)
+			local ok,v = shouldThermalVM(vm,ply)
+			if !ok then return end
+
+			render.ClearStencil()
+			render.SetStencilEnable(true)
+			render.SetStencilWriteMask(255)
+			render.SetStencilTestMask(255)
+			render.SetStencilReferenceValue(67)
+			render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
+			render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
+			render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+			render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+			if !(v.VJ_AVP_Predator && v:GetCloaked()) then
+    			isStencilDrawing = true
+				render.SetColorModulation(1.65,1.65,1.65)
+				vm:DrawModel()
+    			isStencilDrawing = false
+			end
+			render.SuppressEngineLighting(true)
+			if v.VJ_AVP_Predator && v:GetCloaked() then
+				render.MaterialOverride(matTT_Thermal)
+    			isStencilDrawing = true
+				vm:DrawModel()
+    			isStencilDrawing = false
+			end
+			-- DrawBloom(0, 1, 1, 1, 0, -10, 0.6, 0.6, 0.6)
+			-- DrawTexturize(0, matGradientThermal)
+			render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_EQUAL)
+			render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+
+			render.SetColorModulation(1,1,1)
+			render.MaterialOverride()
+			render.SuppressEngineLighting(false)
+			render.SetStencilEnable(false)
+		end)
+		if delete == true then hook.Remove("PostDrawViewModel", "VJ_AVP_Predator_VMThermal_Post") end
+
 		local acceptClasses = {prop_ragdoll=true}
 		-- local acceptClasses = {viewmodel=true,prop_ragdoll=true}
 		hook.Add("RenderScreenspaceEffects","VJ_AVP_Predator_Vision",function()
@@ -1582,29 +1654,26 @@ if CLIENT then
 				end
 				DrawMotionBlur(0.4,0.8,0.015)
 				if mode == 1 then
-					-- render.ClearStencil()
-					-- render.SetStencilEnable(true)
-					-- render.SetStencilWriteMask(255)
-					-- render.SetStencilTestMask(255)
-					-- render.SetStencilReferenceValue(1)
-					-- render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_ALWAYS)
-					-- render.SetStencilPassOperation(STENCILOPERATION_REPLACE)
-					-- cam.Start3D(EyePos(), EyeAngles())
-					-- 	local vm = LocalPlayer():GetViewModel()
-					-- 	if IsValid(vm) then
-					-- 		render.SuppressEngineLighting(true)
-					-- 		render.MaterialOverride(0)
+					render.SetStencilEnable(true)
+					render.SetStencilWriteMask(255)
+					render.SetStencilTestMask(255)
+					render.SetStencilReferenceValue(67)
+					render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_NOTEQUAL)
+					render.SetStencilPassOperation(STENCILOPERATION_KEEP)
+					render.SetStencilFailOperation(STENCILOPERATION_KEEP)
+					render.SetStencilZFailOperation(STENCILOPERATION_KEEP)
+					-- local ply = LocalPlayer()
+					-- local vm = ply:GetViewModel()
+					-- if IsValid(vm) then
+					-- 	cam.Start3D(EyePos(),EyeAngles())
 					-- 		vm:DrawModel()
-					-- 		render.SuppressEngineLighting(false)
-					-- 	end
-					-- cam.End3D()
-					-- render.SetStencilCompareFunction(STENCILCOMPARISONFUNCTION_NOTEQUAL)
-					-- render.SetStencilPassOperation(STENCILOPERATION_KEEP)
-
-					-- DrawColorModify(tab_thermal)
-					DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
-					DrawTexturize(10,matGradientThermal2)
-					-- render.SetStencilEnable(false)
+							DrawBloom(0, 1, 1, 1, 0, 0, 0.3, 0.1, 0.3)
+							DrawTexturize(0, matGradientThermal)
+						-- cam.End3D()
+					-- end
+					render.SetStencilEnable(false)
+					-- DrawBloom(0,1,1,1,0,-10,0.6,0.6,0.6)
+					-- DrawTexturize(10,matGradientThermal2)
 				elseif mode == 2 then
 					DrawColorModify(tab_xeno)
 					DrawBloom(0,0.5,1,1,0,0,10,10,10)
@@ -1618,14 +1687,13 @@ if CLIENT then
 					if mode == 1 then
 						if v:IsNPC() or v:IsPlayer() or v:IsNextBot() or v:GetClass() == "prop_ragdoll" /*or v:GetClass() == "viewmodel"*/ then
 							if v:GetNoDraw() == true or v:IsFlagSet(FL_NOTARGET) == true or v.IsVJBaseBullseye or (v:GetNW2Bool("AVP.IsTech",false) or v.VJ_AVP_IsTech) or (v.VJ_AVP_Xenomorph or v:GetNW2Bool("AVP.Xenomorph",false)) then continue end
-							local isVM = v:GetClass() == "viewmodel"
+							-- local isVM = v:GetClass() == "viewmodel"
 							-- if v:GetClass() == "prop_ragdoll" then
 							-- 	print(v:GetModel(),v:GetBoneSurfaceProp(0),matSurf[v:GetBoneSurfaceProp(0)] != true)
 							-- end
 							if v:GetClass() == "prop_ragdoll" && matSurf[v:GetBoneSurfaceProp(0)] != true then continue end
-							cam.Start3D(EyePos(),EyeAngles(),isVM && 92)
-								if !isVM && util.IsValidModel(v:GetModel()) or isVM then
-								-- if util.IsValidModel(v:GetModel()) then
+							cam.Start3D(EyePos(),EyeAngles())
+								if util.IsValidModel(v:GetModel()) then
 									render.ClearStencil()
 									render.SetStencilEnable(true)
 									render.SetStencilWriteMask(255)
