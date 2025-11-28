@@ -2327,6 +2327,45 @@ function ENT:StalkingAI(ent)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TransformToPraetorian()
+	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
+	self:PlayAnim("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
+		local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
+		xeno:SetPos(self:GetPos())
+		xeno:SetAngles(self:GetAngles())
+		xeno.VJ_NPC_Class = self.VJ_NPC_Class
+		xeno:Spawn()
+		xeno:Activate()
+		xeno:ForceSetEnemy(self:GetEnemy(),true)
+		xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+		xeno:PlayAnim("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
+			VJ.STOPSOUND(xeno.CurrentSpeechSound)
+			VJ.STOPSOUND(xeno.CurrentIdleSound)
+			VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
+			xeno:PlayAnim("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
+				if interrupted then xeno:SetState() return end
+				xeno:SetState()
+				xeno:SCHEDULE_IDLE_STAND()
+			end})
+		end})
+		undo.ReplaceEntity(self,xeno)
+		local cont = self.VJ_TheController
+		timer.Simple(0.12,function()
+			if IsValid(cont) && IsValid(xeno) then
+				local SpawnControllerObject = ents.Create("obj_vj_controller")
+				SpawnControllerObject.VJCE_Player = cont
+				SpawnControllerObject:SetControlledNPC(xeno)
+				SpawnControllerObject:Spawn()
+				SpawnControllerObject:StartControlling()
+				print(cont,"evolved into",xeno)
+			end
+		end)
+		self:Remove()
+	end})
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local debugUseSurfaceClimbing = false
 --
 function ENT:OnThinkActive()
@@ -2783,42 +2822,7 @@ function ENT:OnThinkActive()
 			end})
 		else
 			if VJ_AVP_GetPraetorianCount() < 2 then
-				self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-				VJ.STOPSOUND(self.CurrentSpeechSound)
-				VJ.STOPSOUND(self.CurrentIdleSound)
-				self:PlayAnim("crawl_to_block",true,false,false,0,{OnFinish=function(interrupted)
-					local xeno = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_praetorian" or "npc_vj_avp_xeno_praetorian")
-					xeno:SetPos(self:GetPos())
-					xeno:SetAngles(self:GetAngles())
-					xeno.VJ_NPC_Class = self.VJ_NPC_Class
-					xeno:Spawn()
-					xeno:Activate()
-					xeno:ForceSetEnemy(self:GetEnemy(),true)
-					xeno:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
-					xeno:PlayAnim("Praetorian_Stand_Summon_Into",true,false,false,0,{OnFinish=function(interrupted)
-						VJ.STOPSOUND(xeno.CurrentSpeechSound)
-						VJ.STOPSOUND(xeno.CurrentIdleSound)
-						VJ.CreateSound(xeno,"cpthazama/avp/xeno/praetorian/vocal/praetorian_summon_long_01.ogg",110)
-						xeno:PlayAnim("Praetorian_Stand_Summon",true,false,false,0,{OnFinish=function(interrupted)
-							if interrupted then xeno:SetState() return end
-							xeno:SetState()
-							xeno:SCHEDULE_IDLE_STAND()
-						end})
-					end})
-					undo.ReplaceEntity(self,xeno)
-					local cont = self.VJ_TheController
-					timer.Simple(0.12,function()
-						if IsValid(cont) && IsValid(xeno) then
-							local SpawnControllerObject = ents.Create("obj_vj_controller")
-							SpawnControllerObject.VJCE_Player = cont
-							SpawnControllerObject:SetControlledNPC(xeno)
-							SpawnControllerObject:Spawn()
-							SpawnControllerObject:StartControlling()
-							print(cont,"evolved into",xeno)
-						end
-					end)
-					self:Remove()
-				end})
+				self:TransformToPraetorian()
 			end
 		end
 	end

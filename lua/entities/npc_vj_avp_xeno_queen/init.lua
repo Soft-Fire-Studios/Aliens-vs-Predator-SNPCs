@@ -437,14 +437,31 @@ function ENT:OnThink2()
 				end
 			end
 
+			local pCount = table_Count(tbl.Praetorian)
 			if command.Drone then
 				-- print("Assigning nodes to Drones")
-				assignNodes(tbl.Drones, 500, 1500)
+				assignNodes(tbl.Drones, 500, 1500, function(v, count)
+					if pCount < 3 && math.random(1,75) == 1 && count >= 15 && !v:IsBusy("Activities") && !v.Alerted then
+						v:TransformToPraetorian()
+						pCount = pCount +1
+						-- print("Drone transformed into Praetorian!")
+						return true
+					end
+					return false
+				end)
 			end
 
 			if command.Warrior then
 				-- print("Assigning nodes to Warriors")
-				assignNodes(tbl.Warriors, 1500, 99999)
+				assignNodes(tbl.Warriors, 1500, 99999, function(v, count)
+					if pCount < 3 && math.random(1,100) == 1 && count >= 15 && !v:IsBusy("Activities") && !v.Alerted then
+						v:TransformToPraetorian()
+						pCount = pCount +1
+						-- print("Warrior transformed into Praetorian!")
+						return true
+					end
+					return false
+				end)
 			end
 
 			if command.Praetorian then
