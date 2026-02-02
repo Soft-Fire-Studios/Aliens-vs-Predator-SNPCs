@@ -23,6 +23,7 @@
 	"$cloakpassenabled"			"1"
 	"$cloakfactor"				"0"
 	"$refractamount"			"1"
+    // "$translucent" 				"1" // Required for the spy cloak shader
 
 	"Proxies"
 	{

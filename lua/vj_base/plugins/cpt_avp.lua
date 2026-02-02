@@ -21,6 +21,8 @@ VJ.AddConVar("vj_avp_pred_info",1,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddConVar("vj_avp_kseries_ally",0,bit.bor(FCVAR_ARCHIVE,FCVAR_NOTIFY))
 VJ.AddClientConVar("vj_avp_hud", 0, "Should players have the Marine HUD?")
 VJ.AddClientConVar("vj_avp_hud_ultrawide", 0, "Toggle Ultra-Wide version of the HUDs")
+VJ.AddClientConVar("vj_avp_hud_scale_x", 0, "HUD Scale X (0 = None)")
+VJ.AddClientConVar("vj_avp_hud_scale_y", 0, "HUD Scale Y (0 = None)")
 VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 VJ.AddClientConVar("vj_avp_hud_predinfo", 1, "Enable Predator HUD info display?")
 VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Survival Music?")
@@ -918,6 +920,7 @@ else
 	
 	hook.Add("PreDrawViewModel","VJ_AVP_ViewModel",function(vm,ply)
 		local possessing = ply.VJCE_NPC
+		-- print(ply,ply.VJ_IsControllingNPC)
 		if ply.VJ_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) then
 			if !IsValid(possessing:GetVM()) or ply.VJC_Camera_Mode != 2 then
 				return true
@@ -1212,6 +1215,20 @@ if CLIENT then
 			controlAdd("Checkbox", {Label = "Enable Marine HUD", Command = "vj_avp_hud"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Enable Marine HUD Pinging", Command = "vj_avp_hud_ping"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Ultra-Wide HUD Fix", Command = "vj_avp_hud_ultrawide"}):SetTextColor(textCol)
+			local p = controlAdd("Slider", {Label = "", min = 0, max = 0.35, Command = "vj_avp_hud_scale_x", type = "Float"})
+			p.Paint = function(w,h)
+				surface.SetDrawColor(textCol)
+				surface.SetTextPos(0,p:GetTall() *0.35)
+				surface.SetTextColor(textCol)
+				surface.DrawText("Manual HUD Scale (X)")
+			end
+			local p = controlAdd("Slider", {Label = "", min = 0, max = 0.35, Command = "vj_avp_hud_scale_y", type = "Float"})
+			p.Paint = function(w,h)
+				surface.SetDrawColor(textCol)
+				surface.SetTextPos(0,p:GetTall() *0.35)
+				surface.SetTextColor(textCol)
+				surface.DrawText("Manual HUD Scale (Y)")
+			end
 
 			local vj_icon = vgui.Create("DImage")
 			vj_icon:SetSize(512,130)

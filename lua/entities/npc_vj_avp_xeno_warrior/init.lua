@@ -562,12 +562,15 @@ function ENT:Init()
 
 	self.CanInteract = VJ.AnimExists(self,"interaction")
 
+	self.Original_HullType = self.HullType
+
 	if self.CurrentSet == 2 then
 		local bounds = self.StandingBounds or defStandingBounds
 		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
 	elseif self.CurrentSet == 1 then
 		local bounds = self.CrawlingBounds or defCrawlingBounds
 		self:SetCollisionBounds(bounds,Vector(-bounds.x, -bounds.y, 0))
+		self:SetHullType(HULL_TINY)
 	end
 
 	local bounds = self.StandingBounds or defStandingBounds
@@ -2608,6 +2611,7 @@ function ENT:OnThinkActive()
 				end
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, -35)
 				self:SetStepHeight(self.StepHeight_Standing or 22)
+				self:SetHullType(self.Original_HullType)
 				-- print("standing")
 			else -- We're changing from standing to crawling
 				self:SetPoseParameter("head_yaw",self:GetPoseParameter("standing_head_yaw"))
@@ -2623,6 +2627,7 @@ function ENT:OnThinkActive()
 				end
 				self.ControllerParams.ThirdP_Offset = Vector(0, 0, 0)
 				self:SetStepHeight(self.StepHeight_Crawling or 100)
+				self:SetHullType(HULL_TINY)
 				-- print("crawling")
 			end
 		end
@@ -2999,6 +3004,7 @@ function ENT:OnBleed(dmginfo,hitgroup)
 				self.DisableFatalities = true
 				self.CanFlinch = false
 				self.AttackDistance = 55
+				self:SetHullType(HULL_TINY)
 			end
 			if decap.OnDecap then
 				decap.OnDecap(self,dmginfo,hitgroup)

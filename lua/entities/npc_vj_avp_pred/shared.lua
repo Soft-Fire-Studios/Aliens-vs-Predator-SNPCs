@@ -511,10 +511,23 @@ if CLIENT then
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
 	local debugT = 0
-	function ENT:Controller_CalcView(ply, origin, angles, myFOV, camera, cameraMode)
+	function ENT:Controller_OnCalcView(cEnt, ply, origin, angles, myFOV)
 		local pos = origin
 		local ang = ply:EyeAngles()
 		local newFOV = myFOV
+		-- local camera = cEnt
+		local camera = cEnt:GetCamera()
+		local cameraMode = cEnt:GetCameraMode()
+		ply.VJCE_Camera = camera
+		ply.VJCE_Camera.Zoom = cEnt.VJC_Camera_Zoom
+		ply.VJCE_NPC = cEnt:GetNPC()
+		ply.VJC_Camera_Mode = cEnt:GetCameraMode()
+		ply.VJC_TP_Offset = cEnt:GetCameraTP_Offset()
+		ply.VJC_FP_Offset = cEnt:GetCameraFP_Offset()
+		ply.VJC_FP_Bone = cEnt:GetCameraFP_Bone()
+		ply.VJC_FP_ShrinkBone = cEnt:GetCameraFP_ShrinkBone()
+		ply.VJC_FP_CameraBoneAng = cEnt:GetCameraFP_BoneAng()
+		ply.VJC_FP_CameraBoneAng_Offset = cEnt:GetCameraFP_BoneAngOffset()
 		local refreshRate = nil
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		local introData = self.CanDoIntro && self.IntroData
@@ -596,7 +609,7 @@ if CLIENT then
 			local offset = ply.VJC_TP_Offset + Vector(0, 0, 95) // + vectp
 			local tr = util.TraceHull({
 				start = self:GetPos() + self:OBBCenter(),
-				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
+				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-cEnt.VJC_Camera_Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
 				filter = {ply, camera, self, self:GetFatalityTarget()},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),
@@ -1560,14 +1573,14 @@ if CLIENT then
 			if !(v.VJ_AVP_Predator && v:GetCloaked()) then
     			isStencilDrawing = true
 				render.SetColorModulation(1.65,1.65,1.65)
-				vm:DrawModel()
+				-- vm:DrawModel()
     			isStencilDrawing = false
 			end
 			render.SuppressEngineLighting(true)
 			if v.VJ_AVP_Predator && v:GetCloaked() then
 				render.MaterialOverride(matTT_Thermal)
     			isStencilDrawing = true
-				vm:DrawModel()
+				-- vm:DrawModel()
     			isStencilDrawing = false
 			end
 			-- DrawBloom(0, 1, 1, 1, 0, -10, 0.6, 0.6, 0.6)
