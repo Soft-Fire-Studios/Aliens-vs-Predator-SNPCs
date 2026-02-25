@@ -19,6 +19,7 @@ end
 
 if CLIENT then
 	local render_GetLightColor = render.GetLightColor
+	local registeredPMNames = {}
 	function ENT:Draw()
 		self:DrawModel()
 
@@ -243,7 +244,7 @@ if CLIENT then
 			ent = ply:GetObserverTarget()
 		end
 		if ent == false then return end
-		if !IsValid(ent) && GetConVar("vj_avp_hud"):GetInt() == 1 then
+		if !IsValid(ent) && GetConVar("vj_avp_hud"):GetInt() == 1 && gmod.GetGamemode().Name == "Sandbox" then
 			ent = ply
 		end
 		if !IsValid(ent) or IsValid(ent) && !(ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot()) then return end
@@ -382,6 +383,51 @@ if CLIENT then
 				DrawText("Grenades. >","VJFont_AVP_Marine",26.45,21.1)
 			else
 				DrawText("Alt. >","VJFont_AVP_Marine",30.6,21.1)
+			end
+		end
+
+		if ply.VJ_IsControllingNPC != true && GetConVar("vj_avp_hud_squadinfo"):GetBool() then
+			local squad = ply.VJ_AVP_Squad or {}
+			-- print(ply,squad,squad[1],squad[2],squad[3],squad[4])
+			local squadCount = #squad
+			for i = 1,math.min(squadCount,4) do
+				local ent = squad[i]
+				if !IsValid(ent) then
+					table.remove(squad,i)
+					continue
+				end
+				local memberHP = ent.GetHP && ent:GetHP() or ent:Health()
+				local memberMaxHP = ent:GetMaxHealth()
+				local memberHPPer = math_Clamp(memberHP /memberMaxHP,0,1)
+				local name = ""
+				if ent:GetClass() == "npc_vj_test_player" then
+					local plyModel = ent:GetModel()
+					if !registeredPMNames[plyModel] then
+						local pName
+						for mdlName,mdl in pairs(player_manager.AllValidModels()) do
+							if mdl == plyModel then
+								pName = mdlName
+								break
+							end
+						end
+						if !pName then
+							name = list.Get("NPC")[ent:GetClass()] && list.Get("NPC")[ent:GetClass()].Name or ent:GetClass()
+						else
+							registeredPMNames[plyModel] = pName
+							name = pName
+						end
+					else
+						name = registeredPMNames[plyModel]
+					end
+				else
+					name = ent:IsPlayer() && ent:Nick() or list.Get("NPC")[ent:GetClass()] && list.Get("NPC")[ent:GetClass()].Name or ent:GetClass()
+				end
+				local posX,posY = 30, -18
+				local barOffX,barOffY = -0.9,-0.45
+				local wid,hei = 13,2
+				DrawText(name,"VJFont_AVP_MarineSmall",posX,posY +(i *5) -1.4)
+				DrawIcon_UV(matHUD_BlockShort,posX,posY +(i *5),wid,hei,{0,0,1,1},r,g,b,a)
+				DrawIcon_UV(matHUD_BlockFilling,posX -barOffX,posY -barOffY +(i *5),(memberHPPer *wid) *0.86,hei *0.55,{0,0,memberHPPer,1},r,g,b,a)
 			end
 		end
 

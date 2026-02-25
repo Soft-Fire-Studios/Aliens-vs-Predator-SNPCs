@@ -721,6 +721,8 @@ if CLIENT then
 
 	// Credits to Dopey and/or Umbree for the below functions; I suck doo-doo at HUD scaling/UV stuff so I nabbed this. Full credits will be given on release
 	local function ScreenPos(x,y)
+		local scaleX = GetConVar("vj_avp_hud_scale_x"):GetFloat()
+		local scaleY = GetConVar("vj_avp_hud_scale_y"):GetFloat()
 		if GetConVar("vj_avp_hud_ultrawide"):GetBool() then
 			local w, h = ScrW(), ScrH()
 			local pos = {}
@@ -731,13 +733,15 @@ if CLIENT then
 		local w = ScrW()
 		local h = ScrH()
 		local pos = {}
-		pos.x = w *0.5 +w *x *0.01
-		pos.y = h *0.5 +w *y *0.01
+		pos.x = w *0.5 +w *x *(scaleX != 0 && scaleX *0.1 or 0.01)
+		pos.y = h *0.5 +w *y *(scaleY != 0 && scaleY *0.1 or 0.01)
 
 		return pos
 	end
 
 	local function ScreenScale(x,y)
+		local scaleX = GetConVar("vj_avp_hud_scale_x"):GetFloat()
+		local scaleY = GetConVar("vj_avp_hud_scale_y"):GetFloat()
 		if GetConVar("vj_avp_hud_ultrawide"):GetBool() then
 			local w, h = ScrW(), ScrH()
 			local size = {}
@@ -748,8 +752,8 @@ if CLIENT then
 		local w = ScrW()
 		local h = ScrH()
 		local size = {}
-		size.x = (w *x *0.01)
-		size.y = (w *y *0.01)
+		size.x = (w *x *(scaleX != 0 && scaleX *0.1 or 0.01))
+		size.y = (w *y *(scaleY != 0 && scaleY *0.1 or 0.01))
 
 		return size
 	end

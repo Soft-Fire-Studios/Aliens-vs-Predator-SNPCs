@@ -25,6 +25,7 @@ VJ.AddClientConVar("vj_avp_hud_scale_x", 0, "HUD Scale X (0 = None)")
 VJ.AddClientConVar("vj_avp_hud_scale_y", 0, "HUD Scale Y (0 = None)")
 VJ.AddClientConVar("vj_avp_hud_ping", 1, "Enable Pinging?")
 VJ.AddClientConVar("vj_avp_hud_predinfo", 1, "Enable Predator HUD info display?")
+VJ.AddClientConVar("vj_avp_hud_squadinfo", 1, "Enable Squad HUD display?")
 VJ.AddClientConVar("vj_avp_survival_music", 1, "Enable Survival Music?")
 VJ.AddClientConVar("vj_avp_moviepred", 0, "Enable AVP movie sounds for Predator Vision")
 
@@ -1214,6 +1215,7 @@ if CLIENT then
 			-- controlAdd("Checkbox", {Label = "Respawn as Xenomorphs [Survival]", Command = "vj_avp_survival_respawn"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Enable Marine HUD", Command = "vj_avp_hud"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Enable Marine HUD Pinging", Command = "vj_avp_hud_ping"}):SetTextColor(textCol)
+			controlAdd("Checkbox", {Label = "Enable Marine HUD Squad Info", Command = "vj_avp_hud_squadinfo"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Ultra-Wide HUD Fix", Command = "vj_avp_hud_ultrawide"}):SetTextColor(textCol)
 			local p = controlAdd("Slider", {Label = "", min = 0, max = 0.35, Command = "vj_avp_hud_scale_x", type = "Float"})
 			p.Paint = function(w,h)
@@ -1373,6 +1375,101 @@ function NPC:Acid(pos,dist,dmg)
 	end)
 
 	-- VJ.ApplyRadiusDamage(self, self, pos or self:GetPos(), dist or 65, dmg or 5, DMG_ACID, true, true)
+end
+
+if SERVER then
+	util.AddNetworkString("VJ.AVP.AddToSquad")
+
+	hook.Add("PlayerInitialSpawn","VJ.AVP.PlayerInitialSpawn",function(ply)
+		ply.VJ_AVP_Squad = {}
+	end)
+
+	hook.Add("KeyPress","VJ.AVP.KeyPress",function(ply,key)
+		-- print("KeyPress",ply,key)
+		if key == 32 then
+			local tr = ply:GetEyeTrace()
+			if IsValid(tr.Entity) && tr.Entity:IsNPC() && (tr.Entity.VJ_AVP_Marine or tr.Entity:GetClass() == "npc_vj_test_player") && tr.Entity:GetPos():Distance(ply:GetPos()) < 150 then
+				local ent = tr.Entity
+				timer.Simple(0.11,function()
+					if IsValid(ply) && IsValid(ent) && !ply:KeyDown(IN_ATTACK) && !ply:KeyDownLast(IN_ATTACK) && !ply:KeyPressed(IN_ATTACK) && !ply:KeyReleased(IN_ATTACK) && !ply:KeyDown(IN_ATTACK2) && !ply:KeyDownLast(IN_ATTACK2) && !ply:KeyPressed(IN_ATTACK2) && !ply:KeyReleased(IN_ATTACK2) && !ply:KeyDown(IN_RELOAD) && !ply:KeyDownLast(IN_RELOAD) && !ply:KeyPressed(IN_RELOAD) && !ply:KeyReleased(IN_RELOAD) then
+						VJ_AVP_AddToSquad(ply,ent,ent.IsFollowing && ent.FollowData.Target == ply)
+					end
+				end)
+			end
+		end
+	end)
+
+	hook.Add("PlayerDeath","VJ.AVP.PlayerDeath",function(ply)
+		for _,v in pairs(ply.VJ_AVP_Squad) do
+			if IsValid(v) then
+				v.VJ_AVP_SquadAdded = nil
+			end
+		end
+	end)
+
+	hook.Add("EntityRemoved","VJ.AVP.EntityRemoved",function(ent)
+		if ent.VJ_AVP_SquadAdded then
+			for _,v in pairs(player.GetAll()) do
+				if v.VJ_AVP_Squad && v.VJ_AVP_Squad[ent] then
+					v.VJ_AVP_Squad[ent] = nil
+				end
+			end
+		end
+	end)
+
+	function VJ_AVP_AddToSquad(ply,ent,forceType)
+		if !IsValid(ply) or !IsValid(ent) then return end
+		if ent.VJ_AVP_SquadAdded or forceType == false then
+			if ply.VJ_AVP_Squad && VJ.HasValue(ply.VJ_AVP_Squad,ent) then
+				for index,v in pairs(ply.VJ_AVP_Squad) do
+					if v == ent then
+						ply.VJ_AVP_Squad[index] = nil
+						break
+					end
+				end
+				ent.VJ_AVP_SquadAdded = nil
+				net.Start("VJ.AVP.AddToSquad")
+					net.WriteEntity(ply)
+					net.WriteEntity(ent)
+					net.WriteBool(false)
+				net.Send(ply)
+				-- ply:ChatPrint("Removed " .. ent:GetName() .. " from squad")
+			end
+			return
+		end
+		net.Start("VJ.AVP.AddToSquad")
+			net.WriteEntity(ply)
+			net.WriteEntity(ent)
+			net.WriteBool(true)
+		net.Send(ply)
+		ply.VJ_AVP_Squad = ply.VJ_AVP_Squad or {}
+		ply.VJ_AVP_Squad[#ply.VJ_AVP_Squad +1] = ent
+		ent.VJ_AVP_SquadAdded = true
+		-- ply:ChatPrint("Added " .. ent:GetName() .. " to squad (SV Call)")
+	end
+elseif CLIENT then
+	net.Receive("VJ.AVP.AddToSquad",function()
+		local ply = net.ReadEntity()
+		local ent = net.ReadEntity()
+		local added = net.ReadBool()
+		if !IsValid(ply) then return end
+		if added == false then
+			if ply.VJ_AVP_Squad && VJ.HasValue(ply.VJ_AVP_Squad,ent) then
+				for index,v in pairs(ply.VJ_AVP_Squad) do
+					if v == ent then
+						ply.VJ_AVP_Squad[index] = nil
+						break
+					end
+				end
+				-- ply:ChatPrint("Removed " .. ent:GetClass() .. " from squad")
+			end
+			return
+		end
+		if !IsValid(ent) then return end
+		ply.VJ_AVP_Squad = ply.VJ_AVP_Squad or {}
+		ply.VJ_AVP_Squad[#ply.VJ_AVP_Squad +1] = ent
+		-- ply:ChatPrint("Added " .. ent:GetClass() .. " to squad (CL Call)")
+	end)
 end
 
 if CLIENT then
