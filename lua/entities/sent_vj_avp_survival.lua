@@ -33,6 +33,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool","ClubRound")
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 if CLIENT then
 	function ENT:Draw()
 		return false
@@ -965,7 +969,7 @@ function ENT:Think()
 				end
 			end
 		end
-		self:SetPos(VJ.PICK(player.GetAll()):GetPos())
+		-- self:SetPos(VJ.PICK(player.GetAll()):GetPos())
 		if self.KillsLeft <= 0 or totalNPCs >= self.KillsLeft or totalNPCs >= self.CurrentMaxNPCs or self:GetWaveSwitching() then
 			self.NextSpawnAttemptT = curTime + math.Rand(1,3)
 			return

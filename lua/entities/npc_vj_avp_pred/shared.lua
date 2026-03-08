@@ -50,6 +50,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector",1,"ArmorColor")
 end
 
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS -- Spooky test, may impact performance but will improve other features of the mod
+end
+
 hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 	if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 		local cent = ply.VJ_TheControllerEntity
@@ -606,20 +610,47 @@ if CLIENT then
 					self:ManipulateBoneScale(v, vec1)
 				end
 			end
-			local offset = ply.VJC_TP_Offset + Vector(0, 0, 95) // + vectp
-			local tr = util.TraceHull({
-				start = self:GetPos() + self:OBBCenter(),
-				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-cEnt.VJC_Camera_Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
-				filter = {ply, camera, self, self:GetFatalityTarget()},
-				mins = Vector(-5, -5, -5),
-				maxs = Vector(5, 5, 5),
-				mask = MASK_SHOT,
-			})
-			pos = tr.HitPos + tr.HitNormal*2
-			newFOV = 75
+			local fatalityEnt = self:GetFatalityTarget()
+			if self:GetInFatality() && IsValid(fatalityEnt) then
+				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Neck"))
+				local tr = util.TraceHull({
+					start = bonePos,
+					endpos = bonePos +self:GetForward() *20 + (self:GetRight() *90),
+					filter = {ply, camera, self, fatalityEnt},
+					mins = Vector(-5, -5, -5),
+					maxs = Vector(5, 5, 5),
+					mask = MASK_SHOT,
+				})
+				pos = tr.HitPos + tr.HitNormal*2
+				ang = ((fatalityEnt:GetPos() +fatalityEnt:OBBCenter() *1.6) -pos):Angle()
+			else
+				local usingInteraction = self:GetSequenceName(self:GetSequence()) == "Predator_Battery_Interaction" or self:GetSequenceName(self:GetSequence()) == "Predator_Disable_Interaction"
+				local usingEquipment = usingInteraction or ply:KeyDown(IN_DUCK) or self:GetBeam() or self:GetEquipment() == 5
+				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Spine2"))
+				local tr = util.TraceHull({
+					start = bonePos,
+					endpos = bonePos + angles:Forward()*-(usingEquipment && 40 or 65) + (self:GetRight() *(usingEquipment && 30 or 0) + self:GetUp() *(usingEquipment && 10 or 30)),
+					filter = {ply, camera, self, fatalityEnt},
+					mins = Vector(-5, -5, -5),
+					maxs = Vector(5, 5, 5),
+					mask = MASK_SHOT,
+				})
+				pos = tr.HitPos + tr.HitNormal*2 +(self:GetVelocity() /13)
+			end
+			-- local offset = ply.VJC_TP_Offset + Vector(0, 0, 95) // + vectp
+			-- local tr = util.TraceHull({
+			-- 	start = self:GetPos() + self:OBBCenter(),
+			-- 	endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-cEnt.VJC_Camera_Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
+			-- 	filter = {ply, camera, self, self:GetFatalityTarget()},
+			-- 	mins = Vector(-5, -5, -5),
+			-- 	maxs = Vector(5, 5, 5),
+			-- 	mask = MASK_SHOT,
+			-- })
+			-- pos = tr.HitPos + tr.HitNormal*2
+			-- newFOV = 75
 		end
 		if self:GetSprinting() or self:GetJumpPosition() != vec0 then
-			newFOV = newFOV +20
+			newFOV = newFOV +40
 		end
 		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
 		if ply:GetFOV() != GetConVarNumber("fov_desired") then

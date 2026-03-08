@@ -267,7 +267,7 @@ function ENT:TranslateActivity(act)
 		end
 	end
 	if act == ACT_WALK or act == ACT_RUN then
-		if self.IsBlocking then
+		if self.IsBlocking or self:GetBeam() then
 			return ACT_WALK
 		end
 		return self:SelectMovementActivity(act)
@@ -398,8 +398,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
-	self.JumpParams.Enabled = false
-	self:SetMaxYawSpeed(self.TurningSpeed *2)
+	npc.JumpParams.Enabled = false
+	npc:SetMaxYawSpeed(npc.TurningSpeed *2)
 
 	local hookName = "VJ_AVP_Predator_SoundHook" .. npc:EntIndex()
 	hook.Add("EntityEmitSound", hookName, function(t)

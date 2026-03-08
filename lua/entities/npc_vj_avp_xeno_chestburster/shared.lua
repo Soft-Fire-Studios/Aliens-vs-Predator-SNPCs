@@ -15,6 +15,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector",0,"QueenMarker")
 end
 
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS -- Spooky test, may impact performance but will improve other features of the mod
+end
+
 if CLIENT then
 	local string_EndsWith = string.EndsWith
 	local string_Replace = string.Replace
@@ -101,17 +105,16 @@ if CLIENT then
 				-- 	self:ManipulateBoneScale(v, vec1)
 				-- end
 			end
-			local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
+			local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Neck"))
 			local tr = util.TraceHull({
-				start = self:GetPos() + self:OBBCenter(),
-				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
+				start = bonePos,
+				endpos = bonePos + angles:Forward()*-60 +self:GetUp() *15,
 				filter = {ply, camera, self},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),
 				mask = MASK_SHOT,
 			})
-			pos = tr.HitPos + tr.HitNormal*2
+			pos = tr.HitPos + tr.HitNormal*2 +(self:GetVelocity() /13)
 			fov = 75
 		end
 		return {origin = pos, angles = ang, fov = fov}

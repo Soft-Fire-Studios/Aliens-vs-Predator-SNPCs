@@ -24,6 +24,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Entity","FatalityTarget")
 end
 
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS -- Spooky test, may impact performance but will improve other features of the mod
+end
+
 if CLIENT then
     -- matproxy.Add({
     --     name = "AVP_XenoVision",
@@ -223,6 +227,9 @@ if CLIENT then
 			end
 			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
 			newFOV = 130
+			if self:GetSprinting() then
+				newFOV = newFOV +30
+			end
 		else -- Third person
 			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)
@@ -230,21 +237,47 @@ if CLIENT then
 					self:ManipulateBoneScale(v, vec1)
 				end
 			end
-			local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
-			local tr = util.TraceHull({
-				start = self:GetPos() + self:OBBCenter(),
-				endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
-				filter = {ply, camera, self, "sent_vj_avp_restraint", self:GetFatalityTarget()},
-				mins = Vector(-5, -5, -5),
-				maxs = Vector(5, 5, 5),
-				mask = MASK_SHOT,
-			})
-			pos = tr.HitPos + tr.HitNormal*2
+			local fatalityEnt = self:GetFatalityTarget()
+			if self:GetInFatality() && IsValid(fatalityEnt) then
+				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Neck"))
+				local tr = util.TraceHull({
+					start = bonePos,
+					endpos = bonePos +self:GetForward() *20 + (self:GetRight() *90),
+					filter = {ply, camera, self, fatalityEnt},
+					mins = Vector(-5, -5, -5),
+					maxs = Vector(5, 5, 5),
+					mask = MASK_SHOT,
+				})
+				pos = tr.HitPos + tr.HitNormal*2
+				ang = ((fatalityEnt:GetPos() +fatalityEnt:OBBCenter() *1.6) -pos):Angle()
+			else
+				local usingInteraction = self:GetSequenceName(self:GetSequence()) == "interaction" or !self:GetStanding()
+				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Spine2"))
+				local obbY = self:OBBMaxs().y
+				local tr = util.TraceHull({
+					start = bonePos,
+					endpos = bonePos + angles:Forward()*-(usingInteraction && (obbY *4.2) or (obbY *5.76)) + (self:GetRight() *(usingInteraction && (obbY *2.3) or 0) + self:GetUp() *(usingInteraction && 10 or 30)),
+					filter = {ply, camera, self, "sent_vj_avp_restraint", fatalityEnt},
+					mins = Vector(-5, -5, -5),
+					maxs = Vector(5, 5, 5),
+					mask = MASK_SHOT,
+				})
+				pos = tr.HitPos + tr.HitNormal*2 +(self:GetVelocity() /13)
+			end
+			-- local offset = ply.VJC_TP_Offset + Vector(0, 0, self:OBBMaxs().z - self:OBBMins().z) // + vectp
+			-- local tr = util.TraceHull({
+			-- 	start = self:GetPos() + self:OBBCenter(),
+			-- 	endpos = self:GetPos() + self:OBBCenter() + angles:Forward()*-camera.Zoom + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z),
+			-- 	filter = {ply, camera, self, "sent_vj_avp_restraint", self:GetFatalityTarget()},
+			-- 	mins = Vector(-5, -5, -5),
+			-- 	maxs = Vector(5, 5, 5),
+			-- 	mask = MASK_SHOT,
+			-- })
+			-- pos = tr.HitPos + tr.HitNormal*2
 			newFOV = 75
-		end
-		if self:GetSprinting() then
-			newFOV = newFOV +10
+			if self:GetSprinting() then
+				newFOV = newFOV +50
+			end
 		end
 		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
 		if ply:GetFOV() != GetConVarNumber("fov_desired") then

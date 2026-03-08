@@ -1029,6 +1029,8 @@ function ENT:ToggleFlashlight(on)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
+	local npc = self
+	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
 
 	function controlEnt:OnThink()
@@ -1041,6 +1043,12 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		end
 		self.VJCE_NPC.EnemyDetection = true
+	end
+
+	function controlEnt:OnStopControlling()
+		if IsValid(npc) then
+			npc.JumpParams.Enabled = true
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------

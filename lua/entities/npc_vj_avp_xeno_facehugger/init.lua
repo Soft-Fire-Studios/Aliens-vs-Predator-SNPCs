@@ -97,6 +97,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		net.WriteEntity(ply)
     net.Send(ply)
 
+	local npc = self
+	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
 
 	function controlEnt:OnThink()
@@ -111,6 +113,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			net.WriteEntity(self)
 			net.WriteEntity(ply)
 		net.Send(ply)
+		if IsValid(npc) then
+			npc.JumpParams.Enabled = true
+		end
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
