@@ -2429,6 +2429,10 @@ function ENT:OnThinkActive()
 	
 	self:SetHP(self:Health())
 	self:SetStanding(self.CurrentSet == 1)
+	-- if IsValid(self.VJ_TheControllerBullseye) then -- wtf...
+	-- 	self:SetEnemy(self.VJ_TheControllerBullseye)
+	-- 	self:SetTarget(self.VJ_TheControllerBullseye)
+	-- end
 
 	if self.HasBreath then
 		self:Breathe()
@@ -2662,6 +2666,9 @@ function ENT:OnThinkActive()
 			self.NextIdleStandTime = 0
 		end
 		if IsValid(ply) then
+			-- self.ConstantlyFaceEnemy = false
+			-- self:SetEnemy(self.VJ_TheControllerBullseye)
+			-- self:SetTarget(self.VJ_TheControllerBullseye)
 			-- if !IsValid(ply.VJ_AVP_ViewModel) then
 			-- 	ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
 			-- 	self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)

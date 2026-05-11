@@ -6,7 +6,7 @@
 
     "$nodecal" 					"1"
     "$nocull" 					"1"
-    "$color2" 					"[0.4 0.4 0.4]"
+    "$color2" 					"[0.8 0.8 0.8]"
     "$blendtintbybasealpha" 	"1"
 	
 	"$phong"                    "1"

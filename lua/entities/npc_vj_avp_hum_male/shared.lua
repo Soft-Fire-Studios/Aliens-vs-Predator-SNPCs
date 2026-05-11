@@ -559,7 +559,7 @@ if CLIENT then
 			local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Spine2"))
 			local tr = util.TraceHull({
 				start = bonePos,
-				endpos = bonePos + angles:Forward()*-(ply:KeyDown(IN_ATTACK2) && 40 or 65) + (self:GetRight() *22 + self:GetUp() *12),
+				endpos = bonePos + angles:Forward()*-(ply:KeyDown(IN_ATTACK2) && 40 or 65) + (angles:Right() *22 + self:GetUp() *12),
 				filter = {ply, camera, self, self:GetFatalityTarget()},
 				mins = Vector(-5, -5, -5),
 				maxs = Vector(5, 5, 5),

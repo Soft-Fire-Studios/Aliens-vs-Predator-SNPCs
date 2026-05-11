@@ -4,7 +4,7 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/predalien/predalien_hybrid_body_normal"
 	"$phongexponenttexture"		"vj_base/exponent"
 
-    "$color2" 					"[2 2 2]"
+    "$color2" 					"[1.64 1.1 1.24]"
     "$nodecal" 					"1"
 
 	"$phong"                    "1"

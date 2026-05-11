@@ -256,7 +256,7 @@ if CLIENT then
 				local obbY = self:OBBMaxs().y
 				local tr = util.TraceHull({
 					start = bonePos,
-					endpos = bonePos + angles:Forward()*-(usingInteraction && (obbY *4.2) or (obbY *5.76)) + (self:GetRight() *(usingInteraction && (obbY *2.3) or 0) + self:GetUp() *(usingInteraction && 10 or 30)),
+					endpos = bonePos + angles:Forward()*-(usingInteraction && (obbY *4.2) or (obbY *5.76)) + (angles:Right() *(usingInteraction && (obbY *2.3) or 0) + self:GetUp() *(usingInteraction && 10 or 30)),
 					filter = {ply, camera, self, "sent_vj_avp_restraint", fatalityEnt},
 					mins = Vector(-5, -5, -5),
 					maxs = Vector(5, 5, 5),

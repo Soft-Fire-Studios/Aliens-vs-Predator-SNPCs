@@ -4,7 +4,7 @@
 	"$bumpmap"					"models/cpthazama/avp/xeno/runner/jungle_alien_head_normal"
 	"$phongexponenttexture"		"vj_base/exponent"
 
-    "$color2" 					"[5 5 5]"
+    "$color2" 					"[1.24 1 1.34]"
     "$nodecal" 					"1"
 
 	"$phong"                    "1"

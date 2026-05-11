@@ -276,9 +276,10 @@ if CLIENT then
 				if checkEnt:GetCloaked() then
 					if disruptTime > CurTime() then
 						local remaining = disruptTime -CurTime()
-						finalResult = 0.97 +math.sin(CurTime() *2) *0.03
+						finalResult = 0.965 +math.sin(CurTime() *2) *0.03
+						-- finalResult = 0.97 +math.sin(CurTime() *2) *0.03
 					else
-						finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or (checkEnt.GetJumpPosition && checkEnt:GetJumpPosition() != scale0)) && 0.97 or 0.997
+						finalResult = checkEnt:IsNPC() && (checkEnt:GetSprinting() or (checkEnt.GetJumpPosition && checkEnt:GetJumpPosition() != scale0)) && 0.93 or 0.965
 					end
 				else
 					finalResult = 0
@@ -629,7 +630,7 @@ if CLIENT then
 				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Spine2"))
 				local tr = util.TraceHull({
 					start = bonePos,
-					endpos = bonePos + angles:Forward()*-(usingEquipment && 40 or 65) + (self:GetRight() *(usingEquipment && 30 or 0) + self:GetUp() *(usingEquipment && 10 or 30)),
+					endpos = bonePos + angles:Forward()*-(usingEquipment && 40 or 65) + (angles:Right() *(usingEquipment && 30 or 0) + self:GetUp() *(usingEquipment && 10 or 30)),
 					filter = {ply, camera, self, fatalityEnt},
 					mins = Vector(-5, -5, -5),
 					maxs = Vector(5, 5, 5),
@@ -1085,6 +1086,8 @@ if CLIENT then
 				end
 			end
 
+			local ply = LocalPlayer()
+			local inFatality = (ply && ply.VJC_Camera_Mode == 1 && ent:GetInFatality() && IsValid(ent:GetFatalityTarget()))
 			local mode = ent:GetVisionMode()
 			if mode == 0 then -- No Mask
 				-- a = 250
@@ -1138,6 +1141,8 @@ if CLIENT then
 					DrawIcon(materialList.Blood[data.MatID],data.Pos[1],data.Pos[2],data.Size,data.Size,255,255,255,alpha,data.Ang)
 				end
 			end
+
+			if inFatality then return end
 
 			local cloaked = ent:GetCloaked()
 			cloakA = Lerp(FT,cloakA,cloaked && 50 or 0)
