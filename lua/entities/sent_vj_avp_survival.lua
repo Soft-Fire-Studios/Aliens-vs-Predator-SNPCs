@@ -458,7 +458,7 @@ function ENT:Initialize()
 	self.BossKillsLeft = 0
 	self.NextSpawnAttemptT = CurTime() +math.Rand(2,6)
 
-	self.XenoType = math.random(1,100) == 1 && "kxeno" or "xeno"
+	self.XenoType = math.random(1,GetConVar("vj_avp_survival_kseries"):GetInt() == 1 && 1 or 100) == 1 && "kxeno" or "xeno"
 	self.IsPredatorPlayers = false
 
 	if !self.IsPredatorPlayers then
@@ -1047,6 +1047,9 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_predalien",
 					"npc_vj_avp_" .. xenoType .. "_ravager",
 				})
+			end
+			if xeno == nil then
+				xeno = "npc_vj_avp_" .. xenoType .. "_drone"
 			end
 			local isQueen = (wave >= 30 && !self.HasKilledQueen && !IsValid(self.Queen))
 			if isQueen && IsValid(self.Queen) then
