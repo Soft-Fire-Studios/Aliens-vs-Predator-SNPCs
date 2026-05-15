@@ -1042,7 +1042,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		else
 			self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		end
-		self.VJCE_NPC.EnemyDetection = true
+		-- self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()

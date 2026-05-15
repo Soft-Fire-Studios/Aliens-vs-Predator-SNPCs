@@ -426,7 +426,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		if self.VJC_Camera_Mode == 2 then
 			self.VJCE_NPC.AttackIdleTime = CurTime() +1.5
 		end
-		self.VJCE_NPC.EnemyDetection = true
+		-- self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()
@@ -912,7 +912,7 @@ function ENT:OnKeyPressed(ply,key)
 		})
 		if tr.Hit && IsValid(tr.Entity) then
 			local ent = tr.Entity
-			if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) == D_HT then
+			if (ent:IsNPC() or ent:IsPlayer()) && self:CheckRelationship(ent) != D_LI then
 				self:DistractionCode(ent)
 			end
 		end
@@ -1917,7 +1917,7 @@ function ENT:OnInput(key,activator,caller,data)
 				end
 				if !projEnt.IsArmed then return end
 				for _,v in pairs(ents.FindInSphere(projEnt:GetPos(),250)) do
-					if projEnt:Visible(v) && projEnt.Predator:CheckRelationship(v) == D_HT && v:GetClass() != "obj_vj_bullseye" then
+					if projEnt:Visible(v) && projEnt.Predator:CheckRelationship(v) != D_LI && v:GetClass() != "obj_vj_bullseye" then
 						projEnt.IsArmed = false
 						projEnt.DeathSnd = CreateSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_triggered_01.ogg")
 						projEnt.DeathSnd:SetSoundLevel(85)
@@ -3369,6 +3369,7 @@ function ENT:StartMovement(Dir, Rot)
 			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
 		end
 		self:SetLastPosition(finalPos)
+		-- self:SetEnemy(self.VJ_TheControllerBullseye)
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
 				x.TurnData = {Type = VJ.FACE_ENEMY}

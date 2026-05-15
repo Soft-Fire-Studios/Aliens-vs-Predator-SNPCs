@@ -701,7 +701,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		self.VJCE_NPC:SetArrivalSpeed(9999)
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
-		self.VJCE_NPC.EnemyDetection = true
+		-- self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()
@@ -1167,7 +1167,7 @@ function ENT:OnKeyPressed(ply,key)
 		VJ.CreateSound(self,self.DistractionSound or "cpthazama/avp/xeno/alien/vocals/alien_distract_01.ogg",65)
 
 		for _,ent in pairs(ents.FindInSphere(self:GetPos(),1200)) do
-			if ent:IsNPC() && self:CheckRelationship(ent) == D_HT then
+			if ent:IsNPC() && self:CheckRelationship(ent) != D_LI then
 				self:DistractionCode(ent)
 			end
 		end
