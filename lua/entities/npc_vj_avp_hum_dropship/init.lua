@@ -6,7 +6,7 @@ include('shared.lua')
 	without the prior written consent of the author,unless otherwise indicated for stand-alone materials.
 -----------------------------------------------*/
 ENT.Model = "models/cpthazama/avp/misc/dropship.mdl"
-ENT.StartHealth = 7500
+ENT.StartHealth = 4000
 ENT.VJ_ID_Boss = true
 ENT.HullType = HULL_LARGE
 ENT.TurningSpeed = 3
@@ -124,6 +124,18 @@ function ENT:Init()
 	self:SetEngineState(1)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Controller_Initialize(ply,controlEnt)
+	controlEnt.VJC_Player_CanChatMessage = false
+
+	ply:ChatPrint("Controls:")
+	ply:ChatPrint("LMB - Fire Machine Guns")
+	ply:ChatPrint("RMB - Fire Missiles")
+	ply:ChatPrint("Space - Ascend")
+	ply:ChatPrint("Ctrl - Descend")
+	ply:ChatPrint("Sprint - Accelerate")
+	ply:ChatPrint("Land to recover health")
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:RangeAttackProjPos(projectile)
 	self.RangeAttackAttachmentType = self.RangeAttackAttachmentType == "rocket_l" && "rocket_r" or "rocket_l"
 	VJ.EmitSound(self,"cpthazama/avp/dropship/vehicle_dropship_missile_fire_01.wav",95)
@@ -188,7 +200,7 @@ function ENT:FireWeapon(ent)
 		bullet.Spread = Vector(0.02,0.02,0)
 		bullet.Tracer = 1
 		bullet.Force = 5
-		bullet.Damage = 18
+		bullet.Damage = 7
 		bullet.TracerName = "VJ_AVP_Trace"
 		bullet.AmmoType = "AirboatGun"
 		bullet.Attacker = self
@@ -209,14 +221,42 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetEngineState(state)
 	self:StopParticles()
+	-- if !self.EngineLoop or self.EngineLoop && !self.EngineLoop:IsPlaying() then
+	-- 	self.EngineLoop = CreateSound(self,"cpthazama/avp/dropship/vehicle_dropship_loop_highend_01.wav")
+	-- 	self.EngineLoop:SetSoundLevel(95)
+	-- 	self.EngineLoop:Play()
+	-- 	if !table.HasValue(self.DeleteSounds,self.EngineLoop) then
+	-- 		table.insert(self.DeleteSounds,self.EngineLoop)
+	-- 	end
+	-- end
+	-- if !self.EngineLoopB or self.EngineLoopB && !self.EngineLoopB:IsPlaying() then
+	-- 	self.EngineLoopB = CreateSound(self,"cpthazama/avp/dropship/vehicle_dropship_engine_loop_02.wav")
+	-- 	self.EngineLoopB:SetSoundLevel(120)
+	-- 	self.EngineLoopB:Play()
+	-- 	if !table.HasValue(self.DeleteSounds,self.EngineLoopB) then
+	-- 		table.insert(self.DeleteSounds,self.EngineLoopB)
+	-- 	end
+	-- end
 	if state == 1 then
+		self.EngineLoop:ChangeVolume(1)
+		self.EngineLoopB:ChangeVolume(1)
 		for i = 1,4 do
 			ParticleEffectAttach("vj_avp_dropship_engine",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("engine" .. i))
 		end
 	elseif state == 2 then
+		self.EngineLoop:ChangeVolume(1)
+		self.EngineLoopB:ChangeVolume(1)
 		for i = 1,4 do
 			ParticleEffectAttach((i == 1 or i == 4) && "vj_avp_dropship_engine" or "vj_avp_dropship_smoke",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("engine" .. i))
 		end
+	elseif state == 3 then -- Landed
+		self.EngineLoop:ChangeVolume(0.3)
+		self.EngineLoopB:ChangeVolume(0)
+	elseif state == 4 then -- Landed and heavily damaged
+		self.EngineLoop:ChangeVolume(0.3)
+		self.EngineLoopB:ChangeVolume(0)
+		ParticleEffectAttach("vj_avp_dropship_smoke",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("engine2"))
+		ParticleEffectAttach("vj_avp_dropship_smoke",PATTACH_POINT_FOLLOW,self,self:LookupAttachment("engine3"))
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -234,17 +274,58 @@ function ENT:OnThinkActive()
 	local vel = self:GetVelocity():Length()
 	local hpPer = self:Health() /self:GetMaxHealth()
 
+	-- if IsValid(cont) then
+		local tr = util.TraceLine({
+			start = self:GetPos(),
+			endpos = self:GetPos() +self:GetUp() *-130,
+			filter = {self, cont},
+			mask = MASK_SOLID_BRUSHONLY
+		})
+		-- cont:ChatPrint("Is hitting world:" .. tostring(tr.HitWorld))
+		if tr.HitWorld then
+			if !self.IsLanded then
+				self.IsLanded = true
+				self.LandAngles = self:GetAngles()
+				self:SetEngineState(hpPer <= 0.25 && 4 or 3)
+			end
+			self:SetCycle(0)
+			self:SetMaxYawSpeed(0)
+			self:SetAngles(self.LandAngles)
+			self:SetLocalVelocity(Vector(0,0,0))
+			self:SetVelocity(Vector(0,0,0))
+			self:SetHealth(math.Clamp(self:Health() +2,1,self:GetMaxHealth()))
+			velNorm = Vector(0,0,0)
+		else
+			if self.IsLanded then
+				self.IsLanded = false
+				self:SetMaxYawSpeed(self.TurningSpeed)
+				if hpPer <= 0.25 && !self.StartedAlarm then
+					self.StartedAlarm = true
+					self.AlarmLoop:Play()
+					self:SetEngineState(2)
+				elseif hpPer > 0.25 && self.StartedAlarm then
+					self.StartedAlarm = false
+					self.AlarmLoop:Stop()
+					self:SetEngineState(1)
+				else
+					self:SetEngineState(1)
+					self.StartedAlarm = false
+				end
+			end
+		end
+	-- end
+
 	if hpPer <= 0.25 && !self.StartedAlarm then
 		self.StartedAlarm = true
 		self.AlarmLoop:Play()
-		self:SetEngineState(2)
+		self:SetEngineState(self.IsLanded && 4 or 2)
 	elseif hpPer > 0.25 && self.StartedAlarm then
 		self.StartedAlarm = false
 		self.AlarmLoop:Stop()
-		self:SetEngineState(1)
+		self:SetEngineState(self.IsLanded && 3 or 1)
 	end
 
-	if moveDir && moveDir != defPos then
+	if moveDir && moveDir != defPos && !self.IsLanded then
 		targetYaw = -math.NormalizeAngle(math.deg(math.atan2(moveDir.y,moveDir.x)))
 		local pitchMin,pitchMax = 90,130
 		local maxVel = 1000

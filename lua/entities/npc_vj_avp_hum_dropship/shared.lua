@@ -21,7 +21,7 @@ if CLIENT then
             return {origin = pos, ang = angles, fov = fov}
         end
         local offset = vec1
-        local zoom = cont.VJC_Camera_Zoom
+        local zoom = cont.VJC_Camera_Zoom *2
 		local mainAtt = self:LookupBone("DropShip_Body")
 		local viewPos = mainAtt != nil && self:GetBonePosition(mainAtt) +self:OBBCenter() *-10 or (self:GetPos() +self:OBBCenter())
 		viewPos = viewPos +self:GetVelocity() /20

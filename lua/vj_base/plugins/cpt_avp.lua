@@ -977,6 +977,7 @@ else
 	})
 end
 
+VJ.AddParticle("particles/vj_avp_dropship.pcf",{})
 VJ.AddParticle("particles/vj_avp_pickup.pcf",{
 	"vj_avp_pickup_ammo",
 	"vj_avp_pickup_grenade",
