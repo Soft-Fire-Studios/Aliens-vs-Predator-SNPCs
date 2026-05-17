@@ -203,14 +203,22 @@ function SWEP:PlayWeaponAnimation(anim,speed,cycle,isIdle)
 		animDur = vm:SequenceDuration(seq)
 		if !isIdle then
 			self.SequenceTime = CurTime() +animDur
+			self.LastIdleType = 0
+			self.PLY_NextIdleAnimT = CurTime() +animDur -0.15
+		else
+			self.PLY_NextIdleAnimT = CurTime() +animDur
 		end
 	elseif isnumber(anim) then
 		self:SendWeaponAnim(anim)
 		animDur = VJ.AnimDuration(vm, anim)
+		if !isIdle then
+			self.SequenceTime = CurTime() +animDur
+			self.LastIdleType = 0
+			self.PLY_NextIdleAnimT = CurTime() +animDur -0.15
+		else
+			self.PLY_NextIdleAnimT = CurTime() +animDur
+		end
 	end
-
-	self.PLY_NextIdleAnimT = CurTime() +animDur -0.15
-	self.LastIdleType = 0
 
 	self:OnPlayAnimation(isnumber(anim) && VJ.SequenceToActivity(vm,anim) or anim,vm,animDur)
 
@@ -257,6 +265,10 @@ function SWEP:IsBusy(checkMove)
 	if primaryAttackT > CurTime() or secondaryAttackT > CurTime() or busyNPC then
 		return true
 	end
+
+	-- if self.SequenceTime && CurTime() < self.SequenceTime then
+	-- 	return true
+	-- end
 	return false
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -265,6 +277,7 @@ function SWEP:OnChangeActivity(npc,act)
 	local owner = self:GetOwner()
 	local vm = owner:GetViewModel()
 	if !IsValid(vm) then return end
+	if self:IsBusy() then return end
 
 	if isnumber(act) then
 		act = npc:GetSequenceName(npc:SelectWeightedSequence(act))
@@ -288,7 +301,7 @@ function SWEP:OnChangeActivity(npc,act)
 			return
 		end
 	else
-		if VJ.AnimExists(vm,curSeqEdit) && vmSeq != curSeqEdit then
+		if VJ.AnimExists(vm,curSeqEdit) && vmSeq != curSeqEdit && curSeqEdit != self.AnimTbl_Idle then
 			self.PLY_NextIdleAnimT = CurTime() +self:PlayWeaponAnimation(curSeqEdit)
 			return
 		end
@@ -313,42 +326,48 @@ function SWEP:Think()
 	if IsValid(npc) then
 		self:SetVMNPC(npc)
 		if IsValid(vm) then
-			if !self:IsBusy() && curTime > (self.SequenceTime or 0) then
+			if !self:IsBusy() then
 				if npc.VJ_AVP_Xenomorph then
 					local standing = npc:GetStanding()
 					if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
 						self.PLY_NextIdleAnimT = 0
 						self.LastIdleType = 2
 						self.IdleSpeed = 1
-						self.AnimTbl_Idle = {"Alien_hud_standing_walk"}
+						self.AnimTbl_Idle = "Alien_hud_standing_walk"
 					elseif npc:OnGround() && npc:GetSprinting() && self.LastIdleType != 3 then
 						self.PLY_NextIdleAnimT = 0
 						self.LastIdleType = 3
 						self.IdleSpeed = 1.5
-						self.AnimTbl_Idle = {"Alien_hud_standing_run"}
+						self.AnimTbl_Idle = "Alien_hud_standing_run"
 					elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
 						self.PLY_NextIdleAnimT = 0
 						self.LastIdleType = 1
 						self.IdleSpeed = 1
-						self.AnimTbl_Idle = {"Alien_hud_standing_idle"}
+						self.AnimTbl_Idle = "Alien_hud_standing_idle"
 					end
 				else
 					local animSet = npc:GetEquipment() == 5 && "speargun" or "claws"
 					if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
-						self.PLY_NextIdleAnimT = 0
+						-- if curTime > (self.SequenceTime or 0) then
+							self.PLY_NextIdleAnimT = 0
+						-- end
 						self.LastIdleType = 2
 						self.IdleSpeed = 1
-						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_run"}
+						self.AnimTbl_Idle = "predator_hud_" .. animSet .. "_run"
 					elseif npc:OnGround() && npc:GetSprinting() && self.LastIdleType != 3 then
-						self.PLY_NextIdleAnimT = 0
+						-- if curTime > (self.SequenceTime or 0) then
+							self.PLY_NextIdleAnimT = 0
+						-- end
 						self.LastIdleType = 3
 						self.IdleSpeed = 1.5
-						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_sprint"}
+						self.AnimTbl_Idle = "predator_hud_" .. animSet .. "_sprint"
 					elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
-						self.PLY_NextIdleAnimT = 0
+						-- if curTime > (self.SequenceTime or 0) then
+							self.PLY_NextIdleAnimT = 0
+						-- end
 						self.LastIdleType = 1
 						self.IdleSpeed = 1
-						self.AnimTbl_Idle = {"predator_hud_" .. animSet .. "_rest"}
+						self.AnimTbl_Idle = "predator_hud_" .. animSet .. "_rest"
 					end
 				end
 			end
@@ -366,9 +385,10 @@ function SWEP:Reload() return false end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function SWEP:DoIdleAnimation()
 	if CurTime() < self.PLY_NextIdleAnimT then return end
+	if CurTime() < self.SequenceTime then return end
 	local owner = self:GetOwner()
 	if IsValid(owner) then
-		local anim = VJ.PICK(self.AnimTbl_Idle or ACT_VM_IDLE_1)
+		local anim = self.AnimTbl_Idle or ACT_VM_IDLE_1
 		local animTime = self:PlayWeaponAnimation(anim,self.IdleSpeed or 1,nil,true)
 		self.PLY_NextIdleAnimT = CurTime() +animTime
 	end

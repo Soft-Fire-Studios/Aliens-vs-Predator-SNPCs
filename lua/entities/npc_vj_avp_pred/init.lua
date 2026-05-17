@@ -1917,7 +1917,7 @@ function ENT:OnInput(key,activator,caller,data)
 				end
 				if !projEnt.IsArmed then return end
 				for _,v in pairs(ents.FindInSphere(projEnt:GetPos(),250)) do
-					if projEnt:Visible(v) && projEnt.Predator:CheckRelationship(v) != D_LI && v:GetClass() != "obj_vj_bullseye" then
+					if (v:IsNPC() or v:IsPlayer() or v:IsNextBot()) && projEnt:Visible(v) && projEnt.Predator:CheckRelationship(v) != D_LI && v:GetClass() != "obj_vj_bullseye" then
 						projEnt.IsArmed = false
 						projEnt.DeathSnd = CreateSound(projEnt,"cpthazama/avp/weapons/predator/mine/prd_mine_triggered_01.ogg")
 						projEnt.DeathSnd:SetSoundLevel(85)
