@@ -1048,8 +1048,8 @@ function ENT:Think()
 					"npc_vj_avp_" .. xenoType .. "_ravager",
 				})
 			end
-			if xeno == nil then
-				xeno = "npc_vj_avp_" .. xenoType .. "_drone"
+			if xeno == "npc_vj_avp_kxeno_jungle" then
+				xeno = "npc_vj_avp_kxeno_drone"
 			end
 			local isQueen = (wave >= 30 && !self.HasKilledQueen && !IsValid(self.Queen))
 			if isQueen && IsValid(self.Queen) then
