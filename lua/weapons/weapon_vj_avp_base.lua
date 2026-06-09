@@ -856,7 +856,7 @@ if CLIENT then
 		if self.WorldModel_UseCustomPosition == true then
 			if IsValid(owner) then
 				if owner:IsPlayer() && owner:InVehicle() then return end
-				local wepPos, wepAng = self:GetWeaponCustomPosition(owner)
+				local wepPos, wepAng = self:GetWeaponCustomPosition(self:GetTable(), owner)
 				if wepPos then
 					self:SetRenderOrigin(wepPos)
 					self:SetRenderAngles(wepAng)
