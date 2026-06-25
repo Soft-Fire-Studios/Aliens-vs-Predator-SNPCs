@@ -347,7 +347,7 @@ function SWEP:Think()
 					end
 				else
 					local animSet = npc:GetEquipment() == 5 && "speargun" or "claws"
-					if npc:OnGround() && npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 2 then
+					if npc:OnGround() && npc:DoingMovement() && !npc:GetSprinting() && self.LastIdleType != 2 then
 						-- if curTime > (self.SequenceTime or 0) then
 							self.PLY_NextIdleAnimT = 0
 						-- end
@@ -361,7 +361,7 @@ function SWEP:Think()
 						self.LastIdleType = 3
 						self.IdleSpeed = 1.5
 						self.AnimTbl_Idle = "predator_hud_" .. animSet .. "_sprint"
-					elseif !npc:IsMoving() && !npc:GetSprinting() && self.LastIdleType != 1 then
+					elseif !npc:DoingMovement() && !npc:GetSprinting() && self.LastIdleType != 1 then
 						-- if curTime > (self.SequenceTime or 0) then
 							self.PLY_NextIdleAnimT = 0
 						-- end

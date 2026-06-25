@@ -1215,29 +1215,23 @@ end
 -- 	return baseclass.Get("npc_vj_creature_base").TranslateActivity(self,act)
 -- end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:TranslateActivity(act)
-	-- if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
-	-- 	if act == ACT_IDLE && self.Alerted then
-	-- 		return ACT_COWER
-	-- 	end
-	-- else
-		if self.Moveset == 1 then
-			if act == ACT_RUN then
-				act = ACT_WALK
-			end
-		elseif self.Moveset == 2 then
-			if act == ACT_RUN then
-				return self.AnimationTranslations[ACT_SPRINT] or ACT_RUN
-			end
-			if act == ACT_WALK then
-				act = ACT_RUN
-			end
-		elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
-			if act == ACT_WALK then
-				act = ACT_RUN
-			end
+function ENT:SelectMovementActivity(act,isMoving)
+	if self.Moveset == 1 then
+		if act == ACT_RUN then
+			act = ACT_WALK
 		end
-	-- end
+	elseif self.Moveset == 2 then
+		if act == ACT_RUN && self:GetSprinting() then
+			return self.AnimationTranslations[ACT_SPRINT] or ACT_RUN
+		end
+		if act == ACT_WALK then
+			act = ACT_RUN
+		end
+	elseif self.Moveset == 3 && CurTime() < self.NextSprintT then
+		if act == ACT_WALK then
+			act = ACT_RUN
+		end
+	end
 
 	if self.NoWeaponOverrides && !IsValid(self:GetActiveWeapon()) && self.NoWeaponOverrides[act] then
 		return self.NoWeaponOverrides[act]
@@ -1252,7 +1246,7 @@ function ENT:TranslateActivity(act)
 	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active && !self.VJ_IsBeingControlled then
 		return ACT_RUN_PROTECTED
 	elseif (act == ACT_RUN or act == ACT_WALK) && self.Alerted then
-		if self.Weapon_CanMoveFire && IsValid(self:GetEnemy()) && (self.EnemyData.Visible or (self.EnemyData.VisibleTime + 5) > CurTime()) && self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving && self:CanFireWeapon(true, false) then
+		if self.Weapon_CanMoveFire && IsValid(self:GetEnemy()) && (self.EnemyData.Visible or (self.EnemyData.VisibleTime + 5) > CurTime()) && (!isMoving && (self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving && self:CanFireWeapon(true, false)) or isMoving) then
 			local anim = self:TranslateActivity(act == ACT_RUN and ACT_RUN_AIM or ACT_WALK_AIM)
 			if VJ.AnimExists(self, anim) then
 				if self.EnemyData.Visible then
@@ -1280,6 +1274,31 @@ function ENT:TranslateActivity(act)
 		return translation
 	end
 	return act
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TranslateActivity(act)
+	if IsValid(self.VJ_TheController) then
+		local ply = self.VJ_TheController
+		if act == ACT_IDLE && self.Cont_IsMoving then
+			self:SetPoseParameter("move_yaw", self.Cont_MoveDir or 0)
+			local moveAct = ply:KeyDown(IN_WALK) && ACT_WALK or ACT_RUN
+			if IsValid(self:GetActiveWeapon()) && self.Alerted then
+				local aimAct = moveAct == ACT_RUN && ACT_RUN_AIM or ACT_WALK_AIM
+				local aimAnim = self:SelectMovementActivity(aimAct, true)
+				if VJ.AnimExists(self, aimAnim) then
+					if self:CanFireWeapon(true, false) then
+						self.WeaponAttackState = VJ.WEP_ATTACK_STATE_FIRE
+					else
+						self.WeaponAttackState = VJ.WEP_ATTACK_STATE_AIM_MOVE
+					end
+					return aimAnim
+				end
+			end
+			return self:SelectMovementActivity(moveAct, true)
+		end
+	end
+
+	return self:SelectMovementActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SetAnimationTranslations(hType)
@@ -1418,6 +1437,13 @@ function ENT:OnWeaponReload()
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+local angY0 = Angle(0, 0, 0)
+local angY45 = Angle(0, 45, 0)
+local angYN45 = Angle(0, -45, 0)
+local angY90 = Angle(0, 90, 0)
+local angYN90 = Angle(0, -90, 0)
+local angY180 = Angle(0, 180, 0)
+--
 function ENT:OnThinkActive()
 	local curTime = CurTime()
 	self.HasPoseParameterLooking = !self.InFatality
@@ -1456,10 +1482,10 @@ function ENT:OnThinkActive()
 
 	-- self.CurrentEmote = self.Alerted && VJ_AVP_EXP_COMBAT or VJ_AVP_EXP_DEFAULT
 
-	local cont = self.VJ_TheController
-	if IsValid(cont) then
-		local walk = cont:KeyDown(IN_WALK)
-		local sprint = cont:KeyDown(IN_SPEED)
+	local ply = self.VJ_TheController
+	if IsValid(ply) then
+		local walk = ply:KeyDown(IN_WALK)
+		local sprint = ply:KeyDown(IN_SPEED)
 		if walk && self.Moveset != 1 then
 			self.Moveset = 1
 		elseif !walk && self.Moveset != 2 then
@@ -1536,6 +1562,98 @@ function ENT:OnThinkActive()
 
 	if self.HasMotionTracker then
 		VJ_AVP_MotionTracker(self)
+	end
+
+	if IsValid(ply) then
+		self:SetStepHeight(28)
+		local forward = ply:KeyDown(IN_FORWARD)
+		local backward = ply:KeyDown(IN_BACK)
+		local left = ply:KeyDown(IN_MOVELEFT)
+		local right = ply:KeyDown(IN_MOVERIGHT)
+		local sprinting = ply:KeyDown(IN_SPEED)
+		local aimVector = ply:GetAimVector()
+		local aimPosT = util.TraceLine({
+			start = ply:EyePos(),
+			endpos = ply:EyePos() +aimVector *15000,
+			filter = {ply,self},
+			mask = MASK_NPCSOLID,
+		})
+		local aimPos = aimPosT.HitPos +aimPosT.HitNormal *16
+		if (forward or backward or left or right) && !self:IsBusy("Activities") then
+			local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
+			local moveDir = self:GetForward()
+			moveDir:Normalize()
+			local downTr = util.TraceLine({
+				start = self:GetPos(),
+				endpos = self:GetPos() +moveDir *moveSpeed -Vector(0,0,30),
+				filter = self,
+				mask = MASK_NPCSOLID,
+			})
+			local downTrB = util.TraceLine({
+				start = self:GetPos(),
+				endpos = self:GetPos() -Vector(0,0,30),
+				filter = self,
+				mask = MASK_NPCSOLID,
+			})
+			if !downTr.Hit && !downTrB.Hit && self:OnGround() then
+				self:SetVelocity(moveDir *moveSpeed +Vector(0,0,-30))
+			end
+			local Rot = angY0
+			if forward then
+				Rot = angY0
+				if left then
+					Rot = angY45
+				elseif right then
+					Rot = angYN45
+				end
+			elseif backward && !sprinting then
+				Rot = angY180
+				if left then
+					Rot = angY180 -angY45
+				elseif right then
+					Rot = angY180 +angY45
+				end
+			elseif left && !sprinting then
+				Rot = angY90
+				if backward then
+					Rot = angY90 +angY45
+				end
+			elseif right && !sprinting then
+				Rot = angYN90
+				if backward then
+					Rot = angYN90 -angY45
+				end
+			end
+			aimVector.z = 0
+			aimVector:Rotate(Rot)
+			self:FaceCertainPosition(aimPos, 0.2)
+			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
+			self.Cont_IsMoving = true
+			if forward then
+				self.Cont_MoveDir = 0
+				if left then
+					self.Cont_MoveDir = 45
+				elseif right then
+					self.Cont_MoveDir = -45
+				end
+			elseif backward && !sprinting then
+				self.Cont_MoveDir = 180
+				if left then
+					self.Cont_MoveDir = 180 -45
+				elseif right then
+					self.Cont_MoveDir = 180 +45
+				end
+			elseif left && !sprinting then
+				self.Cont_MoveDir = 90
+			elseif right && !sprinting then
+				self.Cont_MoveDir = -90
+			end
+			self:SetPoseParameter("move_yaw", self.Cont_MoveDir or 0)
+		else
+			self.Cont_IsMoving = false
+		end
+	else
+		self:SetStepHeight(18)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1771,104 +1889,6 @@ function ENT:OnChangeActivity(newAct)
 	local funcCustom = self.CustomOnChangeActivity; if funcCustom then funcCustom(self, newAct) end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local angY45 = Angle(0, 45, 0)
-local angYN45 = Angle(0, -45, 0)
-local angY90 = Angle(0, 90, 0)
-local angYN90 = Angle(0, -90, 0)
-local angY135 = Angle(0, 135, 0)
-local angYN135 = Angle(0, -135, 0)
-local angY180 = Angle(0, 180, 0)
-local defAng = Angle(0, 0, 0)
---
-function ENT:Controller_Movement(cont, ply, bullseyePos)
-	if self.MovementType != VJ_MOVETYPE_STATIONARY then
-		local gerta_lef = ply:KeyDown(IN_MOVELEFT)
-		local gerta_rig = ply:KeyDown(IN_MOVERIGHT)
-		local gerta_arak = ply:KeyDown(IN_SPEED)
-		local aimVector = ply:GetAimVector()
-		local FT = FrameTime() *(self.TurningSpeed *2.25)
-
-		self.ControllerParams.TurnAngle = self.ControllerParams.TurnAngle or defAng
-		
-		if ply:KeyDown(IN_FORWARD) then
-			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
-				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
-			else
-				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
-				cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
-			end
-		elseif ply:KeyDown(IN_BACK) then
-			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY135 or gerta_rig && angYN135 or angY180)
-			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
-		elseif gerta_lef then
-			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angY90)
-			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
-		elseif gerta_rig then
-			self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, angYN90)
-			cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)
-		else
-			self:StopMoving()
-			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
-				self:AA_StopMoving()
-			end
-		end
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
-function ENT:StartMovement(cont, Dir, Rot)
-	local self = cont.VJCE_NPC
-	local ply = cont.VJCE_Player
-	if self:GetState() != VJ_STATE_NONE then return end
-
-	local DEBUG = ply:GetInfoNum("vj_npc_cont_debug", 0) == 1
-	local plyAimVec = Dir
-	plyAimVec.z = 0
-	plyAimVec:Rotate(Rot)
-	local selfPos = self:GetPos()
-	local centerToPos = self:OBBCenter():Distance(self:OBBMins()) + 20 // self:OBBMaxs().z
-	local NPCPos = selfPos + self:GetUp()*centerToPos
-	local groundSpeed = math.Clamp(self:GetSequenceGroundSpeed(self:GetSequence()), 300, 9999)
-	local defaultFilter = {cont, self, ply}
-	local forwardTr = util.TraceHull({start = NPCPos, endpos = NPCPos + plyAimVec * groundSpeed, filter = defaultFilter, mins = Vector(-4,-4,-4), maxs = Vector(4,4,4)})
-	local forwardDist = NPCPos:Distance(forwardTr.HitPos)
-	local wallToSelf = forwardDist - (self:OBBMaxs().y *2.5) -- Use Y instead of X because X is left/right whereas Y is forward/backward
-	if DEBUG then
-		VJ.DEBUG_TempEnt(NPCPos, cont:GetAngles(), Color(0, 255, 255)) -- NPC's calculated position
-		VJ.DEBUG_TempEnt(forwardTr.HitPos, cont:GetAngles(), Color(255, 255, 0)) -- forward trace position
-	end
-	if forwardDist >= 25 then
-		local finalPos = Vector((selfPos + plyAimVec * wallToSelf).x, (selfPos + plyAimVec * wallToSelf).y, forwardTr.HitPos.z)
-		local downTr = util.TraceLine({start = finalPos, endpos = finalPos + cont:GetUp()*-(200 + centerToPos), filter = defaultFilter})
-		local downDist = (finalPos.z - centerToPos) - downTr.HitPos.z
-		if downDist >= 150 then -- If the drop is this big, then don't move!
-			//wallToSelf = wallToSelf - downDist -- No need, we are returning anyway
-			return
-		end
-		if forwardDist <= 225 && !forwardTr.Hit then
-			finalPos = Vector((selfPos + plyAimVec * groundSpeed).x, (selfPos + plyAimVec * groundSpeed).y, forwardTr.HitPos.z)
-		else
-			finalPos = Vector((selfPos + plyAimVec * wallToSelf).x, (selfPos + plyAimVec * wallToSelf).y, forwardTr.HitPos.z)
-		end
-		if DEBUG then
-			VJ.DEBUG_TempEnt(downTr.HitPos, cont:GetAngles(), Color(255, 0, 255)) -- Down trace position
-			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
-		end
-		self:SetLastPosition(finalPos)
-		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
-			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
-				x.TurnData = {Type = VJ.FACE_ENEMY}
-				x.CanShootWhenMoving = true
-			else
-				if cont.VJC_BullseyeTracking then
-					x.TurnData = {Type = VJ.FACE_ENEMY}
-				else
-					x:EngTask("TASK_FACE_LASTPOSITION", 0)
-				end
-			end
-		end)
-	end
-end
----------------------------------------------------------------------------------------------------------------------------------------------
 local varGes = "vjges_"
 local varSeq = "vjseq_"
 local string_sub = string.sub
@@ -2073,7 +2093,7 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 			self:StartSchedule(schedule)
 			if doRealAnimTime then
 				-- Get the calculated duration (Only done in Activity type)
-				animTime = self.CurrentTask.TaskData.duration
+				animTime = self.CurrentTask && self.CurrentTask.TaskData.duration or animTime
 			end
 			if faceEnemy then
 				self:SetTurnTarget("Enemy", animTime, false, faceEnemy == "Visible")
@@ -2102,4 +2122,128 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 	else
 		return animation, PlayAct(), animType
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:RunAI() -- Called from the engine every 0.1 seconds
+	if self:GetState() == VJ_STATE_FREEZE or self:IsEFlagSet(EFL_IS_BEING_LIFTED_BY_BARNACLE) then self:MaintainActivity() return end
+	if self:IsRunningBehavior() or self.bDoingEngineSchedule then return true end -- true = Run "MaintainSchedule" in engine
+	//self:SetArrivalActivity(ACT_COWER)
+	//self:SetArrivalSpeed(1000)
+	local isMoving = self:IsMoving()
+	
+	-- Apply walk frames to both activities and sequences
+	-- Parts of it replicate TASK_PLAY_SEQUENCE - https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/ai_basenpc_schedule.cpp#L3312
+	if !isMoving && self:GetSequenceMoveDist(self:GetSequence()) > 0 && ((self:GetSequence() == self:GetIdealSequence()) or (self:GetActivity() == ACT_DO_NOT_DISTURB)) && self.MovementType != VJ_MOVETYPE_AERIAL && self.MovementType != VJ_MOVETYPE_AQUATIC then
+		local sprintActive = IsValid(self.VJ_TheController) && self.Cont_IsMoving
+		if sprintActive or !sprintActive && !self:IsSequenceFinished() then
+			self:AutoMovement(self:GetAnimTimeInterval())
+		end
+	end
+	
+	-- If we are currently running a schedule then run it otherwise call "SelectSchedule" to decide what to do next
+	local curSchedule = self.CurrentSchedule
+	if curSchedule then
+		-- Handle movement animations
+			-- 1. Make sure the movement activity is the current activity
+			-- 2. Compare the current movement sequence to the current ideal sequence, if they don't match then the movement activity may be outdated depending on the next check!
+			-- 3. Compare their activities and continue if they don't match! A single activity can have multiple sequences tied to it, without this check it will cause it to bug out!
+			-- 4. Force the ideal sequence to be the actual movement activity's sequence (including translated)
+			-- This is needed because:
+				-- 1. Often times translating alone will NOT update the movement animation!
+				-- 2. Half of the time, the engine will NOT even call the translate function!
+		if isMoving then
+			local moveAct = self:GetMovementActivity()
+			if self:GetActivity() == moveAct then
+				self:SetMovementActivity(moveAct) -- Force update the movement sequence, aka "m_sequence" in the engine
+				local moveSeq = self:GetMovementSequence()
+				local idealSeq = self:GetIdealSequence()
+				if moveSeq != idealSeq && self:GetSequenceActivity(moveSeq) != self:GetSequenceActivity(idealSeq) then
+					self:SetIdealSequence(moveSeq)
+				end
+			end
+		end
+		
+		self:DoSchedule(curSchedule)
+		if curSchedule.CanBeInterrupted or self:IsScheduleFinished(curSchedule) or (curSchedule.HasMovement && !self:IsMoving()) then
+			self:SelectSchedule()
+		end
+	else
+		self:SelectSchedule()
+	end
+	
+	//if !self.VJ_PlayingSequence then -- No longer needed for sequences as it is handled by ACT_DO_NOT_DISTURB
+	self:MaintainActivity()
+	//end
+	
+	-- Handle turning / facing
+	local turnData = self.TurnData
+	local ene = self:GetEnemy()
+	local eneValid = IsValid(ene)
+	
+	if eneValid && !self.Dead then
+		-- Handle "ConstantlyFaceEnemy" behavior
+		if self.ConstantlyFaceEnemy && self:MaintainConstantlyFaceEnemy() then
+			return
+		end
+		-- Face enemy for stationary types OR attacks
+		if (self.MovementType == VJ_MOVETYPE_STATIONARY && self.CanTurnWhileStationary) or (self.AttackType && ((self.MeleeAttackAnimationFaceEnemy && !self.MeleeAttack_IsPropAttack && self.AttackType == VJ.ATTACK_TYPE_MELEE) or (self.GrenadeAttackAnimationFaceEnemy && self.AttackType == VJ.ATTACK_TYPE_GRENADE && self.EnemyData.Visible) or (self.RangeAttackAnimationFaceEnemy && self.AttackType == VJ.ATTACK_TYPE_RANGE) or ((self.LeapAttackAnimationFaceEnemy == true or (self.LeapAttackAnimationFaceEnemy == 2 && !self.LeapAttackHasJumped)) && self.AttackType == VJ.ATTACK_TYPE_LEAP))) then
+			self:SetTurnTarget("Enemy")
+			return
+		end
+	end
+	
+	if turnData.Type then
+		-- If StopOnFace flag is set AND (Something has requested to take over by checking "ideal yaw != last set yaw") OR (we are facing ideal) then finish it!
+		if turnData.StopOnFace && (self:GetIdealYaw() != turnData.LastYaw or self:IsFacingIdealYaw()) then
+			self:ResetTurnTarget()
+		else
+			turnData.LastYaw = 0 -- To make sure the turning maintain works correctly
+			local turnTarget = turnData.Target
+			if turnData.Type == VJ.FACE_POSITION or (turnData.Type == VJ.FACE_POSITION_VISIBLE && self:VisibleVec(turnTarget)) then
+				local resultAng = self:GetTurnAngle((turnTarget - self:GetPos()):Angle())
+				if self.TurningUseAllAxis then
+					local myAng = self:GetAngles()
+					self:SetAngles(LerpAngle(FrameTime() * self:GetMaxYawSpeed(), myAng, Angle(resultAng.p, myAng.y, resultAng.r)))
+				end
+				self:SetIdealYawAndUpdate(resultAng.y)
+				turnData.LastYaw = resultAng.y
+			elseif IsValid(turnTarget) && (turnData.Type == VJ.FACE_ENTITY or (turnData.Type == VJ.FACE_ENTITY_VISIBLE && self:Visible(turnTarget))) then
+				local resultAng;
+				if self.TurningUseAllAxis then
+					local myAng = self:GetAngles()
+					resultAng = self:GetTurnAngle(((turnTarget:GetPos() + turnTarget:OBBCenter()) - self:GetPos()):Angle())
+					self:SetAngles(LerpAngle(FrameTime() * self:GetMaxYawSpeed(), myAng, Angle(resultAng.p, myAng.y, resultAng.r)))
+				else
+					resultAng = self:GetTurnAngle((turnTarget:GetPos() - self:GetPos()):Angle())
+				end
+				self:SetIdealYawAndUpdate(resultAng.y)
+				turnData.LastYaw = resultAng.y
+			elseif eneValid && !self.Dead && (turnData.Type == VJ.FACE_ENEMY or (turnData.Type == VJ.FACE_ENEMY_VISIBLE && self.EnemyData.Visible)) then
+				local resultAng;
+				if self.TurningUseAllAxis then
+					local myAng = self:GetAngles()
+					resultAng = self:GetTurnAngle(((ene:GetPos() + ene:OBBCenter()) - self:GetPos()):Angle())
+					self:SetAngles(LerpAngle(FrameTime() * self:GetMaxYawSpeed(), myAng, Angle(resultAng.p, myAng.y, resultAng.r)))
+				else
+					resultAng = self:GetTurnAngle((ene:GetPos() - self:GetPos()):Angle())
+				end
+				self:SetIdealYawAndUpdate(resultAng.y)
+				turnData.LastYaw = resultAng.y
+			end
+		end
+	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:Controller_Movement(cont, ply, bullseyePos)
+	if !ply:KeyDown(IN_ATTACK2) then
+		if self:IsMoving() && self.Cont_IsMoving then
+			self:StopMoving()
+		end
+		return
+	end
+	baseclass.Get("npc_vj_human_base").Controller_Movement(self, cont, ply, bullseyePos)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoingMovement()
+	return self.Cont_IsMoving or self:IsMoving()
 end

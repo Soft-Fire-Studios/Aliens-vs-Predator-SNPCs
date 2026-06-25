@@ -1,22 +1,19 @@
-"Refract"
+"VertexLitGeneric"
 {
-	"$refracttexture" "models/cpthazama/avp/reflection"
-	"$nocull" "1"
-	"$halflambert" "1"
-	"$model" "1"
-	"$bluramount" "1"
-	"$refractamount" "0.25"
-	"$refracttint" "[1 1 1]"
-	"$reflectentities" "1"
-	"$dudvmap" "dev/water_dudv"
-	"$normalmap" "dev/water_normal"
+	"$basetexture" 				"models/cpthazama/avp/reflection"
+	"$bumpmap"					"vj_base/flat"
+
+    "$nodecal" 					"1"
+
+	"$cloakpassenabled"			"1"
+	"$cloakfactor"				"0.996"
+	"$refractamount"			"2"
+
 	"Proxies"
 	{
-		"TextureScroll"
-		{
-			"texturescrollvar" "$bumptransform"
-			"texturescrollrate" "0.01"
-			"texturescrollangle" "180"
-		}
+		// "AVP_Cloak"
+		// {
+			// resultVar	"$cloakfactor"
+		// }
 	}
 }

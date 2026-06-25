@@ -165,3 +165,39 @@ end
 -- 		end
 -- 	end
 -- end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:SelectMovementActivity(act)
+	-- local act = ACT_RUN
+	local ply = self.VJ_TheController
+	local curTime = CurTime()
+	local standing = self.CurrentSet == 2
+	if self:IsOnFire() && self.ReactsToFire then
+		return ACT_WALK_ON_FIRE
+	end
+	local gib = self.Gibbed
+	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
+		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
+	end
+	if IsValid(ply) then
+		if ply:KeyDown(IN_WALK) then
+			return standing && ACT_WALK or ACT_WALK_RELAXED
+		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then
+			return ACT_HL2MP_RUN_SMG1
+		else
+			return standing && ACT_RUN or ACT_RUN_RELAXED
+		end
+	end
+	if curTime < self.StalkingAITime or curTime < self.MoveAroundRandomlyT then
+		return ACT_WALK_RELAXED
+	end
+	if act == ACT_WALK then
+		return standing && ((!moveRandom && self.Alerted) && ACT_WALK_STIMULATED or ACT_WALK) or ACT_WALK_RELAXED
+	elseif act == ACT_RUN then
+		if self.NextSprintT < curTime && self.AI_IsSprinting then
+			return standing && ACT_MP_SPRINT or ACT_SPRINT
+		else
+			return standing && ACT_RUN or ACT_RUN_RELAXED
+		end
+	end
+	return act
+end

@@ -292,10 +292,15 @@ if CLIENT then
 			if IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_Predator && ent:GetClass() == "viewmodel" && ent:GetOwner() == ply then
 				ent.Mat_cloakfactor = ply.VJCE_NPC.Mat_cloakfactor
 				ent.CloakColorTint = ply.VJCE_NPC.CloakColorTint
+				mat:SetFloat("$refractamount",1)
+			else
+				mat:SetFloat("$refractamount",1)
 			end
 			-- print(ent.Mat_cloakfactor,ent)
 			mat:SetVector("$cloakcolortint",self.CloakColorTint)
-			mat:SetFloat(self.Result,ent.Mat_cloakfactor)
+			mat:SetFloat("$cloakfactor",ent.Mat_cloakfactor)
+			-- mat:SetVector("$cloakcolortint",whiteFX)
+			-- mat:SetFloat("$cloakfactor",0.999)
 
 			-- print(ent,ent.Mat_cloakfactor,self.CloakColorTint)
         end

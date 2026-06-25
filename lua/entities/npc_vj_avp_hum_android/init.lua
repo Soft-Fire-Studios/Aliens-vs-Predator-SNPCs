@@ -182,14 +182,26 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Camo(set)
 	self:SetCloaked(set)
+	self.CamoSeed = self.CamoSeed or 0
+	self.CamoSeed = self.CamoSeed +1
+	local seed = self.CamoSeed
 	if set then
 		-- self:SetMaterial("models/cpthazama/avp/cloak")
 		-- self:AddFlags(FL_NOTARGET)
+		timer.Simple(0.25,function()
+			if IsValid(self) && self.CamoSeed == seed && self:GetCloaked() then
+				self:SetMaterial("models/cpthazama/avp/cloak")
+				if IsValid(self:GetActiveWeapon()) then
+					self:GetActiveWeapon():DrawShadow(false)
+					self:GetActiveWeapon():SetMaterial("models/cpthazama/avp/cloak")
+				end
+			end
+		end)
 		self:DrawShadow(false)
-		if IsValid(self:GetActiveWeapon()) then
-			self:GetActiveWeapon():DrawShadow(false)
-			-- self:GetActiveWeapon():SetMaterial("models/cpthazama/avp/cloak")
-		end
+		-- if IsValid(self:GetActiveWeapon()) then
+		-- 	self:GetActiveWeapon():DrawShadow(false)
+		-- 	self:GetActiveWeapon():SetMaterial("models/cpthazama/avp/cloak")
+		-- end
 		self:EmitSound("cpthazama/avp/predator/cloak/prd_cloak.ogg",70)
 		for _,x in ents.Iterator() do
 			if (x:GetClass() != self:GetClass() && x:GetClass() != "npc_grenade_frag") && x:IsNPC() && self:Visible(x) then
@@ -207,13 +219,13 @@ function ENT:Camo(set)
 			end
 		end
 	else
-		-- self:SetMaterial(" ")
+		self:SetMaterial("")
 		self:RemoveFlags(FL_NOTARGET)
 		self:DrawShadow(true)
 		self:EmitSound(self:WaterLevel() >= 2 && "cpthazama/avp/predator/cloak/predator_decloak_water.ogg" or "cpthazama/avp/predator/cloak/prd_uncloak.ogg",70)
 		if IsValid(self:GetActiveWeapon()) then
 			self:GetActiveWeapon():DrawShadow(true)
-			-- self:GetActiveWeapon():SetMaterial(" ")
+			self:GetActiveWeapon():SetMaterial("")
 		end
 	end
 end
