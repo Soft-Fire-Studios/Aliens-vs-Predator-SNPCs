@@ -1479,8 +1479,9 @@ function ENT:OnWeaponReload()
 		if IsValid(self) then
 			local anim = self.AnimTbl_WeaponReload
 			anim = string.gsub(anim, "vjges_", "")
-			if self:IsPlayingGesture(VJ.SequenceToActivity(self,anim)) then
-				local animTime = VJ.AnimDuration(self, anim)
+			local actAnim = VJ.SequenceToActivity(self,anim)
+			if actAnim && self:IsPlayingGesture(actAnim) or !actAnim then
+				local animTime = actAnim && VJ.AnimDuration(self, anim) or 1
 				local wep = self:GetActiveWeapon()
 				timer.Simple(animTime,function()
 					if IsValid(self) && IsValid(wep) then
