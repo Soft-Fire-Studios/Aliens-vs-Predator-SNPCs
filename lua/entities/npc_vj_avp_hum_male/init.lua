@@ -1201,7 +1201,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
 	if self:GetStimCount() <= 0 then return end
-	if self.InFatality or self.DoingFatality or self.VJ_AVP_IsTech or self:IsBusy() then return end
+	if self.InFatality or self.DoingFatality or (!self.VJ_AVP_TDM && self.VJ_AVP_IsTech) or self:IsBusy() then return end
 	self:SetBodygroup(self:FindBodygroupByName("stimpack"),1)
 	self:PlayAnimation("vjges_" .. (self.AnimationTranslations[AVP_ANIM_STIMPACK] or "ohwa_pistol_stim"),true,false,false,0,{OnFinish=function(interrupted,anim)
 		self:SetBodygroup(self:FindBodygroupByName("stimpack"),0)
@@ -1475,6 +1475,22 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnWeaponReload()
 	self.NextChaseTime = 0
+	timer.Simple(0,function()
+		if IsValid(self) then
+			local anim = self.AnimTbl_WeaponReload
+			anim = string.gsub(anim, "vjges_", "")
+			if self:IsPlayingGesture(VJ.SequenceToActivity(self,anim)) then
+				local animTime = VJ.AnimDuration(self, anim)
+				local wep = self:GetActiveWeapon()
+				timer.Simple(animTime,function()
+					if IsValid(self) && IsValid(wep) then
+						wep:SetClip1(wep:GetMaxClip1())
+						if wep.IsVJBaseWeapon then wep:OnReload("Finish") end
+					end
+				end)
+			end
+		end
+	end)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local angY0 = Angle(0, 0, 0)

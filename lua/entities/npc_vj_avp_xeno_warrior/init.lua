@@ -2339,6 +2339,16 @@ function ENT:SetGroundAngle(curSet)
 	local ang_y = Angle(0,ang.y,0)
 	local refreshRate = FrameTime() *20
 	if curSet == 1 /*&& self:OnGround()*/ then
+		local stairDir = self:GetMoveVelocity()
+		if !stairDir or (stairDir.x * stairDir.x + stairDir.y * stairDir.y) <= 1 then stairDir = ang_y:Forward() end
+		if self.SurfaceTraversal_IsStaircase && self:SurfaceTraversal_IsStaircase(stairDir) then
+			self.Incline = 0
+			local bonePos = self:GetManipulateBonePosition(0)
+			self:ManipulateBonePosition(0,Vector(0,0,Lerp(refreshRate,bonePos.z,0)))
+			self:SetAngles(LerpAngle(refreshRate,self:GetAngles(),Angle(0,ang.y,0)))
+			return
+		end
+
 		local _, maxs = self:GetCollisionBounds()
 		-- mins = mins *2
 		-- maxs = maxs *2

@@ -142,6 +142,9 @@ function ENT:SurfaceTraversal_Init()
 	self.SurfaceTraversal_LastSafePos = Vector(self:GetPos().x, self:GetPos().y, self:GetPos().z)
 	self.SurfaceTraversal_LastSafeTime = CurTime()
 	self.SurfaceTraversal_RecoveryCooldown = 0
+	self.SurfaceTraversal_StairUntil = 0
+	self.SurfaceTraversal_NextStairProbe = 0
+	self.SurfaceTraversal_LastStairProbeDir = nil
 	self.SurfaceTraversal_Enabled = self.SurfaceTraversal_Enabled != false && !self.VJ_AVP_XenomorphLarge
 	self:SetNW2Bool("VJ_AVP_SurfaceTraversal", false)
 end
@@ -164,6 +167,103 @@ function ENT:SurfaceTraversal_GetOffset(normal)
 	local n = normal or self.CurrentSurfaceNormal or WORLD_UP
 	local extent = math_abs(n.x) * ex + math_abs(n.y) * ey + math_abs(n.z) * ez
 	return math_Clamp(extent + 2, 10, 48)
+end
+
+function ENT:SurfaceTraversal_IsStaircase(moveDir)
+	if self.IsOnSurface or !self:OnGround() then return false end
+	if !moveDir or moveDir:LengthSqr() <= 0.001 then return false end
+
+	local dir = Vector(moveDir.x, moveDir.y, 0)
+	if dir:LengthSqr() <= 0.001 then return false end
+	dir:Normalize()
+
+	local curTime = CurTime()
+	if curTime < (self.SurfaceTraversal_StairUntil or 0) then
+		return true
+	end
+
+	local lastDir = self.SurfaceTraversal_LastStairProbeDir
+	if curTime < (self.SurfaceTraversal_NextStairProbe or 0) && lastDir && lastDir:Dot(dir) > 0.9 then
+		return false
+	end
+	self.SurfaceTraversal_NextStairProbe = curTime + 0.055
+	self.SurfaceTraversal_LastStairProbeDir = Vector(dir.x, dir.y, dir.z)
+
+	local pos = self:GetPos()
+	local base = util.TraceLine({
+		start = pos + WORLD_UP * 12,
+		endpos = pos - WORLD_UP * 48,
+		filter = self,
+		mask = MASK_NPCSOLID,
+	})
+	if !base.Hit or base.HitSky or IsActor(base.Entity) or base.HitNormal.z < 0.985 then
+		return false
+	end
+
+	local baseZ = base.HitPos.z
+	local distances = {2, 10, 18, 26, 34, 42}
+	local heights = {}
+	local flatNormals = 0
+
+	for i = 1, #distances do
+		local samplePos = pos + dir * distances[i]
+		local startPos = Vector(samplePos.x, samplePos.y, baseZ + 30)
+		local endPos = Vector(samplePos.x, samplePos.y, baseZ - 34)
+		local tr = util.TraceLine({
+			start = startPos,
+			endpos = endPos,
+			filter = self,
+			mask = MASK_NPCSOLID,
+		})
+
+		DebugLine(startPos, endPos, tr.Hit && Color(120, 190, 255) or Color(90, 90, 90), 0.06)
+
+		if !tr.Hit or tr.HitSky or IsActor(tr.Entity) or tr.StartSolid then
+			break
+		end
+
+		if tr.HitNormal.z < 0.985 then
+			return false
+		end
+
+		heights[#heights + 1] = tr.HitPos.z
+		flatNormals = flatNormals + 1
+	end
+
+	if #heights < 4 or flatNormals < 4 then return false end
+
+	local stepCount = 0
+	local flatCount = 0
+	local stepSign = 0
+	for i = 2, #heights do
+		local dz = heights[i] - heights[i - 1]
+		local adz = math_abs(dz)
+
+		if adz <= 1.25 then
+			flatCount = flatCount + 1
+		elseif adz >= 2 && adz <= 18 then
+			local sign = dz > 0 && 1 or -1
+			if stepSign == 0 then
+				stepSign = sign
+				stepCount = 1
+			elseif sign == stepSign then
+				stepCount = stepCount + 1
+			else
+				return false
+			end
+		elseif adz > 18 then
+			return false
+		end
+	end
+
+	local isStairs = stepCount >= 2 && flatCount >= 1
+	if isStairs then
+		self.SurfaceTraversal_StairUntil = curTime + 0.18
+		if cvDebug:GetBool() then
+			DebugCross(pos + dir * 26 + WORLD_UP * 4, 7, Color(80, 170, 255), 0.18)
+		end
+	end
+	return isStairs
 end
 
 local function OrderedBounds(mins, maxs)
@@ -511,6 +611,7 @@ function ENT:SurfaceTraversal_ShouldSuppressLedgeAssist(moveDir)
 	if self.IsOnSurface then return true end
 	if !self:SurfaceTraversal_CanUse() then return false end
 	if !IsValid(self.VJ_TheController) or !cvController:GetBool() then return false end
+	if self:SurfaceTraversal_IsStaircase(moveDir) then return true end
 
 	local tr = self:SurfaceTraversal_FindGroundEdgeWall(moveDir)
 	return tr != nil
@@ -685,6 +786,8 @@ function ENT:SurfaceTraversal_TryGroundAttach(curTime, controller)
 
 	if !moving or !dir or dir:LengthSqr() <= 0.001 then return false end
 	dir:Normalize()
+
+	if self:SurfaceTraversal_IsStaircase(dir) then return false end
 
 	local edgeTr, edgeTravel = self:SurfaceTraversal_FindGroundEdgeWall(dir)
 	if edgeTr then

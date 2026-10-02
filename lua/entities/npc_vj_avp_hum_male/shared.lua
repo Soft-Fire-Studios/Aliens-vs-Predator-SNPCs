@@ -291,6 +291,10 @@ if CLIENT then
 		DrawIcon(matHUD_Block,34,-19.2,17,2,r,g,b,a)
 		DrawIcon_UV(matHUD_BlockFilling,26,-19.75,hpPer *16,1.1,{0,0,hpPer,1},r,g,b,a)
 
+		if IsValid(ent:GetActiveWeapon()) then
+			DrawIcon(matHUD_Crosshair,0,0,2,2,r,g,b,flare)
+		end
+
 		local stimCount = ent.GetStimCount && ent:GetStimCount() or 0
 		local maxStimCount = 3
 		local stimPos = 35

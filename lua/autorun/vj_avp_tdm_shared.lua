@@ -43,32 +43,48 @@ TDM.TeamData = {
 
 TDM.Skins = {
     marine = {
-        {ID = "rookie", Name = "Rookie", Class = "npc_vj_avp_hum_rookie", Material = "vgui/avp/skins/hum_rookie.png"},
-        {ID = "connor", Name = "Connor", Class = "npc_vj_avp_hum_connor", Material = "vgui/avp/skins/hum_connor.png"},
-        {ID = "franco", Name = "Franco", Class = "npc_vj_avp_hum_franco", Material = "vgui/avp/skins/hum_franco.png"},
-        {ID = "gibson", Name = "Gibson", Class = "npc_vj_avp_hum_gibson", Material = "vgui/avp/skins/hum_gibson.png"},
-        {ID = "johnson", Name = "Johnson", Class = "npc_vj_avp_hum_johnson", Material = "vgui/avp/skins/hum_johnson.png"},
-        {ID = "moss", Name = "Moss", Class = "npc_vj_avp_hum_moss", Material = "vgui/avp/skins/hum_moss.png"},
-        {ID = "van", Name = "Van Zandt", Class = "npc_vj_avp_hum_van", Material = "vgui/avp/skins/hum_van.png"},
+        {Faction = "Marines", ID = "rookie", Name = "Rookie", Class = "npc_vj_avp_hum_rookie", Material = "vgui/avp/skins/hum_rookie.png"},
+        {Faction = "Marines", ID = "tequila", Name = "Teresa Aquila", Class = "npc_vj_avp_hum_tequila", Material = "vgui/avp/skins/hum_tequila.png"},
+        {Faction = "Marines", ID = "connor", Name = "Connor", Class = "npc_vj_avp_hum_connor", Material = "vgui/avp/skins/hum_connor.png"},
+        {Faction = "Marines", ID = "franco", Name = "Franco", Class = "npc_vj_avp_hum_franco", Material = "vgui/avp/skins/hum_franco.png"},
+        {Faction = "Marines", ID = "gibson", Name = "Gibson", Class = "npc_vj_avp_hum_gibson", Material = "vgui/avp/skins/hum_gibson.png"},
+        {Faction = "Marines", ID = "johnson", Name = "Johnson", Class = "npc_vj_avp_hum_johnson", Material = "vgui/avp/skins/hum_johnson.png"},
+        {Faction = "Marines", ID = "moss", Name = "Moss", Class = "npc_vj_avp_hum_moss", Material = "vgui/avp/skins/hum_moss.png"},
+        {Faction = "Marines", ID = "thomas", Name = "Thomas", Class = "npc_vj_avp_hum_youngwhite", Material = "vgui/avp/skins/hum_thomas.png"},
+        {Faction = "Marines", ID = "van", Name = "Van Zandt", Class = "npc_vj_avp_hum_van", Material = "vgui/avp/skins/hum_van.png"},
+        {Faction = "Marines", ID = "butch", Name = "Butch", Class = "npc_vj_avp_hum_butch", Material = "vgui/avp/skins/hum_butch.png"},
+        {Faction = "Marines", ID = "elaine", Name = "Elaine", Class = "npc_vj_avp_hum_blonde", Material = "vgui/avp/skins/hum_elaine.png"},
+        {Faction = "Marines", ID = "charity", Name = "Charity", Class = "npc_vj_avp_hum_black", Material = "vgui/avp/skins/hum_charity.png"},
+        {Faction = "Marines", ID = "monica", Name = "Monica", Class = "npc_vj_avp_hum_black2", Material = "vgui/avp/skins/hum_monica.png"},
+        {Faction = "Marines", ID = "android", Name = "Combat Android", Class = "npc_vj_avp_hum_android", Material = "vgui/avp/skins/hum_android.png"},
+        {Faction = "Marines", ID = "androidelite", Name = "Combat Android Elite", Class = "npc_vj_avp_hum_android_elite", Material = "vgui/avp/skins/hum_androidelite.png"},
     },
     xeno = {
-        {ID = "warrior", Name = "Warrior", Class = "npc_vj_avp_xeno_warrior", Material = "vgui/avp/skins/xeno_warrior.png"},
-        {ID = "six", Name = "Specimen Six", Class = "npc_vj_avp_xeno_six", Material = "vgui/avp/skins/xeno_six.png"},
-        {ID = "nethead", Name = "Nethead", Class = "npc_vj_avp_xeno_nethead", Material = "vgui/avp/skins/xeno_nethead.png"},
-        {ID = "praetorian", Name = "Praetorian", Class = "npc_vj_avp_xeno_praetorian", Material = "vgui/avp/skins/xeno_praetorian.png"},
-        {ID = "drone", Name = "Drone", Class = "npc_vj_avp_xeno_drone", Material = "vgui/avp/skins/xeno_drone.png"},
-        {ID = "rigid", Name = "Ridged Warrior", Class = "npc_vj_avp_xeno_ridged", Material = "vgui/avp/skins/xeno_rigid.png"},
+        {Faction = "Xenomorphs", ID = "warrior", Name = "Warrior", Class = "npc_vj_avp_xeno_warrior", Material = "vgui/avp/skins/xeno_warrior.png"},
+        {Faction = "Xenomorphs", ID = "jungle", Name = "Jungle", Class = "npc_vj_avp_xeno_jungle", Material = "vgui/avp/skins/xeno_jungle.png"},
+        {Faction = "Xenomorphs", ID = "runner", Name = "Runner", Class = "npc_vj_avp_xeno_runner", Material = "vgui/avp/skins/xeno_runner.png"},
+        {Faction = "Xenomorphs", ID = "six", Name = "Specimen Six", Class = "npc_vj_avp_xeno_six", Material = "vgui/avp/skins/xeno_six.png"},
+        {Faction = "Xenomorphs", ID = "nethead", Name = "Nethead", Class = "npc_vj_avp_xeno_nethead", Material = "vgui/avp/skins/xeno_nethead.png"},
+        {Faction = "Xenomorphs", ID = "praetorian", Name = "Praetorian", Class = "npc_vj_avp_xeno_praetorian", Material = "vgui/avp/skins/xeno_praetorian.png"},
+        {Faction = "Xenomorphs", ID = "drone", Name = "Drone", Class = "npc_vj_avp_xeno_drone", Material = "vgui/avp/skins/xeno_drone.png"},
+        {Faction = "Xenomorphs", ID = "rigid", Name = "Ridged Warrior", Class = "npc_vj_avp_xeno_ridged", Material = "vgui/avp/skins/xeno_rigid.png"},
+        {Faction = "Xenomorphs", ID = "kxeno_drone", Name = "K-Series Drone", Class = "npc_vj_avp_kxeno_drone", Material = "vgui/avp/skins/xeno_kdrone.png"},
+        {Faction = "Xenomorphs", ID = "kxeno_runner", Name = "K-Series Runner", Class = "npc_vj_avp_kxeno_runner", Material = "vgui/avp/skins/xeno_krunner.png"},
+        {Faction = "Xenomorphs", ID = "kxeno_warrior", Name = "K-Series Warrior", Class = "npc_vj_avp_kxeno_warrior", Material = "vgui/avp/skins/xeno_kwarrior.png"},
+        {Faction = "Xenomorphs", ID = "kxeno_rigid", Name = "K-Series Rigid", Class = "npc_vj_avp_kxeno_ridged", Material = "vgui/avp/skins/xeno_krigid.png"},
+        {Faction = "Xenomorphs", ID = "kxeno_praetorian", Name = "K-Series Praetorian", Class = "npc_vj_avp_kxeno_praetorian", Material = "vgui/avp/skins/xeno_kpraetorian.png"},
     },
     predator = {
-        {ID = "default", Name = "Youngblood", Class = "npc_vj_avp_pred", Material = "vgui/avp/skins/pred_default.png"},
-        {ID = "dark", Name = "Dark", Class = "npc_vj_avp_pred_dark", Material = "vgui/avp/skins/pred_dark.png"},
-        {ID = "claw", Name = "Claw", Class = "npc_vj_avp_pred_claw", Material = "vgui/avp/skins/pred_claw.png"},
-        {ID = "stalker", Name = "Stalker", Class = "npc_vj_avp_pred_stalker", Material = "vgui/avp/skins/pred_stalker.png"},
-        {ID = "hunter", Name = "Hunter", Class = "npc_vj_avp_pred_hunter", Material = "vgui/avp/skins/pred_hunter.png"},
-        {ID = "wolf", Name = "Wolf", Class = "npc_vj_avp_pred_wolf", Material = "vgui/avp/skins/pred_wolf.png"},
-        {ID = "spartan", Name = "Spartan", Class = "npc_vj_avp_pred_spartan", Material = "vgui/avp/skins/pred_spartan.png"},
-        {ID = "lord", Name = "Lord", Class = "npc_vj_avp_pred_lord", Material = "vgui/avp/skins/pred_lord.png"},
-        {ID = "alien", Name = "Alien", Class = "npc_vj_avp_pred_alien", Material = "vgui/avp/skins/pred_alien.png"},
+        {Faction = "Predators", ID = "default", Name = "Youngblood", Class = "npc_vj_avp_pred", Material = "vgui/avp/skins/pred_default.png"},
+        {Faction = "Predators", ID = "dark", Name = "Dark", Class = "npc_vj_avp_pred_dark", Material = "vgui/avp/skins/pred_dark.png"},
+        {Faction = "Predators", ID = "claw", Name = "Claw", Class = "npc_vj_avp_pred_claw", Material = "vgui/avp/skins/pred_claw.png"},
+        {Faction = "Predators", ID = "stalker", Name = "Stalker", Class = "npc_vj_avp_pred_stalker", Material = "vgui/avp/skins/pred_stalker.png"},
+        {Faction = "Predators", ID = "hunter", Name = "Hunter", Class = "npc_vj_avp_pred_hunter", Material = "vgui/avp/skins/pred_hunter.png"},
+        {Faction = "Predators", ID = "wolf", Name = "Wolf", Class = "npc_vj_avp_pred_wolf", Material = "vgui/avp/skins/pred_wolf.png"},
+        {Faction = "Predators", ID = "spartan", Name = "Spartan", Class = "npc_vj_avp_pred_spartan", Material = "vgui/avp/skins/pred_spartan.png"},
+        {Faction = "Predators", ID = "lord", Name = "Lord", Class = "npc_vj_avp_pred_lord", Material = "vgui/avp/skins/pred_lord.png"},
+        {Faction = "Predators", ID = "alien", Name = "Alien", Class = "npc_vj_avp_pred_alien", Material = "vgui/avp/skins/pred_alien.png"},
+        {Faction = "Predators", ID = "predlord", Name = "Ancient", Class = "npc_vj_avp_pred_predlord", Material = "vgui/avp/skins/pred_predlord.png"},
     },
 }
 
@@ -131,4 +147,12 @@ end
 
 function TDM.IsValidTeam(teamID)
     return TDM.TeamData[teamID] != nil
+end
+
+function TDM.GetRandomSkin(teamID)
+    local list = TDM.Skins[teamID]
+    if !list or #list == 0 then return nil end
+    for _, skin in RandomPairs(list) do
+        return skin.ID
+    end
 end

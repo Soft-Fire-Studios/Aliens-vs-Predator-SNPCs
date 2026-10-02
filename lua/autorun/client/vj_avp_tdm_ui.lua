@@ -801,12 +801,18 @@ local function RunNPCControllerCalcView(npc, spectator, origin, fov)
         spectatorViewAng = ang
     end
 
+    local npcAim = GetNPCAimAngles(npc)
+    -- if npc.VJ_AVP_Marine then
+    --     npcAim = npcAim +Angle(npc:GetPoseParameter("pp_thw_pitch"), npc:GetPoseParameter("pp_thw_yaw"), 0)
+    -- else
+    --     npcAim = npcAim +Angle(npc:GetPoseParameter("aim_pitch"), npc:GetPoseParameter("aim_yaw"), 0)
+    -- end
     if lerpSpeed == 0 then
         spectatorViewPos = pos
         spectatorViewAng = ang
     else
         spectatorViewPos = LerpVector(FrameTime() * lerpSpeed, spectatorViewPos or pos, pos)
-        spectatorViewAng = LerpAngle(FrameTime() * lerpSpeed, spectatorViewAng or ang, GetNPCAimAngles(npc))
+        spectatorViewAng = LerpAngle(FrameTime() * lerpSpeed, spectatorViewAng or ang, npcAim)
     end
 
     return {

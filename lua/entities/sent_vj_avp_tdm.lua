@@ -985,11 +985,12 @@ function ENT:BuildParticipantRecords()
             id = string.format("AI:%s:%02d", slot.Team, aiCounter[slot.Team])
         end
 
+        local pickedSkin = !IsValid(playerEnt) && TDM.GetRandomSkin(slot.Team) or slot.Skin
         local record = {
             ID = id,
             Name = IsValid(playerEnt) && playerEnt:Nick() or slot.Name,
             Team = slot.Team,
-            Skin = slot.Skin,
+            Skin = pickedSkin,
             IsAI = !IsValid(playerEnt),
             Player = playerEnt,
             Kills = 0,
@@ -1068,11 +1069,12 @@ function ENT:EquipMarineWeapon(npc, class)
     if !IsValid(npc) or !npc.VJ_AVP_TDMInventory or !npc.VJ_AVP_TDMInventory[class] then return false end
     local current = npc:GetActiveWeapon()
     if IsValid(current) && current:GetClass() == class then
-        local maxClip = current.GetMaxClip1 && current:GetMaxClip1() or -1
-        if maxClip && maxClip > 0 then current:SetClip1(maxClip) end
         return true
     end
 
+    if IsValid(current) then
+        npc.VJ_AVP_TDMInventoryAmmo[current:GetClass()] = current:Clip1()
+    end
     if IsValid(current) then
         current:Remove()
     end
@@ -1088,6 +1090,13 @@ function ENT:EquipMarineWeapon(npc, class)
         end
     end
 
+    timer.Simple(0, function()
+        if !IsValid(npc) or !IsValid(weapon) then return end
+        if npc.VJ_AVP_TDMInventoryAmmo[class] then
+            weapon:SetClip1(npc.VJ_AVP_TDMInventoryAmmo[class])
+        end
+    end)
+
     return IsValid(weapon)
 end
 
@@ -1101,9 +1110,8 @@ function ENT:SetupMarine(npc)
         ["weapon_vj_avp_pistol"] = true,
         ["weapon_vj_avp_pulserifle"] = true,
     }
-    npc.VJ_AVP_TDMStims = 0
+    npc.VJ_AVP_TDMInventoryAmmo = {}
     npc.VJ_AVP_TDMGrenades = 0
-    npc.VJ_AVP_TDMNextStim = 0
     timer.Simple(0, function()
         if !IsValid(self) or !IsValid(npc) then return end
         self:EquipMarineWeapon(npc, "weapon_vj_avp_pulserifle")
@@ -1146,6 +1154,7 @@ function ENT:SpawnParticipant(record)
 
     local teamData = TDM.TeamData[record.Team]
     local targetHealth = teamData.Health
+    local faction = skin.Faction
     npc.StartHealth = targetHealth
 
     local pos = self:GetSpawnPoint(record.Team, npc)
@@ -1156,9 +1165,19 @@ function ENT:SpawnParticipant(record)
     end
     pos = self:SetProperPos(npc, pos, record.Team) or pos
     npc:SetAngles(Angle(0, math.random(0, 359), 0))
-    if skin.Class == "npc_vj_avp_xeno_praetorian" then
+    if skin.Class == "npc_vj_avp_xeno_praetorian" or skin.Class == "npc_vj_avp_kxeno_praetorian" then
         npc.VJ_AVP_XenomorphLarge = false
     end
+    if faction == "Marines" then
+        npc.AlliedWithPlayerAllies = true
+        if skin.ID == "androidelite" or skin.ID == "android" then
+            npc.AllowCloaking = false
+            npc.CanUseStimpacks = true
+            npc.OnDamaged = function(self, dmginfo) end
+            npc.OnCreateDeathCorpse = function(self, dmginfo, hitgroup, ent) end
+        end
+    end
+    npc.VJ_NPC_Class = {faction == "Marines" && "CLASS_PLAYER_ALLY" or faction == "Xenomorphs" && "CLASS_XENOMORPH" or faction == "Predators" && "CLASS_PREDATOR"}
     npc:Spawn()
     npc:Activate()
     if !self:EnsureParticipantSpawnClear(npc, record.Team, pos) then
@@ -1166,6 +1185,16 @@ function ENT:SpawnParticipant(record)
         npc:Remove()
         return
     end
+    if faction == "Marines" then
+        npc.AlliedWithPlayerAllies = true
+        if skin.ID == "androidelite" or skin.ID == "android" then
+            npc.AllowCloaking = false
+            npc.CanUseStimpacks = true
+            npc.OnDamaged = function(self, dmginfo) end
+            npc.OnCreateDeathCorpse = function(self, dmginfo, hitgroup, ent) end
+        end
+    end
+    npc.VJ_NPC_Class = {faction == "Marines" && "CLASS_PLAYER_ALLY" or faction == "Xenomorphs" && "CLASS_XENOMORPH" or faction == "Predators" && "CLASS_PREDATOR"}
     self:ReserveSpawnPosition(npc:GetPos())
 
     npc.VJ_AVP_TDM = true
@@ -1196,12 +1225,13 @@ function ENT:SpawnParticipant(record)
         if npc:FindBodygroupByName("vest") > -1 then
             npc:SetBodygroup(npc:FindBodygroupByName("vest"),0)
         end
+        npc.VJ_AVP_TDMInventoryAmmo = {}
         local att = npc:LookupAttachment(npc.FlashLightAttachment or "flashlight")
         if att > 0 && npc.HasFlashlight then
             npc.CanUseFlashlight = true
         end
     end
-    if skin.Class == "npc_vj_avp_xeno_praetorian" then
+    if skin.Class == "npc_vj_avp_xeno_praetorian" or skin.Class == "npc_vj_avp_kxeno_praetorian" then
         npc.StandingBounds = Vector(15,15,72)
         npc.CrawlingBounds = Vector(15,15,72)
         npc:SetModelScale(0.8)
@@ -1224,6 +1254,10 @@ function ENT:SpawnParticipant(record)
     if IsValid(record.Player) then
         timer.Simple(0.05, function()
             if IsValid(self) && IsValid(npc) && self:GetMatchActive() && record.NPC == npc then
+                if faction == "Marines" then
+                    npc.AlliedWithPlayerAllies = true
+                end
+                npc.VJ_NPC_Class = {faction == "Marines" && "CLASS_PLAYER_ALLY" or faction == "Xenomorphs" && "CLASS_XENOMORPH" or faction == "Predators" && "CLASS_PREDATOR"}
                 self:CreateController(record, npc)
             end
         end)
@@ -1349,7 +1383,7 @@ function ENT:HandleMarinePickup(npc, pickup)
     local controlledPlayer = record && record.Player or nil
 
     if typeID == 0 then
-        npc.VJ_AVP_TDMStims = math.min((npc.VJ_AVP_TDMStims or 0) + 1, 3)
+        npc:SetStimCount(math.Clamp(npc:GetStimCount() +1, 1, 3))
         soundPath = "cpthazama/avp/shared/pickup_health.ogg"
         if IsValid(controlledPlayer) then controlledPlayer:ChatPrint("Picked up a Stimpack! Press G to use it.") end
     elseif typeID >= 1 && typeID <= 6 then
