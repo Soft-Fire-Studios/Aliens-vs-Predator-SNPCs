@@ -42,7 +42,7 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 		local ply = LocalPlayer()
-		if ply.VJ_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator && ply.VJCE_NPC.PreviousVisionMode == 2 then
+		if ply.VJ_IsControllingNPC && ply.VJ_TheControllerEntity:GetNPC().VJ_AVP_Predator && ply.VJ_TheControllerEntity:GetNPC().PreviousVisionMode == 2 then
 		-- if ply:Health() == 100 then
 			self.HasResetMaterials = false
 			for i,v in pairs(self:GetMaterials()) do
@@ -75,6 +75,18 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
+	local function AVP_SurfaceViewAngle(forward, surfaceUp)
+		local right = forward:Cross(surfaceUp)
+		if right:LengthSqr() <= 0.0001 then return forward:Angle() end
+		right:Normalize()
+		local up = right:Cross(forward)
+		up:Normalize()
+		local m = Matrix()
+		m:SetForward(forward)
+		m:SetRight(right)
+		m:SetUp(up)
+		return m:GetAngles()
+	end
 	function ENT:Controller_CalcView(ply, origin, angles, fov, camera, cameraMode)
 		local pos = origin
 		local ang = ply:EyeAngles()
@@ -145,6 +157,14 @@ if CLIENT then
 			pos = tr.HitPos + tr.HitNormal*2 +(self:GetVelocity() /13)
 			fov = 75
 		end
+
+		local targetRoll = 0
+		if self:GetNW2Bool("VJ_AVP_SurfaceTraversal", false) then
+			targetRoll = AVP_SurfaceViewAngle(ang:Forward(), self:GetUp()).r
+		end
+		self.VJ_AVP_SurfaceViewRoll = math.ApproachAngle(self.VJ_AVP_SurfaceViewRoll or ang.r, targetRoll, FrameTime() *300)
+		ang.r = self.VJ_AVP_SurfaceViewRoll
+
 		return {origin = pos, angles = ang, fov = fov}
 	end
 

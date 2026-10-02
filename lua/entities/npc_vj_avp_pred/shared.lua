@@ -559,56 +559,63 @@ if CLIENT then
 			return {origin = pos, angles = ang, fov = newFOV, speed = 0}
 		end
 		if cameraMode == 2 then -- First person
-			local setPos = self:EyePos() +self:GetForward() *20
-			local offset = ply.VJC_FP_Offset
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
-			if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
-				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Head"))
-				setPos = bonePos +self:GetForward() *10
-				-- if ply.VJC_FP_CameraBoneAng > 0 then
-				-- 	ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
-				-- end
-				if ply.VJC_FP_ShrinkBone then
-					-- self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
-					-- for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
-					-- 	self:ManipulateBoneScale(v, vec0)
+			if self:GetInFatality() then
+				local att = self:GetAttachment(self:LookupAttachment("eyes"))
+				pos = att.Pos +att.Ang:Forward() *5
+				ang = att.Ang +Angle(25,0,0)
+				newFOV = 90
+			else
+				local setPos = self:EyePos() +self:GetForward() *20
+				local offset = ply.VJC_FP_Offset
+				//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
+				if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
+					local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Head"))
+					setPos = bonePos +self:GetForward() *10
+					-- if ply.VJC_FP_CameraBoneAng > 0 then
+					-- 	ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
 					-- end
-				end
-				-- local addAng = boneAng.r
-				-- if addAng > 180 then
-				-- 	addAng = addAng -360
-				-- end
-				-- addAng = addAng *0.1
-				-- ang.r = Lerp(FrameTime() *2,ang.r,ang.r +addAng)
-				-- if CurTime() > debugT then
-				-- 	ply:ChatPrint(math.Round(ang.r,2))
-				-- 	debugT = CurTime() +1
-				-- end
-			end
-			local vm = ply:GetViewModel()
-			local att = vm:LookupAttachment("pov")
-			pos = setPos +(self:GetForward() *offset.x +self:GetRight() *offset.y +self:GetUp() *offset.z)
-			-- if string_find(self:GetSequenceName(self:GetSequence()),"_jump_") then -- Simulate view punch by lerp the ang
-			-- 	ang = LerpAngle(FrameTime() *5,ang,ang +Angle(-40,0,0))
-			-- 	ply:ChatPrint("AA")
-			-- end
-
-			-- if att > 0 then
-				-- local attDat = vm:GetAttachment(att)
-				-- if attDat then
-					-- local attAng = attDat.Ang
+					if ply.VJC_FP_ShrinkBone then
+						-- self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
+						-- for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
+						-- 	self:ManipulateBoneScale(v, vec0)
+						-- end
+					end
+					-- local addAng = boneAng.r
+					-- if addAng > 180 then
+					-- 	addAng = addAng -360
+					-- end
+					-- addAng = addAng *0.1
+					-- ang.r = Lerp(FrameTime() *2,ang.r,ang.r +addAng)
 					-- if CurTime() > debugT then
-					-- 	ply:ChatPrint("Yaw = "..math.Round(attAng.y,2).." Pitch = "..math.Round(attAng.p,2).." Roll = "..math.Round(attAng.r,2))
+					-- 	ply:ChatPrint(math.Round(ang.r,2))
 					-- 	debugT = CurTime() +1
 					-- end
-					-- ang.p = ang.p +attAng.p
-					-- ang.r = ang.r +attAng.r
-				-- 	local diff = attDat.Pos -pos
-				-- 	pos = pos +diff
+				end
+				local vm = ply:GetViewModel()
+				local att = vm:LookupAttachment("pov")
+				pos = setPos +(self:GetForward() *offset.x +self:GetRight() *offset.y +self:GetUp() *offset.z)
+				-- if string_find(self:GetSequenceName(self:GetSequence()),"_jump_") then -- Simulate view punch by lerp the ang
+				-- 	ang = LerpAngle(FrameTime() *5,ang,ang +Angle(-40,0,0))
+				-- 	ply:ChatPrint("AA")
 				-- end
-			-- end
-			newFOV = 90
-			refreshRate = 0
+
+				-- if att > 0 then
+					-- local attDat = vm:GetAttachment(att)
+					-- if attDat then
+						-- local attAng = attDat.Ang
+						-- if CurTime() > debugT then
+						-- 	ply:ChatPrint("Yaw = "..math.Round(attAng.y,2).." Pitch = "..math.Round(attAng.p,2).." Roll = "..math.Round(attAng.r,2))
+						-- 	debugT = CurTime() +1
+						-- end
+						-- ang.p = ang.p +attAng.p
+						-- ang.r = ang.r +attAng.r
+					-- 	local diff = attDat.Pos -pos
+					-- 	pos = pos +diff
+					-- end
+				-- end
+				newFOV = 90
+				refreshRate = 0
+			end
 		else
 			if ply.VJC_FP_Bone != -1 then
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)

@@ -396,6 +396,35 @@ function ENT:PlayAnimation(animation, stopActivities, stopActivitiesTime, faceEn
 	return anim,animDur,animType
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetControllerAimPosition(ply,distance)
+	distance = distance or 2048
+	if !IsValid(ply) then
+		return self:WorldSpaceCenter() +self:GetForward() *distance
+	end
+	local dir
+	if self.IsOnSurface && self.CurrentSurfaceNormal then
+		local normal = self.CurrentSurfaceNormal
+		if normal:LengthSqr() <= 0.5 then
+			normal = self:GetUp()
+		else
+			normal = normal:GetNormalized()
+		end
+		dir = ply:GetAimVector()
+		dir = dir -normal *dir:Dot(normal)
+		if dir:LengthSqr() <= 0.02 then
+			dir = self.SurfaceTraversal_LastForward or self:GetForward()
+			dir = dir -normal *dir:Dot(normal)
+		end
+		if dir:LengthSqr() <= 0.001 then
+			dir = self:GetForward()
+		end
+		dir:Normalize()
+	else
+		dir = Angle(0, ply:EyeAngles().y, 0):Forward()
+	end
+	return self:WorldSpaceCenter() +dir *distance
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ20 = Vector(0, 0, 20)
 util.AddNetworkString("VJ_AVP_Predator_SoundDetect")
 --
@@ -409,6 +438,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	controlEnt.VJC_Player_DrawHUD = false
 	controlEnt.VJC_NPC_CanTurn = false
+	-- controlEnt.VJC_Bullseye_RefreshPos = false
 	npc.JumpParams.Enabled = false
 	npc:SetMaxYawSpeed(npc.TurningSpeed *2)
 
@@ -432,6 +462,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
 		self.VJCE_NPC:SetArrivalSpeed(9999)
+		-- local aimPos = npc:GetControllerAimPosition(ply)
+		-- if IsValid(self.VJCE_Bullseye) then
+		-- 	self.VJCE_Bullseye:SetPos(aimPos)
+		-- end
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		if self.VJC_Camera_Mode == 2 then
@@ -494,6 +528,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				end
 			end
 	
+			self:OnThink()
 			local bullseyePos = self.VJCE_Bullseye:GetPos()
 			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
@@ -501,10 +536,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
 			end
 			
-			self:OnThink()
 	
 			local canTurn = true
-			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
+			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayAnim) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
 	
 			-- Weapon attack
 			if npc.IsVJBaseSNPC_Human == true then
@@ -1018,7 +1052,7 @@ function ENT:OnFatality(ent,inFront,willCounter,fType)
 	end
 	if self:GetCloaked() then
 		self:Camo(false)
-		self.NextCloakT = CurTime() +50
+		self.NextCloakT = CurTime() +10
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2437,11 +2471,8 @@ function ENT:OnThinkActive()
 		for x = 1, #names.roll do
 			self:SetPoseParameter(names.roll[x],0)
 		end
-		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+		if (IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0) or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
-			self:SetHealth(0)
-			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
-			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
 	end
@@ -2671,14 +2702,7 @@ function ENT:OnThinkActive()
 		local left = ply:KeyDown(IN_MOVELEFT)
 		local right = ply:KeyDown(IN_MOVERIGHT)
 		local sprinting = ply:KeyDown(IN_SPEED)
-		local aimVector = ply:GetAimVector()
-		local aimPosT = util.TraceLine({
-			start = ply:EyePos(),
-			endpos = ply:EyePos() +aimVector *15000,
-			filter = {ply,self},
-			mask = MASK_NPCSOLID,
-		})
-		local aimPos = aimPosT.HitPos +aimPosT.HitNormal *16
+		local aimPos = self:GetControllerAimPosition(ply)
 		if (forward or backward or left or right) && !self:IsBusy("Activities") then
 			local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
 			local moveDir = self:GetForward()
@@ -2724,8 +2748,8 @@ function ENT:OnThinkActive()
 					Rot = angYN90 -angY45
 				end
 			end
-			aimVector.z = 0
-			aimVector:Rotate(Rot)
+			-- aimVector.z = 0
+			-- aimVector:Rotate(Rot)
 			self:FaceCertainPosition(aimPos, 0.2)
 			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
 			self.Cont_IsMoving = true

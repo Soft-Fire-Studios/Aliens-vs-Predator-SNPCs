@@ -148,8 +148,11 @@ function ENT:GrabEquip(ent)
 	self:StopParticles()
 	local pickupType = self.PickupType
 	if pickupType == 0 then
+		if ent.VJ_AVP_Marine then
+			ent:SetStimCount(math.Clamp(ent:GetStimCount() +1, 1, 3))
+		else
 			ent:Give("weapon_vj_avp_stimpack")
-		-- ent:SetHealth(math_Clamp(ent:Health() +50,0,ent:GetMaxHealth()))
+		end
 		ent:ChatPrint("Picked up a Stimpack!")
 		VJ.EmitSound(ent,"cpthazama/avp/shared/pickup_health.ogg",70)
 	elseif pickupType >= 1 && pickupType <= 6 then

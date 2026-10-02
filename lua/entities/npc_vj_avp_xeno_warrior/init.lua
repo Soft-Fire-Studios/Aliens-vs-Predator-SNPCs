@@ -1,6 +1,7 @@
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 include("vj_base/extensions/avp_fatality_module.lua")
+include("vj_base/extensions/avp_surface_traversal.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -591,6 +592,10 @@ function ENT:Init()
 	else
 		self:SetStepHeight(self.StepHeight_Crawling or 100)
 	end
+
+	if self.SurfaceTraversal_Init then
+		self:SurfaceTraversal_Init()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnEat(status, statusData)
@@ -691,6 +696,35 @@ function ENT:CustomOnChangeActivity(act)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetControllerAimPosition(ply,distance)
+	distance = distance or 2048
+	if !IsValid(ply) then
+		return self:WorldSpaceCenter() +self:GetForward() *distance
+	end
+	local dir
+	if self.IsOnSurface && self.CurrentSurfaceNormal then
+		local normal = self.CurrentSurfaceNormal
+		if normal:LengthSqr() <= 0.5 then
+			normal = self:GetUp()
+		else
+			normal = normal:GetNormalized()
+		end
+		dir = ply:GetAimVector()
+		dir = dir -normal *dir:Dot(normal)
+		if dir:LengthSqr() <= 0.02 then
+			dir = self.SurfaceTraversal_LastForward or self:GetForward()
+			dir = dir -normal *dir:Dot(normal)
+		end
+		if dir:LengthSqr() <= 0.001 then
+			dir = self:GetForward()
+		end
+		dir:Normalize()
+	else
+		dir = Angle(0, ply:EyeAngles().y, 0):Forward()
+	end
+	return self:WorldSpaceCenter() +dir *distance
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 local vecZ20 = Vector(0, 0, 20)
 --
 function ENT:Controller_Initialize(ply,controlEnt)
@@ -703,13 +737,20 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
+	-- controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
 		self.VJCE_NPC:SetArrivalSpeed(9999)
-		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = (self.VJCE_NPC:DoingMovement() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
-		-- self.VJCE_NPC.EnemyDetection = true
+
+		local onSurface = self.VJCE_NPC.IsOnSurface == true
+		-- local aimPos = npc:GetControllerAimPosition(ply)
+		-- if IsValid(self.VJCE_Bullseye) then
+		-- 	self.VJCE_Bullseye:SetPos(aimPos)
+		-- end
+
+		self.VJC_NPC_CanTurn = !onSurface && self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = !onSurface && ((self.VJCE_NPC:DoingMovement() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2)
 	end
 
 	function controlEnt:OnStopControlling()
@@ -762,6 +803,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				end
 			end
 	
+			self:OnThink()
 			local bullseyePos = self.VJCE_Bullseye:GetPos()
 			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
@@ -769,10 +811,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 				VJ.DEBUG_TempEnt(bullseyePos, self:GetAngles(), Color(255,0,0)) -- Bullseye's position
 			end
 			
-			self:OnThink()
 	
 			local canTurn = true
-			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayActivity) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
+			if npc.Flinching == true or (((npc.CurrentSchedule && !npc.CurrentSchedule.IsPlayAnim) or npc.CurrentSchedule == nil) && npc:GetNavType() == NAV_JUMP) then return end
 	
 			-- Weapon attack
 			if npc.IsVJBaseSNPC_Human == true then
@@ -948,7 +989,7 @@ function ENT:HandlePerceivedRelationship(v)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:FootStep(pos,name)
-	if !self:IsOnGround() then return end
+	if (!self.IsOnSurface && !self:IsOnGround()) then return end
 	if self.CurrentSet == 2 && (name == "lhand" or name == "rhand") then return end
 	local tbl = self.SoundTbl_FootSteps
 	if !tbl then
@@ -956,7 +997,7 @@ function ENT:FootStep(pos,name)
 	end
 	local tr = util.TraceLine({
 		start = self:GetPos(),
-		endpos = self:GetPos() +Vector(0,0,-150),
+		endpos = self:GetPos() +self:GetUp() *-150,
 		filter = {self}
 	})
 	local matType = tr.MatType
@@ -1507,6 +1548,9 @@ function ENT:OnInput(key,activator,caller,data)
 		self:OnInput2(key)
 	end
 	if key == "jump_start" then
+		if self.IsOnSurface && self.SurfaceTraversal_Detach then
+			self:SurfaceTraversal_Detach(false, nil, true)
+		end
 		self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
 		self:SetLocalVelocity(Vector(0,0,0))
 		self.IsOnSurface = false
@@ -1912,7 +1956,39 @@ function ENT:OnRangeAttackExecute(status, enemy, projectile)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:TDMLeapAttack()
+	if self.IsOnSurface && self.SurfaceTraversal_Detach then
+		self:SurfaceTraversal_Detach(false, nil, true)
+	end
+	-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
+	VJ.STOPSOUND(self.CurrentSpeechSound)
+	VJ.STOPSOUND(self.CurrentIdleSound)
+	VJ.CreateSound(self,self.SoundTbl_Jump,80)
+
+	local targetPos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
+	self:SetVelocity(self:CalculateProjectile("Line", self:GetPos(), targetPos, math_Clamp(self.EnemyData.DistanceNearest,700,2500)))
+	self:PlayAnim("leap_long",true,false,false,0,{OnFinish=function(interrupted)
+		if interrupted then return end
+		self.AttackDamageDistance = 140
+		self.AttackDamageType = bit.bor(DMG_SLASH,DMG_CRUSH,DMG_VEHICLE)
+		local dmgcode = self:RunDamageCode(2)
+		VJ.EmitSound(self,#dmgcode > 0 && sdClawFlesh or sdClawMiss,75)
+		VJ.STOPSOUND(self.CurrentSpeechSound)
+		VJ.STOPSOUND(self.CurrentIdleSound)
+		VJ.CreateSound(self,self.SoundTbl_Attack,80)
+		self:PlayAnim(#dmgcode <= 0 && "leap_attack_miss" or "leap_long_land",true,false,false,0,{OnFinish=function(interrupted)
+			if interrupted then return end
+			self:SetState()
+			self:SCHEDULE_IDLE_STAND()
+		end})
+	end})
+	self:SetTurnTarget(targetPos,0.25,true)
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DoLeapAttack()
+	if self.IsOnSurface && self.SurfaceTraversal_Detach then
+		self:SurfaceTraversal_Detach(false, nil, true)
+	end
 	-- self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)
@@ -2250,6 +2326,13 @@ end
 function ENT:SetGroundAngle(curSet)
 	if self.InFatality then curSet = 0 end
 	if !self.CanSetGroundAngle then return end
+	if self.IsOnSurface then
+		self.Incline = 0
+		local bonePos = self:GetManipulateBonePosition(0)
+		self:ManipulateBonePosition(0,Vector(0,0,Lerp(FrameTime() *20,bonePos.z,0)))
+		return
+	end
+
 	local pos = self:GetPos()
 	local len = self:GetUp() *50
 	local ang = self:GetAngles()
@@ -2387,7 +2470,6 @@ function ENT:TransformToPraetorian()
 	end})
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local debugUseSurfaceClimbing = false
 local angY0 = Angle(0, 0, 0)
 local angY45 = Angle(0, 45, 0)
 local angYN45 = Angle(0, -45, 0)
@@ -2397,6 +2479,9 @@ local angY180 = Angle(0, 180, 0)
 --
 function ENT:OnThinkActive()
 	if self.Dead then return end
+	if (self.InFatality or self.DoingFatality) && self.IsOnSurface && self.SurfaceTraversal_Detach then
+		self:SurfaceTraversal_Detach(false, nil, true)
+	end
 	self.HasPoseParameterLooking = !self.InFatality
 	if self.InFatality then
 		-- print(self,self:GetSequenceName(self:GetSequence()))
@@ -2410,11 +2495,8 @@ function ENT:OnThinkActive()
 		for x = 1, #names.roll do
 			self:SetPoseParameter(names.roll[x],0)
 		end
-		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+		if (IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0) or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
-			self:SetHealth(0)
-			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
-			-- self:SetCycle(self.FatalityKiller:GetCycle())
 		end
 		return
 	end
@@ -2471,70 +2553,6 @@ function ENT:OnThinkActive()
 		self:JumpVelocityCode()
 	end
 
-	if debugUseSurfaceClimbing then -- Experimental AI, allows Xenomorphs to climb on any surface
-		local ply = self.VJ_TheController
-		if IsValid(ply) then
-			self.Aerial_FlyingSpeed_Calm = 400
-			self.Aerial_FlyingSpeed_Alerted = 700
-			if ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) then
-				self.Surface_IsMoving = true
-				local moveF = ply:KeyDown(IN_FORWARD) && 1 or ply:KeyDown(IN_BACK) && -1 or 0
-				local moveR = ply:KeyDown(IN_MOVERIGHT) && 1 or ply:KeyDown(IN_MOVELEFT) && -1 or 0
-				local moveDir = self:GetRight() *moveR +self:GetForward() *moveF
-				-- local moveDir = Vector(moveR,moveF,0):GetNormalized()
-				local forwardTr = util.TraceHull({
-					start = self:GetPos(),
-					endpos = self:GetPos() +moveDir *50,
-					filter = self,
-					mins = self:OBBMins(),
-					maxs = self:OBBMaxs(),
-					mask = MASK_SOLID_BRUSHONLY
-				})
-
-				local hitNormal = forwardTr.HitNormal
-				if forwardTr.Hit && !self.IsOnSurface && math_abs(hitNormal.x) >= 0.9 or math_abs(hitNormal.y) >= 0.9 then
-					self:DoChangeMovementType(VJ_MOVETYPE_AERIAL)
-					self:SetGroundEntity(NULL)
-					self:SetLocalVelocity(Vector(0,0,0))
-					self.IsOnSurface = true
-					self.CurrentSurfaceNormal = forwardTr.HitNormal
-					//print("Set to surface movement")
-				elseif !forwardTr.Hit && self.IsOnSurface then
-					-- Apply velocity based on the surface we're on
-					local tr = util.TraceHull({
-						start = self:GetPos(),
-						endpos = self:GetPos() +moveDir *50 +self.CurrentSurfaceNormal *-10,
-						filter = self,
-						mins = self:OBBMins(),
-						maxs = self:OBBMaxs()
-					})
-					
-					if tr.Hit then
-						-- self:SetPos(tr.HitPos +tr.HitNormal *(self:OBBMaxs().y *1.4))
-						self.CurrentSurfaceNormal = tr.HitNormal
-						local right = self:GetRight()
-						local forward = right:Cross(self.CurrentSurfaceNormal)
-						self:SetAngles(forward:Angle())
-						self:SetLocalVelocity(forward *700) -- Adjust speed as needed
-						-- self:SetLocalVelocity(moveDir *700) -- Adjust speed as needed
-						//print("Surface movement")
-					else
-						-- Falling off the surface
-						self:DoChangeMovementType(VJ_MOVETYPE_GROUND)
-						self:SetLocalVelocity(Vector(0,0,0))
-						self.IsOnSurface = false
-						//print("Set to ground movement")
-					end
-				end
-			else
-				self.Surface_IsMoving = false
-				if self.IsOnSurface then
-					self:SetLocalVelocity(Vector(0,0,0))
-				end
-			end
-		end
-	end	
-
 	if self.OnThink2 then
 		self:OnThink2(curTime)
 	end
@@ -2573,7 +2591,10 @@ function ENT:OnThinkActive()
 			local pos = self:GetPos()
 			
 			local tr = util.TraceLine({start = pos, endpos = pos +self:GetUp() *-150, filter = self})
-			if !tr.HitWorld then return end
+			if !tr.HitWorld then
+				if self.SurfaceTraversal_Update then self:SurfaceTraversal_Update(curTime) end
+				return
+			end
 			local trNormalP = tr.HitPos +tr.HitNormal
 			local trNormalN = tr.HitPos -tr.HitNormal
 			-- local particle = ents.Create("info_particle_system")
@@ -2762,6 +2783,7 @@ function ENT:OnThinkActive()
 							self.ChangeSetT = curTime +math.Rand(15,35)
 							self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 						end
+						if self.SurfaceTraversal_Update then self:SurfaceTraversal_Update(curTime) end
 						return
 					end
 					if self.CanSprint && self.SprintT < 3 && !self.AI_IsSprinting && curTime > self.NextSprintT && math.random(1,12) == 1 then
@@ -2887,14 +2909,7 @@ function ENT:OnThinkActive()
 		local left = ply:KeyDown(IN_MOVELEFT)
 		local right = ply:KeyDown(IN_MOVERIGHT)
 		local sprinting = ply:KeyDown(IN_SPEED)
-		local aimVector = ply:GetAimVector()
-		local aimPosT = util.TraceLine({
-			start = ply:EyePos(),
-			endpos = ply:EyePos() +aimVector *15000,
-			filter = {ply,self},
-			mask = MASK_NPCSOLID,
-		})
-		local aimPos = aimPosT.HitPos +aimPosT.HitNormal *16
+		local aimPos = self:GetControllerAimPosition(ply)
 		if (forward or backward or left or right) && !self:IsBusy("Activities") then
 			local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
 			local moveDir = self:GetForward()
@@ -2911,7 +2926,8 @@ function ENT:OnThinkActive()
 				filter = self,
 				mask = MASK_NPCSOLID,
 			})
-			if !downTr.Hit && !downTrB.Hit && self:OnGround() then
+			local surfaceOwnsEdge = self.IsOnSurface or (self.SurfaceTraversal_ShouldSuppressLedgeAssist && self:SurfaceTraversal_ShouldSuppressLedgeAssist(moveDir))
+			if !surfaceOwnsEdge && !downTr.Hit && !downTrB.Hit && self:OnGround() then
 				self:SetVelocity(moveDir *moveSpeed +Vector(0,0,-30))
 			end
 			local Rot = angY0
@@ -2940,13 +2956,16 @@ function ENT:OnThinkActive()
 					Rot = angYN90 -angY45
 				end
 			end
-			aimVector.z = 0
-			aimVector:Rotate(Rot)
+			-- aimVector.z = 0
+			-- aimVector:Rotate(Rot)
 
 			if self.VJ_AVP_XenomorphRunner && self:GetSprinting() && self:OnGround() then
 				self:SetVelocity((moveDir *moveSpeed) *1.25)
 			end
-			self:FaceCertainPosition(aimPos, 0.2)
+			if !self.IsOnSurface then
+				self:FaceCertainPosition(aimPos, 0.2)
+			end
+			-- self:FaceCertainPosition(aimPos, 0.2)
 			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
 			self.Cont_IsMoving = true
 			if forward then
@@ -2974,6 +2993,10 @@ function ENT:OnThinkActive()
 		end
 	else
 		-- self:SetStepHeight(18)
+	end
+
+	if self.SurfaceTraversal_Update then
+		self:SurfaceTraversal_Update(curTime)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -3643,13 +3666,13 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 					schedule:EngTask("TASK_PLAY_SEQUENCE", animation)
 				end*/
 			end
-			schedule.IsPlayActivity = true
+			schedule.IsPlayAnim = true
 			schedule.CanBeInterrupted = !lockAnim
 			if (customFunc) then customFunc(schedule, animation) end
 			self:StartSchedule(schedule)
 			if doRealAnimTime then
 				-- Get the calculated duration (Only done in Activity type)
-				animTime = self.CurrentTask && self.CurrentTask.TaskData.duration or animTime
+				animTime = (self.CurrentTask && self.CurrentTask.TaskData && self.CurrentTask.TaskData.duration) or animTime
 			end
 			if faceEnemy then
 				self:SetTurnTarget("Enemy", animTime, false, faceEnemy == "Visible")

@@ -339,6 +339,9 @@ end
 local math_Clamp = math.Clamp
 --
 function ENT:DoLeapAttack()
+	if self.TDM then
+		return self:TDMLeapAttack()
+	end
 	self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 	VJ.STOPSOUND(self.CurrentSpeechSound)
 	VJ.STOPSOUND(self.CurrentIdleSound)

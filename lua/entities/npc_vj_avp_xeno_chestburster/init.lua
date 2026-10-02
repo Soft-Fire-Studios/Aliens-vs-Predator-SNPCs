@@ -74,6 +74,35 @@ ENT.SoundTbl_MeleeAttackExtra = {
 	"cpthazama/avp/weapons/alien/jaw/alien_jaw_impale_05.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetControllerAimPosition(ply,distance)
+	distance = distance or 2048
+	if !IsValid(ply) then
+		return self:WorldSpaceCenter() +self:GetForward() *distance
+	end
+	local dir
+	if self.IsOnSurface && self.CurrentSurfaceNormal then
+		local normal = self.CurrentSurfaceNormal
+		if normal:LengthSqr() <= 0.5 then
+			normal = self:GetUp()
+		else
+			normal = normal:GetNormalized()
+		end
+		dir = ply:GetAimVector()
+		dir = dir -normal *dir:Dot(normal)
+		if dir:LengthSqr() <= 0.02 then
+			dir = self.SurfaceTraversal_LastForward or self:GetForward()
+			dir = dir -normal *dir:Dot(normal)
+		end
+		if dir:LengthSqr() <= 0.001 then
+			dir = self:GetForward()
+		end
+		dir:Normalize()
+	else
+		dir = Angle(0, ply:EyeAngles().y, 0):Forward()
+	end
+	return self:WorldSpaceCenter() +dir *distance
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
 		net.WriteBool(false)
@@ -84,8 +113,14 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
+	controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
+		local aimPos = npc:GetControllerAimPosition(ply)
+		if IsValid(self.VJCE_Bullseye) then
+			self.VJCE_Bullseye:SetPos(aimPos)
+		end
+
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
 	end

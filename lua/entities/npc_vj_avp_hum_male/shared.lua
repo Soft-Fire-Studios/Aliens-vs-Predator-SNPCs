@@ -15,6 +15,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Bool","HandFix")
 	self:NetworkVar("Entity","Flare")
 	self:NetworkVar("Entity","FatalityTarget")
+	self:NetworkVar("Float","StimCount")
 end
 
 function ENT:UpdateTransmitState()
@@ -534,21 +535,28 @@ if CLIENT then
 		local refreshRate = nil
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
-			local setPos = self:EyePos() +self:GetForward() *1
-			local offset = ply.VJC_FP_Offset
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
-			if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
-				local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Head"))
-				setPos = bonePos +boneAng:Forward() *-2 +boneAng:Up() *1
-				if ply.VJC_FP_ShrinkBone then
-					-- self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
-					-- for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
-					-- 	self:ManipulateBoneScale(v, vec0)
-					-- end
+			if self:GetInFatality() then
+				local att = self:GetAttachment(self:LookupAttachment("eyes"))
+				pos = att.Pos +att.Ang:Forward() *5
+				ang = att.Ang
+			else
+				local setPos = self:EyePos() +self:GetForward() *3
+				local offset = ply.VJC_FP_Offset
+				//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
+				if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
+					local bonePos, boneAng = self:GetBonePosition(self:LookupBone("Bip01 Head"))
+					setPos = bonePos +boneAng:Forward() *-2 +boneAng:Up() *1
+					if ply.VJC_FP_ShrinkBone then
+						-- self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
+						-- for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
+						-- 	self:ManipulateBoneScale(v, vec0)
+						-- end
+					end
 				end
+				pos = setPos +(self:GetForward() *5 +self:GetRight() *offset.y +self:GetUp() *offset.z)
+				refreshRate = 0
 			end
-			pos = setPos +(self:GetForward() *offset.x +self:GetRight() *offset.y +self:GetUp() *offset.z)
-			refreshRate = 0
+			newFOV = myFOV +20
 		else
 			if ply.VJC_FP_Bone != -1 then
 				self:ManipulateBoneScale(ply.VJC_FP_Bone, vec1)

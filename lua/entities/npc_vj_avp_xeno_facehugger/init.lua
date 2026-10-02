@@ -1,5 +1,6 @@
 AddCSLuaFile("shared.lua")
 include("shared.lua")
+-- include("vj_base/extensions/avp_surface_traversal.lua")
 /*-----------------------------------------------
 	*** Copyright (c) 2023 by Cpt. Hazama, All rights reserved. ***
 	No parts of this code or any of its contents may be reproduced, copied, modified or adapted,
@@ -8,6 +9,7 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/facehugger.mdl"}
 ENT.StartHealth = 15
 ENT.HullType = HULL_TINY
+-- ENT.SurfaceTraversal_ContinuousOrientation = true
 ENT.EnemyXRayDetection = true
 ---------------------------------------------------------------------------------------------------------------------------------------------
 ENT.BloodColor = VJ.BLOOD_COLOR_YELLOW
@@ -90,6 +92,35 @@ ENT.SoundTbl_Death = {
 	"cpthazama/avp/xeno/facehugger/vocals/facehugger_death_03.ogg",
 }
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetControllerAimPosition(ply,distance)
+	distance = distance or 2048
+	if !IsValid(ply) then
+		return self:WorldSpaceCenter() +self:GetForward() *distance
+	end
+	local dir
+	if self.IsOnSurface && self.CurrentSurfaceNormal then
+		local normal = self.CurrentSurfaceNormal
+		if normal:LengthSqr() <= 0.5 then
+			normal = self:GetUp()
+		else
+			normal = normal:GetNormalized()
+		end
+		dir = ply:GetAimVector()
+		dir = dir -normal *dir:Dot(normal)
+		if dir:LengthSqr() <= 0.02 then
+			dir = self.SurfaceTraversal_LastForward or self:GetForward()
+			dir = dir -normal *dir:Dot(normal)
+		end
+		if dir:LengthSqr() <= 0.001 then
+			dir = self:GetForward()
+		end
+		dir:Normalize()
+	else
+		dir = Angle(0, ply:EyeAngles().y, 0):Forward()
+	end
+	return self:WorldSpaceCenter() +dir *distance
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
     net.Start("VJ_AVP_Xeno_Client")
 		net.WriteBool(false)
@@ -100,11 +131,16 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
+	controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
+		local aimPos = npc:GetControllerAimPosition(ply)
+		if IsValid(self.VJCE_Bullseye) then
+			self.VJCE_Bullseye:SetPos(aimPos)
+		end
+
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 		self.VJC_BullseyeTracking = self.VJC_Camera_Mode == 2
-		self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()
@@ -156,6 +192,10 @@ function ENT:CustomOnInitialize()
     end)
 
 	self:SetStepHeight(80)
+
+	if self.SurfaceTraversal_Init then
+		self:SurfaceTraversal_Init()
+	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:MaintainRelationships()
@@ -323,6 +363,9 @@ function ENT:OnMeleeAttackExecute(status, ent, isProp)
 				corpse.BloodData = {Color = ent.BloodColor, Particle = VJ.PICK(ent.BloodParticle), Decal = ent.BloodDecal}
 
 				VJ.CreateSound(self,self.SoundTbl_MeleeAttackGrapple,70)
+				if self.IsOnSurface && self.SurfaceTraversal_Detach then
+					self:SurfaceTraversal_Detach(false,nil,true)
+				end
 				self.LatchVictim = ent
 				self.LatchCorpse = corpse
 				self.IsLatched = true
@@ -495,6 +538,13 @@ local math_deg = math.deg
 local math_abs = math.abs
 --
 function ENT:SetGroundAngle()
+	if self.IsOnSurface then
+		self.Incline = 0
+		local bonePos = self:GetManipulateBonePosition(0)
+		self:ManipulateBonePosition(0,Vector(0,0,Lerp(FrameTime() *20,bonePos.z,0)))
+		return
+	end
+
 	local pos = self:GetPos()
 	local len = self:GetUp() *50
 	local ang = self:GetAngles()
@@ -601,6 +651,9 @@ function ENT:AttachToCarrier(ent,getOff,target)
 		return
 	end
 	if IsValid(self.Carrier) then return end
+	if self.IsOnSurface && self.SurfaceTraversal_Detach then
+		self:SurfaceTraversal_Detach(false,nil,true)
+	end
 	local curFacehuggers = ent:GetFacehuggerCount()
 	local slot = curFacehuggers +1
 	self.Carrier = ent
@@ -676,7 +729,10 @@ function ENT:OnThinkActive()
 		end
 
 		if !IsValid(ent) && IsValid(self:GetTarget()) && self:GetTarget().VJ_AVP_XenomorphCarrier && !self.Carrier && self:GetPos():Distance(self:GetTarget():GetPos()) <= 100 then
-			if self:GetTarget():GetFacehuggerCount() >= 9 then return end
+			if self:GetTarget():GetFacehuggerCount() >= 9 then
+				if self.SurfaceTraversal_Update then self:SurfaceTraversal_Update(CurTime()) end
+				return
+			end
 			self:AttachToCarrier(self:GetTarget())
 		elseif IsValid(ent) then
 			if !ent:Visible(self) && dist < 2500 && dist > 200 then
@@ -690,6 +746,10 @@ function ENT:OnThinkActive()
 					end
 				end
 			end
+		end
+
+		if self.SurfaceTraversal_Update then
+			self:SurfaceTraversal_Update(CurTime())
 		end
 	elseif self.IsLatched && self.BirthT && CurTime() > self.BirthT then
 		self:GiveBirth()
@@ -828,4 +888,8 @@ function ENT:CustomOnRemove()
 			self.LatchVictim:Remove()
 		end
 	end
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:DoingMovement()
+	return self.Cont_IsMoving or self:IsMoving()
 end

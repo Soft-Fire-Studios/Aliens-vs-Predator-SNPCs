@@ -203,32 +203,51 @@ if CLIENT then
 
 	local vec0 = Vector(0, 0, 0)
 	local vec1 = Vector(1, 1, 1)
+	local function AVP_SurfaceViewAngle(forward, surfaceUp)
+		local right = forward:Cross(surfaceUp)
+		if right:LengthSqr() <= 0.0001 then return forward:Angle() end
+		right:Normalize()
+		local up = right:Cross(forward)
+		up:Normalize()
+		local m = Matrix()
+		m:SetForward(forward)
+		m:SetRight(right)
+		m:SetUp(up)
+		return m:GetAngles()
+	end
 	function ENT:Controller_CalcView(ply, origin, angles, myFOV, camera, cameraMode)
 		local pos = origin -- The position that will be set
 		local ang = ply:EyeAngles()
 		local newFOV = myFOV
 		self.VJC_FP_Bone = ply.VJC_FP_Bone
 		if cameraMode == 2 then -- First person
-			local setPos = self:EyePos() + self:GetForward()*20
-			local offset = ply.VJC_FP_Offset
-			//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
-			if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
-				local bonePos, boneAng = self:GetBonePosition(ply.VJC_FP_Bone)
-				setPos = bonePos
-				if ply.VJC_FP_CameraBoneAng > 0 then
-					ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
-				end
-				if ply.VJC_FP_ShrinkBone then
-					self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
-					for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
-						self:ManipulateBoneScale(v, vec0)
+			if self:GetInFatality() then
+				local att = self:GetAttachment(self:LookupAttachment("eyes"))
+				pos = att.Pos +att.Ang:Forward() *5 +att.Ang:Up() *3
+				ang = att.Ang
+				newFOV = 130
+			else
+				local setPos = self:EyePos() + self:GetForward()*20
+				local offset = ply.VJC_FP_Offset
+				//camera:SetLocalPos(camera:GetLocalPos() + ply.VJC_TP_Offset) -- Help keep the camera stable
+				if ply.VJC_FP_Bone != -1 then -- If the bone does exist, then use the bone position
+					local bonePos, boneAng = self:GetBonePosition(ply.VJC_FP_Bone)
+					setPos = bonePos
+					if ply.VJC_FP_CameraBoneAng > 0 then
+						ang[3] = boneAng[ply.VJC_FP_CameraBoneAng] + ply.VJC_FP_CameraBoneAng_Offset
+					end
+					if ply.VJC_FP_ShrinkBone then
+						self:ManipulateBoneScale(ply.VJC_FP_Bone, vec0) -- Bone manipulate to make it easier to see
+						for _,v in pairs(self:GetChildBones(ply.VJC_FP_Bone)) do
+							self:ManipulateBoneScale(v, vec0)
+						end
 					end
 				end
-			end
-			pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
-			newFOV = 130
-			if self:GetSprinting() then
-				newFOV = newFOV +30
+				pos = setPos + (self:GetForward()*offset.x + self:GetRight()*offset.y + self:GetUp()*offset.z)
+				newFOV = 130
+				if self:GetSprinting() then
+					newFOV = newFOV +30
+				end
 			end
 		else -- Third person
 			if ply.VJC_FP_Bone != -1 then -- Reset the NPC's bone manipulation!
@@ -279,6 +298,16 @@ if CLIENT then
 				newFOV = newFOV +50
 			end
 		end
+
+		if !self:GetInFatality() then
+			local targetRoll = 0
+			if self:GetNW2Bool("VJ_AVP_SurfaceTraversal", false) then
+				targetRoll = AVP_SurfaceViewAngle(ang:Forward(), self:GetUp()).r
+			end
+			self.VJ_AVP_SurfaceViewRoll = math.ApproachAngle(self.VJ_AVP_SurfaceViewRoll or ang.r, targetRoll, FrameTime() *300)
+			ang.r = self.VJ_AVP_SurfaceViewRoll
+		end
+
 		newFOV = Lerp(FrameTime() *5,self.LastFOV or myFOV,newFOV)
 		if ply:GetFOV() != GetConVarNumber("fov_desired") then
 			newFOV = nil
@@ -292,7 +321,7 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 		local ply = LocalPlayer()
-		if ply.VJ_IsControllingNPC && ply.VJCE_NPC.VJ_AVP_Predator && ply.VJCE_NPC.PreviousVisionMode == 2 then
+		if ply.VJ_IsControllingNPC && ply.VJ_TheControllerEntity:GetNPC().VJ_AVP_Predator && ply.VJ_TheControllerEntity:GetNPC().PreviousVisionMode == 2 then
 		-- if ply:Health() == 100 then
 			self.HasResetMaterials = false
 			for i,v in pairs(self:GetMaterials()) do
@@ -515,7 +544,7 @@ if CLIENT then
 				for i = 1,3 do
 					orients[i] = Lerp(FrameTime() *10,orients[i],orient == i && 255 or 0)
 				end
-				local ang = -ent:GetAngles().r
+				local ang = ent:GetAngles().r
 				DrawIcon(matOrient,0,0,8,8,hpColor.r,hpColor.g,hpColor.b,orients[1],ang)
 				DrawIcon(matOrient_CanJump,0,0,5,5,hpColor.r,hpColor.g,hpColor.b,orients[2],ang)
 				DrawIcon(matOrient_NoJump,0,0,5,5,hpColor.r,hpColor.g,hpColor.b,orients[3],ang)

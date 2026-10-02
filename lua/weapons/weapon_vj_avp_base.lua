@@ -126,6 +126,8 @@ function SWEP:Init()
 	end
 
 	self.PrimaryLoopSoundT = 0
+	self.PLY_NextIdleAnimT = 0
+	self.PLY_AnimLockTime = 0
 
 	if self.OnInit then
 		self:OnInit()
@@ -158,7 +160,7 @@ function SWEP:PlayViewAnimation(anim,viewPunch)
 	local animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 	self:SendWeaponAnim(anim)
 	self.PLY_NextIdleAnimT = CurTime() + animTime
-	self.PLY_NextReloadT = CurTime() + animTime
+	self.PLY_AnimLockTime = CurTime() + animTime
 	if viewPunch then
 		self:DoViewPunch(viewPunch)
 	end
@@ -474,7 +476,7 @@ function SWEP:MeleeAttack(owner)
 	self:SendWeaponAnim(anim)
 	self:PlayPlayerAnimation(ACT_GMOD_GESTURE_MELEE_SHOVE_2HAND)
 	self.PLY_NextIdleAnimT = CurTime() +animTime
-	self.PLY_NextReloadT = CurTime() +animTime
+	self.PLY_AnimLockTime = CurTime() +animTime
 
 	if SERVER then
 		timer.Simple(0.1,function()
@@ -549,7 +551,7 @@ function SWEP:ThrowFlare(owner)
 		self:SendWeaponAnim(anim)
 		self:PlayPlayerAnimation(ACT_GMOD_GESTURE_ITEM_THROW)
 		self.PLY_NextIdleAnimT = CurTime() +animTime
-		self.PLY_NextReloadT = CurTime() +animTime
+		self.PLY_AnimLockTime = CurTime() +animTime
 	end
 	timer.Simple(0.3,function()
 		if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
@@ -592,7 +594,7 @@ function SWEP:SecondaryAttack()
 		animTime = VJ.AnimDuration(owner:GetViewModel(), anim)
 		self:SendWeaponAnim(anim)
 		self.PLY_NextIdleAnimT = CurTime() + animTime
-		self.PLY_NextReloadT = CurTime() + animTime
+		self.PLY_AnimLockTime = CurTime() + animTime
 	end
 	
 	self:SetNextSecondaryFire(CurTime() +(self.Secondary.Delay == false && animTime or self.Secondary.Delay))
@@ -610,7 +612,7 @@ function SWEP:Reload()
 	if !IsValid(self) then return end
 	local owner = self:GetOwner()
 	if self:CanReload() == false then return end
-	if !IsValid(owner) or !owner:IsPlayer() or !owner:Alive() or owner:GetAmmoCount(self.Primary.Ammo) == 0 or self.Reloading or CurTime() < self.PLY_NextReloadT then return end // or !owner:KeyDown(IN_RELOAD)
+	if !IsValid(owner) or !owner:IsPlayer() or !owner:Alive() or owner:GetAmmoCount(self.Primary.Ammo) == 0 or self.Reloading or CurTime() < self.PLY_AnimLockTime then return end // or !owner:KeyDown(IN_RELOAD)
 	if self:Clip1() < self.Primary.ClipSize then
 		self.Reloading = true
 		self:OnReload("Start")

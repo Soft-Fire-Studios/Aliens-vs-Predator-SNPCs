@@ -823,6 +823,7 @@ function ENT:Init()
 	self.Ping_ClosestDist = 0
 	self.Ping_NextPingT = CurTime() +1
 	self.NextHealT = CurTime() +1
+	self:SetStimCount(2)
 	if self.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
 		self.Behavior = VJ_BEHAVIOR_PASSIVE
 	end
@@ -1028,21 +1029,57 @@ function ENT:ToggleFlashlight(on)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
+function ENT:GetControllerAimPosition(ply,distance)
+	distance = distance or 2048
+	if !IsValid(ply) then
+		return self:WorldSpaceCenter() +self:GetForward() *distance
+	end
+	local dir
+	if self.IsOnSurface && self.CurrentSurfaceNormal then
+		local normal = self.CurrentSurfaceNormal
+		if normal:LengthSqr() <= 0.5 then
+			normal = self:GetUp()
+		else
+			normal = normal:GetNormalized()
+		end
+		dir = ply:GetAimVector()
+		dir = dir -normal *dir:Dot(normal)
+		if dir:LengthSqr() <= 0.02 then
+			dir = self.SurfaceTraversal_LastForward or self:GetForward()
+			dir = dir -normal *dir:Dot(normal)
+		end
+		if dir:LengthSqr() <= 0.001 then
+			dir = self:GetForward()
+		end
+		dir:Normalize()
+	else
+		dir = Angle(0, ply:EyeAngles().y, 0):Forward()
+	end
+	return self:WorldSpaceCenter() +dir *distance
+end
+---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:Controller_Initialize(ply,controlEnt)
 	local npc = self
 	npc.JumpParams.Enabled = false
 	controlEnt.VJC_Player_DrawHUD = false
+	-- controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
 		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
 		self.VJCE_NPC:SetArrivalSpeed(9999)
+
+		-- local aimPos = npc:GetControllerAimPosition(ply)
+		-- if IsValid(self.VJCE_Bullseye) then
+		-- 	self.VJCE_Bullseye:SetPos(aimPos)
+		-- end
+
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
+
 		if self.VJCE_NPC.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
 			self.VJC_BullseyeTracking = false
 		else
 			self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
 		end
-		-- self.VJCE_NPC.EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()
@@ -1110,8 +1147,9 @@ function ENT:OnKeyPressed(ply,key)
 		local ply = self.VJ_TheController
 		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
 
-		local moving = self:IsMoving()
+		local moving = self:DoingMovement()
 		local moveDir, moveAng = self:GetMovementDirection()
+		-- moveAng = Angle(0,self.Cont_MoveDir,0)
 		local ang = ply:EyeAngles()
 		ang:RotateAroundAxis(ang:Up(), moveAng.y)
 		self:SetGroundEntity(NULL)
@@ -1162,6 +1200,7 @@ function ENT:GetMovementDirection()
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:UseStimpack()
+	if self:GetStimCount() <= 0 then return end
 	if self.InFatality or self.DoingFatality or self.VJ_AVP_IsTech or self:IsBusy() then return end
 	self:SetBodygroup(self:FindBodygroupByName("stimpack"),1)
 	self:PlayAnimation("vjges_" .. (self.AnimationTranslations[AVP_ANIM_STIMPACK] or "ohwa_pistol_stim"),true,false,false,0,{OnFinish=function(interrupted,anim)
@@ -1171,6 +1210,7 @@ function ENT:UseStimpack()
 		VJ.EmitSound(self,"cpthazama/avp/humans/marine_stim_inject_01.ogg",70)
 	end})
 	VJ.EmitSound(self,"cpthazama/avp/humans/marine_stim_open_01.ogg",70)
+	self:SetStimCount(self:GetStimCount() -1)
 	self.NextChaseTime = 0
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -1463,10 +1503,8 @@ function ENT:OnThinkActive()
 		for x = 1, #names.roll do
 			self:SetPoseParameter(names.roll[x],0)
 		end
-		if IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0 or !IsValid(self.FatalityKiller) then
+		if (IsValid(self.FatalityKiller) && self.FatalityKiller:Health() <= 0) or !IsValid(self.FatalityKiller) then
 			self:ResetFatality()
-			self:SetHealth(0)
-			self:TakeDamage(AVP.fFatalDamageAmount,self,self)
 		end
 		return
 	end
@@ -1571,14 +1609,7 @@ function ENT:OnThinkActive()
 		local left = ply:KeyDown(IN_MOVELEFT)
 		local right = ply:KeyDown(IN_MOVERIGHT)
 		local sprinting = ply:KeyDown(IN_SPEED)
-		local aimVector = ply:GetAimVector()
-		local aimPosT = util.TraceLine({
-			start = ply:EyePos(),
-			endpos = ply:EyePos() +aimVector *15000,
-			filter = {ply,self},
-			mask = MASK_NPCSOLID,
-		})
-		local aimPos = aimPosT.HitPos +aimPosT.HitNormal *16
+		local aimPos = self:GetControllerAimPosition(ply)
 		if (forward or backward or left or right) && !self:IsBusy("Activities") then
 			local moveSpeed = self:GetSequenceGroundSpeed(self:GetSequence())
 			local moveDir = self:GetForward()
@@ -1624,8 +1655,8 @@ function ENT:OnThinkActive()
 					Rot = angYN90 -angY45
 				end
 			end
-			aimVector.z = 0
-			aimVector:Rotate(Rot)
+			-- aimVector.z = 0
+			-- aimVector:Rotate(Rot)
 			self:FaceCertainPosition(aimPos, 0.2)
 			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
 			self.Cont_IsMoving = true
@@ -2087,13 +2118,13 @@ function ENT:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, e
 					schedule:EngTask("TASK_PLAY_SEQUENCE", animation)
 				end*/
 			end
-			schedule.IsPlayActivity = true
+			schedule.IsPlayAnim = true
 			schedule.CanBeInterrupted = !lockAnim
 			if (customFunc) then customFunc(schedule, animation) end
 			self:StartSchedule(schedule)
 			if doRealAnimTime then
 				-- Get the calculated duration (Only done in Activity type)
-				animTime = self.CurrentTask && self.CurrentTask.TaskData.duration or animTime
+				animTime = (self.CurrentTask && self.CurrentTask.TaskData && self.CurrentTask.TaskData.duration) or animTime
 			end
 			if faceEnemy then
 				self:SetTurnTarget("Enemy", animTime, false, faceEnemy == "Visible")

@@ -106,6 +106,7 @@ VJ.AddCategoryInfo(vCat_A,{Icon = "vj_icons/avp_xeno16.png"})
 VJ.AddCategoryInfo(vCat_AK,{Icon = "vj_icons/avp_kxeno16.png"})
 
 VJ.AddNPC("Survival Mode","sent_vj_avp_survival",vCat, true)
+VJ.AddNPC("Species Team Deathmatch","sent_vj_avp_tdm",vCat, true)
 -- VJ.AddNPC("Predator Survival Mode","sent_vj_avp_survival_predator",vCat)
 -- VJ.AddNPC("Predator Hunt","sent_vj_avp_hunt",vCat) // Discontinued
 VJ.AddNPC("RC Battery","sent_vj_avp_battery",vCat)
@@ -1244,6 +1245,9 @@ if CLIENT then
 			controlAdd("Checkbox", {Label = "Enable Boss Themes", Command = "vj_avp_bosstheme_a"}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Enable Xenomorph Stealth", Command = "vj_avp_xenostealth"}):SetTextColor(textCol)
 			Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."}):SetTextColor(textCol)
+			controlAdd("Checkbox", {Label = "Enable Xenomorph Surface Traversal", Command = "vj_avp_xeno_surface_traversal"}):SetTextColor(textCol)
+			controlAdd("Checkbox", {Label = "Enable Xenomorph AI Surface Traversal", Command = "vj_avp_xeno_surface_traversal_ai"}):SetTextColor(textCol)
+			Panel:AddControl("Label", {Text = "Note: Due to the way this code is handled, it is quite taxing on the game. Disable if you experience performance issues."}):SetTextColor(textCol)
 			controlAdd("Checkbox", {Label = "Successful K-Series Experiment", Command = "vj_avp_kseries_ally"}):SetTextColor(textCol)
 			Panel:AddControl("Label", {Text = "Note: This will make K-Series Xenomorphs friendly to Weyland-Yutani forces."}):SetTextColor(textCol)
 			local vj_icon = vgui.Create("DImage")
@@ -1788,14 +1792,6 @@ if SERVER then
 								["neckbite_marine_ohwa_death"] = "neckbite_ohwa_death",
 							}
 							ent.GenericFatalitiesResponse = "thwa_melee_flinch_defenseless_forwards"
-							local oldPlayAnim = ent.PlayAnim
-							function ent:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
-								if IsValid(self.VJ_AVP_Biped) then
-									return self.VJ_AVP_Biped:PlayAnim(animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
-								else
-									return oldPlayAnim(self, animation, lockAnim, lockAnimTime, faceEnemy, animDelay, extraOptions, customFunc)
-								end
-							end
 							if !ent.OnFatality then
 								function ent:OnFatality(attacker,inFront,willCounter,fType)
 									if self.SoundTbl_CallForHelp then
@@ -1806,14 +1802,19 @@ if SERVER then
 								end
 							end
 							function ent:ResetFatality()
+								if AVP && AVP.Fatalities && AVP.Fatalities.ResetEntity then
+									AVP.Fatalities.ResetEntity(self)
+									return
+								end
 								self.InFatality = false
 								self.FatalityEnt = nil
 								self.FatalityKiller = nil
 								self.DoingFatality = false
 								self.GodMode = false
-								self:SetMoveType(MOVETYPE_STEP)
-								self:SetState()
-								self:SetMaxYawSpeed(self.TurningSpeed)
+								if self:GetMoveType() == MOVETYPE_NONE then self:SetMoveType(MOVETYPE_STEP) end
+								if self.SetState then self:SetState() end
+								if self.SetMaxYawSpeed && self.TurningSpeed then self:SetMaxYawSpeed(self.TurningSpeed) end
+								if self.RemoveFlags then self:RemoveFlags(FL_NOTARGET) end
 								self.NextFatalityTime = CurTime() +3
 							end
 						end
