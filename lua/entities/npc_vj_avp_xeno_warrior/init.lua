@@ -1115,7 +1115,7 @@ function ENT:HeadbiteCorpse(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SapBattery(ent)
-	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
+	local _,animDur = self:PlayAnim("interaction",true,false,false,0,{OnFinish=function()
 		self.BatteryEnt = nil
 		self:SCHEDULE_IDLE_STAND()
 	end})
@@ -1126,7 +1126,7 @@ function ENT:SapBattery(ent)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:DestroyConsole(ent)
-	local _,animDur = self:VJ_ACT_PLAYACTIVITY("interaction",true,false,false,0,{OnFinish=function()
+	local _,animDur = self:PlayAnim("interaction",true,false,false,0,{OnFinish=function()
 		self.ConsoleEnt = nil
 		self:SCHEDULE_IDLE_STAND()
 	end})
@@ -2973,10 +2973,10 @@ function ENT:OnThinkActive()
 				self:SetVelocity((moveDir *moveSpeed) *1.25)
 			end
 			if !self.IsOnSurface then
-				self:FaceCertainPosition(aimPos, 0.2)
+				self:SetTurnTarget(aimPos, 0.2)
 			end
-			-- self:FaceCertainPosition(aimPos, 0.2)
-			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
+			-- self:SetTurnTarget(aimPos, 0.2)
+			-- self:SetTurnTarget(self:GetPos() +aimVector *400, 0.2)
 			self.Cont_IsMoving = true
 			if forward then
 				self.Cont_MoveDir = 0

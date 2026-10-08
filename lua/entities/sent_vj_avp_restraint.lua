@@ -161,7 +161,7 @@ function ENT:OnDeviceEffected(rc,efType)
 			xeno.Restraint = nil
 			xeno:SetOwner(self)
 			xeno:SetParent(NULL)
-			xeno:VJ_ACT_PLAYACTIVITY("Constraints_Release_Agressive",true,false,false,0,{OnFinish=function()
+			xeno:PlayAnim("Constraints_Release_Agressive",true,false,false,0,{OnFinish=function()
 				xeno.CanSetGroundAngle = true
 				xeno:SetState()
 				xeno:RemoveFlags(FL_NOTARGET)

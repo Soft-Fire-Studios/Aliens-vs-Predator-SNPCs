@@ -26,7 +26,7 @@ ENT.DeathCorpseEntityClass = "prop_vj_animatable"
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_insert = table.insert
 --
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	self.Opened = false
 
 	self:SetAngles(Angle(0,math.random(0,360),0))

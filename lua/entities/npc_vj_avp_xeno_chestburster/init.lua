@@ -139,7 +139,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 local table_insert = table.insert
 --
-function ENT:CustomOnInitialize()
+function ENT:Init()
 	VJ_AVP_NodegraphChecker(self)
 	self:SetCollisionBounds(Vector(4,4,6),Vector(-4,-4,0))
 	sound.Play("cpthazama/avp/xeno/chestburster/chestburster_fleshrip_long_0" .. math.random(1,3) .. ".ogg",self:GetPos(),72)

@@ -8,5 +8,3 @@ include("shared.lua")
 ENT.Model = {"models/cpthazama/avp/xeno/berserker.mdl"}
 ENT.StartHealth = 2500
 ENT.MainSoundPitch = VJ.SET(88, 94)
-ENT.GeneralSoundPitch1 = 88
-ENT.GeneralSoundPitch2 = 94

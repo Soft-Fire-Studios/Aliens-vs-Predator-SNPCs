@@ -2748,8 +2748,8 @@ function ENT:OnThinkActive()
 			end
 			-- aimVector.z = 0
 			-- aimVector:Rotate(Rot)
-			self:FaceCertainPosition(aimPos, 0.2)
-			-- self:FaceCertainPosition(self:GetPos() +aimVector *400, 0.2)
+			self:SetTurnTarget(aimPos, 0.2)
+			-- self:SetTurnTarget(self:GetPos() +aimVector *400, 0.2)
 			self.Cont_IsMoving = true
 			if forward then
 				self.Cont_MoveDir = 0
