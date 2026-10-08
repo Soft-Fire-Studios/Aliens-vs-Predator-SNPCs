@@ -467,8 +467,6 @@ function SWEP:PlayPlayerAnimation(anim)
 	net.Send(owner)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local IsProp = VJ.IsProp
---
 function SWEP:MeleeAttack(owner)
 	local anim = VJ.AnimExists(owner:GetViewModel(),ACT_VM_HITCENTER) && ACT_VM_HITCENTER
 	if !anim then return end
@@ -483,7 +481,7 @@ function SWEP:MeleeAttack(owner)
 			if IsValid(owner) && IsValid(self) && owner:GetActiveWeapon() == self then
 				local tbl = {}
 				for _,v in ipairs(ents.FindInSphere(owner:GetShootPos(),120)) do
-					if owner:Visible(v) && v != self && v != owner && (v:IsNPC() or v:IsPlayer() or v:IsNextBot() or IsProp(v)) && (owner:GetAimVector():Angle():Forward():Dot(((v:GetPos() +v:OBBCenter()) - owner:GetShootPos()):GetNormalized()) > math.cos(math.rad(45))) then
+					if owner:Visible(v) && v != self && v != owner && (v:IsNPC() or v:IsPlayer() or v:IsNextBot() or v.VJ_ID_Prop) && (owner:GetAimVector():Angle():Forward():Dot(((v:GetPos() +v:OBBCenter()) - owner:GetShootPos()):GetNormalized()) > math.cos(math.rad(45))) then
 						table.insert(tbl,v)
 						self:DealDamage(v)
 					end
@@ -616,7 +614,7 @@ function SWEP:Reload()
 	if self:Clip1() < self.Primary.ClipSize then
 		self.Reloading = true
 		self:OnReload("Start")
-		if SERVER && self.HasReloadSound == true then owner:EmitSound(VJ.PICK(self.ReloadSound), 50, math.random(90, 100)) end
+		if SERVER && self.ReloadSound then owner:EmitSound(VJ.PICK(self.ReloadSound), 50, math.random(90, 100)) end
 		-- Handle clip
 		timer.Simple(self.Reload_TimeUntilAmmoIsSet, function()
 			if IsValid(self) && self:OnReload("Finish") != true then

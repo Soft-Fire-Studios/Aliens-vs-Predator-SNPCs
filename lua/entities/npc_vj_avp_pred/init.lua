@@ -1533,7 +1533,7 @@ function ENT:RunDamageCode(mult)
 	mult = mult *(self.AttackDamageMultiplier or 1)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
-		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or VJ.IsProp(ent) or ent:GetClass() == "prop_ragdoll"
+		return ent:IsNPC() or ent:IsPlayer() or ent:IsNextBot() or ent.VJ_ID_Prop or ent:GetClass() == "prop_ragdoll"
 	end)
 
 	if #hitEnts > 0 then
@@ -2317,8 +2317,6 @@ function ENT:SetViewModelWeapon(wep,ply)
 	end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
-local VJ_IsProp = VJ.IsProp
---
 function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 	self:DropMask()
 	ent:SetBodygroup(ent:FindBodygroupByName("mask"),0)
@@ -2369,7 +2367,7 @@ function ENT:OnCreateDeathCorpse(dmginfo, hitgroup, ent)
 						fakeNPC:Activate()
 						ParticleEffect("vj_avp_predator_honor",ent:GetPos(),ent:GetAngles())
 						sound.Play("AVP.Predator.NuclearExplosionFX",ent:GetPos())
-						VJ.ApplyRadiusDamage(fakeNPC,fakeNPC,ent:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
+						VJ.ApplyRadiusDamage(fakeNPC,fakeNPC,ent:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or v.VJ_ID_Prop) then v:Ignite(16) end end)
 						SafeRemoveEntity(fakeNPC)
 						VJ.STOPSOUND(ent.NuclearLoopFX)
 						hook.Remove("Think",ent)
@@ -2444,7 +2442,7 @@ function ENT:OnThinkActive()
 				if IsValid(self) then
 					ParticleEffect("vj_avp_predator_honor",self:GetPos(),self:GetAngles())
 					sound.Play("AVP.Predator.NuclearExplosionFX",self:GetPos())
-					VJ.ApplyRadiusDamage(self,self,self:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or VJ_IsProp(v)) then v:Ignite(16) end end)
+					VJ.ApplyRadiusDamage(self,self,self:GetPos(),3000,10000,DMG_BLAST,false,true,{DisableVisibilityCheck=true,Force=2000},function(v) if (v:IsNPC() or (v:IsPlayer() && !VJ_CVAR_IGNOREPLAYERS) or v:IsNextBot() or v.VJ_ID_Prop) then v:Ignite(16) end end)
 					self:SetHealth(0)
 					self.GodMode = false
 					self:TakeDamage(2000,self,self)

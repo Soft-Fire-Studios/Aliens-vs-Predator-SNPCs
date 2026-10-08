@@ -617,7 +617,7 @@ function ENT:OnCollision(ent,colType)
 		ParticleEffect("AntlionFX_UnBurrow",self:GetAttachment(self:LookupAttachment("eyes")).Pos,Angle())
 		sound.Play("cpthazama/avp/xeno/praetorian/praetorian_hit_wall_01.ogg",self:GetPos(),110)
 		for _,v in pairs(ents.FindInSphere(self:GetPos(),1000)) do
-			local isProp = VJ.IsProp(v)
+			local isProp = v.VJ_ID_Prop
 			if v:IsNPC() && v != self or v:IsPlayer() or v:IsNextBot() or isProp then -- Let's shake things up
 				local distPercentage = 1 -v:GetPos():Distance(self:GetPos()) /1000
 				if isProp then

@@ -137,7 +137,7 @@ function ENT:Touch(ent)
 		HitWorld = ent:IsWorld(),
 	}
 	self:DealDamage(data, self:GetPhysicsObject())
-	if VJ.IsProp(ent) then
+	if ent.VJ_ID_Prop then
 		local phys = ent:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:ApplyForceCenter(self:GetForward() *1000)

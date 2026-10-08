@@ -1801,7 +1801,7 @@ function ENT:RunDamageCode(mult)
 	local hitEnts = VJ.AVP_ApplyRadiusDamage(self,self,self:GetPos() +self:OBBCenter(),self.AttackDamageDistance or 120,(self.AttackDamage or 10) *mult,self.AttackDamageType or DMG_SLASH,true,false,{UseConeDegree=self.MeleeAttackDamageAngleRadius},
 	function(ent)
 		self:OnMeleeAttackExecute("PreDamage", ent, false)
-		local isProp = VJ.IsProp(ent)
+		local isProp = ent.VJ_ID_Prop
 		if isProp && (self.PropInteraction == true or self.PropInteraction == "OnlyDamage") then
 			local phys = ent:GetPhysicsObject()
 			local selfPhys = self:GetPhysicsObject()

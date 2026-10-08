@@ -436,7 +436,7 @@ if SERVER then
 
 		for _, ent in pairs(entities) do
 			if ent == self then continue end
-			if !(ent:IsNPC() or ent:IsPlayer() or VJ.IsProp(ent) or moveEnts[ent:GetClass()]) then continue end
+			if !(ent:IsNPC() or ent:IsPlayer() or ent.VJ_ID_Prop or moveEnts[ent:GetClass()]) then continue end
 			if (ent:IsNPC() or ent:IsPlayer()) && (self:IsNPC() && self:CheckRelationship(ent) == D_LI or self:IsPlayer() && ent:IsNPC() && ent:Disposition(self) == D_LI) then continue end
 			if self:IsNPC() && ent:IsPlayer() && VJ_CVAR_IGNOREPLAYERS then continue end
 			if (ent:IsNPC() && (ent:GetMoveVelocity():Length() > 2 && ent:GetMoveVelocity():Length() or ent:GetVelocity():Length()) or ent:GetVelocity():Length()) <= 2 then continue end
@@ -1706,7 +1706,7 @@ if SERVER then
 						end
 						local force = baseForce or math_clamp(dmgFinal, 5, 35)
 						local forceUp = extraOptions.UpForce or false
-						if VJ.IsProp(v) or v:GetClass() == "prop_ragdoll" then
+						if v.VJ_ID_Prop or v:GetClass() == "prop_ragdoll" then
 							local phys = v:GetPhysicsObject()
 							if IsValid(phys) then
 								if forceUp == false then forceUp = force / 9.4 end
