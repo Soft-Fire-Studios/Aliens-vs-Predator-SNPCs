@@ -445,7 +445,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	local hookName = "VJ_AVP_Predator_SoundHook" .. npc:EntIndex()
 	hook.Add("EntityEmitSound", hookName, function(t)
 		if !IsValid(npc) or !IsValid(ply) or IsValid(npc) && !IsValid(npc.VJ_TheController) then
-			print("Force removed sound hook")
+			//print("Force removed sound hook")
 			hook.Remove("EntityEmitSound", hookName)
 			return
 		end
