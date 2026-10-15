@@ -581,8 +581,8 @@ function ENT:Init()
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            if cent:GetNPC() == self then
+                cent:GetNPC():OnKeyPressed(ply,button)
             end
         end
     end)
@@ -740,17 +740,17 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	-- controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
-		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
-		self.VJCE_NPC:SetArrivalSpeed(9999)
+		self:GetNPC():SetMoveVelocity(self:GetNPC():GetMoveVelocity() *2)
+		self:GetNPC():SetArrivalSpeed(9999)
 
-		local onSurface = self.VJCE_NPC.IsOnSurface == true
+		local onSurface = self:GetNPC().IsOnSurface == true
 		-- local aimPos = npc:GetControllerAimPosition(ply)
-		-- if IsValid(self.VJCE_Bullseye) then
-		-- 	self.VJCE_Bullseye:SetPos(aimPos)
+		-- if IsValid(self:GetBullseye()) then
+		-- 	self:GetBullseye():SetPos(aimPos)
 		-- end
 
 		self.VJC_NPC_CanTurn = !onSurface && self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = !onSurface && ((self.VJCE_NPC:DoingMovement() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2)
+		self.VJC_BullseyeTracking = !onSurface && ((self:GetNPC():DoingMovement() && !self:GetNPC():GetSprinting()) or self.VJC_Camera_Mode == 2)
 	end
 
 	function controlEnt:OnStopControlling()
@@ -765,9 +765,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end
 
 	function controlEnt:Think()
-		local ply = self.VJCE_Player
-		local npc = self.VJCE_NPC
-		local camera = self.VJCE_Camera
+		local ply = self:GetPlayer()
+		local npc = self:GetNPC()
+		local camera = self:GetCamera()
 		if (!camera:IsValid()) then self:StopControlling() return end
 		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
 		if ply.VJ_IsControllingNPC != true then return end
@@ -804,7 +804,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			end
 	
 			self:OnThink()
-			local bullseyePos = self.VJCE_Bullseye:GetPos()
+			local bullseyePos = self:GetBullseye():GetPos()
 			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
 				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
@@ -839,8 +839,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 					npc:SCHEDULE_IDLE_STAND()
 					if self.VJC_NPC_CanTurn == true then
 						local turnData = npc.TurnData
-						if turnData.Target != self.VJCE_Bullseye then
-							npc:SetTurnTarget(self.VJCE_Bullseye, 1)
+						if turnData.Target != self:GetBullseye() then
+							npc:SetTurnTarget(self:GetBullseye(), 1)
 						elseif npc:GetActivity() == ACT_IDLE && npc:GetIdealActivity() == ACT_IDLE then -- Check both current act AND ideal act because certain activities only change the current act (Ex: UpdateTurnActivity function)
 							npc:UpdateTurnActivity()
 							if npc:GetIdealActivity() != ACT_IDLE then -- If ideal act is no longer idle, then we have selected a turn activity!
@@ -2469,7 +2469,7 @@ function ENT:TransformToPraetorian()
 		timer.Simple(0.12,function()
 			if IsValid(cont) && IsValid(xeno) then
 				local SpawnControllerObject = ents.Create("obj_vj_controller")
-				SpawnControllerObject.VJCE_Player = cont
+				SpawnControllerObject:SetPlayer(cont)
 				SpawnControllerObject:SetControlledNPC(xeno)
 				SpawnControllerObject:Spawn()
 				SpawnControllerObject:StartControlling()
@@ -2879,7 +2879,7 @@ function ENT:OnThinkActive()
 				timer.Simple(0.12,function()
 					if IsValid(cont) && IsValid(xeno) then
 						local SpawnControllerObject = ents.Create("obj_vj_controller")
-						SpawnControllerObject.VJCE_Player = cont
+						SpawnControllerObject:SetPlayer(cont)
 						SpawnControllerObject:SetControlledNPC(xeno)
 						SpawnControllerObject:Spawn()
 						SpawnControllerObject:StartControlling()

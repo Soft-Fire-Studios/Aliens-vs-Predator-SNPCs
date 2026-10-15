@@ -36,7 +36,7 @@ local function GetControlledNPC(ply)
 		local npc = controlEnt:GetNPC()
 		if IsValid(npc) then return npc end
 	end
-	return IsValid(controlEnt.VJCE_NPC) && controlEnt.VJCE_NPC or nil
+	return IsValid(controlEnt:GetNPC()) && controlEnt:GetNPC() or nil
 end
 
 local function ResetLookState(ply)

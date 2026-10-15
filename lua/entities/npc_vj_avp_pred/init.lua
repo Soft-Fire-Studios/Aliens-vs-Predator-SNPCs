@@ -460,18 +460,14 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	end)
 
 	function controlEnt:OnThink()
-		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
-		self.VJCE_NPC:SetArrivalSpeed(9999)
-		-- local aimPos = npc:GetControllerAimPosition(ply)
-		-- if IsValid(self.VJCE_Bullseye) then
-		-- 	self.VJCE_Bullseye:SetPos(aimPos)
-		-- end
+		self:GetNPC():SetMoveVelocity(self:GetNPC():GetMoveVelocity() *2)
+		self:GetNPC():SetArrivalSpeed(9999)
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
-		self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
+		self.VJC_BullseyeTracking = (self:GetNPC():IsMoving() && !self:GetNPC():GetSprinting()) or self.VJC_Camera_Mode == 2
 		if self.VJC_Camera_Mode == 2 then
-			self.VJCE_NPC.AttackIdleTime = CurTime() +1.5
+			self:GetNPC().AttackIdleTime = CurTime() +1.5
 		end
-		-- self.VJCE_NPC.EnemyDetection = true
+		-- self:GetNPC().EnemyDetection = true
 	end
 
 	function controlEnt:OnStopControlling()
@@ -490,9 +486,9 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 
 	function controlEnt:Think()
-		local ply = self.VJCE_Player
-		local npc = self.VJCE_NPC
-		local camera = self.VJCE_Camera
+		local ply = self:GetPlayer()
+		local npc = self:GetNPC()
+		local camera = self:GetCamera()
 		if (!camera:IsValid()) then self:StopControlling() return end
 		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
 		if ply.VJ_IsControllingNPC != true then return end
@@ -529,7 +525,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 			end
 	
 			self:OnThink()
-			local bullseyePos = self.VJCE_Bullseye:GetPos()
+			local bullseyePos = self:GetBullseye():GetPos()
 			if ply:GetInfoNum("vj_npc_cont_debug", 0) == 1 then
 				VJ.DEBUG_TempEnt(ply:GetPos(), self:GetAngles(), Color(0,109,160)) -- Player's position
 				VJ.DEBUG_TempEnt(camera:GetPos(), self:GetAngles(), Color(255,200,260)) -- Camera's position
@@ -564,8 +560,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 					npc:SCHEDULE_IDLE_STAND()
 					if self.VJC_NPC_CanTurn == true then
 						local turnData = npc.TurnData
-						if turnData.Target != self.VJCE_Bullseye then
-							npc:SetTurnTarget(self.VJCE_Bullseye, 1)
+						if turnData.Target != self:GetBullseye() then
+							npc:SetTurnTarget(self:GetBullseye(), 1)
 						elseif npc:GetActivity() == ACT_IDLE && npc:GetIdealActivity() == ACT_IDLE then -- Check both current act AND ideal act because certain activities only change the current act (Ex: UpdateTurnActivity function)
 							npc:UpdateTurnActivity()
 							if npc:GetIdealActivity() != ACT_IDLE then -- If ideal act is no longer idle, then we have selected a turn activity!
@@ -719,7 +715,7 @@ function ENT:Init()
 			-- end
 			-- if !self.SpawnedUsingMutator && IsValid(ply) && IsValid(ply:GetActiveWeapon()) && ply:GetActiveWeapon():GetClass() == "weapon_vj_controller" then
 			-- 	local SpawnControllerObject = ents.Create("obj_vj_controller")
-			-- 	SpawnControllerObject.VJCE_Player = ply
+			-- 	SpawnControllerObject:SetPlayer(ply)
 			-- 	SpawnControllerObject:SetControlledNPC(self)
 			-- 	SpawnControllerObject:Spawn()
 			-- 	SpawnControllerObject:StartControlling()
@@ -791,8 +787,8 @@ function ENT:Init()
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            if cent:GetNPC() == self then
+                cent:GetNPC():OnKeyPressed(ply,button)
             end
         end
     end)
@@ -3452,7 +3448,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
-				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
+				self:AA_MoveTo(cont:GetBullseye(), true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
 				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
 				self:StartMovement(aimVector, self.ControllerParams.TurnAngle)
@@ -3477,7 +3473,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:StartMovement(Dir, Rot)
 	local cont = self.VJ_TheControllerEntity
-	local ply = cont.VJCE_Player
+	local ply = cont:GetPlayer()
 	if self:GetState() != VJ_STATE_NONE then return end
 
 	local DEBUG = false

@@ -784,7 +784,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		
 		if ply:KeyDown(IN_FORWARD) then
 			if self.MovementType == VJ_MOVETYPE_AERIAL or self.MovementType == VJ_MOVETYPE_AQUATIC then
-				self:AA_MoveTo(cont.VJCE_Bullseye, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
+				self:AA_MoveTo(cont:GetBullseye(), true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 			else
 				self.ControllerParams.TurnAngle = LerpAngle(FT, self.ControllerParams.TurnAngle, gerta_lef && angY45 or gerta_rig && angYN45 or defAng)
 				cont:StartMovement(aimVector, self.ControllerParams.TurnAngle)

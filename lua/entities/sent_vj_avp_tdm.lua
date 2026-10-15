@@ -1134,7 +1134,7 @@ function ENT:CreateController(record, npc)
 
     local controller = ents.Create("obj_vj_controller")
     if !IsValid(controller) then return end
-    controller.VJCE_Player = ply
+    controller:SetPlayer(ply)
     controller:SetControlledNPC(npc)
     controller:Spawn()
     controller:StartControlling()

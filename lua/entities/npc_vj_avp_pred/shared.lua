@@ -57,7 +57,7 @@ end
 hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 	if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 		local cent = ply.VJ_TheControllerEntity
-		local npc = cent.VJCE_NPC
+		local npc = cent:GetNPC()
 		if npc.VJ_AVP_NPC then
 			ply:AllowFlashlight(false)
 		end

@@ -522,7 +522,7 @@ function ENT:RespawnPlayerAsAI(ply)
 	end
 	if IsValid(predator) && !predator.VJ_IsBeingControlled then
 		local SpawnControllerObject = ents.Create("obj_vj_controller")
-		SpawnControllerObject.VJCE_Player = ply
+		SpawnControllerObject:SetPlayer(ply)
 		SpawnControllerObject:SetControlledNPC(predator)
 		SpawnControllerObject:Spawn()
 		SpawnControllerObject:StartControlling()

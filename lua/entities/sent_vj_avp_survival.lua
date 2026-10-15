@@ -497,7 +497,7 @@ function ENT:Initialize()
 		v:ChatPrint("Survival will begin in 10 seconds...")
 		VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_37.ogg")
 		local cEnt = v.VJ_TheControllerEntity
-		if IsValid(cEnt) && cEnt.VJCE_NPC.VJ_AVP_Predator then
+		if IsValid(cEnt) && cEnt:GetNPC().VJ_AVP_Predator then
 			self.IsPredatorPlayers = true
 		end
 
@@ -520,7 +520,7 @@ function ENT:Initialize()
 				Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
 				Predator.AlliedWithPlayerAllies = true
 				local SpawnControllerObject = ents.Create("obj_vj_controller")
-				SpawnControllerObject.VJCE_Player = v
+				SpawnControllerObject:SetPlayer(v)
 				SpawnControllerObject:SetControlledNPC(chestburster)
 				SpawnControllerObject:Spawn()
 				SpawnControllerObject:StartControlling()
@@ -539,7 +539,7 @@ function ENT:Initialize()
 		-- 		Predator.VJ_NPC_Class = {"CLASS_PLAYER_ALLY","CLASS_PREDATOR","CLASS_YAUTJA"}
 		-- 		Predator.AlliedWithPlayerAllies = true
 		-- 		local SpawnControllerObject = ents.Create("obj_vj_controller")
-		-- 		SpawnControllerObject.VJCE_Player = ply
+		-- 		SpawnControllerObject:SetPlayer(ply)
 		-- 		SpawnControllerObject:SetControlledNPC(Predator)
 		-- 		SpawnControllerObject:Spawn()
 		-- 		SpawnControllerObject:StartControlling()
@@ -736,7 +736,7 @@ function ENT:RespawnPlayerAsAI(ply)
 	end
 	if IsValid(xeno) && !xeno.VJ_IsBeingControlled then
 		local SpawnControllerObject = ents.Create("obj_vj_controller")
-		SpawnControllerObject.VJCE_Player = ply
+		SpawnControllerObject:SetPlayer(ply)
 		SpawnControllerObject:SetControlledNPC(xeno)
 		SpawnControllerObject:Spawn()
 		SpawnControllerObject:StartControlling()

@@ -452,11 +452,11 @@ function ENT:Initialize()
 		if debugPlayAsPredator then
 			local ply = VJ.PICK(plys)
 			local SpawnControllerObject = ents.Create("obj_vj_controller")
-			SpawnControllerObject.VJCE_Player = ply
+			SpawnControllerObject:SetPlayer(ply)
 			SpawnControllerObject:SetControlledNPC(pred)
 			SpawnControllerObject:Spawn()
 			SpawnControllerObject:StartControlling()
-			ply:SetNW2Bool("AVP_DiedInHunt",true)
+			ply:SetNW2Bool("AVP_DiedInHunt", true)
 			ply.VJ_AVP_SpectateEntity = nil
 		end
 
@@ -465,7 +465,7 @@ function ENT:Initialize()
 		self:SetTotalPacks(totalToSpawn)
 		self:SetFoundPacks(0)
 		self.DataPacks = {}
-		for i = 1,totalToSpawn do
+		for i = 1, totalToSpawn do
 			local spawnPoint = self:FindNodesNearPoint(VJ.PICK(totalData),4,768)
 			if spawnPoint == false then
 				spawnPoint = VJ.PICK(totalData)

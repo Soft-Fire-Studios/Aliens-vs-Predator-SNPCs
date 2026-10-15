@@ -1074,7 +1074,7 @@ if SERVER then
 					if IsValid(npc) && npc:GetClass() == ply.VJ_AVP_SpawnedNPCClass then
 						ply.VJ_AVP_SpawnedNPCClass = nil
 						local controllerOBJ = ents.Create("obj_vj_controller")
-						controllerOBJ.VJCE_Player = ply
+						controllerOBJ:SetPlayer(ply)
 						controllerOBJ:SetControlledNPC(npc)
 						controllerOBJ:Spawn()
 						controllerOBJ:StartControlling()

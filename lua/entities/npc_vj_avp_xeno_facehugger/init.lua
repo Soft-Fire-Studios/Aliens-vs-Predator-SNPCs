@@ -135,8 +135,8 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 	function controlEnt:OnThink()
 		local aimPos = npc:GetControllerAimPosition(ply)
-		if IsValid(self.VJCE_Bullseye) then
-			self.VJCE_Bullseye:SetPos(aimPos)
+		if IsValid(self:GetBullseye()) then
+			self:GetBullseye():SetPos(aimPos)
 		end
 
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
@@ -185,8 +185,8 @@ function ENT:Init()
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            if cent:GetNPC() == self then
+                cent:GetNPC():OnKeyPressed(ply,button)
             end
         end
     end)
@@ -871,7 +871,7 @@ function ENT:GiveBirth()
 				chestburster.GodMode = false
 				if IsValid(cont) then
 					local SpawnControllerObject = ents.Create("obj_vj_controller")
-					SpawnControllerObject.VJCE_Player = cont
+					SpawnControllerObject:SetPlayer(cont)
 					SpawnControllerObject:SetControlledNPC(chestburster)
 					SpawnControllerObject:Spawn()
 					SpawnControllerObject:StartControlling()

@@ -837,8 +837,8 @@ function ENT:Init()
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
 		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 			local cent = ply.VJ_TheControllerEntity
-            if cent.VJCE_NPC == self then
-                cent.VJCE_NPC:OnKeyPressed(ply,button)
+            if cent:GetNPC() == self then
+                cent:GetNPC():OnKeyPressed(ply,button)
             end
         end
     end)
@@ -1065,20 +1065,15 @@ function ENT:Controller_Initialize(ply,controlEnt)
 	-- controlEnt.VJC_Bullseye_RefreshPos = false
 
 	function controlEnt:OnThink()
-		self.VJCE_NPC:SetMoveVelocity(self.VJCE_NPC:GetMoveVelocity() *2)
-		self.VJCE_NPC:SetArrivalSpeed(9999)
-
-		-- local aimPos = npc:GetControllerAimPosition(ply)
-		-- if IsValid(self.VJCE_Bullseye) then
-		-- 	self.VJCE_Bullseye:SetPos(aimPos)
-		-- end
+		self:GetNPC():SetMoveVelocity(self:GetNPC():GetMoveVelocity() *2)
+		self:GetNPC():SetArrivalSpeed(9999)
 
 		self.VJC_NPC_CanTurn = self.VJC_Camera_Mode == 2
 
-		if self.VJCE_NPC.EntityClass == AVP_ENTITYCLASS_CIVILIAN then
+		if self:GetNPC().EntityClass == AVP_ENTITYCLASS_CIVILIAN then
 			self.VJC_BullseyeTracking = false
 		else
-			self.VJC_BullseyeTracking = (self.VJCE_NPC:IsMoving() && !self.VJCE_NPC:GetSprinting()) or self.VJC_Camera_Mode == 2
+			self.VJC_BullseyeTracking = (self:GetNPC():IsMoving() && !self:GetNPC():GetSprinting()) or self.VJC_Camera_Mode == 2
 		end
 	end
 
