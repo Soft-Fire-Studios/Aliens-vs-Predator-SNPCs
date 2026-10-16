@@ -213,12 +213,9 @@ function ENT:PhysicsCollide(data, phys)
 			self.Dead = true
 			-- self:DealDamage(data, phys)
 			self:PlaySound("OnCollide")
-			if !self.PaintedFinalDecal then
-				local decals = VJ.PICK(self.CollisionDecal)
-				if decals then
-					self.PaintedFinalDecal = true
-					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
-				end
+			local decals = VJ.PICK(self.CollisionDecal)
+			if decals then
+				util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
 			end
 			if self.ShakeWorldOnDeath == true then util.ScreenShake(data.HitPos, self.ShakeWorldOnDeathAmplitude or 16, self.ShakeWorldOnDeathFrequency or 200, self.ShakeWorldOnDeathDuration or 1, self.ShakeWorldOnDeathRadius or 3000) end -- !!!!!!!!!!!!!! DO NOT USE THIS VARIABLE !!!!!!!!!!!!!! [Backwards Compatibility!]
 			self:Destroy(data, phys)
@@ -226,11 +223,9 @@ function ENT:PhysicsCollide(data, phys)
 			if CurTime() < self.NextPersistCollisionT then return end
 			-- self:DealDamage(data, phys)
 			self:PlaySound("OnCollide")
-			if !self.PaintedFinalDecal then
-				local decals = VJ.PICK(self.CollisionDecal)
-				if decals then
-					util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
-				end
+			local decals = VJ.PICK(self.CollisionDecal)
+			if decals then
+				util.Decal(decals, data.HitPos + data.HitNormal, data.HitPos - data.HitNormal)
 			end
 			self:OnCollisionPersist(data, phys)
 			self.NextPersistCollisionT = CurTime() + 1
