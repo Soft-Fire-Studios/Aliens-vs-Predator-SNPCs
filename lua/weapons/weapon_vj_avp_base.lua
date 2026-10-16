@@ -524,7 +524,7 @@ function SWEP:CanPrimaryAttack()
 	if self:GetSprinting() == true then return false end
 	if self:GetOwner():IsPlayer() && self:GetOwner():KeyDown(IN_USE) then return false end
 	if CurTime() <= self.SprintDelayT then return end
-	if self.Weapon:Clip1() <= 0 then
+	if self:Clip1() <= 0 then
 		self:EmitSound("Weapon_Pistol.Empty")
 		self:SetNextPrimaryFire(CurTime() +0.2)
 		self:Reload()
