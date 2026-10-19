@@ -579,8 +579,8 @@ function ENT:Init()
 	self:SetSurroundingBounds(Vector(collisionMin.x * 1.8, collisionMin.y * 1.8, collisionMin.z * 1.2), Vector(collisionMax.x * 1.8, collisionMax.y * 1.8, collisionMax.z * 1.2))
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
+		if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+			local cent = ply.VJ_Controller
             if cent:GetNPC() == self then
                 cent:GetNPC():OnKeyPressed(ply,button)
             end
@@ -637,13 +637,13 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
 	if IsValid(self.Restraint) then
-		if self.Alerted && !self.VJ_IsBeingControlled then
+		if self.Alerted && !self.VJ_Controlled then
 			return self.RestraintAlert
 		end
 		return self.RestraintIdle
 	end
-	if IsValid(self.VJ_TheController) then
-		local ply = self.VJ_TheController
+	if self.VJ_Controlled then
+		local ply = self.VJ_Controller:GetPlayer()
 		if act == ACT_IDLE && self.Cont_IsMoving then
 			self:SetPoseParameter("move_yaw", self.Cont_MoveDir or 0)
 			local moveAct = !ply:KeyDown(IN_WALK) && ACT_RUN or ACT_WALK
@@ -769,10 +769,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		local npc = self:GetNPC()
 		local camera = self:GetCamera()
 		if (!camera:IsValid()) then self:StopControlling() return end
-		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
-		if ply.VJ_IsControllingNPC != true then return end
+		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_Controlling) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
+		if ply.VJ_Controlling != true then return end
 		local curTime = CurTime()
-		if ply.VJ_IsControllingNPC && IsValid(npc) then
+		if ply.VJ_Controlling && IsValid(npc) then
 			local npcWeapon = npc:GetActiveWeapon()
 			self.VJC_NPC_LastPos = npc:GetPos()
 			ply:SetPos(self.VJC_NPC_LastPos + vecZ20) -- Set the player's location
@@ -1051,7 +1051,7 @@ local vec256 = Vector(0,0,-256)
 local math_Clamp = math.Clamp
 --
 function ENT:HeadbiteCorpse(ent)
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	VJ.CreateSound(self,"cpthazama/avp/xeno/alien/special/alien_brainbite_out_direct.ogg",75)
 	self:PlayAnim("headbite_2ndry",true,false,false,0,{AlwaysUseGesture=true,GesturePlayBackRate=1})
 	ent.VJ_AVP_CorpseHasBeenEaten = true
@@ -1223,7 +1223,7 @@ function ENT:OnKeyPressed(ply,key)
 		-- local tr = util.TraceHull({
 		-- 	start = self:EyePos(),
 		-- 	endpos = self:EyePos() +ply:GetAimVector() *1200,
-		-- 	filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
+		-- 	filter = {self,ply,self.VJ_Controller:GetBullseye(),ply:GetViewModel(),ply:GetActiveWeapon()},
 		-- 	mins = Vector(-10,-10,-10),
 		-- 	maxs = Vector(10,10,10)
 		-- })
@@ -1393,8 +1393,8 @@ function ENT:LongJumpCode(gotoPos,atk)
 	self.CurrentSet = 1
 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 	self.ChangeSetT = CurTime() +0.5
-	local ply = self.VJ_TheController
-	local bullseye = self.VJ_TheControllerBullseye
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
+	local bullseye = self.VJ_Controlled and self.VJ_Controller:GetBullseye()
 	local aimVec = IsValid(ply) && ply:GetAimVector()
 	local tr1
 	local canJump = true
@@ -1815,11 +1815,11 @@ function ENT:RunDamageCode(mult)
 	end)
 
 	if #hitEnts <= 0 then
-		local atkEnt = IsValid(self.VJ_TheController) && self.VJ_TheController or self
+		local atkEnt = self.VJ_Controlled and self.VJ_Controller:GetPlayer() or self
 		local tr = util.TraceLine({
 			start = self:EyePos(),
 			endpos = self:EyePos() +atkEnt:GetAimVector() *self.AttackDamageDistance,
-			filter = {self,atkEnt,self.VJ_TheControllerBullseye},
+			filter = {self,atkEnt,self.VJ_Controlled and self.VJ_Controller:GetBullseye()},
 			mask = MASK_SOLID_BRUSHONLY
 		})
 		if tr.Hit && metallicMats[tr.MatType] then
@@ -1852,7 +1852,7 @@ local string_find = string.find
 --
 function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
-	local cont = self.VJ_TheController
+	local cont = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local eneData = self.EnemyData
 	local dist = eneData.DistanceNearest
 	local isCrawling = self.CurrentSet == 1
@@ -2046,27 +2046,27 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:PlayAnim("crawl_claw_attack_" .. self.AttackSide .. "_land",true,false,false)
 				end})
 			else
-				if IsValid(self.VJ_TheController) && self:DoingMovement() or !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				if self.VJ_Controlled && self:DoingMovement() or !self.VJ_Controlled && math.random(1,3) == 1 then
 					// Stand up attack
 					self.AttackType = 1
 					self.AttackSide = self.AttackSide == "right" && "left" or "right"
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:PlayAnim("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 						if interrupted or self.InFatality then return end -- Means we hit something
-						if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 							self:PlaySound(self.SoundTbl_Attack,75)
 							self:PlayAnim({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 								if interrupted or self.InFatality then return end
-								if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+								if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 									self.AttackSide = self.AttackSide == "right" && "left" or "right"
 									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 									self:PlaySound(self.SoundTbl_Attack,75)
 									self:PlayAnim({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 										if interrupted or self.InFatality then return end
 										-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-										-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+										-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 										-- 	self.CurrentSet = 1
 										-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 										-- 	self.ChangeSetT = CurTime() +0.5
@@ -2084,7 +2084,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 										self:PlayAnim("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
 									end
 									-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-									-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+									-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 									-- 	self.CurrentSet = 1
 									-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 									-- 	self.ChangeSetT = CurTime() +0.5
@@ -2098,7 +2098,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 								self:PlayAnim("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
 							end
 							-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-							-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+							-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 							-- 	self.CurrentSet = 1
 							-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 							-- 	self.ChangeSetT = CurTime() +0.5
@@ -2118,7 +2118,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				end
 			end
 		else
-			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !self.VJ_Controlled && math.random(1,4) == 1 then
 				// Heavy attack
 				self.AttackType = 5
 				self:PlayAnim("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
@@ -2126,20 +2126,20 @@ function ENT:AttackCode(isCrawling,forceAttack)
 					self:PlaySound(self.SoundTbl_Attack,75)
 					self:PlayAnim({"melee_heavy_attack_medium","melee_heavy_attack_short"},true,false,true)
 				end})
-			elseif IsValid(self.VJ_TheController) && self:DoingMovement() or !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+			elseif self.VJ_Controlled && self:DoingMovement() or !self.VJ_Controlled && math.random(1,3) == 1 then
 				// Stand up attack
 				self.AttackType = 1
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
 				self:PlayAnim("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 					if interrupted or self.InFatality then return end -- Means we hit something
-					if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+					if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 						self.AttackSide = self.AttackSide == "right" && "left" or "right"
 						local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 						self:PlaySound(self.SoundTbl_Attack,75)
 						self:PlayAnim({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 							if interrupted or self.InFatality then return end
-							if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+							if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 								self.AttackSide = self.AttackSide == "right" && "left" or "right"
 								local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 								self:PlaySound(self.SoundTbl_Attack,75)
@@ -2158,7 +2158,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 									self:PlayAnim("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
 								end
 								-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-								-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+								-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 								-- 	self.CurrentSet = 1
 								-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 								-- 	self.ChangeSetT = CurTime() +0.5
@@ -2172,7 +2172,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 							self:PlayAnim("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
 						end
 						-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-						-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+						-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 						-- 	self.CurrentSet = 1
 						-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 						-- 	self.ChangeSetT = CurTime() +0.5
@@ -2192,7 +2192,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 	else
 		if self:DoingMovement() then
 			// Heavy attack
-			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !self.VJ_Controlled && math.random(1,4) == 1 then
 				self.AttackType = 5
 				self:PlayAnim("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
 					if interrupted or self.InFatality then return end
@@ -2207,7 +2207,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.NextChaseTime = 0
 			end
 		else
-			if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+			if forceAttack == 5 or forceAttack == nil && !self.VJ_Controlled && math.random(1,4) == 1 then
 				// Heavy attack
 				self.AttackType = 5
 				self:PlayAnim("melee_heavy_attack_charge_up",true,false,true,0,{OnFinish=function(interrupted)
@@ -2220,16 +2220,16 @@ function ENT:AttackCode(isCrawling,forceAttack)
 				self.AttackType = 1
 				self.AttackSide = self.AttackSide == "right" && "left" or "right"
 				self:PlaySound(self.SoundTbl_Attack,75)
-				if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_FORWARD) then
+				if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_FORWARD) then
 					self:PlayAnim("crawl_stand_attack_" .. self.AttackSide,true,false,true,0,{OnFinish=function(interrupted)
 						if interrupted or self.InFatality then return end -- Means we hit something
-						if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+						if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 							self:PlaySound(self.SoundTbl_Attack,75)
 							self:PlayAnim({anim,anim .. "_move",anim .. "_variant1",anim .. "_variant1_move"},true,false,false,0,{OnFinish=function(interrupted)
 								if interrupted or self.InFatality then return end
-								if IsValid(self.VJ_TheController) && self.VJ_TheController:KeyDown(IN_ATTACK) or !IsValid(self.VJ_TheController) && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
+								if self.VJ_Controlled && self.VJ_Controller:GetPlayer():KeyDown(IN_ATTACK) or !self.VJ_Controlled && IsValid(self:GetEnemy()) && self.LastEnemyDistance <= 130 then
 									self.AttackSide = self.AttackSide == "right" && "left" or "right"
 									local anim = "crawl_stand_attack_" .. self.AttackSide .. "_loop"
 									self:PlaySound(self.SoundTbl_Attack,75)
@@ -2249,7 +2249,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 										self.ChangeSetT = CurTime() +0.5
 									end})
 									-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-									-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+									-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 									-- 	self.CurrentSet = 1
 									-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 									-- 	self.ChangeSetT = CurTime() +0.5
@@ -2263,7 +2263,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 								self:PlayAnim("light_attack_" .. self.AttackSide .. "_to_run_fwd",true,false,false)
 							end
 							-- self:PlayAnim("crawl_stand_attack_" .. self.AttackSide .. "_end",true,false,false,0,{OnFinish=function(interrupted,anim)
-							-- 	if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+							-- 	if interrupted or self.InFatality or self.VJ_Controlled then return end
 							-- 	self.CurrentSet = 1
 							-- 	self.AnimTbl_Flinch = self.AnimTbl_FlinchCrouch
 							-- 	self.ChangeSetT = CurTime() +0.5
@@ -2277,7 +2277,7 @@ function ENT:AttackCode(isCrawling,forceAttack)
 							self.AttackSide = self.AttackSide == "right" && "left" or "right"
 							self:PlaySound(self.SoundTbl_Attack,75)
 							self:PlayAnim("light_step_attack_" .. self.AttackSide .. "_mid",true,false,true,0,{OnFinish=function(interrupted)
-								if interrupted or self.InFatality or IsValid(self.VJ_TheController) then return end
+								if interrupted or self.InFatality or self.VJ_Controlled then return end
 								self.AttackSide = self.AttackSide == "right" && "left" or "right"
 								self:PlayAnim({"light_attack_" .. self.AttackSide .. "_to_run_fwd","light_attack_" .. self.AttackSide .. "_to_crawl_fwd"},true,false,true,0,{OnFinish=function(interrupted,anim)
 									if interrupted or self.InFatality then return end
@@ -2465,17 +2465,19 @@ function ENT:TransformToPraetorian()
 			end})
 		end})
 		undo.ReplaceEntity(self,xeno)
-		local cont = self.VJ_TheController
-		timer.Simple(0.12,function()
-			if IsValid(cont) && IsValid(xeno) then
-				local SpawnControllerObject = ents.Create("obj_vj_controller")
-				SpawnControllerObject:SetPlayer(cont)
-				SpawnControllerObject:SetControlledNPC(xeno)
-				SpawnControllerObject:Spawn()
-				SpawnControllerObject:StartControlling()
-				print(cont,"evolved into",xeno)
-			end
-		end)
+		if self.VJ_Controlled then
+			local cont = self.VJ_Controller:GetPlayer()
+			timer.Simple(0.12,function()
+				if IsValid(cont) && IsValid(xeno) then
+					local SpawnControllerObject = ents.Create("obj_vj_controller")
+					SpawnControllerObject:SetPlayer(cont)
+					SpawnControllerObject:SetControlledNPC(xeno)
+					SpawnControllerObject:Spawn()
+					SpawnControllerObject:StartControlling()
+					print(cont,"evolved into",xeno)
+				end
+			end)
+		end
 		self:Remove()
 	end})
 end
@@ -2512,7 +2514,7 @@ function ENT:OnThinkActive()
 	end
 	local curTime = CurTime()
 	local ent = self:GetEnemy()
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local curSet = self.CurrentSet
 	if self.DarknessLevel != false && curTime -self.LastNetworkT >= 5 then
 		self.DarknessLevel = false
@@ -2540,9 +2542,9 @@ function ENT:OnThinkActive()
 	
 	self:SetHP(self:Health())
 	self:SetStanding(self.CurrentSet == 1)
-	-- if IsValid(self.VJ_TheControllerBullseye) then -- wtf...
-	-- 	self:SetEnemy(self.VJ_TheControllerBullseye)
-	-- 	self:SetTarget(self.VJ_TheControllerBullseye)
+	-- if self.VJ_Controlled then -- wtf...
+	-- 	self:SetEnemy(self.VJ_Controller:GetBullseye())
+	-- 	self:SetTarget(self.VJ_Controller:GetBullseye())
 	-- end
 
 	if self.HasBreath then
@@ -2620,7 +2622,7 @@ function ENT:OnThinkActive()
 			end
 		end
 	else
-		local cont = self.VJ_TheController
+		local cont = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 		local doingBlock = IsValid(cont) && (cont:KeyDown(IN_ATTACK) && cont:KeyDown(IN_ATTACK2)) or !IsValid(cont) && self.AI_IsBlocking
 		if !self.CanBlock or !IsValid(cont) && self.AI_IsBlocking && (!IsValid(self:GetEnemy()) or CurTime() > self.AI_BlockTime) then
 			doingBlock = false
@@ -2717,11 +2719,11 @@ function ENT:OnThinkActive()
 		end
 		if IsValid(ply) then
 			-- self.ConstantlyFaceEnemy = false
-			-- self:SetEnemy(self.VJ_TheControllerBullseye)
-			-- self:SetTarget(self.VJ_TheControllerBullseye)
+			-- self:SetEnemy(self.VJ_Controller:GetBullseye())
+			-- self:SetTarget(self.VJ_Controller:GetBullseye())
 			-- if !IsValid(ply.VJ_AVP_ViewModel) then
 			-- 	ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
-			-- 	self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)
+			-- 	self.VJ_Controller:DeleteOnRemove(ply.VJ_AVP_ViewModel)
 			-- else
 			-- 	local wep = ply.VJ_AVP_ViewModel
 			-- 	ply.VJ_AVP_ViewModelNPC = self
@@ -2846,7 +2848,7 @@ function ENT:OnThinkActive()
 		self.LastEnemyDistance = VJ.GetNearestDistance(self, ent)
 	end
 
-	if (IsValid(self.VJ_TheController) or !IsValid(self.VJ_TheController) && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
+	if (self.VJ_Controlled or !self.VJ_Controlled && !IsValid(ent) && !self.Alerted) && curTime > self.RoyalMorphT && math.random(1,250) == 1 && self.VJ_AVP_CanBecomeQueen && !self:IsBusy() && !VJ_AVP_QueenExists(self) then
 		if self.VJ_AVP_XenomorphID == "praetorian" then
 			self:SetState(VJ_STATE_ONLY_ANIMATION_NOATTACK)
 			VJ.STOPSOUND(self.CurrentSpeechSound)
@@ -2875,17 +2877,19 @@ function ENT:OnThinkActive()
 				xeno.NextSpecialEggCheckT = CurTime() +dur +5
 				xeno:SetModelScale(1,dur -1)
 				undo.ReplaceEntity(self,xeno)
-				local cont = self.VJ_TheController
-				timer.Simple(0.12,function()
-					if IsValid(cont) && IsValid(xeno) then
-						local SpawnControllerObject = ents.Create("obj_vj_controller")
-						SpawnControllerObject:SetPlayer(cont)
-						SpawnControllerObject:SetControlledNPC(xeno)
-						SpawnControllerObject:Spawn()
-						SpawnControllerObject:StartControlling()
-						print(cont,"evolved into",xeno)
-					end
-				end)
+				if self.VJ_Controlled then
+					local cont = self.VJ_Controller:GetPlayer()
+					timer.Simple(0.12,function()
+						if IsValid(cont) && IsValid(xeno) then
+							local SpawnControllerObject = ents.Create("obj_vj_controller")
+							SpawnControllerObject:SetPlayer(cont)
+							SpawnControllerObject:SetControlledNPC(xeno)
+							SpawnControllerObject:Spawn()
+							SpawnControllerObject:StartControlling()
+							print(cont,"evolved into",xeno)
+						end
+					end)
+				end
 				self:Remove()
 			end})
 		else
@@ -3067,7 +3071,7 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 				if IsValid(attacker) && attacker.OnAttackBlocked then
 					attacker:OnAttackBlocked(self)
 				end
-				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				if self.AI_IsBlocking && !self.VJ_Controlled && math.random(1,3) == 1 then
 					self.AI_IsBlocking = false
 					self.IsBlocking = false
 					self:AttackCode(false,5)
@@ -3221,8 +3225,8 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 		-- VJ.AVP_ApplyRadiusDamage(self, self, self:GetPos(), 150, 20, DMG_ACID, true, true)
 		self:Acid(self:GetPos(),150,20)
 
-		if IsValid(self.VJ_TheController) then
-			self.VJ_TheController:SetNW2Int("AVP_SurvivalRespawn",CurTime() +10)
+		if self.VJ_Controlled then
+			self.VJ_Controller:GetPlayer():SetNW2Int("AVP_SurvivalRespawn",CurTime() +10)
 		end
 
 		if self:GetState() == VJ_STATE_NONE then
@@ -3249,7 +3253,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
 	-- local act = ACT_RUN
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
 	if self:IsOnFire() && self.ReactsToFire then
@@ -3723,7 +3727,7 @@ function ENT:RunAI() -- Called from the engine every 0.1 seconds
 	-- Apply walk frames to both activities and sequences
 	-- Parts of it replicate TASK_PLAY_SEQUENCE - https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/ai_basenpc_schedule.cpp#L3312
 	if !isMoving && self:GetSequenceMoveDist(self:GetSequence()) > 0 && ((self:GetSequence() == self:GetIdealSequence()) or (self:GetActivity() == ACT_DO_NOT_DISTURB)) && self.MovementType != VJ_MOVETYPE_AERIAL && self.MovementType != VJ_MOVETYPE_AQUATIC then
-		local sprintActive = IsValid(self.VJ_TheController) && self.Cont_IsMoving
+		local sprintActive = self.VJ_Controlled and IsValid(self.VJ_Controller:GetPlayer()) && self.Cont_IsMoving
 		if sprintActive or !sprintActive && !self:IsSequenceFinished() then
 			self:AutoMovement(self:GetAnimTimeInterval())
 		end

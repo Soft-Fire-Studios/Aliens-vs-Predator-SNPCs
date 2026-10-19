@@ -90,7 +90,8 @@ function ENT:OnThink()
 	if IsValid(self.Predator) then
 		local pred = self.Predator
 		local lockOn = pred:GetLockOn()
-		local goalPos = IsValid(pred.VJ_TheController) && (IsValid(lockOn) && lockOn:Visible(self) && lockOn:EyePos() or !IsValid(lockOn) && pred:GetEnemy():EyePos()) or !IsValid(pred.VJ_TheController) && (IsValid(pred:GetEnemy()) && pred:GetEnemy():EyePos() or false)
+		local contPly = pred.VJ_Controlled && IsValid(pred.VJ_Controller:GetPlayer())
+		local goalPos = contPly && (IsValid(lockOn) && lockOn:Visible(self) && lockOn:EyePos() or !IsValid(lockOn) && pred:GetEnemy():EyePos()) or !contPly && (IsValid(pred:GetEnemy()) && pred:GetEnemy():EyePos() or false)
 		if CurTime() > self.ReturnTime then
 			self.ReturnTo = true
 			goalPos = pred:GetPos() +pred:OBBCenter()
@@ -176,7 +177,7 @@ function ENT:OnCollision(data, phys)
 		self:DeleteOnRemove(light)
 	else
 		local pred = self.Predator
-		if data.HitEntity == self.Predator or IsValid(pred) && data.HitEntity == pred.VJ_TheController then return end
+		if data.HitEntity == self.Predator or IsValid(pred) && (pred.VJ_Controlled && data.HitEntity == pred.VJ_Controller:GetPlayer()) then return end
 		self.HitT = CurTime() +(self.ReturnTo && 0.05 or 0.25)
 		self.HitDir = data.HitNormal +Vector(math.Rand(-0.3,0.3),math.Rand(-0.3,0.3),math.Rand(-0.3,0.3))
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/wrist_blades/prd_wrist_impact_flesh_mn_0" .. math.random(1,3) .. ".ogg",75)

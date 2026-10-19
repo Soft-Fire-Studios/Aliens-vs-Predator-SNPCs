@@ -197,7 +197,7 @@ local table_insert = table.insert
 --
 function ENT:OnThink2()
 	local curTime = CurTime()
-	local cont = self.VJ_TheController
+	local cont = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if self.Alerted && !IsValid(cont) then
 		self.NextLookForBirthT = curTime +60
 		if self.InBirth && self.EnemyData.DistanceNearest <= 1000 && IsValid(self:GetEnemy()) && self:Visible(self:GetEnemy()) then
@@ -423,8 +423,8 @@ function ENT:OnThink2()
 							v:StopMoving()
 							if v.SetQueenMarker then
 								v:SetQueenMarker(node)
-								if IsValid(v.VJ_TheController) then
-									v.VJ_TheController:ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
+								if v.VJ_Controlled and IsValid(v.VJ_Controller:GetPlayer()) then
+									v.VJ_Controller:GetPlayer():ChatPrint("[Dev] The Queen has marked a location for you, go to the black mist!")
 								end
 							end
 							v:SetLastPosition(node)
@@ -651,7 +651,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
 	-- local act = ACT_RUN
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
 			act = ACT_WALK
@@ -683,12 +683,12 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
-	local cont = self.VJ_TheController
 	local eneData = self.EnemyData
 	local dist = eneData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
-
-	if IsValid(cont) then
+	
+	if self.VJ_Controlled then
+		local cont = self.VJ_Controller:GetPlayer()
 		if self.InBirth then
 			return
 		end

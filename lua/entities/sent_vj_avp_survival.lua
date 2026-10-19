@@ -128,7 +128,7 @@ if CLIENT then
 			if !IsValid(ply) or IsValid(ply) && ply:GetNW2Bool("AVP_DiedInSurvival",false) then return end
 			for _,v in ents.Iterator() do
 				if !IsValid(v) then continue end
-				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_IsControllingNPC) then
+				if (v:IsNPC() && v:GetClass() == "npc_vj_test_player") or (v:IsPlayer() && v != ply && !v:GetNW2Bool("AVP_DiedInSurvival",false) && !v.VJ_Controlling) then
 					if !VJ.HasValue(VJ_AVP_HALOS.Survival,v) then
 						table_insert(VJ_AVP_HALOS.Survival,v)
 					end
@@ -496,7 +496,7 @@ function ENT:Initialize()
 		v:SetNW2Bool("AVP_DiedInSurvival",false)
 		v:ChatPrint("Survival will begin in 10 seconds...")
 		VJ_AVP_CSound(v,"cpthazama/avp/shared/MP_ANNOUNCE_37.ogg")
-		local cEnt = v.VJ_TheControllerEntity
+		local cEnt = v.VJ_Controller
 		if IsValid(cEnt) && cEnt:GetNPC().VJ_AVP_Predator then
 			self.IsPredatorPlayers = true
 		end
@@ -510,7 +510,7 @@ function ENT:Initialize()
 
 	if self.IsPredatorPlayers then
 		for _,v in pairs(plys) do
-			if !IsValid(v.VJ_TheControllerEntity) then
+			if !IsValid(v.VJ_Controller) then
 				local Predator = ents.Create("npc_vj_avp_pred")
 				Predator:SetPos(v:GetPos() +Vector(0,0,4))
 				Predator:SetAngles(v:GetAngles())
@@ -529,7 +529,7 @@ function ENT:Initialize()
 
 		-- hook.Add("PlayerSpawn",self,function(self,ply)
 		-- 	if !IsValid(ply) then return end
-		-- 	if !IsValid(ply.VJ_TheControllerEntity) then
+		-- 	if !IsValid(ply.VJ_Controller) then
 		-- 		local Predator = ents.Create("npc_vj_avp_pred")
 		-- 		Predator:SetPos(ply:GetPos() +Vector(0,0,4))
 		-- 		Predator:SetAngles(ply:GetAngles())
@@ -552,7 +552,7 @@ function ENT:Initialize()
 	-- hook.Add("PlayerSpawn",self,function(self,ply)
 	-- 	if self.RespawnAsAI != true then return end
 	-- 	timer.Simple(0.01,function()
-	-- 		if IsValid(self) && IsValid(ply) && !IsValid(ply.VJ_TheControllerEntity) then
+	-- 		if IsValid(self) && IsValid(ply) && !IsValid(ply.VJ_Controller) then
 	-- 			self:RespawnPlayerAsAI(ply)
 	-- 		end
 	-- 	end)
@@ -734,7 +734,7 @@ function ENT:RespawnPlayerAsAI(ply)
 	if !IsValid(xeno) then
 		xeno = VJ.PICK(self.Entities)
 	end
-	if IsValid(xeno) && !xeno.VJ_IsBeingControlled then
+	if IsValid(xeno) && !xeno.VJ_Controlled then
 		local SpawnControllerObject = ents.Create("obj_vj_controller")
 		SpawnControllerObject:SetPlayer(ply)
 		SpawnControllerObject:SetControlledNPC(xeno)
@@ -888,7 +888,7 @@ function ENT:Think()
 					local closestPlayer = NULL
 					local closestDist = 999999
 					for _,v2 in pairs(player.GetAll()) do
-						if v2:Alive() && !v2.VJ_IsControllingNPC && !v2:IsFlagSet(FL_NOTARGET) then
+						if v2:Alive() && !v2.VJ_Controlling && !v2:IsFlagSet(FL_NOTARGET) then
 							local dist = v2:GetPos():Distance(v:GetPos())
 							if dist < closestDist then
 								closestPlayer = v2
@@ -913,7 +913,7 @@ function ENT:Think()
 		-- 			v:KillSilent()
 		-- 			continue
 		-- 		end
-		-- 		if v:Alive() && !IsValid(v.VJ_TheControllerEntity) then
+		-- 		if v:Alive() && !IsValid(v.VJ_Controller) then
 		-- 			self:RespawnPlayerAsAI(v)
 		-- 		end
 		-- 	end
@@ -964,7 +964,7 @@ function ENT:Think()
 		if curTime > self.NextCheckForStuckAITime then
 			self.NextCheckForStuckAITime = curTime +math.Rand(9,18)
 			for _,v in pairs(self.Entities) do
-				if IsValid(v) && v.VJ_IsBeingControlled != true && (v:IsUnreachable(v:GetEnemy() or self) or !v:IsInWorld()) then
+				if IsValid(v) && v.VJ_Controlled != true && (v:IsUnreachable(v:GetEnemy() or self) or !v:IsInWorld()) then
 					self:RespawnEntity(v)
 				end
 			end

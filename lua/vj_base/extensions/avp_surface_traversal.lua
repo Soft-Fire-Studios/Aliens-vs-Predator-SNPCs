@@ -610,7 +610,7 @@ end
 function ENT:SurfaceTraversal_ShouldSuppressLedgeAssist(moveDir)
 	if self.IsOnSurface then return true end
 	if !self:SurfaceTraversal_CanUse() then return false end
-	if !IsValid(self.VJ_TheController) or !cvController:GetBool() then return false end
+	if !(self.VJ_Controlled && IsValid(self.VJ_Controller:GetPlayer())) or !cvController:GetBool() then return false end
 	if self:SurfaceTraversal_IsStaircase(moveDir) then return true end
 
 	local tr = self:SurfaceTraversal_FindGroundEdgeWall(moveDir)
@@ -834,7 +834,7 @@ function ENT:SurfaceTraversal_Update(curTime)
 		return
 	end
 
-	local controller = self.VJ_TheController
+	local controller = self.VJ_Controlled && self.VJ_Controller:GetPlayer()
 	if self.IsOnSurface then
 		if IsValid(controller) && !cvController:GetBool() then
 			self:SurfaceTraversal_Detach(false)

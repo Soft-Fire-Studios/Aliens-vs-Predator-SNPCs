@@ -168,7 +168,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
 	-- local act = ACT_RUN
-	local ply = self.VJ_TheController
 	local curTime = CurTime()
 	local standing = self.CurrentSet == 2
 	if self:IsOnFire() && self.ReactsToFire then
@@ -178,7 +177,8 @@ function ENT:SelectMovementActivity(act)
 	if gib && (gib.LeftLeg or gib.RightLeg or gib.LeftArm or gib.RightArm) then
 		return (gib.LeftArm && ACT_WALK_CROUCH or gib.RightArm && ACT_WALK_CROUCH_AIM) or ACT_RUN_CROUCH
 	end
-	if IsValid(ply) then
+	if self.VJ_Controlled then
+		local ply = self.VJ_Controller:GetPlayer()
 		if ply:KeyDown(IN_WALK) then
 			return standing && ACT_WALK or ACT_WALK_RELAXED
 		elseif ply:KeyDown(IN_SPEED) && self.NextSprintT < curTime then

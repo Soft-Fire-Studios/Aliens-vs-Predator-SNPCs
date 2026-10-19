@@ -173,8 +173,8 @@ function ENT:OnThinkAttack(isAttacking, ent)
 	local visible = data.Visible
 	local dist = data.DistanceNearest
 	local curTime = CurTime()
-	if self.VJ_IsBeingControlled then
-		local cont = self.VJ_TheController
+	if self.VJ_Controlled then
+		local cont = self.VJ_Controller:GetPlayer()
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_ATTACK2) && !self:IsBusy("Activities") then
 			self:FireWeapon(ent)
 		end
@@ -267,7 +267,10 @@ end
 function ENT:OnThinkActive()
 	if self.Dead then return end
 	local curTime = CurTime()
-	local cont = self.VJ_TheController
+	local cont = NULL
+	if self.VJ_Controlled then
+		cont = self.VJ_Controller:GetPlayer()
+	end
 	local lerpingFactor = FrameTime() *15
 	local moveDir = self:GetMoveDirection()
 	local velNorm = moveDir && moveDir:GetNormal() or Vector(0,0,0)
@@ -407,7 +410,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 		local forwardTr = util.TraceLine({start = NPCPos, endpos = targetPos, filter = {self, cont, ply}})
 		self:AA_MoveTo(forwardTr.HitPos, true, gerta_arak and "Alert" or "Calm", {IgnoreGround=true})
 		if throttle != 0 then
-			self:SetTurnTarget(self.VJ_TheControllerBullseye, 0.2)
+			self:SetTurnTarget(cont:GetBullseye(), 0.2)
 		end
 	end
 end

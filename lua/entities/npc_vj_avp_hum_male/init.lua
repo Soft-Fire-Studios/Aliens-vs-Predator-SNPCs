@@ -753,7 +753,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnInvestigate(ent)
 	self.CurrentEmote = VJ_AVP_EXP_ALERT
-	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && !self.Alerted && math.random(1,4) == 1 && CurTime() > (self.NextWhatsThatT or 0) then
+	if !self.VJ_Controlled && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && !self.Alerted && math.random(1,4) == 1 && CurTime() > (self.NextWhatsThatT or 0) then
 		-- print("OnInvestigate")
 		local _,dur = self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_FIDGET],self.AnimationTranslations[AVP_ANIM_WHATSTHAT]}),true,false,true,0,{OnFinish=function(interrupted,anim)
 			if interrupted then return end
@@ -766,7 +766,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnResetEnemy()
 	self.CurrentEmote = VJ_AVP_EXP_DEFAULT
-	if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,4) == 1 then
+	if !self.VJ_Controlled && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,4) == 1 then
 		-- print("OnResetEnemy")
 		self:PlayAnim(VJ.PICK({self.AnimationTranslations[AVP_ANIM_NOPROBLEM],self.AnimationTranslations[AVP_ANIM_ITSOK]}),true,false,true,0,{OnFinish=function(interrupted,anim)
 			if interrupted then return end
@@ -780,7 +780,7 @@ function ENT:OnAlert(ent)
 	self.CurrentEmote = VJ_AVP_EXP_COMBAT
 	if self.SoundTbl_Surprised && #self.SoundTbl_Surprised > 0 && VJ.GetNearestDistance(self, ent, true) <= 250 then
 		self:PlaySoundSystem("Alert", self.SoundTbl_Surprised)
-		if !IsValid(self.VJ_TheController) && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,2) == 1 then
+		if !self.VJ_Controlled && IsValid(self:GetActiveWeapon()) && !self:IsBusy() && math.random(1,2) == 1 then
 			-- print("OnAlert")
 			self:PlayAnim(self.AnimationTranslations[AVP_ANIM_OHSHIT],true,false,true,0,{OnFinish=function(interrupted,anim)
 				if interrupted then return end
@@ -835,8 +835,8 @@ function ENT:Init()
 	self.AnimTbl_ScaredBehaviorMovement = {toAct(self,"nwn_Panic_run_fwd_look_fwd")}
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
+		if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+			local cent = ply.VJ_Controller
             if cent:GetNPC() == self then
                 cent:GetNPC():OnKeyPressed(ply,button)
             end
@@ -1139,7 +1139,7 @@ function ENT:OnKeyPressed(ply,key)
 		end
 		self:ToggleFlashlight(!self.FlashlightStatus)
 	elseif key == KEY_SPACE && !self:IsBusy() then
-		local ply = self.VJ_TheController
+		local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
 
 		local moving = self:DoingMovement()
@@ -1162,7 +1162,7 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetMovementDirection()
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if !IsValid(ply) then return end
 
 	local key_forward = ply:KeyDown(IN_FORWARD)
@@ -1278,7 +1278,7 @@ function ENT:SelectMovementActivity(act,isMoving)
 		elseif self.Alerted && self:GetWeaponState() != VJ.WEP_STATE_HOLSTERED && IsValid(self:GetActiveWeapon()) then
 			return self.AnimationTranslations[ACT_IDLE_ANGRY] or ACT_IDLE_ANGRY
 		end
-	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active && !self.VJ_IsBeingControlled then
+	elseif act == ACT_RUN && self.Weapon_UnarmedBehavior_Active && !self.VJ_Controlled then
 		return ACT_RUN_PROTECTED
 	elseif (act == ACT_RUN or act == ACT_WALK) && self.Alerted then
 		if self.Weapon_CanMoveFire && IsValid(self:GetEnemy()) && (self.EnemyData.Visible or (self.EnemyData.VisibleTime + 5) > CurTime()) && (!isMoving && (self.CurrentSchedule != nil && self.CurrentSchedule.CanShootWhenMoving && self:CanFireWeapon(true, false)) or isMoving) then
@@ -1312,8 +1312,8 @@ function ENT:SelectMovementActivity(act,isMoving)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:TranslateActivity(act)
-	if IsValid(self.VJ_TheController) then
-		local ply = self.VJ_TheController
+	if self.VJ_Controlled then
+		local ply = self.VJ_Controller:GetPlayer()
 		if act == ACT_IDLE && self.Cont_IsMoving then
 			self:SetPoseParameter("move_yaw", self.Cont_MoveDir or 0)
 			local moveAct = ply:KeyDown(IN_WALK) && ACT_WALK or ACT_RUN
@@ -1532,7 +1532,7 @@ function ENT:OnThinkActive()
 
 	-- self.CurrentEmote = self.Alerted && VJ_AVP_EXP_COMBAT or VJ_AVP_EXP_DEFAULT
 
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if IsValid(ply) then
 		-- if self.VJ_AVP_TDM then
 			-- local fEnts = self.FlashlightEntities
@@ -1600,7 +1600,7 @@ function ENT:OnThinkActive()
 
 	local darkness = self.DarknessLevel
 	-- print(darkness,CurTime())
-	if !IsValid(self.VJ_TheController) && VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
+	if !self.VJ_Controlled && VJ_AVP_CVAR_FLASHLIGHT && darkness && self.CanUseFlashlight then
 		if darkness <= 0.2 then
 			self:ToggleFlashlight(true)
 		else
@@ -2187,7 +2187,7 @@ function ENT:RunAI() -- Called from the engine every 0.1 seconds
 	-- Apply walk frames to both activities and sequences
 	-- Parts of it replicate TASK_PLAY_SEQUENCE - https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/ai_basenpc_schedule.cpp#L3312
 	if !isMoving && self:GetSequenceMoveDist(self:GetSequence()) > 0 && ((self:GetSequence() == self:GetIdealSequence()) or (self:GetActivity() == ACT_DO_NOT_DISTURB)) && self.MovementType != VJ_MOVETYPE_AERIAL && self.MovementType != VJ_MOVETYPE_AQUATIC then
-		local sprintActive = IsValid(self.VJ_TheController) && self.Cont_IsMoving
+		local sprintActive = self.VJ_Controlled and self.VJ_Controller:GetPlayer() and self.Cont_IsMoving
 		if sprintActive or !sprintActive && !self:IsSequenceFinished() then
 			self:AutoMovement(self:GetAnimTimeInterval())
 		end

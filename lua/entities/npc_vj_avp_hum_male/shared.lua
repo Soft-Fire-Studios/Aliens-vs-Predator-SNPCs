@@ -212,7 +212,7 @@ if CLIENT then
 
 	net.Receive("VJ.AVP.PlayerHUDDamage",function(len,pl)
 		local ply = LocalPlayer()
-		if ply.VJ_IsControllingNPC or !ply.VJ_IsControllingNPC && GetConVar("vj_avp_hud"):GetInt() == 1 then
+		if ply.VJ_Controlling or !ply.VJ_Controlling && GetConVar("vj_avp_hud"):GetInt() == 1 then
 			local time = CurTime() +math.Rand(3,5)
 			local dmg = net.ReadInt(16)
 			local count = math.random(1,3) // 1
@@ -220,7 +220,7 @@ if CLIENT then
 			-- if dmg > 75 then
 			-- 	count = 3
 			-- end
-			if !ply.VJ_IsControllingNPC then
+			if !ply.VJ_Controlling then
 				ply.VJ_AVP_DamageSplatter = ply.VJ_AVP_DamageSplatter or {}
 				for i = 1,count do
 					ply.VJ_AVP_DamageSplatter[#ply.VJ_AVP_DamageSplatter +1] = {Remain=time,Init=time}
@@ -238,7 +238,7 @@ if CLIENT then
 	hook.Add("HUDPaint","VJ_AVP_Marine_HUD",function()
 		local ply = LocalPlayer()
 		local ent
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) then
+		if ply.VJ_Controlling && IsValid(ply.VJCE_NPC) then
 			local npc = ply.VJCE_NPC
 			if npc.VJ_AVP_Marine && !npc.VJ_AVP_Civilian then
 				ent = npc
@@ -395,7 +395,7 @@ if CLIENT then
 			end
 		end
 
-		if ply.VJ_IsControllingNPC != true && GetConVar("vj_avp_hud_squadinfo"):GetBool() then
+		if ply.VJ_Controlling != true && GetConVar("vj_avp_hud_squadinfo"):GetBool() then
 			local squad = ply.VJ_AVP_Squad or {}
 			-- print(ply,squad,squad[1],squad[2],squad[3],squad[4])
 			local squadCount = #squad
@@ -440,7 +440,7 @@ if CLIENT then
 			end
 		end
 
-		if !ply.VJ_IsControllingNPC && !GetConVar("vj_avp_hud_ping"):GetBool() then return end
+		if !ply.VJ_Controlling && !GetConVar("vj_avp_hud_ping"):GetBool() then return end
 
 		local radarPosX = -33.5
 		local radarPosY = 16.6

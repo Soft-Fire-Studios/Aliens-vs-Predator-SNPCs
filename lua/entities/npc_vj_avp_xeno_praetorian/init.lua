@@ -279,7 +279,7 @@ function ENT:DoSummon()
 					xeno:Spawn()
 					xeno:Activate()
 					xeno.VJ_NPC_Class = self.VJ_NPC_Class
-					if !self.VJ_IsBeingControlled then xeno:ForceSetEnemy(self:GetEnemy(),true) end
+					if !self.VJ_Controlled then xeno:ForceSetEnemy(self:GetEnemy(),true) end
 					table.insert(self.Summons,xeno)
 				end
 			end
@@ -424,17 +424,19 @@ function ENT:DoRoyalTransformation(subClass)
 			end})
 		end})
 		undo.ReplaceEntity(self,xeno)
-		local cont = self.VJ_TheController
-		timer.Simple(0.12,function()
-			if IsValid(cont) && IsValid(xeno) then
-				local SpawnControllerObject = ents.Create("obj_vj_controller")
-				SpawnControllerObject:SetPlayer(cont)
-				SpawnControllerObject:SetControlledNPC(xeno)
-				SpawnControllerObject:Spawn()
-				SpawnControllerObject:StartControlling()
-				print(cont,"evolved into",xeno)
-			end
-		end)
+		if self.VJ_Controlled then
+			local cont = self.VJ_Controller:GetPlayer()
+			timer.Simple(0.12,function()
+				if IsValid(cont) && IsValid(xeno) then
+					local SpawnControllerObject = ents.Create("obj_vj_controller")
+					SpawnControllerObject:SetPlayer(cont)
+					SpawnControllerObject:SetControlledNPC(xeno)
+					SpawnControllerObject:Spawn()
+					SpawnControllerObject:StartControlling()
+					print(cont,"evolved into",xeno)
+				end
+			end)
+		end
 		self:Remove()
 		return
 	end

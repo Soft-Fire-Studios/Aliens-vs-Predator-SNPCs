@@ -176,8 +176,8 @@ function ENT:Init()
 	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
+		if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+			local cent = ply.VJ_Controller
             if cent:GetNPC() == self then
                 cent:GetNPC():OnKeyPressed(ply,button)
             end
@@ -204,7 +204,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	if key == KEY_SPACE && !self:IsBusy() then
-		local ply = self.VJ_TheController
+		local ply = self.VJ_Controller:GetPlayer()
 		if self:GetNavType() != NAV_GROUND then return end
 
 		local moving = self:IsMoving()
@@ -271,7 +271,7 @@ function ENT:OnThinkActive()
 	self:SetHP(self:Health())
 	self:SetGroundAngle()
 
-	if !IsValid(self.VJ_TheController) && !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "SCHEDULE_COVER_ENEMY") then
+	if !self.VJ_Controlled && !self:IsBusy() && (self.CurrentSchedule == nil or self.CurrentSchedule != nil && self.CurrentSchedule.Name != "SCHEDULE_COVER_ENEMY") then
 		self:SCHEDULE_COVER_ENEMY("TASK_RUN_PATH")
 	end
 
@@ -288,22 +288,24 @@ function ENT:OnThinkActive()
 		ent:SetModelScale(0.75)
 		ent:SetModelScale(1,1)
 		ent:PlayAnim(animClass[class] or "climb_stop",true,false,false)
-		local cont = self.VJ_TheController
 		undo.ReplaceEntity(self,ent)
 		self:Remove()
-		timer.Simple(0.12,function()
-			if IsValid(cont) && IsValid(ent) then
-				local SpawnControllerObject = ents.Create("obj_vj_controller")
-				SpawnControllerObject:SetPlayer(cont)
-				SpawnControllerObject:SetControlledNPC(ent)
-				SpawnControllerObject:Spawn()
-				SpawnControllerObject:StartControlling()
-			end
-		end)
+		if self.VJ_Controlled then
+			local cont = self.VJ_Controller:GetPlayer()
+			timer.Simple(0.12,function()
+				if IsValid(cont) && IsValid(ent) then
+					local SpawnControllerObject = ents.Create("obj_vj_controller")
+					SpawnControllerObject:SetPlayer(cont)
+					SpawnControllerObject:SetControlledNPC(ent)
+					SpawnControllerObject:Spawn()
+					SpawnControllerObject:StartControlling()
+				end
+			end)
+		end
 		if (class == "npc_vj_avp_kxeno_predalien" or class == "npc_vj_avp_xeno_predalien" or class == "npc_vj_avp_xeno_superpredalien") then
 			for _,v in pairs(ents.FindByClass("npc_vj_avp_pred*")) do
-				if IsValid(v) && IsValid(v.VJ_TheController) then
-					v.VJ_TheController:ChatPrint("[Incoming Transmission] An Abomination has been detected in your area. Dispatch of the foul creature immediately!")
+				if IsValid(v) && v.VJ_Controlled && IsValid(v.VJ_Controller:GetPlayer()) then
+					v.VJ_Controller:GetPlayer():ChatPrint("[Incoming Transmission] An Abomination has been detected in your area. Dispatch of the foul creature immediately!")
 				end
 			end
 		end

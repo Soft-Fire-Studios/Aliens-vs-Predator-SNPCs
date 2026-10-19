@@ -515,7 +515,7 @@ if SERVER then
 
 	hook.Add("Think","VJ_AVP_HUD_Setup",function()
 		for _,ply in player.Iterator() do
-			if ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJ_IsControllingNPC && ply:Alive() && !GetConVar("ai_ignoreplayers"):GetBool() && ply:GetInfoNum("vj_avp_hud_ping",1) == 1 then
+			if ply:GetInfoNum("vj_avp_hud",0) == 1 && !ply.VJ_Controlling && ply:Alive() && !GetConVar("ai_ignoreplayers"):GetBool() && ply:GetInfoNum("vj_avp_hud_ping",1) == 1 then
 				VJ_AVP_MotionTracker(ply)
 			end
 		end
@@ -869,7 +869,7 @@ else
 	end)
 
 	hook.Add("PlayerBindPress","VJ.AVP.BindPressFix",function(ply,bind,pressed)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_NPC then
+		if ply.VJ_Controlling && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC.VJ_AVP_NPC then
 			if bind == "invprev" or bind == "invnext" then
 				return true
 			end
@@ -880,7 +880,7 @@ else
 		local ply = LocalPlayer()
 		if IsValid(ply) then
 			local possessing = ply.VJCE_NPC
-			if ply.VJ_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) && possessing.VJ_AVP_ViewModelData then
+			if ply.VJ_Controlling && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) && possessing.VJ_AVP_ViewModelData then
 				local att = vm:LookupAttachment("pov")
 				local data = possessing.VJ_AVP_ViewModelData
 				local pos2 = data.origin
@@ -924,8 +924,8 @@ else
 	
 	hook.Add("PreDrawViewModel","VJ_AVP_ViewModel",function(vm,ply)
 		local possessing = ply.VJCE_NPC
-		-- print(ply,ply.VJ_IsControllingNPC)
-		if ply.VJ_IsControllingNPC && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) then
+		-- print(ply,ply.VJ_Controlling)
+		if ply.VJ_Controlling && IsValid(possessing) && (possessing.VJ_AVP_Predator or possessing.VJ_AVP_Xenomorph) then
 			if !IsValid(possessing:GetVM()) or ply.VJC_Camera_Mode != 2 then
 				return true
 			end
@@ -1677,7 +1677,7 @@ if SERVER then
 		local dmgFinal = dmgMax
 		local hitEnts = {}
 		for _, v in ipairs((isnumber(extraOptions.UseConeDegree) and ents.FindInCone(startPos, extraOptions.UseConeDirection or attacker:GetForward(), dmgRadius, math.cos(math.rad(extraOptions.UseConeDegree or 90)))) or ents.FindInSphere(startPos, dmgRadius)) do
-			if (v.IsVJBaseBullseye && v.VJ_IsBeingControlled) or v.VJ_IsControllingNPC then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
+			if (v.IsVJBaseBullseye && v.VJ_Controlled) or v.VJ_Controlling then continue end -- Don't damage bulleyes used by the NPC controller OR entities that are controlling others (Usually players)
 			local nearestPos = startPos == attacker:GetPos() && VJ.GetNearestPositions(attacker, v) or v:NearestPoint(startPos) -- From the enemy position to the given position
 			-- local nearestPos = v:NearestPoint(startPos) -- From the enemy position to the given position
 			if realisticRadius != false then -- Decrease damage from the nearest point all the way to the enemy point then clamp it!
@@ -1827,11 +1827,11 @@ if SERVER then
 	util.AddNetworkString("VJ.AVP.PlayerHUDDamage")
 	util.AddNetworkString("VJ.AVP.XenoEat")
 	hook.Add("EntityTakeDamage","VJ_AVP_MarinePlayer_HUD",function(ent,dmginfo)
-		if (ent:IsPlayer() or (ent:IsNPC() && ent.VJ_AVP_NPC && ent.VJ_IsBeingControlled)) && math.random(1,dmginfo:IsBulletDamage() && 5 or 2) == 1 then
+		if (ent:IsPlayer() or (ent:IsNPC() && ent.VJ_AVP_NPC && ent.VJ_Controlled)) && math.random(1,dmginfo:IsBulletDamage() && 5 or 2) == 1 then
 			local dmg = tonumber(dmginfo:GetDamage())
 			net.Start("VJ.AVP.PlayerHUDDamage")
 				net.WriteInt(dmg,16)
-			net.Send(ent:IsNPC() && ent.VJ_TheController or ent)
+			net.Send(ent:IsNPC() && ent.VJ_Controller:GetPlayer() or ent)
 		end
 	end)
 

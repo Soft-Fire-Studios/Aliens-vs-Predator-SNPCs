@@ -183,8 +183,8 @@ function ENT:Init()
 	end
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
+		if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+			local cent = ply.VJ_Controller
             if cent:GetNPC() == self then
                 cent:GetNPC():OnKeyPressed(ply,button)
             end
@@ -217,7 +217,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnKeyPressed(ply,key)
 	if key == KEY_SPACE && !self:IsBusy() then
-		local ply = self.VJ_TheController
+		local ply = self.VJ_Controller:GetPlayer()
 		if self:GetNavType() != NAV_GROUND then return end
 
 		local moving = self:IsMoving()
@@ -240,7 +240,7 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetMovementDirection()
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controller:GetPlayer()
 	if !IsValid(ply) then return end
 
 	local key_forward = ply:KeyDown(IN_FORWARD)
@@ -506,7 +506,7 @@ end
 function ENT:TranslateActivity(act)
 	if act == ACT_IDLE && (self.IsLatched or IsValid(self.Carrier)) then
 		return ACT_IDLE_ANGRY
-	elseif act == ACT_WALK && self.VJ_IsBeingControlled && !self.VJ_TheController:KeyDown(IN_WALK) then
+	elseif act == ACT_WALK && self.VJ_Controlled && !self.VJ_Controller:GetPlayer():KeyDown(IN_WALK) then
 		return ACT_RUN
 	end
 	return act
@@ -732,8 +732,8 @@ function ENT:OnThinkActive()
 		self.DisableChasingEnemy = CurTime() < self.StalkingAITime && dist <= 900 && IsValid(ent) && !ent:Visible(self)
 		self.ConstantlyFaceEnemy = self.DisableChasingEnemy
 
-		if IsValid(self.VJ_TheController) then
-			self.FootstepSoundTimerWalk = self.VJ_TheController:KeyDown(IN_WALK) && 0.2 or 0.1
+		if self.VJ_Controlled && IsValid(self.VJ_Controller:GetPlayer()) then
+			self.FootstepSoundTimerWalk = self.VJ_Controller:GetPlayer():KeyDown(IN_WALK) && 0.2 or 0.1
 		else
 			self.FootstepSoundTimerWalk = 0.2
 		end
@@ -772,7 +772,7 @@ function ENT:GiveBirth()
 	self:SetPos(self.LatchCorpse:GetPos() +self.LatchCorpse:GetUp() *10)
 	SafeRemoveEntity(self.LatchFakeFacehugger)
 	local ent,corpseEnt,xenoClass,predBurster,faction = self.LatchVictim, self.LatchCorpse, self.LatchCorpse.VJ_AVP_XenoClass, self.LatchCorpse.VJ_AVP_IsPredburster, self.LatchCorpse.VJ_AVP_Faction
-	if !IsValid(self.VJ_TheController) then
+	if !self.VJ_Controlled then
 		self:SetHealth(0)
 		self.DisableCorpseCleanUp = true
 		self:TakeDamage(5)
@@ -851,7 +851,6 @@ function ENT:GiveBirth()
 			ent:SetHealth(0)
 		end
 		corpseEnt:Remove()
-		local cont = self.VJ_TheController
 		self:Remove()
 		local chestburster = ents.Create(self.VJ_AVP_K_Xenomorph && "npc_vj_avp_kxeno_chestburster" or "npc_vj_avp_xeno_chestburster")
 		chestburster:SetPos(pos)
@@ -866,6 +865,7 @@ function ENT:GiveBirth()
 		if predBurster then
 			chestburster:SetSkin(1)
 		end
+		local cont = self.VJ_Controller:GetPlayer()
 		timer.Simple(0.12,function()
 			if IsValid(chestburster) then
 				chestburster.GodMode = false

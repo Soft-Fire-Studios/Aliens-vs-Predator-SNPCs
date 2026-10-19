@@ -159,7 +159,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
 	-- local act = ACT_RUN
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local standing = self.CurrentSet == 2
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
@@ -272,13 +272,13 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
-	local cont = self.VJ_TheController
 	local eneData = self.EnemyData
 	local dist = eneData.DistanceNearest
 	-- local dist = self.LastEnemyDistance
 	local isCrawling = self.CurrentSet == 1
-
-	if IsValid(cont) then
+	
+	if self.VJ_Controlled then
+		local cont = self.VJ_Controller:GetPlayer()
 		if cont:KeyDown(IN_ATTACK) && !cont:KeyDown(IN_WALK) && !cont:KeyDown(IN_SPEED) && !self:IsBusy() then
 			self:AttackCode(isCrawling)
 		elseif cont:KeyDown(IN_WALK) && cont:KeyDown(IN_ATTACK) && !self:IsBusy() then
@@ -375,10 +375,10 @@ function ENT:AttackCode(isCrawling,forceAttack)
 			self:PlayAnim("Predalien_Hybrid_claw_swipe_" .. self.AttackSide .. "_step_hit_or_miss",true,false,true)
 		end})
 	else
-		if forceAttack == 5 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+		if forceAttack == 5 or forceAttack == nil && !self.VJ_Controlled && math.random(1,4) == 1 then
 			self.AttackType = 5
 			self:PlayAnim("Predalien_Hybrid_heavy_attack_pound_fists",true,false,true)
-		elseif forceAttack == 4 or forceAttack == nil && !IsValid(self.VJ_TheController) && math.random(1,4) == 1 then
+		elseif forceAttack == 4 or forceAttack == nil && !self.VJ_Controlled && math.random(1,4) == 1 then
 			self.AttackType = 5
 			self:DoLeapAttack()
 		else
@@ -400,8 +400,8 @@ end
 function ENT:LongJumpCode(gotoPos,atk)
 	if self.InFatality then return true end
 	if self:IsBusy() then return true end
-	local ply = self.VJ_TheController
-	local bullseye = self.VJ_TheControllerBullseye
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
+	local bullseye = self.VJ_Controlled and self.VJ_Controller:GetBullseye()
 	local aimVec = IsValid(ply) && ply:GetAimVector()
 	local tr1
 	local canJump = true

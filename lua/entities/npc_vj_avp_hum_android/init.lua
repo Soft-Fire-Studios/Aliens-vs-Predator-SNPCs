@@ -140,7 +140,7 @@ end
 function ENT:OnThink2(curTime)
 	if !self.AllowCloaking or self.HasFallen then return end
 	local enemy = self:GetEnemy()
-	local cont = self.VJ_IsBeingControlled
+	local cont = self.VJ_Controlled
 	if self:GetCloaked() then
 		for _,v in ents.Iterator() do
 			if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI then

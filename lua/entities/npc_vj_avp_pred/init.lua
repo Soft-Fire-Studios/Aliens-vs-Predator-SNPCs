@@ -253,8 +253,8 @@ end)
 local toSeq = VJ.SequenceToActivity
 --
 function ENT:TranslateActivity(act)
-	if IsValid(self.VJ_TheController) then
-		local ply = self.VJ_TheController
+	if self.VJ_Controlled then
+		local ply = self.VJ_Controller:GetPlayer()
 		if act == ACT_IDLE && self.Cont_IsMoving then
 			self:SetPoseParameter("move_yaw", self.Cont_MoveDir or 0)
 			if self.IsBlocking or self:GetBeam() then
@@ -286,7 +286,7 @@ function ENT:TranslateActivity(act)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:SelectMovementActivity(act)
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local speargun = self:GetEquipment() == 5
 	if IsValid(ply) then
 		if ply:KeyDown(IN_WALK) then
@@ -444,7 +444,7 @@ function ENT:Controller_Initialize(ply,controlEnt)
 
 	local hookName = "VJ_AVP_Predator_SoundHook" .. npc:EntIndex()
 	hook.Add("EntityEmitSound", hookName, function(t)
-		if !IsValid(npc) or !IsValid(ply) or IsValid(npc) && !IsValid(npc.VJ_TheController) then
+		if !IsValid(npc) or !IsValid(ply) or IsValid(npc) && !npc.VJ_Controlled then
 			//print("Force removed sound hook")
 			hook.Remove("EntityEmitSound", hookName)
 			return
@@ -490,10 +490,10 @@ function ENT:Controller_Initialize(ply,controlEnt)
 		local npc = self:GetNPC()
 		local camera = self:GetCamera()
 		if (!camera:IsValid()) then self:StopControlling() return end
-		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_IsControllingNPC) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
-		if ply.VJ_IsControllingNPC != true then return end
+		if !IsValid(ply) /*or ply:KeyDown(IN_USE)*/ or ply:Health() <= 0 or (!ply.VJ_Controlling) or !IsValid(npc) or (npc:Health() <= 0) then self:StopControlling() return end
+		if ply.VJ_Controlling != true then return end
 		local curTime = CurTime()
-		if ply.VJ_IsControllingNPC && IsValid(npc) then
+		if ply.VJ_Controlling && IsValid(npc) then
 			local npcWeapon = npc:GetActiveWeapon()
 			self.VJC_NPC_LastPos = npc:GetPos()
 			ply:SetPos(self.VJC_NPC_LastPos + vecZ20) -- Set the player's location
@@ -741,7 +741,7 @@ function ENT:Init()
 					if IsValid(self) then
 						self:SetMaxYawSpeed(0)
 						self:SetAngles(Angle(0,oldAng.y,0))
-						timer.Simple(IsValid(self.VJ_TheController) && SoundDuration("cpthazama/avp/predator/intro.mp3") -1 or 0,function()
+						timer.Simple(self.VJ_Controlled && SoundDuration("cpthazama/avp/predator/intro.mp3") -1 or 0,function()
 							if IsValid(self) then
 								self:SetNoDraw(false)
 								self:DrawShadow(true)
@@ -756,9 +756,9 @@ function ENT:Init()
 								predmobile:ResetSequence("predator_intro")
 								self.PredShip = predmobile
 								self:DeleteOnRemove(predmobile)
-								local ply = self.VJ_TheController
-								local cont = self.VJ_TheControllerEntity
-								local bullseye = self.VJ_TheControllerBullseye
+								local cont = self.VJ_Controlled and self.VJ_Controller or NULL
+								local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
+								local bullseye = self.VJ_Controlled and self.VJ_Controller:GetBullseye()
 								self:PlayAnimation("predator_intro",true,false,false,0,{OnFinish=function()
 									self.EnemyDetection = true
 									self:SetState()
@@ -770,10 +770,10 @@ function ENT:Init()
 									self:SetDoingIntro(false)
 									if IsValid(ply) then
 										ply:SetEyeAngles(Angle(0,self:GetAngles().y,0))
-										self.VJ_IsBeingControlled = true
-										self.VJ_TheController = ply
-										self.VJ_TheControllerEntity = cont
-										self.VJ_TheControllerBullseye = bullseye
+										self.VJ_Controlled = true
+										self.VJ_Controller = cont
+										cont:SetPlayer(ply)
+										cont:SetBullseye(bullseye)
 									end
 								end})
 							end
@@ -785,8 +785,8 @@ function ENT:Init()
 	end)
 
 	hook.Add("PlayerButtonDown", self, function(self, ply, button)
-		if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-			local cent = ply.VJ_TheControllerEntity
+		if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+			local cent = ply.VJ_Controller
             if cent:GetNPC() == self then
                 cent:GetNPC():OnKeyPressed(ply,button)
             end
@@ -803,7 +803,7 @@ function ENT:IsBusy(checkType)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:ChangeEquipment(equip)
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if equip == 1 then
 		self:SetEquipment(1)
 		self:SetPoseParameter("speargun_pitch",0)
@@ -951,7 +951,7 @@ function ENT:OnKeyPressed(ply,key)
 		local tr = util.TraceHull({
 			start = self:EyePos(),
 			endpos = self:EyePos() +ply:GetAimVector() *6000,
-			filter = {self,ply,self.VJ_TheControllerBullseye,ply:GetViewModel(),ply:GetActiveWeapon()},
+			filter = {self,ply,self.VJ_Controller:GetBullseye(),ply:GetViewModel(),ply:GetActiveWeapon()},
 			mins = Vector(-10,-10,-10),
 			maxs = Vector(10,10,10)
 		})
@@ -967,7 +967,7 @@ function ENT:OnKeyPressed(ply,key)
 			self.NextHealT = CurTime() +3
 		end
 	elseif key == KEY_SPACE && !self:IsBusy() then
-		local ply = self.VJ_TheController
+		local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 		if IsValid(ply) && ply:KeyDown(IN_SPEED) or self:GetNavType() != NAV_GROUND then return end
 
 		local moving = self:DoingMovement()
@@ -998,7 +998,7 @@ function ENT:OnKeyPressed(ply,key)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetMovementDirection()
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if !IsValid(ply) then return end
 
 	local key_forward = ply:KeyDown(IN_FORWARD)
@@ -1104,7 +1104,7 @@ end
 function ENT:OnThinkAttack(isAttacking, enemy)
 	if self.InFatality or self.DoingFatality then return end
 	local equipment = self:GetEquipment()
-	local cont = self.VJ_TheController
+	local cont = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local eneData = self.EnemyData
 	local dist = eneData.DistanceNearest
 	local vis = eneData.Visible
@@ -1363,14 +1363,14 @@ function ENT:SpecialAttackCode(atk)
 		VJ.EmitSound(self,"cpthazama/avp/weapons/predator/plasma_caster/plasma_caster_charge_05.ogg",80)
 		-- local _,dur = self:PlayAnimation("vjges_predator_plasma_caster_extend",true,false,true,0,{AlwaysUseGesture=true,OnFinish=function(interrupted)
 		-- 	if interrupted then self:SetBeam(false) self.PoseParameterLooking_Names = {pitch={"aim_pitch"}, yaw={"aim_yaw"}, roll={}} return end
-		-- 	if !IsValid(self.VJ_TheController) then
+		-- 	if !self.VJ_Controlled then
 		-- 		self:FirePlasmaCaster()
 		-- 	end
 		-- end})
 		self.PlasmaFireDelayT = CurTime() +0.1
-		if !IsValid(self.VJ_TheController) then
+		if !self.VJ_Controlled then
 			timer.Simple(1,function()
-				if IsValid(self) && !IsValid(self.VJ_TheController) then
+				if IsValid(self) && !self.VJ_Controlled then
 					self:FirePlasmaCaster()
 				end
 			end)
@@ -1448,7 +1448,7 @@ function ENT:SpecialAttackCode(atk)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:GetViewModel()
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	if IsValid(ply) && IsValid(ply.VJ_AVP_ViewModel) then
 		return ply.VJ_AVP_ViewModel
 	end
@@ -1535,11 +1535,11 @@ function ENT:RunDamageCode(mult)
 	if #hitEnts > 0 then
 		self:OnHit(hitEnts)
 	else
-		local atkEnt = IsValid(self.VJ_TheController) && self.VJ_TheController or self
+		local atkEnt = self.VJ_Controlled and self.VJ_Controller:GetPlayer() or self
 		local tr = util.TraceLine({
 			start = self:EyePos(),
 			endpos = self:EyePos() +atkEnt:GetAimVector() *self.AttackDamageDistance,
-			filter = {self,atkEnt,self.VJ_TheControllerBullseye},
+			filter = {self,atkEnt,self.VJ_Controlled and self.VJ_Controller:GetBullseye()},
 			mask = MASK_SOLID_BRUSHONLY
 		})
 		if tr.Hit && metallicMats[tr.MatType] then
@@ -1588,8 +1588,8 @@ local math_clamp = math.Clamp
 --
 function ENT:LongJumpCode(gotoPos,atk)
 	if self.InFatality or self:IsBusy() or !self:OnGround() or CurTime() < self.SpecialBlockAnimTime or CurTime() < self.BlockPreventionT then return true end
-	local ply = self.VJ_TheController
-	local bullseye = self.VJ_TheControllerBullseye
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
+	local bullseye = self.VJ_Controlled and self.VJ_Controller:GetBullseye()
 	local aimVec = IsValid(ply) && ply:GetAimVector()
 	local tr1
 	local canJump = true
@@ -1848,8 +1848,8 @@ function ENT:OnInput(key,activator,caller,data)
 		self.LongJumping = true
 		VJ.CreateSound(self,self.SoundTbl_Jump,75)
 		VJ.EmitSound(self,"cpthazama/avp/predator/jump/prd_jump_force_3rdp_0" .. math.random(1,5) .. ".ogg",70)
-		if IsValid(self.VJ_TheController) then
-			VJ_AVP_CSound(self.VJ_TheController,"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg")
+		if self.VJ_Controlled then
+			VJ_AVP_CSound(self.VJ_Controller:GetPlayer(),"cpthazama/avp/predator/adrenalin/adrenalin_turn_on_0" .. math.random(1,5) .. ".ogg")
 		end
 	elseif key == "jump_end" then
 		self.LongJumping = false
@@ -1907,10 +1907,10 @@ function ENT:OnInput(key,activator,caller,data)
 	elseif key == "stimpack_use" then
 		self:SetHealth(self:GetMaxHealth())
 		self:SetStimCount(self:GetStimCount() -1)
-		if IsValid(self.VJ_TheController) then
+		if self.VJ_Controlled && IsValid(self.VJ_Controller:GetPlayer()) then
 			net.Start("VJ_AVP_PredHealthStab")
-				net.WriteEntity(self.VJ_TheController)
-			net.Send(self.VJ_TheController)
+				net.WriteEntity(self.VJ_Controller:GetPlayer())
+			net.Send(self.VJ_Controller:GetPlayer())
 		end
 		VJ.EmitSound(self,"cpthazama/avp/predator/health/prd_health_jab_01.ogg",75)
 	elseif key == "stimpack_scream" then
@@ -1930,7 +1930,7 @@ function ENT:OnInput(key,activator,caller,data)
 
 		if self:GetEnergy() >= 50 then
 			local att = self:GetAttachment(self:LookupAttachment("Pred_Mine"))
-			local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():GetPos() or self:GetPos() +self:GetForward() *225
+			local targetPos = self.VJ_Controlled and self:GetEnemy():GetPos() or self:GetPos() +self:GetForward() *225
 			local targetAng = (targetPos -att.Pos):Angle()
 			local proj = ents.Create("obj_vj_avp_projectile")
 			proj.Model = "models/cpthazama/avp/predators/equipment/mine.mdl"
@@ -2026,7 +2026,7 @@ function ENT:OnInput(key,activator,caller,data)
 			-- ParticleEffectAttach("vj_avp_predator_plasma_proj",PATTACH_POINT_FOLLOW,proj,0)
 
 			local phys = proj:GetPhysicsObject()
-			local targetPos = IsValid(self.VJ_TheController) && (self:GetEnemy():GetPos() +self:GetUp() *-35) or self:EyePos() +self:GetForward() *600
+			local targetPos = self.VJ_Controlled and (self:GetEnemy():GetPos() +self:GetUp() *-35) or self:EyePos() +self:GetForward() *600
 			local targetAng = (targetPos -proj:GetPos()):Angle()
 			targetPos = self:GetPos() +targetAng:Forward() *600
 			if IsValid(phys) then
@@ -2058,7 +2058,7 @@ function ENT:OnInput(key,activator,caller,data)
 	elseif key == "disc_throw" then
 		SafeRemoveEntity(self.Disc)
 		local att = self:GetAttachment(self:LookupAttachment("battledisc"))
-		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *500
+		local targetPos = self.VJ_Controlled and self:GetEnemy():GetPos() or self:EyePos() +self:GetForward() *500
 		local targetAng = (targetPos -att.Pos):Angle()
 		local proj = ents.Create("obj_vj_avp_pred_disc")
 		proj:SetPos(att.Pos)
@@ -2078,7 +2078,7 @@ function ENT:OnInput(key,activator,caller,data)
 	elseif key == "spear_throw" then
 		SafeRemoveEntity(self.SpearProp)
 		local att = self:GetAttachment(self:LookupAttachment("spear"))
-		local targetPos = IsValid(self.VJ_TheController) && self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
+		local targetPos = self.VJ_Controlled and self:GetEnemy():EyePos() or self:EyePos() +self:GetForward() *2000
 		local targetAng = (targetPos -att.Pos):Angle()
 		-- targetPos = self:GetPos() +targetAng:Forward() *2000
 		local proj = ents.Create("obj_vj_avp_pred_spear")
@@ -2270,8 +2270,8 @@ function ENT:OnGrabSpear(ent)
 	self:SetSpear(nil)
 	self:PlaySound({"^cpthazama/avp/predator/vocals/pred_laugh_taunt_bill.ogg","^cpthazama/avp/predator/vocals/pred_laugh_taunt_glenn.ogg"},80)
 
-	-- if IsValid(self.VJ_TheController) then
-	-- 	self.VJ_TheController:ChatPrint("[Dev] Grabbed Combi-Stick!")
+	-- if self.VJ_Controlled then
+	-- 	self.VJ_Controller:GetPlayer():ChatPrint("[Dev] Grabbed Combi-Stick!")
 	-- end
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -2472,13 +2472,13 @@ function ENT:OnThinkActive()
 	end
 	self:SetArrivalSpeed(9999)
 	// wtf....
-	if self.VJ_IsBeingControlled then
-		self:SetEnemy(self.VJ_TheControllerBullseye)
+	if self.VJ_Controlled then
+		self:SetEnemy(self.VJ_Controller:GetBullseye())
 	end
 	local curTime = CurTime()
 	local dist = self.EnemyData.DistanceNearest
 	-- local moveAct = self:SelectMovementActivity(dist)
-	local ply = self.VJ_TheController
+	local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 	local transAct = self:GetSequenceActivity(self:GetIdealSequence())
 	local sprinting = (transAct == ACT_SPRINT or transAct == ACT_MP_SPRINT or transAct == ACT_HL2MP_SWIM_SMG1) or self.AI_IsSprinting
 
@@ -2576,7 +2576,7 @@ function ENT:OnThinkActive()
 			tr = util.TraceHull({
 				start = att.Pos,
 				endpos = att.Pos +ply:GetAimVector() *8000,
-				filter = {self,self.VJ_TheController,self.VJ_TheControllerBullseye},
+				filter = {self,ply,self.VJ_Controller:GetBullseye()},
 				mins = Vector(-8,-8,-8),
 				maxs = Vector(8,8,8),
 			})
@@ -2584,7 +2584,7 @@ function ENT:OnThinkActive()
 			tr = util.TraceHull({
 				start = att.Pos,
 				endpos = IsValid(self:GetEnemy()) && self:GetEnemy():EyePos() or att.Pos +self:GetForward() *8000,
-				filter = {self,self.VJ_TheController,self.VJ_TheControllerBullseye},
+				filter = {self,ply,self.VJ_Controlled and self.VJ_Controller:GetBullseye()},
 				mins = Vector(-8,-8,-8),
 				maxs = Vector(8,8,8),
 			})
@@ -2607,7 +2607,7 @@ function ENT:OnThinkActive()
 		if self:GetBeam() == true then
 			local closeDist = 999999
 			local closeEnt
-			for _,v in pairs(ents.FindInSphere(self.VJ_TheControllerBullseye:GetPos(),400)) do
+			for _,v in pairs(ents.FindInSphere(self.VJ_Controller:GetBullseye():GetPos(),400)) do
 				if (v:IsNPC() or v:IsNextBot()) && v:GetClass() != "obj_vj_bullseye" && self:CheckRelationship(v) != D_LI && self:GetPos():Distance(v:GetPos()) < closeDist then
 					closeEnt = v
 				end
@@ -2787,7 +2787,7 @@ function ENT:OnThinkActive()
 		end
 		if !IsValid(ply.VJ_AVP_ViewModel) then
 			ply.VJ_AVP_ViewModel = ply:Give("weapon_vj_avp_viewmodel")
-			self.VJ_TheControllerEntity:DeleteOnRemove(ply.VJ_AVP_ViewModel)
+			self.VJ_Controller:DeleteOnRemove(ply.VJ_AVP_ViewModel)
 		else
 			local wep = ply.VJ_AVP_ViewModel
 			ply.VJ_AVP_ViewModelNPC = self
@@ -2975,7 +2975,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:OnPlaySound(sdFile)
 	if VJ.HasValue(self.SoundTbl_Idle,sdFile) then
-		local ply = self.VJ_TheController
+		local ply = self.VJ_Controlled and self.VJ_Controller:GetPlayer()
 		if IsValid(ply) && IsValid(ply.VJ_AVP_ViewModel) then
 			local wep = ply.VJ_AVP_ViewModel
 			wep:OnPlaySound(sdFile)
@@ -3246,7 +3246,7 @@ function ENT:OnDamaged(dmginfo, hitgroup, status)
 				effectData:SetMagnitude(3)
 				effectData:SetScale(1)
 				util.Effect("ElectricSpark", effectData)
-				if self.AI_IsBlocking && !IsValid(self.VJ_TheController) && math.random(1,3) == 1 then
+				if self.AI_IsBlocking && !self.VJ_Controlled && math.random(1,3) == 1 then
 					self.AI_IsBlocking = false
 					self.IsBlocking = false
 					self:HeavyAttackCode()
@@ -3472,7 +3472,7 @@ function ENT:Controller_Movement(cont, ply, bullseyePos)
 end
 ---------------------------------------------------------------------------------------------------------------------------------------------
 function ENT:StartMovement(Dir, Rot)
-	local cont = self.VJ_TheControllerEntity
+	local cont = self.VJ_Controller
 	local ply = cont:GetPlayer()
 	if self:GetState() != VJ_STATE_NONE then return end
 
@@ -3511,7 +3511,7 @@ function ENT:StartMovement(Dir, Rot)
 			VJ.DEBUG_TempEnt(finalPos, cont:GetAngles(), Color(0, 255, 0)) -- Final move position
 		end
 		self:SetLastPosition(finalPos)
-		-- self:SetEnemy(self.VJ_TheControllerBullseye)
+		-- self:SetEnemy(self.VJ_Controller:GetBullseye())
 		self:SCHEDULE_GOTO_POSITION(ply:KeyDown(IN_SPEED) and "TASK_RUN_PATH" or "TASK_WALK_PATH", function(x)
 			if ply:KeyDown(IN_ATTACK2) && self.IsVJBaseSNPC_Human then
 				x.TurnData = {Type = VJ.FACE_ENEMY}
@@ -3537,7 +3537,7 @@ function ENT:RunAI() -- Called from the engine every 0.1 seconds
 	-- Apply walk frames to both activities and sequences
 	-- Parts of it replicate TASK_PLAY_SEQUENCE - https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/ai_basenpc_schedule.cpp#L3312
 	if !isMoving && self:GetSequenceMoveDist(self:GetSequence()) > 0 && ((self:GetSequence() == self:GetIdealSequence()) or (self:GetActivity() == ACT_DO_NOT_DISTURB)) && self.MovementType != VJ_MOVETYPE_AERIAL && self.MovementType != VJ_MOVETYPE_AQUATIC then
-		local sprintActive = IsValid(self.VJ_TheController) && self.Cont_IsMoving
+		local sprintActive = self.VJ_Controlled and IsValid(self.VJ_Controller:GetPlayer()) && self.Cont_IsMoving
 		if sprintActive or !sprintActive && !self:IsSequenceFinished() then
 			self:AutoMovement(self:GetAnimTimeInterval())
 		end

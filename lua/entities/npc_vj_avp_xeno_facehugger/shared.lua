@@ -42,7 +42,7 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 		local ply = LocalPlayer()
-		if ply.VJ_IsControllingNPC && ply.VJ_TheControllerEntity:GetNPC().VJ_AVP_Predator && ply.VJ_TheControllerEntity:GetNPC().PreviousVisionMode == 2 then
+		if ply.VJ_Controlling && ply.VJ_Controller:GetNPC().VJ_AVP_Predator && ply.VJ_Controller:GetNPC().PreviousVisionMode == 2 then
 		-- if ply:Health() == 100 then
 			self.HasResetMaterials = false
 			for i,v in pairs(self:GetMaterials()) do

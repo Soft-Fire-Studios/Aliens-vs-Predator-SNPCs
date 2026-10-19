@@ -903,7 +903,7 @@ end
 
 function ENT:StopPlayerController(ply)
     if !IsValid(ply) then return end
-    local controller = ply.VJ_TheControllerEntity
+    local controller = ply.VJ_Controller
     if IsValid(controller) then
         if controller.StopControlling then
             controller:StopControlling()

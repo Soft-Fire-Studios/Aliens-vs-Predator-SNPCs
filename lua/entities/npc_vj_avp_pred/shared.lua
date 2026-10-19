@@ -55,8 +55,8 @@ function ENT:UpdateTransmitState()
 end
 
 hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
-	if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
-		local cent = ply.VJ_TheControllerEntity
+	if ply.VJ_Controlling && IsValid(ply.VJ_Controller) then
+		local cent = ply.VJ_Controller
 		local npc = cent:GetNPC()
 		if !IsValid(npc) then return end
 		if npc.VJ_AVP_NPC then
@@ -154,8 +154,8 @@ if CLIENT then
 		timer.Simple(0.1,function()
 			if IsValid(self) then
 				local ply = LocalPlayer()
-				-- print(ply,ply.VJ_IsControllingNPC,ply.VJCE_NPC,self)
-				if ply.VJ_IsControllingNPC == true && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
+				-- print(ply,ply.VJ_Controlling,ply.VJCE_NPC,self)
+				if ply.VJ_Controlling && IsValid(ply.VJCE_NPC) && ply.VJCE_NPC == self then
 					self.CanDoIntro = GetConVar("vj_avp_predmobile"):GetBool()
 					if !self:GetDoingIntro() then
 						self.CanDoIntro = false
@@ -869,7 +869,7 @@ if CLIENT then
 	
 		if !IsValid(ent) then return end
 		local ply = LocalPlayer()
-		if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+		if !ply.VJ_Controlling or !IsValid(ply.VJCE_NPC) then return end
 		local npc = ply.VJCE_NPC
 		local fov = ply:GetFOV()
 		local isZoomed = fov != GetConVarNumber("fov_desired")
@@ -913,8 +913,7 @@ if CLIENT then
 				end
 			end
 		else
-			ent.VJ_TheControllerEntity = cont
-			ent.VJ_TheController = ply
+			ent.VJ_Controller = cont
 		end
 
 		local index = ent:EntIndex()
@@ -1590,7 +1589,7 @@ if CLIENT then
 				return false
 			end
 			if !IsValid(ply) or !IsValid(vm) then return false end
-			if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return false end
+			if !ply.VJ_Controlling or !IsValid(ply.VJCE_NPC) then return false end
 			local npc = ply.VJCE_NPC
 			if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 or npc:GetVisionMode() != 1 or vm != ply:GetViewModel() then return false end
 			local maskBG = npc:FindBodygroupByName("mask")
@@ -1954,7 +1953,7 @@ if CLIENT then
 
     hook.Add("PreDrawOpaqueRenderables","VJ.AVP.PredatorHUD.StencilMask",function()
         local ply = LocalPlayer()
-        if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+        if !ply.VJ_Controlling or !IsValid(ply.VJCE_NPC) then return end
         local npc = ply.VJCE_NPC
         if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 then return end
 
@@ -1986,7 +1985,7 @@ if CLIENT then
 
     hook.Add("PostDrawOpaqueRenderables", "VJ.AVP_PredatorHUD.StencilRender", function()
         local ply = LocalPlayer()
-        if !ply.VJ_IsControllingNPC or !IsValid(ply.VJCE_NPC) then return end
+        if !ply.VJ_Controlling or !IsValid(ply.VJCE_NPC) then return end
         local npc = ply.VJCE_NPC
         if !npc.VJ_AVP_Predator or ply.VJC_Camera_Mode != 2 then return end
 

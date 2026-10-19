@@ -256,7 +256,7 @@ function ENT:CanUseFatality(ent)
 	if !self.AnimTbl_Fatalities or !self.AnimTbl_FatalitiesResponse or !ent.AnimTbl_FatalitiesResponse then return false, false end
 	if CurTime() <= (self.NextFatalityTime or 0) then return false, false end
 
-	if VJ_AVP_FATALITIES_LOWHP && !IsValid(self.VJ_TheController) && ent:Health() > (ent:GetMaxHealth() * 0.25) then
+	if VJ_AVP_FATALITIES_LOWHP && !(self.VJ_Controlled && IsValid(pred.VJ_Controller:GetPlayer())) && ent:Health() > (ent:GetMaxHealth() * 0.25) then
 		return false, false
 	end
 
@@ -363,8 +363,8 @@ function ENT:DoFatality(ent, inFront)
 	ent:SetLocalVelocity(vecZero)
 	self:SetLocalVelocity(vecZero)
 
-	if IsValid(ent.VJ_TheController) then
-		VJ_AVP_CSound(ent.VJ_TheController, "cpthazama/avp/shared/grapple/grapple_sting_0" .. math.random(1, 5) .. ".ogg")
+	if ent.VJ_Controlled && IsValid(ent.VJ_Controller:GetPlayer()) then
+		VJ_AVP_CSound(ent.VJ_Controller:GetPlayer(), "cpthazama/avp/shared/grapple/grapple_sting_0" .. math.random(1, 5) .. ".ogg")
 	end
 	if self.OnHit then self:OnHit({ent}) end
 

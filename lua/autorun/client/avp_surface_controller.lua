@@ -29,8 +29,8 @@ local function RotateAroundAxis(vec, axis, degrees)
 end
 
 local function GetControlledNPC(ply)
-	if !IsValid(ply) or !ply.VJ_IsControllingNPC then return nil end
-	local controlEnt = ply.VJ_TheControllerEntity
+	if !IsValid(ply) or !ply.VJ_Controlling then return nil end
+	local controlEnt = ply.VJ_Controller
 	if !IsValid(controlEnt) then return nil end
 	if controlEnt.GetNPC then
 		local npc = controlEnt:GetNPC()
