@@ -504,6 +504,7 @@ function ENT:OnDeath(dmginfo, hitgroup, status)
 				corpsePhys:AddVelocity(Vector(math.Rand(-300, 300), math.Rand(-300, 300), math.Rand(150, 250)))
 				corpsePhys:AddAngleVelocity(Vector(math.Rand(-200, 200), math.Rand(-200, 200), math.Rand(-200, 200)))
 			end
+			SafeRemoveEntityDelayed(corpse, 60)
 			
 			local expPos2 = myPos + Vector(0, 0, math.Rand(150, 150))
 			ParticleEffect("vj_explosion2", expPos2, Angle())

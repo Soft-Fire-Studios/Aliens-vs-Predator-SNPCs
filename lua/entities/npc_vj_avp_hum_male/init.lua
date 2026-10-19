@@ -1534,6 +1534,16 @@ function ENT:OnThinkActive()
 
 	local ply = self.VJ_TheController
 	if IsValid(ply) then
+		-- if self.VJ_AVP_TDM then
+			-- local fEnts = self.FlashlightEntities
+			-- if fEnts then
+			-- 	for _, fEnt in ipairs(fEnts) do
+			-- 		if IsValid(fEnt) then
+			-- 			fEnt:SetLocalAngles(ply:EyeAngles())
+			-- 		end
+			-- 	end
+			-- end
+		-- end
 		local walk = ply:KeyDown(IN_WALK)
 		local sprint = ply:KeyDown(IN_SPEED)
 		if walk && self.Moveset != 1 then

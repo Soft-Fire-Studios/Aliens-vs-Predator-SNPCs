@@ -58,6 +58,7 @@ hook.Add("PlayerButtonDown","VJ_AVP_Predator_Buttons",function(ply,button)
 	if ply.VJ_IsControllingNPC == true && IsValid(ply.VJ_TheControllerEntity) then
 		local cent = ply.VJ_TheControllerEntity
 		local npc = cent:GetNPC()
+		if !IsValid(npc) then return end
 		if npc.VJ_AVP_NPC then
 			ply:AllowFlashlight(false)
 		end
@@ -928,6 +929,13 @@ if CLIENT then
 			IntroMaterial = nil,
 			IntroPhase = 0, -- 0 = Not started, 1 = Zoom Phase, 2 = Real-Game Zoom Phase, 3 = 3rd Person Pred-Mobile Phase, 4 = Finished
 		}
+		if ent.IntroData == nil then
+			ent.IntroData = {
+				DidIntro = false,
+				IntroMaterial = nil,
+				IntroPhase = 0, -- 0 = Not started, 1 = Zoom Phase, 2 = Real-Game Zoom Phase, 3 = 3rd Person Pred-Mobile Phase, 4 = Finished
+			}
+		end
 		ent.IntroData.IntroMaterial = materialList.Intro1
 		ent.IntroData.IntroColorLerp = Vector(0,0,0)
 		hook.Add("HUDPaint","VJ_AVP_Predator_HUD",function()

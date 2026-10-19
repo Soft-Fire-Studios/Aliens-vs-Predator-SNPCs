@@ -38,7 +38,7 @@ local function OGGSoundDuration(sndPath)
     if length > 0 && rate > 0 then
 		local dur = length /rate
 		oggCache[sndPath] = dur
-		//print("Sound: " .. sndPath .. " | Duration: " .. dur .. " seconds")
+		print("Sound: " .. sndPath .. " | Duration: " .. dur .. " seconds")
         return dur
     end
     return 0
